@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package dote.proto;
+
+
+message AddPodcastRequest {
+  string feedUrl = 1;
+}
+
+message AddPodcastResponse {
+  string title = 1;
+  string short_description = 2;
+}
