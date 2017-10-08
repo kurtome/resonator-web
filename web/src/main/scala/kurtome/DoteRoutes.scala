@@ -2,6 +2,8 @@ package kurtome
 
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.components.materialui.TextField
+import kurtome.components.views._
 import kurtome.views._
 import org.scalajs.dom
 
@@ -18,9 +20,10 @@ object DoteRoutes {
       import dsl._
       (emptyRule
         | staticRedirect("") ~> redirectToPage(Home)(Redirect.Replace)
-        | staticRoute("#home", Home) ~> render(HelloView.component("Shelly"))
-        | staticRoute("#not-found", PageNotFound) ~> render(
-          HelloView.component("who am iii??")))
+        | staticRedirect("#") ~> redirectToPage(Home)(Redirect.Replace)
+        | staticRedirect("#/") ~> redirectToPage(Home)(Redirect.Replace)
+        | staticRoute("#/home", Home) ~> render(AddPodcastView())
+        | staticRoute("#/not-found", PageNotFound) ~> render(HelloView.component("who am iii??")))
         .notFound(redirectToPage(PageNotFound)(Redirect.Replace))
         // Verify the Home route is used
         .verify(Home)

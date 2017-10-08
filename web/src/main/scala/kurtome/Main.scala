@@ -4,10 +4,12 @@ import dote.proto.addpodcast.AddPodcastRequest
 import kurtome.api.DoteProtoApi
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom
+
+import CssSettings._
+import scalacss.ScalaCssReact._
 
 object Main {
 
@@ -18,14 +20,15 @@ object Main {
       .build
 
   def main(args: Array[String]): Unit = {
+    Styles.addToDocument()
+
     val todoappNode =
       dom.document.body.getElementsByClassName("doteapp")(0).domAsHtml
     DoteRoutes.router().renderIntoDOM(todoappNode)
 
     HelloDummy.runApiRequests
 
-    DoteProtoApi.addPodcast(
-      AddPodcastRequest("http://feeds.gimletmedia.com/hearreplyall")) map {
+    DoteProtoApi.addPodcast(AddPodcastRequest("http://feeds.gimletmedia.com/hearreplyall")) map {
       response =>
         println(response.toString)
     }

@@ -10,8 +10,7 @@ import play.api.mvc._
   * application's home page.
   */
 @Singleton
-class HomeController @Inject()(cc: ControllerComponents)
-    extends AbstractController(cc) {
+class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
   /**
     * Create an Action to render an HTML page.
@@ -22,15 +21,14 @@ class HomeController @Inject()(cc: ControllerComponents)
     */
   def index() = Action { implicit request: Request[AnyContent] =>
     import views.html.helper.CSRF
-    Ok(views.html.main(CSRF.getToken, "Dote on Podcasts", jsBundleUrl("web")))
+    Ok(views.html.main(CSRF.getToken, "Podcasts", jsBundleUrl("web")))
   }
 
   /**
     * Route for ensuring random URLs go to the main client side app (which has not base route, uses # fragment routing)
     */
-  def redirectToRoot(route: String) = Action {
-    implicit request: Request[AnyContent] =>
-      Redirect("/")
+  def redirectToRoot(route: String) = Action { implicit request: Request[AnyContent] =>
+    Redirect("/")
   }
 
   def jsBundleUrl(projectName: String): Option[String] = {

@@ -21,15 +21,14 @@ object DoteProtoApi {
     })(request)
 
   def addPodcast(request: AddPodcastRequest) =
-    AjaxApiHelper.protoRequest(
-      new ProtoAction[AddPodcastRequest, AddPodcastResponse] {
-        override val route = "add-podcast"
+    AjaxApiHelper.protoRequest(new ProtoAction[AddPodcastRequest, AddPodcastResponse] {
+      override val route = "add-podcast"
 
-        override def serializeRequest(r: AddPodcastRequest) =
-          AddPodcastRequest.toByteArray(r)
+      override def serializeRequest(r: AddPodcastRequest) =
+        AddPodcastRequest.toByteArray(r)
 
-        override def parseResponse(r: Array[Byte]) =
-          AddPodcastResponse.parseFrom(r)
-      })(request)
+      override def parseResponse(r: Array[Byte]) =
+        AddPodcastResponse.parseFrom(r)
+    })(request)
 
 }

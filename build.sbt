@@ -41,12 +41,16 @@ lazy val web = (project in webBaseDir)
     libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-dom" % "0.9.2",
       "com.github.japgolly.scalajs-react" %%% "core" % "1.1.0",
-      "com.github.japgolly.scalajs-react" %%% "extra" % "1.1.0"
+      "com.github.japgolly.scalajs-react" %%% "extra" % "1.1.0",
+      "com.github.japgolly.scalacss" %%% "core" % "0.5.3",
+      "com.github.japgolly.scalacss" %%% "ext-react" % "0.5.3"
     ),
     // Pure javascript libraries
     npmDependencies in Compile ++= Seq(
       "react" -> "15.6.1",
-      "react-dom" -> "15.6.1"
+      "react-dom" -> "15.6.1",
+      "material-ui" -> "next", // Using "next" to use the 1.0 release while its in beta
+      "material-ui-icons" -> "1.0.0-beta.15"
     )
   )
   .dependsOn(sharedJs)
@@ -59,8 +63,7 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in sharedBaseDir)
     PB.protoSources in Compile += sharedBaseDir / "proto",
     PB.protoSources in Compile += target.value / "protobuf_external",
     // Configure locaion for gnerated proto source code.
-    PB.targets in Compile := Seq(
-      scalapb.gen() -> (sourceManaged in Compile).value),
+    PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value),
     libraryDependencies ++= Seq(
       "com.trueaccord.scalapb" %%% "scalapb-runtime" % com.trueaccord.scalapb.compiler.Version.scalapbVersion,
       "com.trueaccord.scalapb" %%% "scalapb-runtime" % com.trueaccord.scalapb.compiler.Version.scalapbVersion % "protobuf"

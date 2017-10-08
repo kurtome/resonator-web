@@ -22,13 +22,11 @@ private[api] object AjaxApiHelper {
     .getElementById("csrf-token-holder")
     .getAttribute("x-csrf-value")
 
-  def protoRequest[TRequest, TResponse](
-      action: ProtoAction[TRequest, TResponse])(
+  def protoRequest[TRequest, TResponse](action: ProtoAction[TRequest, TResponse])(
       request: TRequest): Future[TResponse] = {
     Ajax.post(
       url = baseUrl + action.route,
-      data = Ajax.InputData.byteBuffer2ajax(
-        ByteBuffer.wrap(action.serializeRequest(request))),
+      data = Ajax.InputData.byteBuffer2ajax(ByteBuffer.wrap(action.serializeRequest(request))),
       headers = Map(
         "Content-Type" -> "application/x-protobuf",
         "Csrf-Token" -> csrfToken
