@@ -40,6 +40,9 @@ object Grid {
     var item: js.UndefOr[Boolean] = js.native
     var spacing: js.UndefOr[Int] = js.native
     var xs: js.UndefOr[Int] = js.native
+    var sm: js.UndefOr[Int] = js.native
+    var md: js.UndefOr[Int] = js.native
+    var lg: js.UndefOr[Int] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
@@ -49,12 +52,18 @@ object Grid {
             spacing: js.UndefOr[Int] = js.undefined,
             justify: js.UndefOr[Justify.Value] = js.undefined,
             align: js.UndefOr[Align.Value] = js.undefined,
+            lg: js.UndefOr[Int] = js.undefined,
+            md: js.UndefOr[Int] = js.undefined,
+            sm: js.UndefOr[Int] = js.undefined,
             xs: js.UndefOr[Int] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.container = container
     p.item = item
     p.spacing = spacing
     p.xs = xs
+    p.sm = sm
+    p.md = md
+    p.lg = lg
     p.align = align map { _.toString }
     p.justify = justify map { _.toString }
 

@@ -11,7 +11,6 @@ import scala.scalajs.js.annotation._
   */
 object TextField {
 
-  //@JSName("TextField")
   @JSImport("material-ui/TextField/TextField.js", JSImport.Default)
   @js.native
   object RawComponent extends js.Object

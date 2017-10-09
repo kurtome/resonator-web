@@ -7,11 +7,10 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/text-field/
+  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/typography/
   */
-object Typograpy {
+object Typography {
 
-  //@JSName("TextField")
   @JSImport("material-ui/Typography/Typography.js", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
@@ -71,8 +70,8 @@ object Typograpy {
     p.color = color map { _.toString }
     p.`type` = typographyType map { _.toString }
     p.gutterBottom = gutterBottom
-    p.noWrap = gutterBottom
-    p.paragraph = gutterBottom
+    p.noWrap = noWrap
+    p.paragraph = paragraph
 
     component.withProps(p)
   }
