@@ -17,7 +17,6 @@ object Button {
   object RawComponent extends js.Object
 
   object Color extends Enumeration {
-    type Color = Value
     val Default = Value("default")
     val Primary = Value("primary")
     val Inherit = Value("inherit")
@@ -39,7 +38,7 @@ object Button {
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(color: js.UndefOr[Color.Color] = js.undefined,
+  def apply(color: js.UndefOr[Color.Value] = js.undefined,
             raised: js.UndefOr[Boolean] = js.undefined,
             disabled: js.UndefOr[Boolean] = js.undefined,
             disableRipple: js.UndefOr[Boolean] = js.undefined,

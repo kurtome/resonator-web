@@ -20,7 +20,8 @@ object TextField {
   @js.native
   trait Props extends js.Object {
     var autoFocus: js.UndefOr[Boolean] = js.native
-    var name: String = js.native
+    var name: js.UndefOr[String] = js.native
+    var value: js.UndefOr[String] = js.native
     var className: js.UndefOr[String] = js.native
     var defaultValue: js.UndefOr[String] = js.native
     var disabled: js.UndefOr[Boolean] = js.native
@@ -35,10 +36,12 @@ object TextField {
     var onChange: js.Function1[ReactEventFromInput, Unit] = js.native
   }
 
-  val component = JsComponent[Props, Children.None, Null](RawComponent)
+  val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
   def apply(autoFocus: js.UndefOr[Boolean] = js.undefined,
             fullWidth: js.UndefOr[Boolean] = js.undefined,
+            value: js.UndefOr[String] = js.undefined,
+            name: js.UndefOr[String] = js.undefined,
             placeholder: js.UndefOr[String] = js.undefined,
             label: js.UndefOr[String] = js.undefined,
             helperText: js.UndefOr[String] = js.undefined,
@@ -46,6 +49,8 @@ object TextField {
             className: js.UndefOr[String] = Styles.textField.className.value,
             margin: String = "normal") = {
     val p = (new js.Object).asInstanceOf[Props]
+    p.value = value
+    p.name = name
     p.autoFocus = autoFocus
     p.placeholder = placeholder
     p.label = label

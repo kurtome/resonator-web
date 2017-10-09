@@ -24,13 +24,7 @@ object Main {
 
     val todoappNode =
       dom.document.body.getElementsByClassName("doteapp")(0).domAsHtml
+
     DoteRoutes.router().renderIntoDOM(todoappNode)
-
-    HelloDummy.runApiRequests
-
-    DoteProtoApi.addPodcast(AddPodcastRequest("http://feeds.gimletmedia.com/hearreplyall")) map {
-      response =>
-        println(response.toString)
-    }
   }
 }
