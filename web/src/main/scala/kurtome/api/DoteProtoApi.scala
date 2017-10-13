@@ -1,7 +1,7 @@
 package kurtome.api
 
-import dote.proto.addpodcast.{AddPodcastRequest, AddPodcastResponse}
-import dote.proto.hello._
+import dote.proto.action.addpodcast._
+import dote.proto.action.hello._
 import kurtome.api.AjaxApiHelper.ProtoAction
 
 import scala.concurrent.Future

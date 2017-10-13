@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package dote.proto.model.doteentity;
+
+// Base type for all dotables
+message DoteEntity {
+  CommonInfo common = 1;
+
+  oneof details {
+    PodcastDetails podcast = 2;
+    PodcastEpisodeDetails podcast_episode = 3;
+  }
+}
+
+message CommonInfo {
+  string title = 1;
+  string descriptionHtml = 2;
+  string imageUrl = 3;
+  string created_by = 4;
+}
+
+message PodcastDetails {
+  repeated DoteEntity episodes = 1;
+}
+
+message PodcastEpisodeDetails {
+  string duration = 1;
+  int32 episodeNumber = 2;
+}

@@ -2,7 +2,7 @@ package controllers.api
 
 import javax.inject._
 
-import dote.proto.hello._
+import dote.proto.action.hello._
 import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
 

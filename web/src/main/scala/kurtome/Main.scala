@@ -1,14 +1,11 @@
 package kurtome
 
-import dote.proto.addpodcast.AddPodcastRequest
-import kurtome.api.DoteProtoApi
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom
-
 import CssSettings._
+
+import scala.scalajs.js.annotation.JSImport
 import scalacss.ScalaCssReact._
 
 object Main {

@@ -1,7 +1,7 @@
 package kurtome
 
-import dote.proto.hello._
-import kurtome.api.{AjaxApiHelper, DoteProtoApi}
+import dote.proto.action.hello._
+import kurtome.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js.Dynamic
