@@ -4,7 +4,7 @@ import japgolly.scalajs.react._
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
-import scalacss.internal.ClassName
+import scalacss.internal.StyleA
 
 /**
   * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/paper/
@@ -26,12 +26,12 @@ object Paper {
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
   def apply(elevation: js.UndefOr[Int] = js.undefined,
-            className: js.UndefOr[ClassName] = js.undefined,
+            className: js.UndefOr[StyleA] = js.undefined,
             square: js.UndefOr[Boolean] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.elevation = elevation
     p.square = square
-    p.className = className map { _.value }
+    p.className = className map { _.className.value }
 
     component.withProps(p)
   }

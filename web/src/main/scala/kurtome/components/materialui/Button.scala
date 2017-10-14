@@ -5,6 +5,7 @@ import kurtome.Styles
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
+import scalacss.internal.StyleA
 
 /**
   * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/button/
@@ -39,6 +40,7 @@ object Button {
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
   def apply(color: js.UndefOr[Color.Value] = js.undefined,
+            className: js.UndefOr[StyleA] = js.undefined,
             raised: js.UndefOr[Boolean] = js.undefined,
             disabled: js.UndefOr[Boolean] = js.undefined,
             disableRipple: js.UndefOr[Boolean] = js.undefined,
@@ -46,6 +48,7 @@ object Button {
             onClick: Callback = Callback.empty) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.color = color map { _.toString }
+    p.className = className map { _.className.value }
     p.onClick = onClick.toJsFn
     p.disabled = disabled
     p.disableRipple = disableRipple

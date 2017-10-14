@@ -5,6 +5,7 @@ import kurtome.Styles
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
+import scalacss.internal.StyleA
 
 /**
   * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/typography/
@@ -55,6 +56,7 @@ object Typography {
     var noWrap: js.UndefOr[Boolean] = js.native
     var paragraph: js.UndefOr[Boolean] = js.native
     var `type`: js.UndefOr[String] = js.native
+    var className: js.UndefOr[String] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
@@ -64,6 +66,7 @@ object Typography {
             gutterBottom: js.UndefOr[Boolean] = js.undefined,
             noWrap: js.UndefOr[Boolean] = js.undefined,
             paragraph: js.UndefOr[Boolean] = js.undefined,
+            className: js.UndefOr[StyleA] = js.undefined,
             typographyType: js.UndefOr[Type.Value] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.align = align map { _.toString }
@@ -72,6 +75,7 @@ object Typography {
     p.gutterBottom = gutterBottom
     p.noWrap = noWrap
     p.paragraph = paragraph
+    p.className = className map { _.className.value }
 
     component.withProps(p)
   }

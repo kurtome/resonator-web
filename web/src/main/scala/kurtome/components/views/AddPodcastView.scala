@@ -1,13 +1,12 @@
 package kurtome.components.views
 
 import dote.proto.action.addpodcast._
-import dote.proto.model.doteentity._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.Styles
 import kurtome.api.DoteProtoApi
 import kurtome.components.materialui._
-import kurtome.components.widgets.EntityTile
+import kurtome.components.widgets.{EntityDetails, EntityTile}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
@@ -19,15 +18,16 @@ object AddPodcastView {
   class Backend(bs: BackendScope[Unit, State]) {
     def render(s: State): VdomElement =
       <.div(
-        Grid(container = true, justify = Grid.Justify.Center, spacing = 24)(
+        Grid(container = true, justify = Grid.Justify.Center)(
           Grid(item = true, xs = 12, sm = 10, md = 8)(
             Grid(container = true, justify = Grid.Justify.Center, spacing = 24)(
-              Grid(item = true, xs = 6)(
-                Typography(typographyType = Typography.Type.Title)("Add Podcast")
+              Grid(item = true, xs = 12)(
+                Typography(className = Styles.titleText,
+                           typographyType = Typography.Type.Display1)("Add Podcast")
               ),
               Grid(item = true, xs = 12)(
-                Paper(className = Styles.paperContainer.className)(
-                  Grid(container = true)(
+                Paper(className = Styles.paperContainer)(
+                  Grid(container = true, spacing = 0)(
                     Grid(item = true, xs = 12, sm = 10, md = 8)(
                       TextField(
                         value = s.request.feedUrl,
@@ -43,7 +43,7 @@ object AddPodcastView {
                       )()
                     ),
                     Grid(item = true, xs = 12)(
-                      Grid(container = true, justify = Grid.Justify.FlexEnd)(
+                      Grid(container = true, spacing = 0, justify = Grid.Justify.FlexEnd)(
                         Grid(item = true)(
                           Button(
                             raised = true,
@@ -64,23 +64,25 @@ object AddPodcastView {
                 )
               ),
               Grid(item = true, xs = 12)(
-                Grid(container = true, justify = Grid.Justify.FlexStart)(
-                  Grid(item = true)(
-                    s.response.doteEntity match {
-                      case Some(entity) => {
-                        Fade(in = true, transitionDurationMs = 1000)(
-                          Grid(item = true, xs = 12)(
-                            Typography(typographyType = Typography.Type.SubHeading)(
-                              s"Added ${entity.common.get.title}"
-                            ),
-                            EntityTile.component(entity)
+                s.response.doteEntity match {
+                  case Some(entity) => {
+                    Fade(in = true, transitionDurationMs = 1000)(
+                      Grid(container = true, spacing = 0)(
+                        Grid(item = true, xs = 12)(
+                          Typography(typographyType = Typography.Type.SubHeading)(
+                            s"Added ${entity.common.get.title}"
                           )
+                        ),
+                        Grid(item = true, xs = 12)(
+                          EntityTile.component(entity)
+                        ),
+                        Grid(item = true, xs = 12)(
+                          EntityDetails.component(entity)
                         )
-                      }
-                      case None => ""
-                    }
-                  )
-                )
+                      ))
+                  }
+                  case None => ""
+                }
               )
             )
           )

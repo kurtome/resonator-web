@@ -1,13 +1,17 @@
 package controllers.api
 
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
+
 import akka.stream.scaladsl.{Flow, Keep, Sink}
 import akka.util.ByteString
 import com.trueaccord.scalapb.json.JsonFormat
 import com.trueaccord.scalapb.{GeneratedMessage, GeneratedMessageCompanion, Message}
+import play.api.Logger
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
 
@@ -26,10 +30,43 @@ abstract class ProtobufController[
 
   def protoAction() = Action.async(new ProtoParser) { implicit request: Request[TRequest] =>
     action(request.body) map { response =>
+      // See if request accepts gzip responses, web browsers will automatically inflate from gzip
+      // when the Content-Encoding header is set in the response below
+      val acceptsGzip = request.headers.get("Accept-Encoding").map { header =>
+        header.split(Array(' ', ',', ';')).contains("gzip")
+      } getOrElse false
+
       request.contentType map {
-        case "application/x-protobuf" => Ok(response.toByteArray)
-        case _ => Ok(JsonFormat.toJsonString(response))
+        case "application/x-protobuf" => {
+          if (acceptsGzip) {
+            Ok(gzip(response.toByteArray)).withHeaders("Content-Encoding" -> "gzip")
+          } else {
+            Ok(response.toByteArray)
+          }
+        }
+        case _ => {
+          if (acceptsGzip) {
+            Ok(gzip(JsonFormat.toJsonString(response).getBytes))
+              .withHeaders("Content-Encoding" -> "gzip")
+          } else {
+            Ok(JsonFormat.toJsonString(response))
+          }
+        }
       } get
+    }
+  }
+
+  private def gzip(bytes: Array[Byte]): Array[Byte] = {
+    val byteSteam = new ByteArrayOutputStream(bytes.size)
+    val gzipStream = new GZIPOutputStream(byteSteam)
+    try {
+      gzipStream.write(bytes)
+      gzipStream.close()
+      val zippedBytes = byteSteam.toByteArray
+      zippedBytes
+    } finally {
+      gzipStream.close()
+      byteSteam.close()
     }
   }
 

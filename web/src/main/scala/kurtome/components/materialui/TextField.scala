@@ -1,11 +1,10 @@
 package kurtome.components.materialui
 
 import japgolly.scalajs.react._
-import kurtome.Styles
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
-import scalacss.internal.ClassName
+import scalacss.internal.StyleA
 
 /**
   * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/text-field/
@@ -46,7 +45,7 @@ object TextField {
             label: js.UndefOr[String] = js.undefined,
             helperText: js.UndefOr[String] = js.undefined,
             onChange: ReactEventFromInput => Callback = _ => Callback.empty,
-            className: js.UndefOr[ClassName] = js.undefined,
+            className: js.UndefOr[StyleA] = js.undefined,
             margin: String = "normal") = {
     val p = (new js.Object).asInstanceOf[Props]
     p.value = value
@@ -55,7 +54,7 @@ object TextField {
     p.placeholder = placeholder
     p.label = label
     p.helperText = helperText
-    p.className = className map { _.value }
+    p.className = className map { _.className.value }
     p.margin = margin
     p.fullWidth = fullWidth
     p.onChange = (s: ReactEventFromInput) => onChange(s).runNow()
