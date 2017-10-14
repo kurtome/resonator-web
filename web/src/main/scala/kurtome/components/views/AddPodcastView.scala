@@ -74,7 +74,8 @@ object AddPodcastView {
                           )
                         ),
                         Grid(item = true, xs = 12)(
-                          EntityTile.component(entity)
+                          <.div(^.className := Styles.tileContainer.className.value,
+                                EntityTile.component(EntityTile.Props(entity = entity)))
                         ),
                         Grid(item = true, xs = 12)(
                           EntityDetails.component(entity)

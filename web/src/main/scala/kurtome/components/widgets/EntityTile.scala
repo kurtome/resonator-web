@@ -8,27 +8,26 @@ import kurtome.components.materialui._
 
 object EntityTile {
 
-  case class State(entity: DoteEntity)
+  case class Props(entity: DoteEntity, size: String = "175px")
 
-  class Backend(bs: BackendScope[DoteEntity, State]) {
-    def render(s: State): VdomElement =
+  class Backend(bs: BackendScope[Props, DoteEntity]) {
+    def render(props: Props, s: DoteEntity): VdomElement =
       Grid(container = true)(
         Grid(item = true)(
-          Paper(className = Styles.tileContainer, elevation = 8)(
+          Paper(elevation = 8)(
             <.img(^.className := Styles.nestedImg.className.value,
-                  ^.src := s.entity.common.get.imageUrl,
-                  ^.width := "175px",
-                  ^.height := "175px")
+                  ^.src := s.common.get.imageUrl,
+                  ^.width := props.size,
+                  ^.height := props.size)
           )
         )
       )
   }
 
   val component = ScalaComponent
-    .builder[DoteEntity](this.getClass.getSimpleName)
-    .initialState(State(DoteEntity()))
+    .builder[Props](this.getClass.getSimpleName)
+    .initialState(DoteEntity())
     .backend(new Backend(_))
-    .renderP((b, e) => b.backend.render(State(e)))
+    .renderP((builder, props) => builder.backend.render(props, props.entity))
     .build
-
 }

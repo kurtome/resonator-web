@@ -16,7 +16,7 @@ object Styles extends StyleSheet.Inline {
     marginBottom(spacingUnit * 3)
   )
 
-  val detailsContainer = style(
+  val detailsRoot = style(
     padding(spacingUnit * 2),
   )
 

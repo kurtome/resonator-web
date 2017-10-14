@@ -8,26 +8,20 @@ import kurtome.components.materialui._
 
 object EntityDetails {
 
-  case class State(entity: DoteEntity)
-
-  class Backend(bs: BackendScope[DoteEntity, State]) {
-    def render(s: State): VdomElement =
-      Paper(className = Styles.detailsContainer)(
+  class Backend(bs: BackendScope[DoteEntity, DoteEntity]) {
+    def render(props: DoteEntity, s: DoteEntity): VdomElement =
+      Paper(className = Styles.detailsRoot)(
         Grid(container = true)(
           Grid(item = true, xs = 4)(
             Typography(className = Styles.detailsTitle, typographyType = Typography.Type.Title)(
-              s.entity.common.get.title)
+              s.common.get.title)
           ),
           Grid(item = true, xs = 4)(
-            <.img(^.className := Styles.nestedImg.className.value,
-                  ^.src := s.entity.common.get.imageUrl,
-                  ^.width := "175px",
-                  ^.height := "175px",
-                  ^.alignSelf := "middle")
+            EntityTile.component(EntityTile.Props(s, size = "250px"))
           ),
           Grid(item = true, xs = 4)(),
           Grid(item = true, xs = 12)(
-            Typography(typographyType = Typography.Type.Body1)(s.entity.common.get.descriptionHtml)
+            Typography(typographyType = Typography.Type.Body1)(s.common.get.descriptionHtml)
           )
         )
       )
@@ -35,8 +29,8 @@ object EntityDetails {
 
   val component = ScalaComponent
     .builder[DoteEntity](this.getClass.getSimpleName)
-    .initialState(State(DoteEntity()))
+    .initialState(DoteEntity())
     .backend(new Backend(_))
-    .renderP((b, e) => b.backend.render(State(e)))
+    .renderPS((builder, props, state) => builder.backend.render(props, props))
     .build
 }
