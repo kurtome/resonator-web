@@ -45,7 +45,7 @@ object TextField {
             label: js.UndefOr[String] = js.undefined,
             helperText: js.UndefOr[String] = js.undefined,
             onChange: ReactEventFromInput => Callback = _ => Callback.empty,
-            className: js.UndefOr[StyleA] = js.undefined,
+            className: js.UndefOr[String] = js.undefined,
             margin: String = "normal") = {
     val p = (new js.Object).asInstanceOf[Props]
     p.value = value
@@ -54,7 +54,7 @@ object TextField {
     p.placeholder = placeholder
     p.label = label
     p.helperText = helperText
-    p.className = className map { _.className.value }
+    p.className = className
     p.margin = margin
     p.fullWidth = fullWidth
     p.onChange = (s: ReactEventFromInput) => onChange(s).runNow()

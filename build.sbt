@@ -65,9 +65,8 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in sharedBaseDir)
     // Define the location for proto source files.
     PB.protoSources in Compile += sharedBaseDir / "proto",
     PB.protoSources in Compile += target.value / "protobuf_external",
-    // Configure locaion for gnerated proto source code.
-    PB.targets in Compile := Seq(
-      scalapb.gen(flatPackage = true) -> (sourceManaged in Compile).value),
+    // Configure location for generated proto source code.
+    PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value),
     libraryDependencies ++= Seq(
       "com.trueaccord.scalapb" %%% "scalapb-runtime" % com.trueaccord.scalapb.compiler.Version.scalapbVersion,
       "com.trueaccord.scalapb" %%% "scalapb-runtime" % com.trueaccord.scalapb.compiler.Version.scalapbVersion % "protobuf"

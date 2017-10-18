@@ -1,6 +1,6 @@
 package kurtome.api
 
-import dote.proto.action.addpodcast._
+import dote.proto.action.add_podcast._
 import dote.proto.action.hello._
 import kurtome.api.AjaxApiHelper.ProtoAction
 

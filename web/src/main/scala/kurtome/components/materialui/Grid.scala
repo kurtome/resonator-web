@@ -48,7 +48,7 @@ object Grid {
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(className: js.UndefOr[StyleA] = js.undefined,
+  def apply(className: js.UndefOr[String] = js.undefined,
             container: js.UndefOr[Boolean] = js.undefined,
             item: js.UndefOr[Boolean] = js.undefined,
             spacing: js.UndefOr[Int] = js.undefined,
@@ -59,7 +59,7 @@ object Grid {
             sm: js.UndefOr[Int] = js.undefined,
             xs: js.UndefOr[Int] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
-    p.className = className map { _.className.value }
+    p.className = className
     p.container = container
     p.item = item
     p.spacing = spacing

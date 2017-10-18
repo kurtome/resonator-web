@@ -1,10 +1,11 @@
 package kurtome.components.widgets
 
-import dote.proto.model.doteentity.DoteEntity
+import dote.proto.model.dote_entity.DoteEntity
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.Styles
 import kurtome.components.materialui._
+import kurtome.components.ComponentHelpers._
 
 object EntityTile {
 
@@ -12,15 +13,11 @@ object EntityTile {
 
   class Backend(bs: BackendScope[Props, DoteEntity]) {
     def render(props: Props, s: DoteEntity): VdomElement =
-      Grid(container = true)(
-        Grid(item = true)(
-          Paper(elevation = 8)(
-            <.img(^.className := Styles.nestedImg.className.value,
-                  ^.src := s.common.get.imageUrl,
-                  ^.width := props.size,
-                  ^.height := props.size)
-          )
-        )
+      Paper(elevation = 8, className = Styles.inlineBlock)(
+        <.img(^.className := Styles.nestedImg.className.value,
+              ^.src := s.common.get.imageUrl,
+              ^.width := props.size,
+              ^.height := props.size)
       )
   }
 

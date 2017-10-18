@@ -3,8 +3,8 @@ package controllers.api
 import javax.inject._
 
 import controllers.podcast.PodcastFeedFetcher
-import dote.proto.action.addpodcast._
-import dote.proto.model.doteentity._
+import dote.proto.action.add_podcast._
+import dote.proto.model.dote_entity._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -66,7 +66,7 @@ object Typography {
             gutterBottom: js.UndefOr[Boolean] = js.undefined,
             noWrap: js.UndefOr[Boolean] = js.undefined,
             paragraph: js.UndefOr[Boolean] = js.undefined,
-            className: js.UndefOr[StyleA] = js.undefined,
+            className: js.UndefOr[String] = js.undefined,
             typographyType: js.UndefOr[Type.Value] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.align = align map { _.toString }
@@ -75,7 +75,7 @@ object Typography {
     p.gutterBottom = gutterBottom
     p.noWrap = noWrap
     p.paragraph = paragraph
-    p.className = className map { _.className.value }
+    p.className = className
 
     component.withProps(p)
   }

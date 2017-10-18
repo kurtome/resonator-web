@@ -2,6 +2,8 @@ package kurtome
 
 import CssSettings._
 
+import scala.scalajs.js
+
 object Styles extends StyleSheet.Inline {
   import dsl._
 
@@ -9,6 +11,16 @@ object Styles extends StyleSheet.Inline {
 
   val paperContainer = style(
     padding(spacingUnit * 2)
+  )
+
+  val centerContainer = style(
+    margin.auto,
+    display.table
+  )
+
+  val centerItem = style(
+    position.relative,
+    margin.auto
   )
 
   val tileContainer = style(
@@ -20,8 +32,16 @@ object Styles extends StyleSheet.Inline {
     padding(spacingUnit * 2),
   )
 
-  val detailsTitle = style(
+  val titleFieldContainer = style(
     textAlign.center,
+    display.grid,
+    alignContent.center,
+    alignItems.center
+  )
+
+  val detailsFieldContainer = style(
+    textAlign.left,
+    display.grid
   )
 
   val nestedImg = style(
@@ -36,5 +56,22 @@ object Styles extends StyleSheet.Inline {
   val titleText = style(
     textAlign.center,
     paddingTop(20 px)
+  )
+
+  val inlineBlock = style(
+    display.inlineBlock
+  )
+
+  val episodeList = style(
+    height(100 %%),
+    overflow.auto
+  )
+
+  val linearProgress = style(
+    width(100 %%)
+  )
+
+  val podcastDetailsTabContentsContainer = style(
+    height(400 px)
   )
 }

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package dote.proto.action.hello;
+package dote.proto.action;
 
 
 // The request message containing the user's name.
