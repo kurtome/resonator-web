@@ -130,7 +130,7 @@ class PodcastFeedFetcher @Inject()(ws: WSClient) { self =>
 
     tryParse match {
       case Failure(t) => Logger.error("", t)
-      case _          =>
+      case _ =>
     }
 
     tryParse.toOption

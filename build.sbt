@@ -5,7 +5,7 @@ version := "1.0-SNAPSHOT"
 val scalaV = "2.12.3"
 
 lazy val server = (project in file("server"))
-  .enablePlugins(PlayScala, WebScalaJSBundlerPlugin)
+  .enablePlugins(PlayScala, WebScalaJSBundlerPlugin, JavaAppPackaging)
   .settings(
     scalaVersion := scalaV,
     // Include JS output from web project

@@ -11,3 +11,4 @@ addSbtPlugin("ch.epfl.scala" % "sbt-web-scalajs-bundler" % "0.8.0")
 addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.12")
 
 
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0")
