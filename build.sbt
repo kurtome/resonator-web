@@ -5,7 +5,7 @@ version := "1.0-SNAPSHOT"
 val scalaV = "2.12.3"
 
 lazy val server = (project in file("server"))
-  .enablePlugins(PlayScala, WebScalaJSBundlerPlugin, JavaAppPackaging)
+  .enablePlugins(PlayScala, WebScalaJSBundlerPlugin)
   .settings(
     scalaVersion := scalaV,
     // Include JS output from web project
@@ -14,13 +14,29 @@ lazy val server = (project in file("server"))
     pipelineStages := Seq(digest, gzip),
     // triggers scalaJSPipeline when using compile or continuous compilation
     compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
+    // main class for fat jar
+    mainClass in assembly := Some("play.core.server.ProdServerStart"),
+    fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value),
     libraryDependencies ++= Seq(
       guice,
       ws,
       "com.vmunier" %% "scalajs-scripts" % "1.1.1",
       "com.trueaccord.scalapb" %% "scalapb-json4s" % "0.3.2",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
-    )
+    ),
+    assemblyMergeStrategy in assembly := {
+      // configure sbt-assembly to ignore class files included twice in dependency jars
+      // https://github.com/sbt/sbt-assembly#merge-strategy
+      case PathList("com", "google", "protobuf", xs @ _ *) => MergeStrategy.first
+      case PathList("play", "api", "libs", xs @ _ *) => MergeStrategy.first
+      case PathList("play", "reference-overrides.conf") => MergeStrategy.first
+      case x => {
+        // use the default for everything else
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+      }
+    },
+    assemblyJarName in assembly := "dote-web-server.jar"
 
     // Adds additional packages into Twirl
     //TwirlKeys.templateImports += "kurtome.controllers._"
@@ -68,8 +84,7 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in sharedBaseDir)
     // Configure location for generated proto source code.
     PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value),
     libraryDependencies ++= Seq(
-      "com.trueaccord.scalapb" %%% "scalapb-runtime" % com.trueaccord.scalapb.compiler.Version.scalapbVersion,
-      "com.trueaccord.scalapb" %%% "scalapb-runtime" % com.trueaccord.scalapb.compiler.Version.scalapbVersion % "protobuf"
+      "com.trueaccord.scalapb" %%% "scalapb-runtime" % com.trueaccord.scalapb.compiler.Version.scalapbVersion
     )
   )
   .jvmSettings()
@@ -84,3 +99,13 @@ onLoad in Global := (Command
 
 // Auto format with scalafmt on compile
 scalafmtOnCompile in ThisBuild := true
+
+lazy val assembleJarAndDeployToHeroku = taskKey[Unit]("Execute frontend scripts")
+
+assembleJarAndDeployToHeroku := {
+  val deploy =
+    ("heroku deploy:jar --app dote-web /Users/kmelby/github/kurtome/dote-web/server/target/scala-2.12/dote-web-server.jar" !)
+  ()
+}
+
+assembleJarAndDeployToHeroku := (assembleJarAndDeployToHeroku dependsOn (assembly in server)).value

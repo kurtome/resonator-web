@@ -18,8 +18,9 @@ private[api] object AjaxApiHelper {
     def parseResponse(response: Array[Byte]): TResponse
   }
 
-  val baseUrl = "http://localhost:9000/api/v1/"
-  val csrfToken = dom.document
+  val baseUrl: String = dom.window.location.protocol + "//" + dom.window.location.host + "/api/v1/"
+
+  val csrfToken: String = dom.document
     .getElementById("csrf-token-holder")
     .getAttribute("x-csrf-value")
 
