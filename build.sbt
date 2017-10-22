@@ -3,6 +3,8 @@ organization := "kurtome"
 version := "1.0-SNAPSHOT"
 
 val scalaV = "2.12.3"
+val postgresJdbcDriver
+  : ModuleID = "org.postgresql" % "postgresql" % "9.4-1200-jdbc41" exclude ("org.slf4j", "slf4j-simple")
 
 lazy val server = (project in file("server"))
   .enablePlugins(PlayScala, WebScalaJSBundlerPlugin)
@@ -22,6 +24,9 @@ lazy val server = (project in file("server"))
       ws,
       "com.vmunier" %% "scalajs-scripts" % "1.1.1",
       "com.trueaccord.scalapb" %% "scalapb-json4s" % "0.3.2",
+      "com.typesafe.play" %% "play-slick" % "3.0.1" exclude ("org.slf4j", "slf4j-simple"),
+      "com.typesafe.play" %% "play-slick-evolutions" % "3.0.1" exclude ("org.slf4j", "slf4j-simple"),
+      postgresJdbcDriver,
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
     ),
     assemblyMergeStrategy in assembly := {
@@ -44,7 +49,18 @@ lazy val server = (project in file("server"))
     // Adds additional packages into conf/routes
     // play.sbt.routes.RoutesKeys.routesImport += "kurtome.binders._"
   )
-  .dependsOn(sharedJvm)
+  .dependsOn(sharedJvm, slickCodegen)
+
+val slickCodegenBaseDir = file("slick-codegen")
+lazy val slickCodegen = (project in slickCodegenBaseDir)
+  .settings(
+    scalaVersion := scalaV,
+    libraryDependencies ++= Seq(
+      "com.typesafe.slick" %% "slick-codegen" % "3.2.1",
+      "com.typesafe.slick" %% "slick" % "3.2.1",
+      postgresJdbcDriver
+    )
+  )
 
 val webBaseDir = file("web")
 lazy val web = (project in webBaseDir)

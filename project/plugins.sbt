@@ -12,3 +12,6 @@ addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.12")
 
 // For deploying fat jar to heroku
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
+
+// For debugging transitive dependencies
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
