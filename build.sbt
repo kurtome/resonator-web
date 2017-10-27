@@ -22,11 +22,14 @@ lazy val server = (project in file("server"))
     libraryDependencies ++= Seq(
       guice,
       ws,
+      "org.picoworks" %% "pico-hashids" % "4.4.141",
       "com.vmunier" %% "scalajs-scripts" % "1.1.1",
       "com.trueaccord.scalapb" %% "scalapb-json4s" % "0.3.2",
       "com.typesafe.play" %% "play-slick" % "3.0.1" exclude ("org.slf4j", "slf4j-simple"),
       "com.typesafe.play" %% "play-slick-evolutions" % "3.0.1" exclude ("org.slf4j", "slf4j-simple"),
       postgresJdbcDriver,
+      "com.github.tminglei" %% "slick-pg" % "0.15.4",
+      "com.github.tminglei" %% "slick-pg_json4s" % "0.15.4",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
     ),
     assemblyMergeStrategy in assembly := {
@@ -58,6 +61,9 @@ lazy val slickCodegen = (project in slickCodegenBaseDir)
     libraryDependencies ++= Seq(
       "com.typesafe.slick" %% "slick-codegen" % "3.2.1",
       "com.typesafe.slick" %% "slick" % "3.2.1",
+      "com.github.tminglei" %% "slick-pg" % "0.15.4",
+      "com.github.tminglei" %% "slick-pg_json4s" % "0.15.4",
+      "org.json4s" %% "json4s-native" % "3.5.3",
       postgresJdbcDriver
     )
   )
@@ -108,10 +114,6 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in sharedBaseDir)
 
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
-
-// loads the server project at sbt startup
-onLoad in Global := (Command
-  .process("project server", _: State)) compose (onLoad in Global).value
 
 // Auto format with scalafmt on compile
 scalafmtOnCompile in ThisBuild := true

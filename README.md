@@ -3,7 +3,7 @@
 Compile and run the `server` project:
 
 ```
-sbt run
+sbt server/run
 ```
 
 Open <http://localhost:9000> in your browser
@@ -28,5 +28,5 @@ sbt dote-web/assembleJarAndDeployToHeroku
 
 2) Run Play and let it apply the evolution so it can keep track of the schema versioning in your db.
 
-3) Regenerate the slick scala Tables file by running `sbt slick-codegen/run`, which runs the main
+3) Regenerate the slick scala Tables file by running `sbt slickCodegen/run`, which runs the main
 class in that project.
