@@ -18,6 +18,7 @@ CREATE TABLE dotable (
   published_time TIMESTAMP NOT NULL,
   edited_time TIMESTAMP NOT NULL,
   parent_id BIGINT NULL REFERENCES dotable,
+  common JSONB NOT NULL,
   details JSONB NOT NULL,
   db_created_time TIMESTAMP NOT NULL DEFAULT current_timestamp,
   db_updated_time TIMESTAMP NOT NULL

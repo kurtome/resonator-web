@@ -107,10 +107,10 @@ object EntityDetails {
               List(dense = true, className = Styles.episodeList).withKey("list")(
                 (episodesByRecency(dotable) map { episode =>
                   ListItem(dense = true)(ListItemText(
-                    primary = episode.common.get.title,
+                    primary = episode.getCommon.title,
                     secondary =
                       s"${durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)}, ${epochSecToDate(
-                        episode.common.get.publishedEpochSec)}"
+                        episode.getCommon.publishedEpochSec)}"
                   )())
                 }).toVdomArray
               )

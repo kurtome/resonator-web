@@ -9,5 +9,5 @@ message AddPodcastRequest {
 }
 
 message AddPodcastResponse {
-  api.Dotable dote_entity = 1;
+  repeated api.Dotable podcasts = 1;
 }

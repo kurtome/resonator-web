@@ -2,7 +2,7 @@ package kurtome.dote.server.controllers.api
 
 import javax.inject._
 
-import kurtome.dote.server.controllers.podcast.PodcastFeedFetcher
+import kurtome.dote.server.controllers.podcast.{PodcastFeedFetcher, RssFetchedPodcast}
 import dote.proto.api.action.add_podcast._
 import dote.proto.api.dotable._
 import kurtome.dote.server.db.Database
@@ -19,14 +19,13 @@ class AddPodcastController @Inject()(cc: ControllerComponents,
   override def parseRequest(bytes: Array[Byte]) =
     AddPodcastRequest.parseFrom(bytes)
 
-  override def action(request: AddPodcastRequest) = {
-    val eventualPodcast: Future[Dotable] =
-      podcastFetcher.fetch(request.feedUrl)
+  override def action(request: AddPodcastRequest): Future[AddPodcastResponse] = {
+    val eventualPodcast: Future[Seq[RssFetchedPodcast]] = podcastFetcher.fetch(request.feedUrl)
 
-    eventualPodcast flatMap { e =>
-      database.ingestPodcast(e) map { _ =>
-        AddPodcastResponse(Option(e))
-      }
+    eventualPodcast flatMap { rssPodcasts =>
+      Future.sequence(rssPodcasts.map(database.ingestPodcast(_)))
+    } map { podcasts =>
+      AddPodcastResponse(podcasts)
     }
   }
 }

@@ -27,6 +27,7 @@ trait Tables {
     *  @param publishedTime Database column published_time SqlType(timestamp)
     *  @param editedTime Database column edited_time SqlType(timestamp)
     *  @param parentId Database column parent_id SqlType(int8)
+    *  @param common Database column common SqlType(jsonb)
     *  @param details Database column details SqlType(jsonb)
     *  @param dbCreatedTime Database column db_created_time SqlType(timestamp)
     *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp) */
@@ -37,6 +38,7 @@ trait Tables {
                         publishedTime: java.time.LocalDateTime,
                         editedTime: java.time.LocalDateTime,
                         parentId: Option[Long],
+                        common: org.json4s.JsonAST.JValue,
                         details: org.json4s.JsonAST.JValue,
                         dbCreatedTime: java.time.LocalDateTime,
                         dbUpdatedTime: java.time.LocalDateTime)
@@ -58,6 +60,7 @@ trait Tables {
        <<[java.time.LocalDateTime],
        <<?[Long],
        <<[org.json4s.JsonAST.JValue],
+       <<[org.json4s.JsonAST.JValue],
        <<[java.time.LocalDateTime],
        <<[java.time.LocalDateTime]))
   }
@@ -72,6 +75,7 @@ trait Tables {
        publishedTime,
        editedTime,
        parentId,
+       common,
        details,
        dbCreatedTime,
        dbUpdatedTime) <> (DotableRow.tupled, DotableRow.unapply)
@@ -85,6 +89,7 @@ trait Tables {
        Rep.Some(publishedTime),
        Rep.Some(editedTime),
        parentId,
+       Rep.Some(common),
        Rep.Some(details),
        Rep.Some(dbCreatedTime),
        Rep.Some(dbUpdatedTime)).shaped.<>(
@@ -93,7 +98,7 @@ trait Tables {
           _1.map(
             _ =>
               DotableRow.tupled(
-                (_1.get, _2.get, _3, _4, _5.get, _6.get, _7, _8.get, _9.get, _10.get)))
+                (_1.get, _2.get, _3, _4, _5.get, _6.get, _7, _8.get, _9.get, _10.get, _11.get)))
         },
         (_: Any) => throw new Exception("Inserting into ? projection not supported.")
       )
@@ -122,6 +127,9 @@ trait Tables {
 
     /** Database column parent_id SqlType(int8) */
     val parentId: Rep[Option[Long]] = column[Option[Long]]("parent_id")
+
+    /** Database column common SqlType(jsonb) */
+    val common: Rep[org.json4s.JsonAST.JValue] = column[org.json4s.JsonAST.JValue]("common")
 
     /** Database column details SqlType(jsonb) */
     val details: Rep[org.json4s.JsonAST.JValue] = column[org.json4s.JsonAST.JValue]("details")

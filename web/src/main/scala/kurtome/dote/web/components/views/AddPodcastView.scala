@@ -10,7 +10,6 @@ import kurtome.dote.web.components.widgets.{EntityDetails, EntityTile}
 import kurtome.dote.web.components.ComponentHelpers._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 object AddPodcastView {
@@ -23,7 +22,7 @@ object AddPodcastView {
     def render(s: State): VdomElement =
       <.div(
         Grid(container = true, justify = Grid.Justify.Center)(
-          Grid(item = true, xs = 12, sm = 10, md = 8)(
+          Grid(item = true, md = 12, lg = 8)(
             Grid(container = true, justify = Grid.Justify.Center, spacing = 24)(
               Grid(item = true, xs = 12)(
                 Typography(className = Styles.titleText,
@@ -79,13 +78,14 @@ object AddPodcastView {
                 )
               ),
               Grid(item = true, xs = 12)(
-                s.response.doteEntity match {
+                // TODO handle more than one response
+                s.response.podcasts.headOption match {
                   case Some(dotable) => {
                     Fade(in = true, transitionDurationMs = 1000)(
                       Grid(container = true, spacing = 0)(
                         Grid(item = true, xs = 12)(
                           Typography(typographyType = Typography.Type.SubHeading)(
-                            s"Added ${dotable.common.get.title}"
+                            s"Added ${dotable.getCommon.title}"
                           )
                         ),
                         Grid(item = true, xs = 12)(
