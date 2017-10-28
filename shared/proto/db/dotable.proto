@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package dote.proto.db;
+
+message DotableCommon {
+  string title = 1;
+  string description = 2;
+  int64 published_epoch_sec = 5;
+  int64 updated_epoch_sec = 6;
+}
+
+message DotableDetails {
+  message Podcast {
+    string imageUrl = 1;
+    string author = 2;
+    string website_url = 3;
+    string language_code = 4;
+    string language_display= 5;
+  }
+
+  message PodcastEpisode {
+    string rss_guid = 1;
+    int32 duration_sec = 2;
+    int32 episode_number = 3;
+    bool explicit = 4;
+
+    message Audio {
+      string url = 1;
+      string type = 2;
+      int64 size_bytes = 3;
+    }
+  }
+}

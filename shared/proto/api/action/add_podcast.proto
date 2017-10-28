@@ -1,13 +1,13 @@
 syntax = "proto3";
 
-package dote.proto.action;
+package dote.proto.api.action;
 
-import "model/dote_entity.proto";
+import "api/dotable.proto";
 
 message AddPodcastRequest {
   string feedUrl = 1;
 }
 
 message AddPodcastResponse {
-  model.DoteEntity dote_entity = 1;
+  api.Dotable dote_entity = 1;
 }

@@ -8,7 +8,8 @@ import java.time.format.DateTimeFormatter
 import java.time._
 import java.util.Locale
 
-import dote.proto.model.dote_entity._
+import dote.proto.api.dotable.Dotable
+import dote.proto.db.dotable._
 import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -20,7 +21,7 @@ class PodcastFeedFetcher @Inject()(ws: WSClient) { self =>
 
   val pubDateFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
 
-  def fetch(url: String): Future[DoteEntity] = {
+  def fetch(url: String): Future[Dotable] = {
     ws.url(url).get() map { response =>
       // Remove any spurious leading characters, which will break the parsing
       val xmlString = response.body.substring(response.body.indexOf('<'))
@@ -28,14 +29,14 @@ class PodcastFeedFetcher @Inject()(ws: WSClient) { self =>
     }
   }
 
-  private def parsePodcastRss(url: String, rssXml: String): DoteEntity = {
+  private def parsePodcastRss(url: String, rssXml: String): Dotable = {
     val channels = XML.loadString(rssXml) \ "channel"
     val podcasts = channels.map(parsePodcast(url, _))
     // TODO - support multi-channel RSS feeds for more than one podcast in the feed
     podcasts.head
   }
 
-  private def parsePodcast(url: String, podcast: Node): DoteEntity = {
+  private def parsePodcast(url: String, podcast: Node): Dotable = {
     val title: String = podcast \ "title"
     val description: String = podcast \ "description"
 
@@ -63,25 +64,29 @@ class PodcastFeedFetcher @Inject()(ws: WSClient) { self =>
     val episodeNodes = podcast \ "item"
     val episodes = episodeNodes map parseEpisode reverse
 
-    DoteEntity(
-      Option(
-        CommonInfo(
+    Dotable(
+      kind = Dotable.Kind.PODCAST,
+      common = Some(
+        DotableCommon(
           title = title,
-          descriptionHtml = description,
-          imageUrl = imageUrl,
-          createdBy = author,
-          publishedEpochSec = episodes.headOption.map(_.common.get.publishedEpochSec).getOrElse(0),
+          description = description,
+          publishedEpochSec = episodes.headOption.map(_.getCommon.publishedEpochSec).getOrElse(0),
           updatedEpochSec = episodes.lastOption.map(_.common.get.publishedEpochSec).getOrElse(0)
         )),
-      DoteEntity.Details.Podcast(
-        PodcastDetails(episodes = episodes,
-                       websiteUrl = websiteUrl,
-                       languageCode = languageCode,
-                       languageDisplay = languageDisplay))
+      relatives = Some(
+        Dotable.Relatives(
+          children = episodes
+        )),
+      details = Some(
+        toDetails(
+          DotableDetails.Podcast(websiteUrl = websiteUrl,
+                                 imageUrl = imageUrl,
+                                 languageCode = languageCode,
+                                 languageDisplay = languageDisplay)))
     )
   }
 
-  private def parseEpisode(episode: Node): DoteEntity = {
+  private def parseEpisode(episode: Node): Dotable = {
     val title: String = episode \ "title"
     val description: String = episode \ "summary"
     val author: String = episode \ "author"
@@ -89,18 +94,19 @@ class PodcastFeedFetcher @Inject()(ws: WSClient) { self =>
       Try(ZonedDateTime.from(pubDateFormatter.parse(episode \ "pubDate")).toEpochSecond).toOption
     val duration = parseDurationAsSeconds(episode \ "duration")
     val episodeNum = Try(Integer.parseInt(episode \ "episode")).toOption
+    val explicit: Boolean = parseExplicit(episode \ "explicit")
 
-    DoteEntity(
-      Option(
-        CommonInfo(title = title,
-                   descriptionHtml = description,
-                   createdBy = author,
-                   publishedEpochSec = pubDateEpochSec.getOrElse(0))),
-      DoteEntity.Details.PodcastEpisode(
-        PodcastEpisodeDetails(
-          durationSec = duration.getOrElse(0),
-          episodeNumber = episodeNum.getOrElse(0)
-        ))
+    Dotable(
+      common = Some(
+        DotableCommon(title = title,
+                      description = description,
+                      publishedEpochSec = pubDateEpochSec.getOrElse(0))),
+      details = Some(
+        toDetails(
+          DotableDetails.PodcastEpisode(
+            durationSec = duration.getOrElse(0),
+            episodeNumber = episodeNum.getOrElse(0)
+          )))
     )
   }
 
@@ -135,6 +141,19 @@ class PodcastFeedFetcher @Inject()(ws: WSClient) { self =>
 
     tryParse.toOption
   }
+
+  private def parseExplicit(s: String): Boolean = s match {
+    case "yes" => true
+    case _ => false
+  }
+
+  private def toDetails(podcast: DotableDetails.PodcastEpisode) = Dotable.Details(
+    details = Dotable.Details.Details.PodcastEpisode(podcast)
+  )
+
+  private def toDetails(podcast: DotableDetails.Podcast) = Dotable.Details(
+    details = Dotable.Details.Details.Podcast(podcast)
+  )
 
   /**
     * Automatically convert a node seq into the text content of the *first* element in the seq.

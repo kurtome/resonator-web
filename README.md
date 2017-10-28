@@ -1,3 +1,5 @@
+Other detailed documentation is in the [doc/](doc/) directory.
+
 # Running locally
 
 Compile and run the `server` project:

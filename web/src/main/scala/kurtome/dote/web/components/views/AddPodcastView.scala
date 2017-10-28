@@ -1,6 +1,6 @@
 package kurtome.dote.web.components.views
 
-import dote.proto.action.add_podcast._
+import dote.proto.api.action.add_podcast._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.Styles
@@ -80,20 +80,20 @@ object AddPodcastView {
               ),
               Grid(item = true, xs = 12)(
                 s.response.doteEntity match {
-                  case Some(entity) => {
+                  case Some(dotable) => {
                     Fade(in = true, transitionDurationMs = 1000)(
                       Grid(container = true, spacing = 0)(
                         Grid(item = true, xs = 12)(
                           Typography(typographyType = Typography.Type.SubHeading)(
-                            s"Added ${entity.common.get.title}"
+                            s"Added ${dotable.common.get.title}"
                           )
                         ),
                         Grid(item = true, xs = 12)(
                           <.div(^.className := Styles.tileContainer.className.value,
-                                EntityTile.component(EntityTile.Props(entity = entity)))
+                                EntityTile.component(EntityTile.Props(dotable = dotable)))
                         ),
                         Grid(item = true, xs = 12)(
-                          EntityDetails.component(entity)
+                          EntityDetails.component(dotable)
                         )
                       ))
                   }

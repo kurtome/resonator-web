@@ -3,8 +3,8 @@ package kurtome.dote.server.controllers.api
 import javax.inject._
 
 import kurtome.dote.server.controllers.podcast.PodcastFeedFetcher
-import dote.proto.action.add_podcast._
-import dote.proto.model.dote_entity._
+import dote.proto.api.action.add_podcast._
+import dote.proto.api.dotable._
 import kurtome.dote.server.db.Database
 import play.api.mvc._
 
@@ -20,7 +20,7 @@ class AddPodcastController @Inject()(cc: ControllerComponents,
     AddPodcastRequest.parseFrom(bytes)
 
   override def action(request: AddPodcastRequest) = {
-    val eventualPodcast: Future[DoteEntity] =
+    val eventualPodcast: Future[Dotable] =
       podcastFetcher.fetch(request.feedUrl)
 
     eventualPodcast flatMap { e =>

@@ -1,9 +1,7 @@
 package kurtome.dote.web.components.widgets
 
-import dote.proto.model.dote_entity.DoteEntity
+import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.component.Generic.{Mounted, Unmounted}
-import japgolly.scalajs.react.component.Js.Component
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.Styles
 import kurtome.dote.web.components.materialui._
@@ -22,48 +20,53 @@ object EntityDetails {
                                      summary: String = "",
                                      details: Seq[DetailField])
 
-  private def extractFields(entity: DoteEntity): ExtractedFields = {
-    val common = entity.common.get
-    entity.details match {
-      case podcast: DoteEntity.Details.Podcast =>
-        val latestEpisode = podcast.value.episodes.last
+  private def extractFields(dotable: Dotable): ExtractedFields = {
+    val common = dotable.getCommon
+    dotable.kind match {
+      case Dotable.Kind.PODCAST =>
+        val latestEpisode = dotable.getRelatives.children.head
+        val podcastDetails = dotable.getDetails.getPodcast
         ExtractedFields(
           title = common.title,
           subtitle = "",
-          summary = common.descriptionHtml,
+          summary = common.description,
           details = Seq(
-            DetailField("Latest Episode", latestEpisode.common.get.title),
-            DetailField("Creator", common.createdBy),
-            DetailField("Website", podcast.value.websiteUrl),
+            DetailField("Latest Episode", latestEpisode.getCommon.title),
+            DetailField("Creator", podcastDetails.author),
+            DetailField("Website", podcastDetails.websiteUrl),
             DetailField("Years",
                         epochSecRangeToYearRange(common.publishedEpochSec, common.updatedEpochSec),
             ),
-            DetailField("Language", podcast.value.languageDisplay)
+            DetailField("Language", podcastDetails.languageDisplay)
           )
         )
-      case episode: DoteEntity.Details.PodcastEpisode =>
+      case Dotable.Kind.PODCAST_EPISODE =>
+        val episodeDetails = dotable.getDetails.getPodcastEpisode
         ExtractedFields(
           title = common.title,
           subtitle = epochSecToDate(common.publishedEpochSec),
-          summary = common.descriptionHtml,
-          details = Seq(DetailField("Duration", durationSecToMin(episode.value.durationSec)))
+          summary = common.description,
+          details = Seq(DetailField("Duration", durationSecToMin(episodeDetails.durationSec)))
         )
     }
   }
 
-  private def episodesByRecency(entity: DoteEntity) = {
-    entity.details.podcast.get.episodes.reverse
+  private def episodesByRecency(dotable: Dotable) = {
+    dotable.kind match {
+      case Dotable.Kind.PODCAST => dotable.getRelatives.children.reverse
+      case _ => Nil
+    }
   }
 
   val func: js.Function2[Int, Boolean, Unit] = (i: Int, foo: Boolean) => {}
 
-  class Backend(bs: BackendScope[DoteEntity, State]) {
+  class Backend(bs: BackendScope[Dotable, State]) {
     def handleTabIndexChanged(e: js.Dynamic, newValue: Int) = {
       bs.modState(_.copy(tabIndex = newValue))
     }
 
-    def render(entity: DoteEntity, s: State): VdomElement = {
-      val fields = extractFields(entity)
+    def render(dotable: Dotable, s: State): VdomElement = {
+      val fields = extractFields(dotable)
 
       Paper(className = Styles.detailsRoot)(
         Grid(container = true, spacing = 24, align = Grid.Align.Center)(
@@ -73,7 +76,7 @@ object EntityDetails {
           ),
           Grid(item = true, xs = 12, lg = 4)(
             <.div(^.className := Styles.centerContainer.className.value,
-                  EntityTile.component(EntityTile.Props(entity, size = "250px")))
+                  EntityTile.component(EntityTile.Props(dotable, size = "250px")))
           ),
           Grid(item = true, xs = 12, lg = 4)(
             Typography(typographyType = Typography.Type.Body1)(fields.summary)
@@ -102,11 +105,11 @@ object EntityDetails {
               )
             } else {
               List(dense = true, className = Styles.episodeList).withKey("list")(
-                (episodesByRecency(entity) map { episode =>
+                (episodesByRecency(dotable) map { episode =>
                   ListItem(dense = true)(ListItemText(
                     primary = episode.common.get.title,
                     secondary =
-                      s"${durationSecToMin(episode.details.podcastEpisode.get.durationSec)}, ${epochSecToDate(
+                      s"${durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)}, ${epochSecToDate(
                         episode.common.get.publishedEpochSec)}"
                   )())
                 }).toVdomArray
@@ -119,7 +122,7 @@ object EntityDetails {
   }
 
   val component = ScalaComponent
-    .builder[DoteEntity](this.getClass.getSimpleName)
+    .builder[Dotable](this.getClass.getSimpleName)
     .initialState(State(0))
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))

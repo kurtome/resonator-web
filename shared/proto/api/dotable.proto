@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package dote.proto.api;
+
+import "db/dotable.proto";
+
+// Base type for all dotables
+message Dotable {
+  string id = 1;
+  db.DotableCommon common = 2;
+  Relatives relatives = 3;
+  repeated EntityTag tags = 4;
+  Kind kind = 5;
+  Details details = 6;
+
+  enum Kind {
+    UNKNOWN_KIND = 0;
+    PODCAST = 1;
+    PODCAST_EPISODE = 2;
+  }
+
+  message Details {
+    bool details_fetched = 1;
+    oneof details {
+      db.DotableDetails.Podcast podcast = 5;
+      db.DotableDetails.PodcastEpisode podcast_episode = 6;
+    }
+  }
+
+  message Relatives {
+    Dotable parent = 1;
+    bool parent_fetched = 2;
+    // Children may not be fetched, for tome types there are too many or in some cases a shallow
+    // fetch may be preferred.
+    repeated Dotable children = 3;
+    bool children_fetched = 4;
+  }
+}
+
+
+message EntityTag {
+  enum Kind {
+    UNKNNOWN_TYPE = 0;
+    PODCAST_TYPE = 1;
+    EPISODE_TYPE = 2;
+    PODCAST_CATEGORY = 3;
+    KEYWORD = 4;
+  }
+
+  string id = 1;
+  Kind kind = 2;
+  string display_value = 3;
+  string raw_value = 4;
+}
