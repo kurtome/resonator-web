@@ -8,6 +8,15 @@ BEGIN
 END;;
 $$ language 'plpgsql';
 
+CREATE OR REPLACE FUNCTION set_dbcreateupdatestamp_column()
+  RETURNS TRIGGER AS $$
+BEGIN
+  NEW.db_created_time = now();;
+  NEW.db_updated_time = now();;
+RETURN NEW;;
+END;;
+$$ language 'plpgsql';
+
 CREATE TYPE DotableKind AS ENUM ('podcast', 'podcast_episode');
 
 CREATE TABLE dotable (
@@ -23,6 +32,9 @@ CREATE TABLE dotable (
   db_created_time TIMESTAMP NOT NULL DEFAULT current_timestamp,
   db_updated_time TIMESTAMP NOT NULL
 );
+CREATE TRIGGER dotable_dbcreateupdatetimestamp_trigger
+  BEFORE INSERT ON dotable
+  FOR EACH ROW EXECUTE PROCEDURE set_dbcreateupdatestamp_column();
 CREATE TRIGGER dotable_dbupdatetimestamp_trigger
   BEFORE UPDATE ON dotable
   FOR EACH ROW EXECUTE PROCEDURE set_dbupdatestamp_column();
@@ -37,6 +49,9 @@ CREATE TABLE podcast_feed_ingestion (
   db_created_time TIMESTAMP NOT NULL DEFAULT current_timestamp,
   db_updated_time TIMESTAMP NOT NULL
 );
+CREATE TRIGGER podcast_feed_ingestion_dbcreateupdatetimestamp_trigger
+  BEFORE INSERT ON podcast_feed_ingestion
+  FOR EACH ROW EXECUTE PROCEDURE set_dbcreateupdatestamp_column();
 CREATE TRIGGER podcast_feed_ingestion_dbupdatetimestamp_trigger
   BEFORE UPDATE ON podcast_feed_ingestion
   FOR EACH ROW EXECUTE PROCEDURE set_dbupdatestamp_column();
