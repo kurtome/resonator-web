@@ -12,15 +12,13 @@ import kurtome.dote.slick.db.DotableKinds
 import kurtome.dote.slick.db.gen.Tables
 import kurtome.dote.slick.db.gen.Tables.DotableRow
 import org.json4s.JValue
-import play.api.db.slick.DatabaseConfigProvider
+import slick.basic.BasicBackend
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class Database @Inject()(dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) {
-
-  val db = dbConfigProvider.get.db
+class Database @Inject()(db: BasicBackend#DatabaseDef)(implicit ec: ExecutionContext) {
 
   def ingestPodcast(podcast: RssFetchedPodcast): Future[Dotable] = {
     val insertPodcastRowOp = (for {
