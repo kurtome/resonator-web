@@ -29,3 +29,19 @@
  
  - Fields which need to be indexed and foreign keys are proper top level
  columns so they can be used in queries, filters and joins.
+ 
+ ### Code
+ 
+  - Database code is under [server/app/kurtome/dote/server/db]()
+ 
+  - Class names:
+    - `DbService` classes orchestrate multiple calls and determine
+    transaction boundaries
+    - `DbIo` classes implement database queries, CRUD operations and
+    row mapping.
+ 
+  - Query functions on `DbIo` classes are often defined in the scala
+  classes as `val` declarations with for-comprehensions or `Compiled`,
+  this is to make sure SQL isn't re-computed for every query. See
+  [Slick's docs on compiled queries](
+  http://slick.lightbend.com/doc/3.2.0/queries.html#compiled-queries).

@@ -5,7 +5,7 @@ package dote.proto.api.action;
 import "api/dotable.proto";
 
 message AddPodcastRequest {
-  string feedUrl = 1;
+  string itunesUrl = 1;
 }
 
 message AddPodcastResponse {

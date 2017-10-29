@@ -1,0 +1,47 @@
+{
+  "resultCount": 1,
+  "results": [
+    {
+      "wrapperType": "track",
+      "kind": "podcast",
+      "artistId": 920682569,
+      "collectionId": 941907967,
+      "trackId": 941907967,
+      "artistName": "Gimlet",
+      "collectionName": "Reply All",
+      "trackName": "Reply All",
+      "collectionCensoredName": "Reply All",
+      "trackCensoredName": "Reply All",
+      "artistViewUrl": "https://itunes.apple.com/us/artist/gimlet-media/id920682569?mt=2&uo=4",
+      "collectionViewUrl": "https://itunes.apple.com/us/podcast/reply-all/id941907967?mt=2&uo=4",
+      "feedUrl": "http://feeds.gimletmedia.com/hearreplyall",
+      "trackViewUrl": "https://itunes.apple.com/us/podcast/reply-all/id941907967?mt=2&uo=4",
+      "artworkUrl30": "http://is2.mzstatic.com/image/thumb/Music111/v4/6c/9e/5f/6c9e5f7e-aed2-b477-516d-af319c09aa49/source/30x30bb.jpg",
+      "artworkUrl60": "http://is2.mzstatic.com/image/thumb/Music111/v4/6c/9e/5f/6c9e5f7e-aed2-b477-516d-af319c09aa49/source/60x60bb.jpg",
+      "artworkUrl100": "http://is2.mzstatic.com/image/thumb/Music111/v4/6c/9e/5f/6c9e5f7e-aed2-b477-516d-af319c09aa49/source/100x100bb.jpg",
+      "collectionPrice": 0.00,
+      "trackPrice": 0.00,
+      "trackRentalPrice": 0,
+      "collectionHdPrice": 0,
+      "trackHdPrice": 0,
+      "trackHdRentalPrice": 0,
+      "releaseDate": "2017-10-19T11:00:00Z",
+      "collectionExplicitness": "explicit",
+      "trackExplicitness": "explicit",
+      "trackCount": 120,
+      "country": "USA",
+      "currency": "USD",
+      "primaryGenreName": "Technology",
+      "contentAdvisoryRating": "Explicit",
+      "artworkUrl600": "http://is2.mzstatic.com/image/thumb/Music111/v4/6c/9e/5f/6c9e5f7e-aed2-b477-516d-af319c09aa49/source/600x600bb.jpg",
+      "genreIds": [
+        "1318",
+        "26"
+      ],
+      "genres": [
+        "Technology",
+        "Podcasts"
+      ]
+    }
+  ]
+}

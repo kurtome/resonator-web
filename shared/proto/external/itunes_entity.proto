@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package dote.proto.external;
+
+import "api/dotable.proto";
+
+// This is the structure of a response from the iTunes JSON API:
+// https://itunes.apple.com/lookup?id={entityId}&entity={entityKind}
+//
+// Note that if any of the field names here don't match the JSON field then that field will simply
+// never be set during parsing.
+message ItunesEntity {
+
+  int32 resultCount = 1;
+
+  repeated Result results = 2;
+
+  message Result {
+    string wrapperType = 1;
+    string kind = 2;
+    int64 artistId = 3;
+    int64 collectionId = 4;
+    int64 trackId = 5;
+    string artistName = 6;
+    string collectionName = 7;
+    string trackName = 8;
+    string collectionCensoredName = 9;
+    string trackCensoredName = 10;
+    string artistViewUrl = 11;
+    string collectionViewUrl = 12;
+    string feedUrl = 13;
+    string trackViewUrl = 14;
+    string artworkUrl30 = 15;
+    string artworkUrl60 = 16;
+    string artworkUrl100 = 17;
+    double collectionPrice = 18;
+    double trackPrice = 19;
+    double trackRentalPrice = 20;
+    double collectionHdPrice = 21;
+    double trackHdPrice = 22;
+    double trackHdRentalPrice = 23;
+    string releaseDate = 24;
+    string collectionExplicitness = 25;
+    string trackExplicitness = 26;
+    int32 trackCount = 27;
+    string country = 28;
+    string currency = 29;
+    string primaryGenreName = 30;
+    string contentAdvisoryRating = 31;
+    string artworkUrl600 = 32;
+    repeated string genreIds = 33;
+    repeated string genres = 34;
+  }
+}

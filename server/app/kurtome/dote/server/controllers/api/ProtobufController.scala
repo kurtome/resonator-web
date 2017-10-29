@@ -11,14 +11,13 @@ import play.api.Logger
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 abstract class ProtobufController[
     TRequest <: GeneratedMessage with Message[TRequest]: GeneratedMessageCompanion,
     TResponse <: GeneratedMessage with Message[TResponse]: GeneratedMessageCompanion](
-    cc: ControllerComponents)
+    cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends AbstractController(cc) {
 
   def parseRequest(bytes: Array[Byte]): TRequest

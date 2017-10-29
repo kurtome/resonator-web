@@ -4,12 +4,11 @@ import javax.inject._
 
 import dote.proto.action.hello._
 import play.api.mvc._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class HelloController @Inject()(cc: ControllerComponents)
+class HelloController @Inject()(cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends ProtobufController[HelloRequest, HelloResponse](cc) {
   override def parseRequest(bytes: Array[Byte]) = HelloRequest.parseFrom(bytes)
 

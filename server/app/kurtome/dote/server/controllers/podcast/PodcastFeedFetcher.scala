@@ -3,11 +3,11 @@ package kurtome.dote.server.controllers.podcast
 import com.google.inject._
 import play.api.libs.ws.WSClient
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser) { self =>
+class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
+    implicit ec: ExecutionContext) { self =>
 
   def fetch(url: String): Future[Seq[RssFetchedPodcast]] = {
     ws.url(url).get() map { response =>
