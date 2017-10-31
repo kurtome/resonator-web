@@ -32,19 +32,18 @@ class AddPodcastController @Inject()(
   override def action(request: AddPodcastRequest): Future[AddPodcastResponse] = {
 
     val itunesIdStr = request.itunesUrl.split('/').last.substring(2).replaceAll("\\?.*", "")
-    Logger.info(s"id:$itunesIdStr")
-
-    itunesEntityFetcher.fetch(itunesIdStr.toLong, "podcast") flatMap { itunesEntity =>
+    val itunesId = itunesIdStr.toLong
+    itunesEntityFetcher.fetch(itunesId, "podcast") flatMap { itunesEntity =>
       assert(itunesEntity.resultCount == 1, "must have exactly 1 result")
-      fetchFeedAndIngest(itunesEntity.results.head.feedUrl)
+      fetchFeedAndIngest(itunesId, itunesEntity.results.head.feedUrl)
     }
   }
 
-  private def fetchFeedAndIngest(feedUrl: String): Future[AddPodcastResponse] = {
+  private def fetchFeedAndIngest(itunesId: Long, feedUrl: String): Future[AddPodcastResponse] = {
     val eventualPodcast: Future[Seq[RssFetchedPodcast]] = podcastFetcher.fetch(feedUrl)
 
     eventualPodcast flatMap { rssPodcasts =>
-      Future.sequence(rssPodcasts.map(podcastDbService.ingestPodcast(_)))
+      Future.sequence(rssPodcasts.map(podcastDbService.ingestPodcast(itunesId, _)))
     } flatMap { podcastIds =>
       Future.sequence(podcastIds.map(podcastDbService.readPodcastWithEpisodes(_)))
     } map { podcasts =>

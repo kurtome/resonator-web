@@ -15,7 +15,7 @@ trait Tables {
 
   /** DDL for all tables. Call .create to execute. */
   lazy val schema
-    : profile.SchemaDescription = Dotable.schema ++ PlayEvolutions.schema ++ PodcastFeedIngestion.schema
+    : profile.SchemaDescription = Dotable.schema ++ PlayEvolutions.schema ++ PodcastEpisodeIngestion.schema ++ PodcastFeedIngestion.schema
   @deprecated("Use .schema instead of .ddl", "3.0")
   def ddl = schema
 
@@ -28,9 +28,7 @@ trait Tables {
     *  @param editedTime Database column edited_time SqlType(timestamp)
     *  @param parentId Database column parent_id SqlType(int8)
     *  @param common Database column common SqlType(jsonb)
-    *  @param details Database column details SqlType(jsonb)
-    *  @param dbCreatedTime Database column db_created_time SqlType(timestamp)
-    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp) */
+    *  @param details Database column details SqlType(jsonb) */
   case class DotableRow(id: Long,
                         kind: kurtome.dote.slick.db.DotableKinds.Value,
                         title: Option[String],
@@ -39,9 +37,7 @@ trait Tables {
                         editedTime: java.time.LocalDateTime,
                         parentId: Option[Long],
                         common: org.json4s.JsonAST.JValue,
-                        details: org.json4s.JsonAST.JValue,
-                        dbCreatedTime: java.time.LocalDateTime,
-                        dbUpdatedTime: java.time.LocalDateTime)
+                        details: org.json4s.JsonAST.JValue)
 
   /** GetResult implicit for fetching DotableRow objects using plain SQL queries */
   implicit def GetResultDotableRow(implicit e0: GR[Long],
@@ -60,25 +56,13 @@ trait Tables {
        <<[java.time.LocalDateTime],
        <<?[Long],
        <<[org.json4s.JsonAST.JValue],
-       <<[org.json4s.JsonAST.JValue],
-       <<[java.time.LocalDateTime],
-       <<[java.time.LocalDateTime]))
+       <<[org.json4s.JsonAST.JValue]))
   }
 
   /** Table description of table dotable. Objects of this class serve as prototypes for rows in queries. */
   class Dotable(_tableTag: Tag) extends profile.api.Table[DotableRow](_tableTag, "dotable") {
     def * =
-      (id,
-       kind,
-       title,
-       description,
-       publishedTime,
-       editedTime,
-       parentId,
-       common,
-       details,
-       dbCreatedTime,
-       dbUpdatedTime) <> (DotableRow.tupled, DotableRow.unapply)
+      (id, kind, title, description, publishedTime, editedTime, parentId, common, details) <> (DotableRow.tupled, DotableRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
@@ -90,15 +74,11 @@ trait Tables {
        Rep.Some(editedTime),
        parentId,
        Rep.Some(common),
-       Rep.Some(details),
-       Rep.Some(dbCreatedTime),
-       Rep.Some(dbUpdatedTime)).shaped.<>(
+       Rep.Some(details)).shaped.<>(
         { r =>
           import r._;
-          _1.map(
-            _ =>
-              DotableRow.tupled(
-                (_1.get, _2.get, _3, _4, _5.get, _6.get, _7, _8.get, _9.get, _10.get, _11.get)))
+          _1.map(_ =>
+            DotableRow.tupled((_1.get, _2.get, _3, _4, _5.get, _6.get, _7, _8.get, _9.get)))
         },
         (_: Any) => throw new Exception("Inserting into ? projection not supported.")
       )
@@ -134,19 +114,14 @@ trait Tables {
     /** Database column details SqlType(jsonb) */
     val details: Rep[org.json4s.JsonAST.JValue] = column[org.json4s.JsonAST.JValue]("details")
 
-    /** Database column db_created_time SqlType(timestamp) */
-    val dbCreatedTime: Rep[java.time.LocalDateTime] =
-      column[java.time.LocalDateTime]("db_created_time")
-
-    /** Database column db_updated_time SqlType(timestamp) */
-    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
-      column[java.time.LocalDateTime]("db_updated_time")
-
     /** Foreign key referencing Dotable (database name dotable_parent_id_fkey) */
     lazy val dotableFk = foreignKey("dotable_parent_id_fkey", parentId, Dotable)(
       r => Rep.Some(r.id),
       onUpdate = ForeignKeyAction.NoAction,
       onDelete = ForeignKeyAction.NoAction)
+
+    /** Index over (kind,id) (database name dotable_kind_id_index) */
+    val index1 = index("dotable_kind_id_index", (kind, id))
   }
 
   /** Collection-like TableQuery object for table Dotable */
@@ -235,47 +210,118 @@ trait Tables {
   /** Collection-like TableQuery object for table PlayEvolutions */
   lazy val PlayEvolutions = new TableQuery(tag => new PlayEvolutions(tag))
 
+  /** Entity class storing rows of table PodcastEpisodeIngestion
+    *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
+    *  @param podcastDotableId Database column podcast_dotable_id SqlType(int8)
+    *  @param guid Database column guid SqlType(text), Length(2147483647,true)
+    *  @param episodeDotableId Database column episode_dotable_id SqlType(int8) */
+  case class PodcastEpisodeIngestionRow(id: Long,
+                                        podcastDotableId: Long,
+                                        guid: String,
+                                        episodeDotableId: Long)
+
+  /** GetResult implicit for fetching PodcastEpisodeIngestionRow objects using plain SQL queries */
+  implicit def GetResultPodcastEpisodeIngestionRow(
+      implicit e0: GR[Long],
+      e1: GR[String]): GR[PodcastEpisodeIngestionRow] = GR { prs =>
+    import prs._
+    PodcastEpisodeIngestionRow.tupled((<<[Long], <<[Long], <<[String], <<[Long]))
+  }
+
+  /** Table description of table podcast_episode_ingestion. Objects of this class serve as prototypes for rows in queries. */
+  class PodcastEpisodeIngestion(_tableTag: Tag)
+      extends profile.api.Table[PodcastEpisodeIngestionRow](_tableTag, "podcast_episode_ingestion") {
+    def * =
+      (id, podcastDotableId, guid, episodeDotableId) <> (PodcastEpisodeIngestionRow.tupled, PodcastEpisodeIngestionRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(id), Rep.Some(podcastDotableId), Rep.Some(guid), Rep.Some(episodeDotableId)).shaped
+        .<>(
+          { r =>
+            import r._;
+            _1.map(_ => PodcastEpisodeIngestionRow.tupled((_1.get, _2.get, _3.get, _4.get)))
+          },
+          (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+        )
+
+    /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
+    val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+
+    /** Database column podcast_dotable_id SqlType(int8) */
+    val podcastDotableId: Rep[Long] = column[Long]("podcast_dotable_id")
+
+    /** Database column guid SqlType(text), Length(2147483647,true) */
+    val guid: Rep[String] = column[String]("guid", O.Length(2147483647, varying = true))
+
+    /** Database column episode_dotable_id SqlType(int8) */
+    val episodeDotableId: Rep[Long] = column[Long]("episode_dotable_id")
+
+    /** Foreign key referencing Dotable (database name podcast_episode_ingestion_episode_dotable_id_fkey) */
+    lazy val dotableFk1 =
+      foreignKey("podcast_episode_ingestion_episode_dotable_id_fkey", episodeDotableId, Dotable)(
+        r => r.id,
+        onUpdate = ForeignKeyAction.NoAction,
+        onDelete = ForeignKeyAction.NoAction)
+
+    /** Foreign key referencing Dotable (database name podcast_episode_ingestion_podcast_dotable_id_fkey) */
+    lazy val dotableFk2 =
+      foreignKey("podcast_episode_ingestion_podcast_dotable_id_fkey", podcastDotableId, Dotable)(
+        r => r.id,
+        onUpdate = ForeignKeyAction.NoAction,
+        onDelete = ForeignKeyAction.NoAction)
+
+    /** Uniqueness Index over (episodeDotableId) (database name podcast_episode_ingestion_episode_dotable_id_key) */
+    val index1 =
+      index("podcast_episode_ingestion_episode_dotable_id_key", episodeDotableId, unique = true)
+
+    /** Uniqueness Index over (podcastDotableId) (database name podcast_episode_ingestion_podcast_dotable_id_key) */
+    val index2 =
+      index("podcast_episode_ingestion_podcast_dotable_id_key", podcastDotableId, unique = true)
+
+    /** Uniqueness Index over (podcastDotableId,guid) (database name podcast_episode_ingestion_podcast_episode_guid_uniq_index) */
+    val index3 = index("podcast_episode_ingestion_podcast_episode_guid_uniq_index",
+                       (podcastDotableId, guid),
+                       unique = true)
+  }
+
+  /** Collection-like TableQuery object for table PodcastEpisodeIngestion */
+  lazy val PodcastEpisodeIngestion = new TableQuery(tag => new PodcastEpisodeIngestion(tag))
+
   /** Entity class storing rows of table PodcastFeedIngestion
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
     *  @param feedRssUrl Database column feed_rss_url SqlType(text), Length(2147483647,true)
-    *  @param podcastDotableId Database column podcast_dotable_id SqlType(int8)
-    *  @param dbCreatedTime Database column db_created_time SqlType(timestamp)
-    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp) */
+    *  @param itunesId Database column itunes_id SqlType(int8)
+    *  @param podcastDotableId Database column podcast_dotable_id SqlType(int8) */
   case class PodcastFeedIngestionRow(id: Long,
                                      feedRssUrl: String,
-                                     podcastDotableId: Long,
-                                     dbCreatedTime: java.time.LocalDateTime,
-                                     dbUpdatedTime: java.time.LocalDateTime)
+                                     itunesId: Long,
+                                     podcastDotableId: Long)
 
   /** GetResult implicit for fetching PodcastFeedIngestionRow objects using plain SQL queries */
-  implicit def GetResultPodcastFeedIngestionRow(
-      implicit e0: GR[Long],
-      e1: GR[String],
-      e2: GR[java.time.LocalDateTime]): GR[PodcastFeedIngestionRow] = GR { prs =>
-    import prs._
-    PodcastFeedIngestionRow.tupled(
-      (<<[Long], <<[String], <<[Long], <<[java.time.LocalDateTime], <<[java.time.LocalDateTime]))
+  implicit def GetResultPodcastFeedIngestionRow(implicit e0: GR[Long],
+                                                e1: GR[String]): GR[PodcastFeedIngestionRow] = GR {
+    prs =>
+      import prs._
+      PodcastFeedIngestionRow.tupled((<<[Long], <<[String], <<[Long], <<[Long]))
   }
 
   /** Table description of table podcast_feed_ingestion. Objects of this class serve as prototypes for rows in queries. */
   class PodcastFeedIngestion(_tableTag: Tag)
       extends profile.api.Table[PodcastFeedIngestionRow](_tableTag, "podcast_feed_ingestion") {
     def * =
-      (id, feedRssUrl, podcastDotableId, dbCreatedTime, dbUpdatedTime) <> (PodcastFeedIngestionRow.tupled, PodcastFeedIngestionRow.unapply)
+      (id, feedRssUrl, itunesId, podcastDotableId) <> (PodcastFeedIngestionRow.tupled, PodcastFeedIngestionRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(id),
-       Rep.Some(feedRssUrl),
-       Rep.Some(podcastDotableId),
-       Rep.Some(dbCreatedTime),
-       Rep.Some(dbUpdatedTime)).shaped.<>(
-        { r =>
-          import r._;
-          _1.map(_ => PodcastFeedIngestionRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))
-        },
-        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
-      )
+      (Rep.Some(id), Rep.Some(feedRssUrl), Rep.Some(itunesId), Rep.Some(podcastDotableId)).shaped
+        .<>(
+          { r =>
+            import r._;
+            _1.map(_ => PodcastFeedIngestionRow.tupled((_1.get, _2.get, _3.get, _4.get)))
+          },
+          (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+        )
 
     /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -284,16 +330,11 @@ trait Tables {
     val feedRssUrl: Rep[String] =
       column[String]("feed_rss_url", O.Length(2147483647, varying = true))
 
+    /** Database column itunes_id SqlType(int8) */
+    val itunesId: Rep[Long] = column[Long]("itunes_id")
+
     /** Database column podcast_dotable_id SqlType(int8) */
     val podcastDotableId: Rep[Long] = column[Long]("podcast_dotable_id")
-
-    /** Database column db_created_time SqlType(timestamp) */
-    val dbCreatedTime: Rep[java.time.LocalDateTime] =
-      column[java.time.LocalDateTime]("db_created_time")
-
-    /** Database column db_updated_time SqlType(timestamp) */
-    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
-      column[java.time.LocalDateTime]("db_updated_time")
 
     /** Foreign key referencing Dotable (database name podcast_feed_ingestion_podcast_dotable_id_fkey) */
     lazy val dotableFk =
@@ -305,8 +346,11 @@ trait Tables {
     /** Uniqueness Index over (feedRssUrl) (database name podcast_feed_ingestion_feed_rss_url_key) */
     val index1 = index("podcast_feed_ingestion_feed_rss_url_key", feedRssUrl, unique = true)
 
+    /** Uniqueness Index over (itunesId) (database name podcast_feed_ingestion_itunes_id_key) */
+    val index2 = index("podcast_feed_ingestion_itunes_id_key", itunesId, unique = true)
+
     /** Uniqueness Index over (podcastDotableId) (database name podcast_feed_ingestion_podcast_dotable_id_key) */
-    val index2 =
+    val index3 =
       index("podcast_feed_ingestion_podcast_dotable_id_key", podcastDotableId, unique = true)
   }
 

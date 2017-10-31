@@ -1,8 +1,6 @@
 package kurtome.dote.slick.db
 
-import slick.codegen.{AbstractSourceCodeGenerator, OutputHelpers}
-
-object Main {
+object CodegenMain {
 
   def main(args: Array[String]): Unit = {
     //val profile = "slick.jdbc.PostgresProfile"
@@ -26,7 +24,6 @@ object Main {
       user = None,
       ignoreInvalidDefaults = true,
       codeGeneratorClass = Some("kurtome.dote.slick.db.RichSourceCodeGenerator")
-      //codeGeneratorClass = None
     )
   }
 

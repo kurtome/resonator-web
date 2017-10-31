@@ -19,32 +19,47 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
 
-  def insertPodcastAndGetId(podcast: RssFetchedPodcast) = {
-    val row = Tables.DotableRow(
-      id = 0,
-      kind = DotableKinds.Podcast,
-      title = Some(podcast.common.title),
-      description = Some(podcast.common.description),
-      publishedTime =
-        LocalDateTime.ofEpochSecond(podcast.common.publishedEpochSec, 0, ZoneOffset.UTC),
-      editedTime = LocalDateTime.ofEpochSecond(podcast.common.updatedEpochSec, 0, ZoneOffset.UTC),
-      parentId = None,
-      common = JsonFormat.toJson(podcast.common),
-      details = JsonFormat.toJson(podcast.details),
-      dbCreatedTime = null,
-      dbUpdatedTime = null
-    )
+  private val table = Tables.Dotable
+
+  def updateExisting(id: Long, podcast: RssFetchedPodcast) = {
+    val row = podcastToRow(Some(id), podcast)
+    table.filter(_.id === id).update(row)
+  }
+
+  def insertAndGetId(podcast: RssFetchedPodcast) = {
+    val row = podcastToRow(None, podcast)
     for {
-      id <- (Tables.Dotable returning Tables.Dotable.map(_.id)) += row
+      id <- (table returning table.map(_.id)) += row
     } yield (id)
   }
 
   def insertEpisodeBatch(podcastId: Long, episodes: Seq[RssFetchedEpisode]) = {
-    Tables.Dotable ++= episodes.map(episodeToRow(podcastId, _))
+      DBIO.sequence(for {
+        episode <- episodes
+        row = episodeToRow(None, podcastId, episode)
+        pairs = for {
+         id <- (table returning table.map (_.id)) += row
+        } yield (id, episode.details.rssGuid)
+      } yield pairs)
+
+//    DBIO.sequence(episodes map { episode =>
+//      val row = episodeToRow(None, podcastId, episode)
+//      for {
+//        id <- (table returning table.map(_.id)) += row
+//      } yield (id, episode.details.rssGuid)
+//    })
   }
 
+  def updateEpisodes(podcastId: Long, existingEpisodesWithId: Seq[(Long, RssFetchedEpisode)]) = {
+    DBIO.sequence(existingEpisodesWithId map { case (id, episode) =>
+      val row = episodeToRow(Some(id), podcastId, episode)
+      table.filter(_.id === id).update(row)
+    })
+  }
+
+
   val readByIdRaw = Compiled { (kind: Rep[DotableKinds.Value], id: Rep[Long]) =>
-    Tables.Dotable.filter(_.id === id)
+    table.filter(_.id === id)
   }
 
   def readById(kind: DotableKinds.Value, id: Long) = {
@@ -56,7 +71,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   val readByParentIdRaw = Compiled { (kind: Rep[DotableKinds.Value], parentId: Rep[Long]) =>
-    Tables.Dotable.filter(_.parentId === parentId)
+    table.filter(_.parentId === parentId)
   }
 
   def readHeadByParentId(kind: DotableKinds.Value, parentId: Long) = {
@@ -84,9 +99,9 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     Dotable.Details.Details.Podcast(JsonFormat.fromJson[DotableDetails.Podcast](detailsJson))
   }
 
-  private def episodeToRow(parentId: Long, ep: RssFetchedEpisode): Tables.DotableRow = {
+  private def episodeToRow(id: Option[Long], parentId: Long, ep: RssFetchedEpisode): Tables.DotableRow = {
     Tables.DotableRow(
-      id = 0,
+      id = id.getOrElse(0),
       kind = DotableKinds.PodcastEpisode,
       title = Some(ep.common.title),
       description = Some(ep.common.description),
@@ -94,9 +109,21 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
       editedTime = LocalDateTime.ofEpochSecond(ep.common.updatedEpochSec, 0, ZoneOffset.UTC),
       parentId = Some(parentId),
       common = JsonFormat.toJson(ep.common),
-      details = JsonFormat.toJson(ep.details),
-      dbCreatedTime = null,
-      dbUpdatedTime = null
+      details = JsonFormat.toJson(ep.details)
+    )
+  }
+  private def podcastToRow(id: Option[Long], podcast: RssFetchedPodcast): Tables.DotableRow = {
+    Tables.DotableRow(
+      id = id.getOrElse(0),
+      kind = DotableKinds.Podcast,
+      title = Some(podcast.common.title),
+      description = Some(podcast.common.description),
+      publishedTime =
+        LocalDateTime.ofEpochSecond(podcast.common.publishedEpochSec, 0, ZoneOffset.UTC),
+      editedTime = LocalDateTime.ofEpochSecond(podcast.common.updatedEpochSec, 0, ZoneOffset.UTC),
+      parentId = None,
+      common = JsonFormat.toJson(podcast.common),
+      details = JsonFormat.toJson(podcast.details)
     )
   }
 }

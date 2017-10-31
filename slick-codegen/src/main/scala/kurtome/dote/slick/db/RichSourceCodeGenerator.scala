@@ -1,11 +1,7 @@
 package kurtome.dote.slick.db
 
-import slick.codegen.{AbstractSourceCodeGenerator, OutputHelpers, SourceCodeGenerator}
-import slick.jdbc.JdbcModelBuilder
-import slick.jdbc.meta.MTable
+import slick.codegen.{OutputHelpers, SourceCodeGenerator}
 import slick.{model => m}
-
-import scala.concurrent.ExecutionContext
 
 /**
   * Copied from {@link slick.codegen.SourceCodeGenerator} to add support for more types
@@ -23,6 +19,18 @@ class RichSourceCodeGenerator(model: m.Model)
     // conversions work to/from the new types
     originalCode.replace("val profile: slick.jdbc.JdbcProfile",
                          "val profile: kurtome.dote.slick.db.DotePostgresProfile")
+  }
+
+  override def Table = new TableDef(_)
+
+  class TableDef(model: m.Table) extends super.TableDef(filterDbColumns(model)) {}
+
+  // Don't generate the db managed columns, they are set via db triggers and best to just ignore
+  // in the app code.
+  private def filterDbColumns(model: m.Table) = {
+    model.copy(columns = model.columns.filter(c => {
+      c.name != "db_created_time" && c.name != "db_updated_time"
+    }))
   }
 
 }

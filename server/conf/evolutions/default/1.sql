@@ -46,7 +46,7 @@ CREATE INDEX dotable_title_gin_idx ON dotable USING GIN (to_tsvector('english', 
 CREATE TABLE podcast_feed_ingestion (
   id BIGSERIAL PRIMARY KEY,
   feed_rss_url TEXT NOT NULL UNIQUE,
-  itunesId BIGINT NOT NULL UNIQUE,
+  itunes_id BIGINT NOT NULL UNIQUE,
   podcast_dotable_id BIGINT NOT NULL UNIQUE REFERENCES dotable,
   db_created_time TIMESTAMP NOT NULL DEFAULT current_timestamp,
   db_updated_time TIMESTAMP NOT NULL
@@ -58,14 +58,38 @@ CREATE TRIGGER podcast_feed_ingestion_dbupdatetimestamp_trigger
   BEFORE UPDATE ON podcast_feed_ingestion
   FOR EACH ROW EXECUTE PROCEDURE set_dbupdatestamp_column();
 
+CREATE TABLE podcast_episode_ingestion (
+  id BIGSERIAL PRIMARY KEY,
+  podcast_dotable_id BIGINT NOT NULL REFERENCES dotable,
+  guid TEXT NOT NULL,
+  episode_dotable_id BIGINT NOT NULL UNIQUE REFERENCES dotable,
+  db_created_time TIMESTAMP NOT NULL DEFAULT current_timestamp,
+  db_updated_time TIMESTAMP NOT NULL
+);
+CREATE TRIGGER podcast_episode_ingestion_dbcreateupdatetimestamp_trigger
+  BEFORE INSERT ON podcast_episode_ingestion
+  FOR EACH ROW EXECUTE PROCEDURE set_dbcreateupdatestamp_column();
+CREATE TRIGGER podcast_episode_ingestion_dbupdatetimestamp_trigger
+  BEFORE UPDATE ON podcast_episode_ingestion
+  FOR EACH ROW EXECUTE PROCEDURE set_dbupdatestamp_column();
+CREATE UNIQUE INDEX podcast_episode_ingestion_podcast_episode_guid_uniq_index
+  ON podcast_episode_ingestion(podcast_dotable_id, guid);
+
+
 
 # --- !Downs
 
+DROP INDEX podcast_episode_ingestion_podcast_episode_guid_uniq_index;
+DROP TRIGGER podcast_episode_ingestion_dbcreateupdatetimestamp_trigger ON podcast_episode_ingestion;
+DROP TRIGGER podcast_episode_ingestion_dbupdatetimestamp_trigger ON podcast_episode_ingestion;
+DROP TABLE podcast_episode_ingestion;
+DROP TRIGGER podcast_feed_ingestion_dbcreateupdatetimestamp_trigger ON podcast_feed_ingestion;
 DROP TRIGGER podcast_feed_ingestion_dbupdatetimestamp_trigger ON podcast_feed_ingestion;
 DROP TABLE podcast_feed_ingestion;
 DROP INDEX dotable_title_gin_idx;
 DROP INDEX dotable_kind_id_index;
 DROP TRIGGER dotable_dbupdatetimestamp_trigger on dotable;
+DROP TRIGGER dotable_dbcreateupdatetimestamp_trigger on dotable;
 DROP TABLE dotable;
 DROP TYPE DotableKind;
 DROP FUNCTION set_dbupdatestamp_column();

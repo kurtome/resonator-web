@@ -50,6 +50,7 @@ class PodcastFeedParser @Inject()() {
     val episodes = episodeNodes map parseEpisode reverse
 
     RssFetchedPodcast(
+      feedUrl = url,
       common = DotableCommon(
         title = title,
         description = description,
@@ -68,6 +69,7 @@ class PodcastFeedParser @Inject()() {
     val title: String = episode \ "title"
     val description: String = episode \ "summary"
     val author: String = episode \ "author"
+    val guid: String = episode \ "guid"
     val pubDateEpochSec =
       Try(ZonedDateTime.from(pubDateFormatter.parse(episode \ "pubDate")).toEpochSecond).toOption
     val duration = parseDurationAsSeconds(episode \ "duration")
@@ -81,7 +83,8 @@ class PodcastFeedParser @Inject()() {
                              updatedEpochSec = pubDateEpochSec.getOrElse(0)),
       details = DotableDetails.PodcastEpisode(
         durationSec = duration.getOrElse(0),
-        episodeNumber = episodeNum.getOrElse(0)
+        episodeNumber = episodeNum.getOrElse(0),
+        rssGuid = guid
       )
     )
   }

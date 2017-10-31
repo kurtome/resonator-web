@@ -20,8 +20,6 @@ object DotableKinds extends Enumeration {
   val PodcastEpisode = Value("podcast_episode")
 }
 
-import DotableKinds._
-
 trait DotePostgresProfile
     extends ExPostgresProfile
     with PgEnumSupport
