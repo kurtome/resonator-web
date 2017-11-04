@@ -1,12 +1,11 @@
 package kurtome.dote.web.rpc
 
-import com.fasterxml.jackson.databind.ser.std.ByteArraySerializer
 import dote.proto.api.dotable.Dotable
 
 import scala.scalajs.js
 import scala.scalajs.js.JSON
 import scala.scalajs.js.JSConverters._
-import scala.scalajs.js.annotation.{JSGlobal, JSImport, JSName}
+import scala.scalajs.js.annotation.{JSImport, JSName}
 
 object LocalCache {
 
