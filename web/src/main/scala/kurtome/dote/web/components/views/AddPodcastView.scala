@@ -3,8 +3,9 @@ package kurtome.dote.web.components.views
 import dote.proto.api.action.add_podcast._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.web.DoteRoutes.DoteRouterCtl
 import kurtome.dote.web.Styles
-import kurtome.dote.web.api.DoteProtoApi
+import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.{EntityDetails, EntityTile}
 import kurtome.dote.web.components.ComponentHelpers._
@@ -18,8 +19,8 @@ object AddPodcastView {
                    response: AddPodcastResponse,
                    requestInFlight: Boolean = false)
 
-  class Backend(bs: BackendScope[Unit, State]) {
-    def render(s: State): VdomElement =
+  class Backend(bs: BackendScope[DoteRouterCtl, State]) {
+    def render(routerCtl: DoteRouterCtl, s: State): VdomElement =
       <.div(
         Grid(container = true, justify = Grid.Justify.Center)(
           Grid(item = true, md = 12, lg = 8)(
@@ -55,7 +56,7 @@ object AddPodcastView {
                               raised = true,
                               onClick = Callback {
                                 bs.setState(s.copy(requestInFlight = true)).runNow
-                                DoteProtoApi.addPodcast(s.request) onComplete {
+                                DoteProtoServer.addPodcast(s.request) onComplete {
                                   case Success(apiResponse) =>
                                     bs.setState(s.copy(response = apiResponse,
                                                        requestInFlight = false))
@@ -89,11 +90,12 @@ object AddPodcastView {
                           )
                         ),
                         Grid(item = true, xs = 12)(
-                          <.div(^.className := Styles.tileContainer.className.value,
-                                EntityTile.component(EntityTile.Props(dotable = dotable)))
+                          <.div(
+                            ^.className := Styles.tileContainer.className.value,
+                            EntityTile.component(EntityTile.Props(routerCtl, dotable = dotable)))
                         ),
                         Grid(item = true, xs = 12)(
-                          EntityDetails.component(dotable)
+                          EntityDetails.component(EntityDetails.Props(routerCtl, dotable))
                         )
                       ))
                   }
@@ -107,10 +109,11 @@ object AddPodcastView {
   }
 
   val component = ScalaComponent
-    .builder[Unit]("AddPodcastView")
+    .builder[DoteRouterCtl]("AddPodcastView")
     .initialState(State(AddPodcastRequest(), AddPodcastResponse()))
-    .renderBackend[Backend]
+    .backend(new Backend(_))
+    .render(x => x.backend.render(x.props, x.state))
     .build
 
-  def apply() = component()
+  def apply(routerCtl: DoteRouterCtl) = component(routerCtl)
 }

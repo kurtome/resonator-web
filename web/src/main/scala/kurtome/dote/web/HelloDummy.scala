@@ -1,7 +1,7 @@
 package kurtome.dote.web
 
 import dote.proto.action.hello.HelloRequest
-import kurtome.dote.web.api.DoteProtoApi
+import kurtome.dote.web.rpc.DoteProtoServer
 
 import scala.scalajs.js.Dynamic
 import scala.util.{Failure, Success}
@@ -16,7 +16,7 @@ object HelloDummy {
 
     // Test bytes request
     println("Running proto bytes request...")
-    DoteProtoApi.hello(request) onComplete {
+    DoteProtoServer.hello(request) onComplete {
       case Success(response) =>
         println("Got proto response: " + response.message)
       case Failure(ex) => println("Proto failure: " + ex.getMessage)
@@ -24,7 +24,7 @@ object HelloDummy {
 
     // Test JSON request
     println("Running proto JSON request...")
-    DoteProtoApi.requestAsJson("hello", Dynamic.literal("name" -> "Jason")) onComplete {
+    DoteProtoServer.requestAsJson("hello", Dynamic.literal("name" -> "Jason")) onComplete {
       case Success(response) =>
         println("Got JSON response: " + response.message)
       case Failure(ex) => println("JSON failure: " + ex.getMessage)

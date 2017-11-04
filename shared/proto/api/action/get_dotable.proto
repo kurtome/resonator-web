@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package dote.proto.api.action;
+
+import "api/dotable.proto";
+
+message GetDotableDetailsRequest {
+  string id = 1;
+}
+
+message GetDotableDetailsResponse {
+  api.Dotable dotable = 1;
+}

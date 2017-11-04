@@ -1,31 +1,57 @@
 package kurtome.dote.web
 
+import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.extra.router._
-import kurtome.dote.web.components.views.AddPodcastView
+import kurtome.dote.web.components.views._
 import kurtome.dote.web.views.HelloView
 import org.scalajs.dom
 
 object DoteRoutes {
 
-  sealed trait DotePage
-  case object Home extends DotePage
-  case object PageNotFound extends DotePage
-  case object Add extends DotePage
-  case object Lists extends DotePage
+  /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  private val routerConfig: RouterConfig[DotePage] =
-    RouterConfigDsl[DotePage].buildConfig { dsl =>
+  sealed trait DoteRoute
+
+  case object HomeRoute extends DoteRoute
+
+  case class PodcastDetailRoute(id: String, slug: String) extends DoteRoute
+
+  case class PodcastPrefetchRoute(prefetched: Dotable = Dotable.defaultInstance) extends DoteRoute
+
+  case object PageNotFoundRoute extends DoteRoute
+
+  case object AddRoute extends DoteRoute
+
+  case object ListsRoute extends DoteRoute
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+
+  type DoteRouterCtl = RouterCtl[DoteRoute]
+
+  private val routerConfig: RouterConfig[DoteRoute] =
+    RouterConfigDsl[DoteRoute].buildConfig { dsl =>
       import dsl._
+
+      // Slug must start and end with a alpha-numeric
+      val slug = string("[a-z0-9][-a-z0-9]+[a-z0-9]")
+
+      val id = string("[a-zA-Z0-9]+")
+
       (emptyRule
-        | staticRedirect("") ~> redirectToPage(Home)(Redirect.Replace)
-        | staticRedirect("#") ~> redirectToPage(Home)(Redirect.Replace)
-        | staticRedirect("#/") ~> redirectToPage(Home)(Redirect.Replace)
-        | staticRoute("#/home", Home) ~> render(AddPodcastView())
-        | staticRoute("#/not-found", PageNotFound) ~> render(HelloView.component("who am iii??")))
-        .notFound(redirectToPage(PageNotFound)(Redirect.Replace))
+        | staticRedirect("") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+        | staticRedirect("#") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+        | staticRedirect("#/") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+        | staticRoute("#/home", HomeRoute) ~> renderR(HomeView(_))
+        | staticRoute("#/add", AddRoute) ~> renderR(AddPodcastView(_))
+        | dynamicRouteCT("#/podcast" ~ ("/" ~ id ~ "/" ~ slug)
+          .caseClass[PodcastDetailRoute]) ~> dynRenderR((page: PodcastDetailRoute, routerCtl) =>
+          PodcastDetailView(PodcastDetailView.Props(routerCtl, page)))
+        | staticRoute("#/not-found", PageNotFoundRoute) ~> render(
+          HelloView.component("who am iii??")))
+        .notFound(redirectToPage(PageNotFoundRoute)(Redirect.Replace))
         // Verify the Home route is used
-        .verify(Home)
+        .verify(HomeRoute)
     }
 
   private val baseUrl: BaseUrl =

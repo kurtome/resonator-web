@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package dote.proto.api.action;
+
+import "api/dotable.proto";
+
+message GetDotableListRequest {
+  int32 max_results = 1;
+}
+
+message GetDotableListResponse {
+  repeated api.Dotable dotables = 1;
+}

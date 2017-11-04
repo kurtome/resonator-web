@@ -17,6 +17,11 @@ object Styles extends StyleSheet.Inline {
     display.table
   )
 
+  val centerTextContainer = style(
+    alignItems.center,
+    display.flex
+  )
+
   val centerItem = style(
     position.relative,
     margin.auto
@@ -33,6 +38,13 @@ object Styles extends StyleSheet.Inline {
 
   val titleFieldContainer = style(
     textAlign.center,
+    display.grid,
+    alignContent.center,
+    alignItems.center
+  )
+
+  val centerText = style(
+    textAlign.left,
     display.grid,
     alignContent.center,
     alignItems.center

@@ -12,6 +12,7 @@ message Dotable {
   repeated EntityTag tags = 4;
   Kind kind = 5;
   Details details = 6;
+  string slug = 7;
 
   enum Kind {
     UNKNOWN_KIND = 0;

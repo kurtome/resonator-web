@@ -6,7 +6,7 @@ import com.trueaccord.scalapb.json.JsonFormat
 import dote.proto.api.dotable.Dotable
 import dote.proto.db.dotable.{DotableCommon, DotableDetails}
 import kurtome.dote.server.controllers.podcast.{RssFetchedEpisode, RssFetchedPodcast}
-import kurtome.dote.server.util.UrlIds
+import kurtome.dote.server.util.{Slug, UrlIds}
 import kurtome.dote.slick.db.DotableKinds
 import kurtome.dote.slick.db.gen.Tables
 import kurtome.dote.slick.db.gen.Tables.DotableRow
@@ -23,7 +23,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
 
   def updateExisting(id: Long, podcast: RssFetchedPodcast) = {
     val row = podcastToRow(Some(id), podcast)
-    table.filter(_.id === id).update(row)
+    table.filter(row => row.id === id && row.kind === DotableKinds.Podcast).update(row)
   }
 
   def insertAndGetId(podcast: RssFetchedPodcast) = {
@@ -41,22 +41,18 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
          id <- (table returning table.map (_.id)) += row
         } yield (id, episode.details.rssGuid)
       } yield pairs)
-
-//    DBIO.sequence(episodes map { episode =>
-//      val row = episodeToRow(None, podcastId, episode)
-//      for {
-//        id <- (table returning table.map(_.id)) += row
-//      } yield (id, episode.details.rssGuid)
-//    })
   }
 
   def updateEpisodes(podcastId: Long, existingEpisodesWithId: Seq[(Long, RssFetchedEpisode)]) = {
     DBIO.sequence(existingEpisodesWithId map { case (id, episode) =>
       val row = episodeToRow(Some(id), podcastId, episode)
-      table.filter(_.id === id).update(row)
+      table.filter(row => row.id === id && row.kind === DotableKinds.PodcastEpisode).update(row)
     })
   }
 
+  def readLimited(kind: DotableKinds.Value, limit: Int) = {
+    table.filter(_.kind === kind).take(limit).result.map(_.map(protoRowMapper(kind)))
+  }
 
   val readByIdRaw = Compiled { (kind: Rep[DotableKinds.Value], id: Rep[Long]) =>
     table.filter(_.id === id)
@@ -84,13 +80,15 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
 
   def protoRowMapper(kind: DotableKinds.Value)(row: DotableRow): Dotable = {
     assert(row.kind == kind)
+    val common = JsonFormat.fromJson[DotableCommon](row.common)
     Dotable(
       id = UrlIds.encode(row.id),
+      slug = Slug.slugify(common.title),
       kind = row.kind match {
         case DotableKinds.Podcast => Dotable.Kind.PODCAST
         case DotableKinds.PodcastEpisode => Dotable.Kind.PODCAST_EPISODE
       },
-      common = Some(JsonFormat.fromJson[DotableCommon](row.common)),
+      common = Some(common),
       details = Some(Dotable.Details(detailsFetched = true, details = parseDetails(row.details))),
     )
   }

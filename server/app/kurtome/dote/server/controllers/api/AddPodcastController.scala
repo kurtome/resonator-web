@@ -22,10 +22,6 @@ class AddPodcastController @Inject()(
     podcastDbService: PodcastDbService)(implicit ec: ExecutionContext)
     extends ProtobufController[AddPodcastRequest, AddPodcastResponse](cc) {
 
-  // Full URLs look like this
-  // "http://itunes.apple.com/us/podcast/reply-all/id941907967?mt=2"
-  val itunePodcastUrlPrefix = "itunes.apple.com/us/podcast/reply-all/id941907967?mt=2"
-
   override def parseRequest(bytes: Array[Byte]) =
     AddPodcastRequest.parseFrom(bytes)
 

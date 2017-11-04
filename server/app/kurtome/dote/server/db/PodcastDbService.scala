@@ -67,6 +67,10 @@ class PodcastDbService @Inject()(
     db.run(insertPodcastRowOp).map(_ => podcastId)
   }
 
+  def readLimited(kind: DotableKinds.Value, limit: Int): Future[Seq[Dotable]] = {
+    db.run(dotableDbIo.readLimited(kind, limit))
+  }
+
   def readPodcastWithEpisodes(id: Long): Future[Option[Dotable]] = {
     val op = for {
       podcast <- dotableDbIo.readHeadById(DotableKinds.Podcast, id)

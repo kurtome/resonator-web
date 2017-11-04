@@ -15,7 +15,7 @@ object Grid {
   @js.native
   object RawComponent extends js.Object
 
-  object Align extends Enumeration {
+  object AlignItems extends Enumeration {
     val FlexStart = Value("flex-start")
     val Center = Value("center")
     val FlexEnd = Value("flex-end")
@@ -35,7 +35,7 @@ object Grid {
   @js.native
   trait Props extends js.Object {
     var className: js.UndefOr[String] = js.native
-    var align: js.UndefOr[String] = js.native
+    var alignItems: js.UndefOr[String] = js.native
     var justify: js.UndefOr[String] = js.native
     var container: js.UndefOr[Boolean] = js.native
     var item: js.UndefOr[Boolean] = js.native
@@ -53,7 +53,7 @@ object Grid {
             item: js.UndefOr[Boolean] = js.undefined,
             spacing: js.UndefOr[Int] = js.undefined,
             justify: js.UndefOr[Justify.Value] = js.undefined,
-            align: js.UndefOr[Align.Value] = js.undefined,
+            alignItems: js.UndefOr[AlignItems.Value] = js.undefined,
             lg: js.UndefOr[Int] = js.undefined,
             md: js.UndefOr[Int] = js.undefined,
             sm: js.UndefOr[Int] = js.undefined,
@@ -67,7 +67,7 @@ object Grid {
     p.sm = sm
     p.md = md
     p.lg = lg
-    p.align = align map { _.toString }
+    p.alignItems = alignItems map { _.toString }
     p.justify = justify map { _.toString }
 
     component.withProps(p)

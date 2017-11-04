@@ -33,8 +33,8 @@
   <logger name="com.avaje.ebeaninternal.server.lib.BackgroundThread" level="OFF" />
   <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
 
-  <!-- Print SQL statements from Slick  -->
-  <logger name="slick.jdbc" level="DEBUG" />
+  <!-- Use DEBUG to print SQL statements from Slick  -->
+  <logger name="slick.jdbc" level="INFO" />
 
   <root level="WARN">
     <!--<appender-ref ref="ASYNCFILE" />-->

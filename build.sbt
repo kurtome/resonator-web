@@ -90,6 +90,8 @@ lazy val web = (project in webBaseDir)
       "jquery" -> "3.2.1",
       "react" -> "15.6.1",
       "react-dom" -> "15.6.1",
+      "lscache" -> "1.1.0",
+      "lz-string" -> "1.4.4",
       "material-ui" -> "next", // Using "next" to use the 1.0 release while its in beta
       "material-ui-icons" -> "1.0.0-beta.15"
     )

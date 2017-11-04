@@ -1,4 +1,4 @@
-package kurtome.dote.web.api
+package kurtome.dote.web.rpc
 
 import java.nio.ByteBuffer
 
@@ -10,7 +10,7 @@ import scala.concurrent.Future
 import scala.scalajs.js.{Dynamic, JSON}
 import scala.scalajs.js.typedarray._
 
-private[api] object AjaxApiHelper {
+private[rpc] object AjaxRpc {
 
   trait ProtoAction[TRequest, TResponse] {
     val route: String
@@ -26,6 +26,7 @@ private[api] object AjaxApiHelper {
 
   def protoRequest[TRequest, TResponse](action: ProtoAction[TRequest, TResponse])(
       request: TRequest): Future[TResponse] = {
+    println("requesting from " + baseUrl + action.route)
     val url = baseUrl + action.route
     Ajax.post(
       url = baseUrl + action.route,

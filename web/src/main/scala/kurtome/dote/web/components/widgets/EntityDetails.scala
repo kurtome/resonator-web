@@ -2,7 +2,9 @@ package kurtome.dote.web.components.widgets
 
 import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
+import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.Styles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
@@ -10,6 +12,8 @@ import kurtome.dote.web.components.ComponentHelpers._
 import scala.scalajs._
 
 object EntityDetails {
+
+  case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
 
   case class State(tabIndex: Int)
 
@@ -24,7 +28,8 @@ object EntityDetails {
     val common = dotable.getCommon
     dotable.kind match {
       case Dotable.Kind.PODCAST =>
-        val latestEpisode = dotable.getRelatives.children.head
+        val latestEpisode =
+          dotable.getRelatives.children.headOption.getOrElse(Dotable.defaultInstance)
         val podcastDetails = dotable.getDetails.getPodcast
         ExtractedFields(
           title = common.title,
@@ -48,37 +53,39 @@ object EntityDetails {
           summary = common.description,
           details = Seq(DetailField("Duration", durationSecToMin(episodeDetails.durationSec)))
         )
+      case _ => ExtractedFields("", "", "", Nil)
     }
   }
 
   private def episodesByRecency(dotable: Dotable) = {
     dotable.kind match {
       case Dotable.Kind.PODCAST => dotable.getRelatives.children.reverse
-      case _ => Nil
+      case _                    => Nil
     }
   }
 
   val func: js.Function2[Int, Boolean, Unit] = (i: Int, foo: Boolean) => {}
 
-  class Backend(bs: BackendScope[Dotable, State]) {
+  class Backend(bs: BackendScope[Props, State]) {
     def handleTabIndexChanged(e: js.Dynamic, newValue: Int) = {
       bs.modState(_.copy(tabIndex = newValue))
     }
 
-    def render(dotable: Dotable, s: State): VdomElement = {
-      val fields = extractFields(dotable)
+    def render(p: Props, s: State): VdomElement = {
+      val fields = extractFields(p.dotable)
 
       Paper(className = Styles.detailsRoot)(
-        Grid(container = true, spacing = 24, align = Grid.Align.Center)(
+        Grid(container = true, spacing = 24, alignItems = Grid.AlignItems.Center)(
           Grid(item = true, xs = 12, lg = 4, className = Styles.titleFieldContainer)(
             Typography(typographyType = Typography.Type.Headline)(fields.title),
             Typography(typographyType = Typography.Type.SubHeading)(fields.subtitle),
           ),
           Grid(item = true, xs = 12, lg = 4)(
             <.div(^.className := Styles.centerContainer.className.value,
-                  EntityTile.component(EntityTile.Props(dotable, size = "250px")))
+                  EntityTile.component(
+                    EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px")))
           ),
-          Grid(item = true, xs = 12, lg = 4)(
+          Grid(item = true, xs = 12, lg = 4, className = Styles.centerTextContainer)(
             Typography(typographyType = Typography.Type.Body1)(fields.summary)
           ),
           Grid(item = true, xs = 12)(
@@ -90,7 +97,7 @@ object EntityDetails {
             if (s.tabIndex == 0) {
               Grid(container = true,
                    spacing = 24,
-                   align = Grid.Align.FlexStart,
+                   alignItems = Grid.AlignItems.FlexStart,
                    className = Styles.detailsFieldContainer)(
                 fields.details flatMap { detailField =>
                   Seq(
@@ -105,7 +112,7 @@ object EntityDetails {
               )
             } else {
               List(dense = true, className = Styles.episodeList).withKey("list")(
-                (episodesByRecency(dotable) map { episode =>
+                (episodesByRecency(p.dotable) map { episode =>
                   ListItem(dense = true)(ListItemText(
                     primary = episode.getCommon.title,
                     secondary =
@@ -122,7 +129,7 @@ object EntityDetails {
   }
 
   val component = ScalaComponent
-    .builder[Dotable](this.getClass.getSimpleName)
+    .builder[Props](this.getClass.getSimpleName)
     .initialState(State(0))
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))

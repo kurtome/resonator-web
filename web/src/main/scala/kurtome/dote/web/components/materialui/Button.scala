@@ -12,7 +12,6 @@ import scalacss.internal.StyleA
   */
 object Button {
 
-  //@JSName("TextField")
   @JSImport("material-ui/Button/Button.js", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
