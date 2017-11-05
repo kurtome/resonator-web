@@ -6,7 +6,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastDetailRoute}
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.EntityDetails
+import kurtome.dote.web.components.widgets.{ContentFrame, EntityDetails}
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -41,20 +41,17 @@ object PodcastDetailView {
       }
     }
 
-    def render(p: Props, s: State): VdomElement =
-      <.div(
-        Grid(container = true, justify = Grid.Justify.Center)(
-          Grid(item = true, md = 12, lg = 8) {
-            val dotable = s.response.getDotable
-            Fade(in = true, transitionDurationMs = 1000)(
-              Grid(container = true, spacing = 0)(
-                Grid(item = true, xs = 12)(
-                  EntityDetails.component(EntityDetails.Props(p.routerCtl, dotable))
-                )
-              ))
-          }
-        )
+    def render(p: Props, s: State): VdomElement = {
+      val dotable = s.response.getDotable
+      ContentFrame(ContentFrame.Props(p.routerCtl))(
+        Fade(in = true, transitionDurationMs = 1000)(
+          Grid(container = true, spacing = 0)(
+            Grid(item = true, xs = 12)(
+              EntityDetails.component(EntityDetails.Props(p.routerCtl, dotable))
+            )
+          ))
       )
+    }
   }
 
   val component = ScalaComponent

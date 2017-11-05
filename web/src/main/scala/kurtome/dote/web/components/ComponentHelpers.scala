@@ -1,5 +1,8 @@
 package kurtome.dote.web.components
 
+import japgolly.scalajs.react.vdom.Attr
+import japgolly.scalajs.react.vdom.Attr.ValueType
+
 import scala.scalajs.js
 import scala.scalajs.js.Date
 import scalacss.internal.StyleA
@@ -40,9 +43,8 @@ object ComponentHelpers {
     }
   }
 
-  implicit def style2classnameStr(style: StyleA): String = {
-    style.className.value
-  }
+  implicit val style2value: Attr.ValueType[StyleA, String] =
+    ValueType((fn, style: StyleA) => fn(style.className.value))
 
   implicit def style2classname(style: StyleA): js.UndefOr[String] = {
     style.className.value

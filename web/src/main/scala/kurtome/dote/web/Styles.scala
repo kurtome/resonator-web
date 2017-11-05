@@ -43,6 +43,10 @@ object Styles extends StyleSheet.Inline {
     alignItems.center
   )
 
+  val plainAnchor = style(
+    textDecorationLine.none,
+  )
+
   val centerText = style(
     textAlign.left,
     display.grid,
@@ -62,6 +66,48 @@ object Styles extends StyleSheet.Inline {
 
   val entityDetailsContainer = style(
     margin(spacingUnit * 2)
+  )
+
+  val cutePunkFf = fontFace("cutePunk")(
+    _.src("url(/assets/fonts/cutepunk/Cutepunk_Regular.otf)")
+  )
+
+  val jaapokkiRegularFf = fontFace("jaapokkiRegular")(
+    _.src("url(/assets/fonts/jaapokki/regular/web/jaapokki-regular.ttf)")
+  )
+
+  val jaapokkiEnchanceFf = fontFace("jaapokkiEnchance")(
+    _.src("url(/assets/fonts/jaapokki/enchance/web/jaapokkienchance-regular.ttf)")
+  )
+
+  val jaapokkiSubtractFf = fontFace("jaapokkiSubtract")(
+    _.src("url(/assets/fonts/jaapokki/subtract/web/jaapokkienchance-regular.ttf)")
+  )
+
+  val syntesiaFf = fontFace("syntesia")(
+    _.src("url(/assets/fonts/syntesia/syntesia.ttf)")
+  )
+
+  val rudeFf = fontFace("rude")(
+    _.src("url(/assets/fonts/rude/rude.ttf)")
+  )
+
+  val aileronHeavyFf = fontFace("aileronHeavy")(
+    _.src("url(/assets/fonts/aileron/Aileron-Heavy.ttf)")
+  )
+
+  val aileronSemiBoldFf = fontFace("aileronSemiBold")(
+    _.src("url(/assets/fonts/aileron/Aileron-SemiBold.ttf)")
+  )
+
+  val aileronRegularFf = fontFace("aileronRegular")(
+    _.src("url(/assets/fonts/aileron/Aileron-Regular.ttf)")
+  )
+
+  val siteTitle = style(
+    fontFamily(jaapokkiEnchanceFf),
+    textAlign.center,
+    paddingTop(60 px)
   )
 
   val titleText = style(

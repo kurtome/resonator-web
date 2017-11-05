@@ -15,7 +15,7 @@ object EntityDetails {
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
 
-  case class State(tabIndex: Int)
+  case class State()
 
   private case class DetailField(label: String, value: String)
 
@@ -36,7 +36,6 @@ object EntityDetails {
           subtitle = "",
           summary = common.description,
           details = Seq(
-            DetailField("Latest Episode", latestEpisode.getCommon.title),
             DetailField("Creator", podcastDetails.author),
             DetailField("Website", podcastDetails.websiteUrl),
             DetailField("Years",
@@ -64,64 +63,52 @@ object EntityDetails {
     }
   }
 
-  val func: js.Function2[Int, Boolean, Unit] = (i: Int, foo: Boolean) => {}
-
   class Backend(bs: BackendScope[Props, State]) {
-    def handleTabIndexChanged(e: js.Dynamic, newValue: Int) = {
-      bs.modState(_.copy(tabIndex = newValue))
-    }
 
     def render(p: Props, s: State): VdomElement = {
       val fields = extractFields(p.dotable)
 
-      Paper(className = Styles.detailsRoot)(
-        Grid(container = true, spacing = 24, alignItems = Grid.AlignItems.Center)(
-          Grid(item = true, xs = 12, lg = 4, className = Styles.titleFieldContainer)(
-            Typography(typographyType = Typography.Type.Headline)(fields.title),
-            Typography(typographyType = Typography.Type.SubHeading)(fields.subtitle),
-          ),
-          Grid(item = true, xs = 12, lg = 4)(
-            <.div(^.className := Styles.centerContainer.className.value,
-                  EntityTile.component(
-                    EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px")))
-          ),
-          Grid(item = true, xs = 12, lg = 4, className = Styles.centerTextContainer)(
-            Typography(typographyType = Typography.Type.Body1)(fields.summary)
-          ),
-          Grid(item = true, xs = 12)(
-            Tabs(value = s.tabIndex, onChange = handleTabIndexChanged)(
-              Tab(label = "Info")(),
-              Tab(label = "Episodes")()
-            )),
-          Grid(item = true, xs = 12, className = Styles.podcastDetailsTabContentsContainer)(
-            if (s.tabIndex == 0) {
-              Grid(container = true,
-                   spacing = 24,
-                   alignItems = Grid.AlignItems.FlexStart,
-                   className = Styles.detailsFieldContainer)(
-                fields.details flatMap { detailField =>
-                  Seq(
-                    Grid(item = true, xs = 4)(
-                      Typography(typographyType = Typography.Type.SubHeading)(detailField.label)
-                    ),
-                    Grid(item = true, xs = 8)(
-                      Typography(typographyType = Typography.Type.Body1)(detailField.value)
-                    )
+      Grid(container = true, spacing = 24, alignItems = Grid.AlignItems.Center)(
+        Grid(item = true, xs = 12, lg = 4, className = Styles.titleFieldContainer)(
+          Typography(typographyType = Typography.Type.Headline)(fields.title),
+          Typography(typographyType = Typography.Type.SubHeading)(fields.subtitle),
+        ),
+        Grid(item = true, xs = 12, lg = 4)(
+          <.div(^.className := Styles.centerContainer,
+                EntityTile.component(
+                  EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px")))
+        ),
+        Grid(item = true, xs = 12, lg = 4, className = Styles.centerTextContainer)(
+          Typography(typographyType = Typography.Type.Body1)(fields.summary)
+        ),
+        Grid(item = true, xs = 12)(
+          Paper(className = Styles.detailsRoot)(
+            Grid(container = true,
+                 spacing = 24,
+                 alignItems = Grid.AlignItems.FlexStart,
+                 className = Styles.detailsFieldContainer)(
+              fields.details flatMap { detailField =>
+                Seq(
+                  Grid(item = true, xs = 4)(
+                    Typography(typographyType = Typography.Type.SubHeading)(detailField.label)
+                  ),
+                  Grid(item = true, xs = 8)(
+                    Typography(typographyType = Typography.Type.Body1)(detailField.value)
                   )
-                } toVdomArray
-              )
-            } else {
-              List(dense = true, className = Styles.episodeList).withKey("list")(
-                (episodesByRecency(p.dotable) map { episode =>
-                  ListItem(dense = true)(ListItemText(
-                    primary = episode.getCommon.title,
-                    secondary =
-                      s"${durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)}, ${epochSecToDate(
-                        episode.getCommon.publishedEpochSec)}"
-                  )())
-                }).toVdomArray
-              )
-            }
+                )
+              } toVdomArray
+            ),
+            // TODO: use a Table component instead of a List (has better pagination)
+            List(dense = true, className = Styles.episodeList).withKey("list")(
+              (episodesByRecency(p.dotable) map { episode =>
+                ListItem(dense = true)(ListItemText(
+                  primary = episode.getCommon.title,
+                  secondary =
+                    s"${durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)}, ${epochSecToDate(
+                      episode.getCommon.publishedEpochSec)}"
+                )())
+              }).toVdomArray
+            )
           )
         )
       )
@@ -130,7 +117,7 @@ object EntityDetails {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State(0))
+    .initialState(State())
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
     .build
