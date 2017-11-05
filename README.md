@@ -10,6 +10,15 @@ sbt server/run
 
 Open <http://localhost:9000> in your browser
 
+#### Local config
+
+Typically you will have a config file to override connection info for
+running locally, to specify a local config file use a JVM param like so:
+
+```
+sbt -Dconfig.file=server/conf/local.conf server/run
+```
+
 
 # Deploying to heroku
 

@@ -7,3 +7,4 @@ target
 /.project
 /.settings
 /RUNNING_PID
+server/conf/local.conf
