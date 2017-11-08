@@ -1,7 +1,7 @@
 package kurtome.dote.web.components.materialui
 
 import japgolly.scalajs.react._
-import kurtome.dote.web.Styles
+import kurtome.dote.web.InlineStyles
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._

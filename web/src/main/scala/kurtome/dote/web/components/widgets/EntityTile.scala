@@ -3,7 +3,7 @@ package kurtome.dote.web.components.widgets
 import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.Styles
+import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastDetailRoute}
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
@@ -18,9 +18,9 @@ object EntityTile {
       val slug = s.slug
       val detailRoute = PodcastDetailRoute(id = id, slug = slug)
 
-      Paper(elevation = 8, className = Styles.inlineBlock)(
+      Paper(elevation = 8, className = InlineStyles.inlineBlock)(
         props.routerCtl.link(detailRoute)(
-          <.img(^.className := Styles.nestedImg.className.value,
+          <.img(^.className := InlineStyles.nestedImg.className.value,
                 ^.src := s.getDetails.getPodcast.imageUrl,
                 ^.width := props.size,
                 ^.height := props.size)

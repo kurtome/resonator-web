@@ -54,6 +54,7 @@ object Grid {
             spacing: js.UndefOr[Int] = js.undefined,
             justify: js.UndefOr[Justify.Value] = js.undefined,
             alignItems: js.UndefOr[AlignItems.Value] = js.undefined,
+            xl: js.UndefOr[Int] = js.undefined,
             lg: js.UndefOr[Int] = js.undefined,
             md: js.UndefOr[Int] = js.undefined,
             sm: js.UndefOr[Int] = js.undefined,

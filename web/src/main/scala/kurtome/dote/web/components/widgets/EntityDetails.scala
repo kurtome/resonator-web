@@ -5,7 +5,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes.DoteRoute
-import kurtome.dote.web.Styles
+import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 
@@ -69,24 +69,24 @@ object EntityDetails {
       val fields = extractFields(p.dotable)
 
       Grid(container = true, spacing = 24, alignItems = Grid.AlignItems.Center)(
-        Grid(item = true, xs = 12, lg = 4, className = Styles.titleFieldContainer)(
+        Grid(item = true, xs = 12, lg = 4, className = InlineStyles.titleFieldContainer)(
           Typography(typographyType = Typography.Type.Headline)(fields.title),
           Typography(typographyType = Typography.Type.SubHeading)(fields.subtitle),
         ),
         Grid(item = true, xs = 12, lg = 4)(
-          <.div(^.className := Styles.centerContainer,
+          <.div(^.className := InlineStyles.centerContainer,
                 EntityTile.component(
                   EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px")))
         ),
-        Grid(item = true, xs = 12, lg = 4, className = Styles.centerTextContainer)(
+        Grid(item = true, xs = 12, lg = 4, className = InlineStyles.centerTextContainer)(
           Typography(typographyType = Typography.Type.Body1)(fields.summary)
         ),
         Grid(item = true, xs = 12)(
-          Paper(className = Styles.detailsRoot)(
+          Paper(className = InlineStyles.detailsRoot)(
             Grid(container = true,
                  spacing = 24,
                  alignItems = Grid.AlignItems.FlexStart,
-                 className = Styles.detailsFieldContainer)(
+                 className = InlineStyles.detailsFieldContainer)(
               fields.details flatMap { detailField =>
                 Seq(
                   Grid(item = true, xs = 4)(
@@ -99,7 +99,7 @@ object EntityDetails {
               } toVdomArray
             ),
             // TODO: use a Table component instead of a List (has better pagination)
-            List(dense = true, className = Styles.episodeList).withKey("list")(
+            List(dense = true, className = InlineStyles.episodeList).withKey("list")(
               (episodesByRecency(p.dotable) map { episode =>
                 ListItem(dense = true)(ListItemText(
                   primary = episode.getCommon.title,

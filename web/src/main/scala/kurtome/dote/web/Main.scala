@@ -14,11 +14,20 @@ object Main {
       .build
 
   def main(args: Array[String]): Unit = {
-    Styles.addToDocument()
+    // Attach both style files to the head
+    InlineStyles.addToDocument()
+    attachStandaloneStyle(StandaloneStyles)
 
     val todoappNode =
       dom.document.body.getElementsByClassName("doteapp")(0).domAsHtml
 
     DoteRoutes.router().renderIntoDOM(todoappNode)
+  }
+
+  private def attachStandaloneStyle(stylesheet: StyleSheet.Standalone): Unit = {
+    val rawCssStr: String = stylesheet.render
+    val styleElement = dom.document.createElement("style")
+    styleElement.innerHTML = rawCssStr
+    dom.document.head.appendChild(styleElement)
   }
 }

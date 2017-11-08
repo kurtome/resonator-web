@@ -4,8 +4,8 @@ import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.DoteRoutes.{DoteRoute, DoteRouterCtl, HomeRoute}
-import kurtome.dote.web.Styles
+import kurtome.dote.web.DoteRoutes.{AddRoute, DoteRoute, DoteRouterCtl, HomeRoute}
+import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui.MuiThemeProvider.CreateMuiTheme
@@ -19,19 +19,51 @@ object ContentFrame {
   // Look at the documentation at https://material-ui-next.com/customization/themes/ for
   // that customization is possible.
   private val theme = l$(
+    "palette" -> l$(
+      "primary" -> Colors.blueGrey,
+      "secondary" -> Colors.deepOrange,
+      "light" -> l$(
+        "background" -> l$(
+          "default" -> "#e0ddc0",
+          "paper" -> "#fff",
+          "appBar" -> "#f5f5f5",
+          "contentFrame" -> "#eeeeee"
+        )
+      )
+    ),
     "typography" -> l$(
       "fontFamily" -> "syntesia",
       "display4" -> l$(
-        "fontFamily" -> "jaapokkiSubtract"
+        "fontFamily" -> "jaapokkiSubtract",
+        "textTransform" -> "uppercase"
+      ),
+      "display3" -> l$(
+        "fontFamily" -> "jaapokkiSubtract",
+        "textTransform" -> "uppercase"
+      ),
+      "display2" -> l$(
+        "fontFamily" -> "jaapokkiSubtract",
+        "textTransform" -> "uppercase"
+      ),
+      "display1" -> l$(
+        "fontFamily" -> "jaapokkiSubtract",
+        "textTransform" -> "uppercase"
       ),
       "title" -> l$(
-        "fontFamily" -> "aileronHeavy"
+        "fontFamily" -> "aileronHeavy",
+        "textTransform" -> "uppercase"
       ),
       "headline" -> l$(
-        "fontFamily" -> "aileronHeavy"
+        "fontFamily" -> "aileronHeavy",
+        "textTransform" -> "uppercase"
       ),
       "subheading" -> l$(
-        "fontFamily" -> "aileronSemiBold"
+        "fontFamily" -> "aileronSemiBold",
+        "textTransform" -> "uppercase"
+      ),
+      "button" -> l$(
+        "fontFamily" -> "aileronRegular",
+        "textTransform" -> "uppercase"
       )
     )
   )
@@ -39,22 +71,52 @@ object ContentFrame {
   case class Props(routerCtl: DoteRouterCtl)
 
   class Backend(bs: BackendScope[Props, Unit]) {
-    def render(p: Props, pc: PropsChildren): VdomElement = {
+
+    def render(p: Props, mainContent: PropsChildren): VdomElement = {
       MuiThemeProvider(theme)(
-        Grid(container = true, justify = Grid.Justify.Center)(
-          Grid(item = true, md = 12, lg = 10)(
-            Grid(container = true, justify = Grid.Justify.Center, spacing = 24)(
-              Grid(item = true, xs = 12)(
-                p.routerCtl.link(HomeRoute)(
-                  ^.className := Styles.plainAnchor,
-                  Typography(className = Styles.siteTitle,
-                             typographyType = Typography.Type.Display4)("Pod Feels")
+        <.div(
+          Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
+            Grid(item = true, xs = 12)(
+              Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
+                Grid(item = true, xs = 12)(
+                  Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
+                    Grid(item = true, xs = 8, md = 6, lg = 4, xl = 2)(
+                      p.routerCtl.link(HomeRoute)(
+                        ^.className := InlineStyles.plainAnchor,
+                        Typography(className = InlineStyles.siteTitle,
+                                   typographyType = Typography.Type.Display1)("PodFeels")
+                      )
+                    )
+                  )
+                ),
+                Grid(item = true, xs = 12)(
+                  Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
+                    Grid(item = true, xs = 8, md = 6, lg = 4, xl = 2)(Divider()())
+                  )
+                ),
+                Grid(item = true, xs = 12)(
+                  Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
+                    Grid(item = true,
+                         xs = 12,
+                         md = 10,
+                         lg = 8,
+                         xl = 6,
+                         className = InlineStyles.contentRoot)(mainContent)
+                  )
                 )
-              ),
-              Grid(item = true, xs = 3)(),
-              Grid(item = true, xs = 6)(Divider()()),
-              Grid(item = true, xs = 3)(),
-              Grid(item = true, xs = 12)(pc)
+              )
+            )
+          ),
+          <.div(
+            ^.className := InlineStyles.bottomNavRoot,
+            Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
+              Grid(item = true, xs = 12)(Divider()()),
+              Grid(item = true, xs = 12)(BottomNavigation()(
+                BottomNavigationButton(icon = Icons.Home(),
+                                       onClick = p.routerCtl.set(HomeRoute))(),
+                BottomNavigationButton(icon = Icons.Add(), onClick = p.routerCtl.set(AddRoute))(),
+                BottomNavigationButton(icon = Icons.AccountCircle())()
+              ))
             )
           )
         )

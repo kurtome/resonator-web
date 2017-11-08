@@ -4,7 +4,7 @@ import dote.proto.api.action.get_dotable_list._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.Styles
+import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
@@ -31,18 +31,18 @@ object HomeView {
 
     def render(routerCtl: DoteRouterCtl, s: State): VdomElement = {
       ContentFrame(ContentFrame.Props(routerCtl))(
-        Fade(in = true, transitionDurationMs = 1000)(
-          Grid(container = true,
-               spacing = 24,
-               alignItems = Grid.AlignItems.FlexStart,
-               justify = Grid.Justify.Center)(
-            s.response.dotables map { dotable =>
+        Grid(container = true,
+             spacing = 24,
+             alignItems = Grid.AlignItems.FlexStart,
+             justify = Grid.Justify.Center)(
+          s.response.dotables map { dotable =>
+            Fade(in = true, transitionDurationMs = 300)(
               Grid(item = true)(
-                <.div(^.className := Styles.tileContainer.className.value,
+                <.div(^.className := InlineStyles.tileContainer.className.value,
                       EntityTile.component(EntityTile.Props(routerCtl, dotable = dotable)))
               )
-            } toVdomArray
-          )
+            )
+          } toVdomArray
         )
       )
     }
