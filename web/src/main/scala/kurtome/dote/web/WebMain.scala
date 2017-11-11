@@ -5,7 +5,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom
 import CssSettings._
 
-object Main {
+object WebMain {
 
   val Hello =
     ScalaComponent

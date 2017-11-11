@@ -68,6 +68,17 @@ lazy val slickCodegen = (project in slickCodegenBaseDir)
     )
   )
 
+val feedScraperBaseDir = file("feed-scraper")
+lazy val feedScraper = (project in feedScraperBaseDir)
+  .settings(
+    scalaVersion := scalaV,
+    libraryDependencies ++= Seq(
+      "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.21",
+      "org.scala-lang.modules" %% "scala-xml" % "1.0.6",
+      postgresJdbcDriver
+    )
+  )
+
 val webBaseDir = file("web")
 lazy val web = (project in webBaseDir)
   .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)

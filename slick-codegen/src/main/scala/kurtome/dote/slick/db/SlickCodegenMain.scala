@@ -1,6 +1,6 @@
 package kurtome.dote.slick.db
 
-object CodegenMain {
+object SlickCodegenMain {
 
   def main(args: Array[String]): Unit = {
     //val profile = "slick.jdbc.PostgresProfile"

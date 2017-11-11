@@ -50,6 +50,8 @@ object ContentFrame {
                          className = InlineStyles.contentRoot)(mainContent)
                   )
                 ),
+                // Add a div with fixed height so that when scrolling to the bottom of the page, the
+                // content above never gets stuck under the bottom nav, which is fixed width
                 Grid(item = true, xs = 12)(<.div(^.minHeight := "80px")),
               )
             )
