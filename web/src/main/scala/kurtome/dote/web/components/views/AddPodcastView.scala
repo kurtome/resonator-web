@@ -90,9 +90,6 @@ object AddPodcastView {
                     Grid(item = true, xs = 12)(
                       <.div(^.className := InlineStyles.tileContainer.className.value,
                             EntityTile.component(EntityTile.Props(routerCtl, dotable = dotable)))
-                    ),
-                    Grid(item = true, xs = 12)(
-                      EntityDetails.component(EntityDetails.Props(routerCtl, dotable))
                     )
                   ))
               }

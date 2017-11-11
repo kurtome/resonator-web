@@ -89,10 +89,10 @@ object EntityDetails {
                  className = InlineStyles.detailsFieldContainer)(
               fields.details flatMap { detailField =>
                 Seq(
-                  Grid(item = true, xs = 4)(
+                  Grid(item = true, xs = 4, md = 2)(
                     Typography(typographyType = Typography.Type.SubHeading)(detailField.label)
                   ),
-                  Grid(item = true, xs = 8)(
+                  Grid(item = true, xs = 8, md = 10)(
                     Typography(typographyType = Typography.Type.Body1)(detailField.value)
                   )
                 )

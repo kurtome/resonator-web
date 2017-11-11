@@ -32,11 +32,10 @@ object MuiThemeProvider {
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(themeOverrides: js.Dynamic,
-            disableStylesGeneration: js.UndefOr[Boolean] = js.undefined) = {
+  def apply(theme: js.Dynamic, disableStylesGeneration: js.UndefOr[Boolean] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.disableStylesGeneration = disableStylesGeneration
-    p.theme = CreateMuiTheme.createMuiTheme(themeOverrides)
+    p.theme = theme
     component.withProps(p)
   }
 }
