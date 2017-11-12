@@ -11,6 +11,7 @@ import kurtome.dote.slick.db.gen.Tables
 import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Random
 
 @Singleton
 class PodcastDbService @Inject()(
@@ -19,8 +20,17 @@ class PodcastDbService @Inject()(
     podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo)(implicit ec: ExecutionContext) {
 
   def ingestPodcast(itunesId: Long, podcast: RssFetchedPodcast): Future[Long] = {
-    // Ignore episodes without a guid
-    val episodes = podcast.episodes.filter(_.details.rssGuid.size > 0)
+    // Ignore episodes without a GUID
+    val episodesWithGuids = podcast.episodes.filter(_.details.rssGuid.size > 0)
+    // Dedupe GUIDs, just throw away duplicate episodes
+    val episodes = episodesWithGuids
+      .groupBy(_.details.rssGuid)
+      .map(pair => {
+        val guid = pair._1
+        val dupes = pair._2
+        dupes.sortBy(_.common.publishedEpochSec).head
+      })
+      .toSeq
 
     db.run(podcastFeedIngestionDbIo.readPodcastIdFromItunesId(itunesId)) flatMap {
       existingPodcastId =>
@@ -71,6 +81,17 @@ class PodcastDbService @Inject()(
     db.run(dotableDbIo.readLimited(kind, limit))
   }
 
+  def readLimitedRandom(kind: DotableKinds.Value, limit: Int): Future[Seq[Dotable]] = {
+    db.run(dotableDbIo.maxId()) flatMap { maxId =>
+      if (maxId.isDefined) {
+        val maxValidId = Math.max(0, Math.round(Random.nextDouble() * maxId.get))
+        db.run(dotableDbIo.readLimited(kind, limit, maxValidId))
+      } else {
+        Future(Nil)
+      }
+    }
+  }
+
   def readPodcastWithEpisodes(id: Long): Future[Option[Dotable]] = {
     val op = for {
       podcast <- dotableDbIo.readHeadById(DotableKinds.Podcast, id)
@@ -83,7 +104,6 @@ class PodcastDbService @Inject()(
                                        existingEpisodes: Seq[Tables.PodcastEpisodeIngestionRow])
     : Seq[(Option[Long], RssFetchedEpisode)] = {
     val guidMap = existingEpisodes.map(row => row.guid -> row.episodeDotableId).toMap
-    Logger.info(s"existing guids $guidMap")
     episodes.map(episode => guidMap.get(episode.details.rssGuid) -> episode)
   }
 }

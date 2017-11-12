@@ -1,20 +1,56 @@
 package kurtome.dote.server.controllers.podcast
 
 import com.google.inject._
+import play.api.Logger
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 @Singleton
 class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
     implicit ec: ExecutionContext) { self =>
 
   def fetch(url: String): Future[Seq[RssFetchedPodcast]] = {
-    ws.url(url).get() map { response =>
-      // Remove any spurious leading characters, which will break the parsing
-      val xmlString = response.body.substring(response.body.indexOf('<'))
-      parser.parsePodcastRss(url, xmlString)
+    Try {
+      ws.url(url).get() flatMap { response =>
+        // Remove any spurious leading characters, which will break the parsing
+        val startXmlIndex = response.body.indexOf('<')
+        if (startXmlIndex >= 0) {
+          val xmlString = response.body.substring(startXmlIndex)
+          val fetchedPodasts = parser.parsePodcastRss(url, xmlString)
+          filterInvalidPodcasts(fetchedPodasts)
+        } else {
+          Logger.info(s"Response wasn't valid feed url: $url")
+          Future(Seq())
+        }
+      }
+    } recover {
+      case t: Throwable =>
+        Logger.error(s"Failed fetching and parsing '$url'", t)
+        Future(Seq())
+    } get
+  }
+
+  private def filterInvalidPodcasts(
+      podcasts: Seq[RssFetchedPodcast]): Future[Seq[RssFetchedPodcast]] = {
+    Future.sequence(podcasts.map(toValidPodcast)) map { validPodcasts =>
+      validPodcasts.filter(_.isDefined).map(_.get)
     }
   }
 
+  private def toValidPodcast(podcast: RssFetchedPodcast): Future[Option[RssFetchedPodcast]] = {
+    Try {
+      ws.url(podcast.details.imageUrl).head() map { response =>
+        if (response.status == 200) {
+          Some(podcast)
+        } else {
+          None
+        }
+      }
+    } recover {
+      case t =>
+        Future(None)
+    } get
+  }
 }

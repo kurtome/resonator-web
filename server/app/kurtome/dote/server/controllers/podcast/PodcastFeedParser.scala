@@ -25,8 +25,15 @@ class PodcastFeedParser @Inject()() {
     val title: String = podcast \ "title"
     val description: String = podcast \ "description"
 
+    val itunesImagesWithHref =
+      (podcast \ "image").filter(n => n.attribute("href").isDefined && n.namespace == "itunes")
     val imagesWithHref = (podcast \ "image").filter(n => n.attribute("href").isDefined)
-    val imageUrl = imagesWithHref \@ "href"
+    val imageUrl = if (itunesImagesWithHref.size > 0) {
+      // Prefer the iTunes image as it is more often up to date
+      itunesImagesWithHref \@ "href"
+    } else {
+      imagesWithHref \@ "href"
+    }
 
     val websiteUrl: String = podcast \ "link"
 
@@ -90,35 +97,39 @@ class PodcastFeedParser @Inject()() {
   }
 
   private def parseDurationAsSeconds(raw: String): Option[Int] = {
-    val tryParse = Try(
-      //  Check for HH:MM:SS format
-      if (raw.contains(':')) {
-        // Assume it's either MM:SS or HH:MM:SS
-        val parts = raw.split(':')
-        if (parts.size == 2) {
-          val minutes = Integer.parseInt(parts(0))
-          val seconds = Integer.parseInt(parts(1))
-          (minutes * 60) + seconds
-        } else if (parts.size == 3) {
-          val hours = Integer.parseInt(parts(0))
-          val minutes = Integer.parseInt(parts(1))
-          val seconds = Integer.parseInt(parts(2))
-          (hours * 3600) + (minutes * 60) + seconds
+    if (raw.isEmpty) {
+      None
+    } else {
+      val tryParse = Try(
+        //  Check for HH:MM:SS format
+        if (raw.contains(':')) {
+          // Assume it's either MM:SS or HH:MM:SS
+          val parts = raw.split(':')
+          if (parts.size == 2) {
+            val minutes = Integer.parseInt(parts(0))
+            val seconds = Integer.parseInt(parts(1))
+            (minutes * 60) + seconds
+          } else if (parts.size == 3) {
+            val hours = Integer.parseInt(parts(0))
+            val minutes = Integer.parseInt(parts(1))
+            val seconds = Integer.parseInt(parts(2))
+            (hours * 3600) + (minutes * 60) + seconds
+          } else {
+            throw new IllegalStateException(s"Unable to parse $raw")
+          }
         } else {
-          throw new IllegalStateException(s"Unable to parse $raw")
+          // Assume its raw number of seconds
+          Integer.parseInt(raw)
         }
-      } else {
-        // Assume its raw number of seconds
-        Integer.parseInt(raw)
+      )
+
+      tryParse match {
+        case Failure(t) => Logger.warn(s"couldn't parse '$raw' as int")
+        case _ =>
       }
-    )
 
-    tryParse match {
-      case Failure(t) => Logger.error("", t)
-      case _ =>
+      tryParse.toOption
     }
-
-    tryParse.toOption
   }
 
   private def parseExplicit(s: String): Boolean = s match {

@@ -45,12 +45,6 @@ lazy val server = (project in file("server"))
       }
     },
     assemblyJarName in assembly := "dote-web-server.jar"
-
-    // Adds additional packages into Twirl
-    //TwirlKeys.templateImports += "kurtome.controllers._"
-
-    // Adds additional packages into conf/routes
-    // play.sbt.routes.RoutesKeys.routesImport += "kurtome.binders._"
   )
   .dependsOn(sharedJvm, slickCodegen)
 
@@ -75,9 +69,12 @@ lazy val feedScraper = (project in feedScraperBaseDir)
     libraryDependencies ++= Seq(
       "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.21",
       "org.scala-lang.modules" %% "scala-xml" % "1.0.6",
+      "com.github.scopt" %% "scopt" % "3.7.0",
+      "org.scalaj" %% "scalaj-http" % "2.3.0",
       postgresJdbcDriver
     )
   )
+  .dependsOn(sharedJvm)
 
 val webBaseDir = file("web")
 lazy val web = (project in webBaseDir)

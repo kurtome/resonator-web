@@ -3,7 +3,10 @@ package kurtome.dote.scraper
 import java.io.StringWriter
 import java.net.URL
 
+import dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
 import org.htmlcleaner._
+
+import scala.util.Try
 import scala.xml._
 
 object ScraperMain {
@@ -34,28 +37,73 @@ object ScraperMain {
                                    crawledCategoryLinks: Set[String] = Set(),
                                    discoveredPodcastLinks: Set[String] = Set())
 
-  def main(args: Array[String]): Unit = {
-    val url = "https://itunes.apple.com/us/genre/podcasts-arts/id1301?mt=2"
+  case class ScraperConfig(deepCrawl: Boolean = false, prod: Boolean = false)
 
-    val result = crawlCategory(url)
-    result.crawledCategoryLinks.foreach(println(_))
-    result.discoveredPodcastLinks.foreach(println(_))
-    println(
-      s"Found ${result.crawledCategoryLinks.size} category pages and ${result.discoveredPodcastLinks.size} podcasts.")
+  // Documentation at https://github.com/scopt/scopt
+  private val argParser = new scopt.OptionParser[ScraperConfig]("scraper") {
+    head("feed scraper")
+
+    opt[Unit]("deepCrawl")
+      .action((_, c) => {
+        c.copy(deepCrawl = true)
+      })
+      .text("crawl all category pages instead of just the top of each category")
+
+    opt[Unit]("prod")
+      .action((_, c) => {
+        c.copy(prod = true)
+      })
+      .text("add discovered podcasts tot he prod server instead of local")
+
+    help("help").text("prints this usage text")
   }
 
-  private def crawlCategory(url: String): CategoryLinks = {
+  def main(args: Array[String]): Unit = {
+    argParser.parse(args, ScraperConfig()) match {
+      case Some(config) => crawl(config)
+      case None => println("")
+    }
+  }
+
+  private def crawl(implicit config: ScraperConfig): Unit = {
+    val url = "https://itunes.apple.com/us/genre/podcasts-arts/id1301?mt=2"
+
+    val results = categoryRoots.map(crawlCategory(_))
+
+    val categoryLinksCount = results.map(_.crawledCategoryLinks.size).sum
+    val podcastLinksCount = results.map(_.discoveredPodcastLinks.size).sum
+    println(s"Found $categoryLinksCount category pages and $podcastLinksCount podcasts.")
+
+    results
+      .flatMap(_.discoveredPodcastLinks)
+      .foreach(podcastUrl => {
+        println(s"\tAdding $podcastUrl")
+        Try {
+          AddPodcstServer.addPodcast(AddPodcastRequest(podcastUrl))
+        } recover {
+          case t =>
+            println(s"\t\tFailed adding $url: ${t.getMessage}")
+        }
+      })
+    println("done")
+  }
+
+  private def crawlCategory(url: String)(implicit config: ScraperConfig): CategoryLinks = {
     val root = CategoryLinks(rootCategory = url, newCategoryLinks = Set(url))
     var current = root
-    while (current.newCategoryLinks.size > 0) {
+    do {
       current = updateLinks(current)
       println(s"Found ${current.newCategoryLinks.size} new category URLs")
-      Thread.sleep(500)
-    }
+      if (config.deepCrawl) {
+        Thread.sleep(500)
+      }
+    } while (current.newCategoryLinks.size > 0 && config.deepCrawl)
+
     current
   }
 
-  private def updateLinks(existingLinks: CategoryLinks): CategoryLinks = {
+  private def updateLinks(existingLinks: CategoryLinks)(
+      implicit config: ScraperConfig): CategoryLinks = {
     val categoriesAndPodcasts = existingLinks.newCategoryLinks.foldRight(
       (existingLinks.crawledCategoryLinks, existingLinks.discoveredPodcastLinks))(
       (url, categoriesAndPodcasts) => {

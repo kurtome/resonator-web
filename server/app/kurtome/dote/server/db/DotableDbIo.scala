@@ -34,24 +34,33 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   def insertEpisodeBatch(podcastId: Long, episodes: Seq[RssFetchedEpisode]) = {
-      DBIO.sequence(for {
-        episode <- episodes
-        row = episodeToRow(None, podcastId, episode)
-        pairs = for {
-         id <- (table returning table.map (_.id)) += row
-        } yield (id, episode.details.rssGuid)
-      } yield pairs)
+    DBIO.sequence(for {
+      episode <- episodes
+      row = episodeToRow(None, podcastId, episode)
+      pairs = for {
+        id <- (table returning table.map(_.id)) += row
+      } yield (id, episode.details.rssGuid)
+    } yield pairs)
   }
 
   def updateEpisodes(podcastId: Long, existingEpisodesWithId: Seq[(Long, RssFetchedEpisode)]) = {
-    DBIO.sequence(existingEpisodesWithId map { case (id, episode) =>
-      val row = episodeToRow(Some(id), podcastId, episode)
-      table.filter(row => row.id === id && row.kind === DotableKinds.PodcastEpisode).update(row)
+    DBIO.sequence(existingEpisodesWithId map {
+      case (id, episode) =>
+        val row = episodeToRow(Some(id), podcastId, episode)
+        table.filter(row => row.id === id && row.kind === DotableKinds.PodcastEpisode).update(row)
     })
   }
 
-  def readLimited(kind: DotableKinds.Value, limit: Int) = {
-    table.filter(_.kind === kind).take(limit).result.map(_.map(protoRowMapper(kind)))
+  def maxId() = {
+    table.map(_.id).max.result
+  }
+
+  def readLimited(kind: DotableKinds.Value, limit: Int, minId: Long = 0) = {
+    table
+      .filter(row => row.kind === kind && row.id >= minId)
+      .take(limit)
+      .result
+      .map(_.map(protoRowMapper(kind)))
   }
 
   val readByIdRaw = Compiled { (kind: Rep[DotableKinds.Value], id: Rep[Long]) =>
@@ -89,7 +98,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
         case DotableKinds.PodcastEpisode => Dotable.Kind.PODCAST_EPISODE
       },
       common = Some(common),
-      details = Some(Dotable.Details(detailsFetched = true, details = parseDetails(row.details))),
+      details = Some(Dotable.Details(detailsFetched = true, details = parseDetails(row.details)))
     )
   }
 
@@ -97,7 +106,9 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     Dotable.Details.Details.Podcast(JsonFormat.fromJson[DotableDetails.Podcast](detailsJson))
   }
 
-  private def episodeToRow(id: Option[Long], parentId: Long, ep: RssFetchedEpisode): Tables.DotableRow = {
+  private def episodeToRow(id: Option[Long],
+                           parentId: Long,
+                           ep: RssFetchedEpisode): Tables.DotableRow = {
     Tables.DotableRow(
       id = id.getOrElse(0),
       kind = DotableKinds.PodcastEpisode,
