@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject._
 
-import dote.proto.db.dotable.{DotableCommon, DotableDetails}
+import dote.proto.db.dotable.{DotableCommon, DotableDetails, ExternalUrls}
 import play.Logger
 
 import scala.util.{Failure, Try}
@@ -16,12 +16,12 @@ class PodcastFeedParser @Inject()() {
 
   val pubDateFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
 
-  def parsePodcastRss(url: String, rssXml: String): Seq[RssFetchedPodcast] = {
+  def parsePodcastRss(itunesUrl: String, feedUrl: String, rssXml: String): Seq[RssFetchedPodcast] = {
     val channels = XML.loadString(rssXml) \ "channel"
-    channels.map(parsePodcast(url, _))
+    channels.map(parsePodcast(itunesUrl, feedUrl, _))
   }
 
-  private def parsePodcast(url: String, podcast: Node): RssFetchedPodcast = {
+  private def parsePodcast(itunesUrl: String, feedUrl: String, podcast: Node): RssFetchedPodcast = {
     val title: String = podcast \ "title"
     val description: String = podcast \ "description"
 
@@ -57,17 +57,21 @@ class PodcastFeedParser @Inject()() {
     val episodes = episodeNodes map parseEpisode reverse
 
     RssFetchedPodcast(
-      feedUrl = url,
+      feedUrl = feedUrl,
       common = DotableCommon(
         title = title,
         description = description,
         publishedEpochSec = episodes.headOption.map(_.common.publishedEpochSec).getOrElse(0),
         updatedEpochSec = episodes.lastOption.map(_.common.publishedEpochSec).getOrElse(0)
       ),
-      details = DotableDetails.Podcast(websiteUrl = websiteUrl,
-                                       imageUrl = imageUrl,
-                                       languageCode = languageCode,
-                                       languageDisplay = languageDisplay),
+      details = DotableDetails.Podcast(
+        websiteUrl = websiteUrl,
+        author = author,
+        imageUrl = imageUrl,
+        externalUrls = Some(ExternalUrls(itunes = itunesUrl)),
+        languageCode = languageCode,
+        languageDisplay = languageDisplay
+      ),
       episodes = episodes
     )
   }

@@ -84,7 +84,7 @@ class PodcastDbService @Inject()(
   def readLimitedRandom(kind: DotableKinds.Value, limit: Int): Future[Seq[Dotable]] = {
     db.run(dotableDbIo.maxId()) flatMap { maxId =>
       if (maxId.isDefined) {
-        val maxValidId = Math.max(0, Math.round(Random.nextDouble() * maxId.get))
+        val maxValidId = Math.max(0, Math.round(Random.nextDouble() / 2 * maxId.get) - limit)
         db.run(dotableDbIo.readLimited(kind, limit, maxValidId))
       } else {
         Future(Nil)

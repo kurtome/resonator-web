@@ -1,11 +1,10 @@
 package kurtome.dote.web.components.materialui
 
 import japgolly.scalajs.react._
-import kurtome.dote.web.InlineStyles
+import kurtome.dote.web.components.ComponentHelpers.DangerousInnerHtml
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
-import scalacss.internal.StyleA
 
 /**
   * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/typography/
@@ -57,6 +56,7 @@ object Typography {
     var paragraph: js.UndefOr[Boolean] = js.native
     var `type`: js.UndefOr[String] = js.native
     var className: js.UndefOr[String] = js.native
+    var dangerouslySetInnerHTML: js.UndefOr[DangerousInnerHtml] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
@@ -67,7 +67,8 @@ object Typography {
             noWrap: js.UndefOr[Boolean] = js.undefined,
             paragraph: js.UndefOr[Boolean] = js.undefined,
             className: js.UndefOr[String] = js.undefined,
-            typographyType: js.UndefOr[Type.Value] = js.undefined) = {
+            typographyType: js.UndefOr[Type.Value] = js.undefined,
+            dangerouslySetInnerHTML: js.UndefOr[DangerousInnerHtml] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.align = align map { _.toString }
     p.color = color map { _.toString }
@@ -76,6 +77,7 @@ object Typography {
     p.noWrap = noWrap
     p.paragraph = paragraph
     p.className = className
+    p.dangerouslySetInnerHTML = dangerouslySetInnerHTML
 
     component.withProps(p)
   }

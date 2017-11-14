@@ -41,3 +41,9 @@ sbt dote-web/assembleJarAndDeployToHeroku
 
 3) Regenerate the slick scala Tables file by running `sbt slickCodegen/run`, which runs the main
 class in that project.
+
+# Scraper
+
+```
+sbt "feedScraper/run --help"
+```

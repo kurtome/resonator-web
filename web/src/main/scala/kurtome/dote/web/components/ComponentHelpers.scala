@@ -5,6 +5,7 @@ import japgolly.scalajs.react.vdom.Attr.ValueType
 
 import scala.scalajs.js
 import scala.scalajs.js.Date
+import scala.scalajs.js.annotation.{JSImport, JSName}
 import scalacss.internal.StyleA
 
 object ComponentHelpers {
@@ -48,5 +49,26 @@ object ComponentHelpers {
 
   implicit def style2classname(style: StyleA): js.UndefOr[String] = {
     style.className.value
+  }
+
+  /**
+    * https://github.com/punkave/sanitize-html
+    */
+  @JSImport("sanitize-html", JSImport.Namespace)
+  @js.native
+  object SanitizeHtml extends js.Function1[String, String] {
+    def apply(rawHtml: String): String = js.native
+  }
+
+  @js.native
+  trait DangerousInnerHtml extends js.Object {
+    var __html: String = js.native
+  }
+
+  def sanitizeForRect(html: String): DangerousInnerHtml = {
+    val cleanHtml = SanitizeHtml(html)
+    val htmlWrapper = (new js.Object).asInstanceOf[DangerousInnerHtml]
+    htmlWrapper.__html = cleanHtml
+    htmlWrapper
   }
 }

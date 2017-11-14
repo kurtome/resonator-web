@@ -16,6 +16,7 @@ message DotableDetails {
     string website_url = 3;
     string language_code = 4;
     string language_display= 5;
+    ExternalUrls external_urls = 6;
   }
 
   message PodcastEpisode {
@@ -23,6 +24,8 @@ message DotableDetails {
     int32 duration_sec = 2;
     int32 episode_number = 3;
     bool explicit = 4;
+    Audio audio = 5;
+    ExternalUrls external_urls = 6;
 
     message Audio {
       string url = 1;
@@ -30,4 +33,11 @@ message DotableDetails {
       int64 size_bytes = 3;
     }
   }
+}
+
+// URLs to access the same content on third party sites.
+message ExternalUrls {
+  string itunes = 1;
+  string spotify = 2;
+  string google_play = 3;
 }

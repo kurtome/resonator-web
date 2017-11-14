@@ -29,9 +29,10 @@ object ContentFrame {
                          xl = 4,
                          className = InlineStyles.siteTitleContainer)(
                       p.routerCtl.link(HomeRoute)(
-                        ^.className := InlineStyles.plainAnchor,
+                        ^.className := InlineStyles.siteTitleAnchor,
                         <.span(^.className := InlineStyles.siteTitleText)(StringValues.siteTitle)
-                      )
+                      ),
+                      <.span(^.className := InlineStyles.underConstructionText)("under construction")
                     )
                   )
                 ),

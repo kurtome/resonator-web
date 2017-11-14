@@ -9,8 +9,6 @@ import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 
-import scala.scalajs._
-
 object EntityDetails {
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
@@ -39,8 +37,8 @@ object EntityDetails {
             DetailField("Creator", podcastDetails.author),
             DetailField("Website", podcastDetails.websiteUrl),
             DetailField("Years",
-                        epochSecRangeToYearRange(common.publishedEpochSec, common.updatedEpochSec),
-            ),
+                        epochSecRangeToYearRange(common.publishedEpochSec,
+                                                 common.updatedEpochSec)),
             DetailField("Language", podcastDetails.languageDisplay)
           )
         )
@@ -59,7 +57,7 @@ object EntityDetails {
   private def episodesByRecency(dotable: Dotable) = {
     dotable.kind match {
       case Dotable.Kind.PODCAST => dotable.getRelatives.children.reverse
-      case _                    => Nil
+      case _ => Nil
     }
   }
 
@@ -71,7 +69,7 @@ object EntityDetails {
       Grid(container = true, spacing = 24, alignItems = Grid.AlignItems.Center)(
         Grid(item = true, xs = 12, lg = 4, className = InlineStyles.titleFieldContainer)(
           Typography(typographyType = Typography.Type.Headline)(fields.title),
-          Typography(typographyType = Typography.Type.SubHeading)(fields.subtitle),
+          Typography(typographyType = Typography.Type.SubHeading)(fields.subtitle)
         ),
         Grid(item = true, xs = 12, lg = 4)(
           <.div(^.className := InlineStyles.centerContainer,
@@ -79,7 +77,8 @@ object EntityDetails {
                   EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px")))
         ),
         Grid(item = true, xs = 12, lg = 4, className = InlineStyles.centerTextContainer)(
-          Typography(typographyType = Typography.Type.Body1)(fields.summary)
+          Typography(typographyType = Typography.Type.Body1,
+                     dangerouslySetInnerHTML = sanitizeForRect(fields.summary))()
         ),
         Grid(item = true, xs = 12)(
           Paper(className = InlineStyles.detailsRoot)(
@@ -112,6 +111,7 @@ object EntityDetails {
           )
         )
       )
+
     }
   }
 

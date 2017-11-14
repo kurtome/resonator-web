@@ -11,6 +11,8 @@ import scala.xml._
 
 object ScraperMain {
 
+  private val topCount = 5
+
   private val podcastUrlPrefix: String = "https://itunes.apple.com/us/podcast/"
 
   private val categoryRoots: Seq[String] = Seq(
@@ -37,7 +39,11 @@ object ScraperMain {
                                    crawledCategoryLinks: Set[String] = Set(),
                                    discoveredPodcastLinks: Set[String] = Set())
 
-  case class ScraperConfig(deepCrawl: Boolean = false, prod: Boolean = false)
+  case class ScraperConfig(deepCrawl: Boolean = false,
+                           prod: Boolean = false,
+                           ingestAllPodcasts: Boolean = false) {
+    def topPodcastsOnly = !ingestAllPodcasts && !deepCrawl
+  }
 
   // Documentation at https://github.com/scopt/scopt
   private val argParser = new scopt.OptionParser[ScraperConfig]("scraper") {
@@ -48,6 +54,13 @@ object ScraperMain {
         c.copy(deepCrawl = true)
       })
       .text("crawl all category pages instead of just the top of each category")
+
+    opt[Unit]("ingestAllPodcasts")
+      .action((_, c) => {
+        c.copy(prod = true)
+      })
+      .text(
+        s"ingest every podcast link found, instead of just the top $topCount. this is automatically on if --deepCrawl is enabled")
 
     opt[Unit]("prod")
       .action((_, c) => {
@@ -79,9 +92,10 @@ object ScraperMain {
       .foreach(podcastUrl => {
         println(s"\tAdding $podcastUrl")
         Try {
-          AddPodcstServer.addPodcast(AddPodcastRequest(podcastUrl))
+          AddPodcastServer.addPodcast(AddPodcastRequest(podcastUrl))
         } recover {
           case t =>
+            t.printStackTrace
             println(s"\t\tFailed adding $url: ${t.getMessage}")
         }
       })
@@ -110,8 +124,14 @@ object ScraperMain {
         Thread.sleep(10)
         val pageCategoryLinks =
           fetchAllLinksOnPage(url).filter(_.contains(existingLinks.rootCategory))
-        val pagePodcastLinks =
+        val allPagePodcastLinks =
           fetchAllLinksOnPage(url).filter(_.startsWith(podcastUrlPrefix))
+        val pagePodcastLinks =
+          if (config.topPodcastsOnly) {
+            allPagePodcastLinks.take(topCount)
+          } else {
+            allPagePodcastLinks
+          }
         println(
           s"\tCrawled $url, found ${pageCategoryLinks.size} category pages and ${pagePodcastLinks.size} podcasts.")
         (categoriesAndPodcasts._1 ++ pageCategoryLinks,

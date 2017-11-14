@@ -81,6 +81,7 @@ lazy val web = (project in webBaseDir)
   .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
   .settings(
     scalaVersion := scalaV,
+    webpackConfigFile := Some(baseDirectory.value / "webpack.config.js"),
     // This is an application with a main method
     scalaJSUseMainModuleInitializer := true,
     // Scala libraries that are Scalajs compatible
@@ -93,13 +94,15 @@ lazy val web = (project in webBaseDir)
       "com.github.japgolly.scalacss" %%% "core" % "0.5.3",
       "com.github.japgolly.scalacss" %%% "ext-react" % "0.5.3"
     ),
-    // Pure javascript libraries
+    // Pure javascript libraries (from npm)
     npmDependencies in Compile ++= Seq(
+      "json-loader" -> "latest",
       "jquery" -> "3.2.1",
       "react" -> "15.6.1",
       "react-dom" -> "15.6.1",
       "lscache" -> "1.1.0",
       "lz-string" -> "1.4.4",
+      "sanitize-html" -> "1.15.0",
       "material-ui" -> "next", // Using "next" to use the 1.0 release while its in beta
       "material-ui-icons" -> "1.0.0-beta.15"
     )

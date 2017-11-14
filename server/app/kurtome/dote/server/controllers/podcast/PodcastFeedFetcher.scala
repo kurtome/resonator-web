@@ -11,23 +11,23 @@ import scala.util.Try
 class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
     implicit ec: ExecutionContext) { self =>
 
-  def fetch(url: String): Future[Seq[RssFetchedPodcast]] = {
+  def fetch(itunesUrl: String, feedUrl: String): Future[Seq[RssFetchedPodcast]] = {
     Try {
-      ws.url(url).get() flatMap { response =>
+      ws.url(feedUrl).get() flatMap { response =>
         // Remove any spurious leading characters, which will break the parsing
         val startXmlIndex = response.body.indexOf('<')
         if (startXmlIndex >= 0) {
           val xmlString = response.body.substring(startXmlIndex)
-          val fetchedPodasts = parser.parsePodcastRss(url, xmlString)
+          val fetchedPodasts = parser.parsePodcastRss(itunesUrl, feedUrl, xmlString)
           filterInvalidPodcasts(fetchedPodasts)
         } else {
-          Logger.info(s"Response wasn't valid feed url: $url")
+          Logger.info(s"Response wasn't valid feed url: $feedUrl")
           Future(Seq())
         }
       }
     } recover {
       case t: Throwable =>
-        Logger.error(s"Failed fetching and parsing '$url'", t)
+        Logger.error(s"Failed fetching and parsing '$feedUrl'", t)
         Future(Seq())
     } get
   }
