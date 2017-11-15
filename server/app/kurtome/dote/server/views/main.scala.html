@@ -6,7 +6,11 @@
  *@
 @import play.filters.csrf.CSRF.Token
 
-@(token: Token, title: String, jsBundleUrl: Option[String])
+@(
+        token: Token,
+        title: String,
+        jsLibraryBundleUrl: String,
+        jsAppBundleUrl: String)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +35,14 @@
         <section class="doteapp"></section>
 
 
-        <script src="@jsBundleUrl"></script>
+        @* Load the bundled NPM dependencies first. *@
+        <script src="@jsLibraryBundleUrl"></script>
+        <script language="JavaScript">
+                var exports = window;
+                exports.require = window["ScalaJSBundlerLibrary"].require;
+        </script>
+        @* Load the app. *@
+        <script src="@jsAppBundleUrl"></script>
 
         @* Magic to include the compile JS from the web project as a script tag.
 

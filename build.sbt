@@ -81,6 +81,8 @@ lazy val web = (project in webBaseDir)
   .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
   .settings(
     scalaVersion := scalaV,
+    // https://scalacenter.github.io/scalajs-bundler/reference.html#bundling-mode-library-only
+    webpackBundlingMode := BundlingMode.LibraryOnly(),
     webpackConfigFile := Some(baseDirectory.value / "webpack.config.js"),
     // This is an application with a main method
     scalaJSUseMainModuleInitializer := true,
@@ -97,6 +99,7 @@ lazy val web = (project in webBaseDir)
     // Pure javascript libraries (from npm)
     npmDependencies in Compile ++= Seq(
       "json-loader" -> "latest",
+      "linkifyjs" -> "2.1.5",
       "jquery" -> "3.2.1",
       "react" -> "15.6.1",
       "react-dom" -> "15.6.1",

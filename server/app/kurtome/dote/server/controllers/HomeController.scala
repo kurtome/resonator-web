@@ -20,7 +20,9 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     * a path of `/`.
     */
   def index() = Action { implicit request: Request[AnyContent] =>
-    Ok(kurtome.dote.server.views.html.main(CSRF.getToken, "Podcasts", jsBundleUrl("web")))
+    Ok(
+      kurtome.dote.server.views.html
+        .main(CSRF.getToken, "Podcasts", findJsLibraryBundleUrl("web"), findJsAppBundleUrl("web")))
   }
 
   /**
@@ -30,10 +32,25 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     Redirect("/")
   }
 
-  def jsBundleUrl(projectName: String): Option[String] = {
+  /**
+    * https://scalacenter.github.io/scalajs-bundler/reference.html#bundling-mode-library-only
+    */
+  private def findJsLibraryBundleUrl(projectName: String): String = {
     val name = projectName.toLowerCase
-    Seq(s"$name-opt-bundle.js", s"$name-fastopt-bundle.js")
+    Seq(s"$name-opt-library.js", s"$name-fastopt-library.js")
       .find(name => getClass.getResource(s"/public/$name") != null)
       .map(controllers.routes.Assets.versioned(_).url)
+      .get
+  }
+
+  /**
+    * https://scalacenter.github.io/scalajs-bundler/reference.html#bundling-mode-library-only
+    */
+  private def findJsAppBundleUrl(projectName: String): String = {
+    val name = projectName.toLowerCase
+    Seq(s"$name-opt.js", s"$name-fastopt.js")
+      .find(name => getClass.getResource(s"/public/$name") != null)
+      .map(controllers.routes.Assets.versioned(_).url)
+      .get
   }
 }

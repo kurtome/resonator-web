@@ -8,6 +8,7 @@ import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.utils.Linkify
 
 object EntityDetails {
 
@@ -78,7 +79,7 @@ object EntityDetails {
         ),
         Grid(item = true, xs = 12, lg = 4, className = InlineStyles.centerTextContainer)(
           Typography(typographyType = Typography.Type.Body1,
-                     dangerouslySetInnerHTML = sanitizeForRect(fields.summary))()
+                     dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
         ),
         Grid(item = true, xs = 12)(
           Paper(className = InlineStyles.detailsRoot)(
@@ -87,13 +88,19 @@ object EntityDetails {
                  alignItems = Grid.AlignItems.FlexStart,
                  className = InlineStyles.detailsFieldContainer)(
               fields.details flatMap { detailField =>
+                val label =
+                  Typography(typographyType = Typography.Type.Body1)(
+                    <.b(^.textTransform := "uppercase", detailField.label))
+                val content =
+                  if (detailField.label == "Website" && Linkify.test(detailField.value, "url")) {
+                    Typography(typographyType = Typography.Type.Body2)(
+                      <.a(^.href := detailField.value, ^.target := "_blank", detailField.value))
+                  } else {
+                    Typography(typographyType = Typography.Type.Body2)(detailField.value)
+                  }
                 Seq(
-                  Grid(item = true, xs = 4, md = 2)(
-                    Typography(typographyType = Typography.Type.SubHeading)(detailField.label)
-                  ),
-                  Grid(item = true, xs = 8, md = 10)(
-                    Typography(typographyType = Typography.Type.Body1)(detailField.value)
-                  )
+                  Grid(item = true, xs = 4, md = 2)(label),
+                  Grid(item = true, xs = 8, md = 10)(content)
                 )
               } toVdomArray
             ),

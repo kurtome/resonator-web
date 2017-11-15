@@ -2,6 +2,7 @@ package kurtome.dote.web.components
 
 import japgolly.scalajs.react.vdom.Attr
 import japgolly.scalajs.react.vdom.Attr.ValueType
+import kurtome.dote.web.utils.Linkify
 
 import scala.scalajs.js
 import scala.scalajs.js.Date
@@ -65,8 +66,16 @@ object ComponentHelpers {
     var __html: String = js.native
   }
 
-  def sanitizeForRect(html: String): DangerousInnerHtml = {
+  def sanitizeForReact(html: String): DangerousInnerHtml = {
     val cleanHtml = SanitizeHtml(html)
+    val htmlWrapper = (new js.Object).asInstanceOf[DangerousInnerHtml]
+    htmlWrapper.__html = cleanHtml
+    htmlWrapper
+  }
+
+  def linkifyAndSanitize(html: String): DangerousInnerHtml = {
+    val linkifiedHtml = Linkify.linkifyHtml(html)
+    val cleanHtml = SanitizeHtml(linkifiedHtml)
     val htmlWrapper = (new js.Object).asInstanceOf[DangerousInnerHtml]
     htmlWrapper.__html = cleanHtml
     htmlWrapper

@@ -37,8 +37,7 @@ object HomeView {
           s.response.dotables map { dotable =>
             Fade(in = true, transitionDurationMs = 300)(
               Grid(item = true)(
-                <.div(^.className := InlineStyles.tileContainer.className.value,
-                      EntityTile.component(EntityTile.Props(routerCtl, dotable = dotable)))
+                EntityTile.component(EntityTile.Props(routerCtl, dotable = dotable))
               )
             )
           } toVdomArray
