@@ -10,11 +10,13 @@ import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.utils.Linkify
 
+import scala.scalajs.js
+
 object EntityDetails {
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
 
-  case class State()
+  case class State(page: Int = 0, rowsPerPage: Int = 5)
 
   private case class DetailField(label: String, value: String)
 
@@ -64,8 +66,14 @@ object EntityDetails {
 
   class Backend(bs: BackendScope[Props, State]) {
 
+    val onPageChanged: (js.Dynamic, Int) => Callback = (event, page) => {
+      bs.modState(_.copy(page = page))
+    }
+
     def render(p: Props, s: State): VdomElement = {
       val fields = extractFields(p.dotable)
+      val episodes = episodesByRecency(p.dotable)
+      val episodePage = episodes.drop(s.rowsPerPage * s.page).take(s.rowsPerPage)
 
       Grid(container = true, spacing = 24, alignItems = Grid.AlignItems.Center)(
         Grid(item = true, xs = 12, lg = 4, className = InlineStyles.titleFieldContainer)(
@@ -82,38 +90,56 @@ object EntityDetails {
                      dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
         ),
         Grid(item = true, xs = 12)(
-          Paper(className = InlineStyles.detailsRoot)(
-            Grid(container = true,
-                 spacing = 24,
-                 alignItems = Grid.AlignItems.FlexStart,
-                 className = InlineStyles.detailsFieldContainer)(
-              fields.details flatMap { detailField =>
-                val label =
-                  Typography(typographyType = Typography.Type.Body1)(
-                    <.b(^.textTransform := "uppercase", detailField.label))
-                val content =
-                  if (detailField.label == "Website" && Linkify.test(detailField.value, "url")) {
-                    Typography(typographyType = Typography.Type.Body2)(
-                      <.a(^.href := detailField.value, ^.target := "_blank", detailField.value))
-                  } else {
-                    Typography(typographyType = Typography.Type.Body2)(detailField.value)
-                  }
-                Seq(
-                  Grid(item = true, xs = 4, md = 2)(label),
-                  Grid(item = true, xs = 8, md = 10)(content)
+          Grid(container = true,
+               spacing = 24,
+               alignItems = Grid.AlignItems.FlexStart,
+               className = InlineStyles.detailsFieldContainer)(
+            fields.details flatMap { detailField =>
+              val label =
+                Typography(typographyType = Typography.Type.Body1)(
+                  <.b(^.textTransform := "uppercase", detailField.label))
+              val content =
+                if (detailField.label == "Website" && Linkify.test(detailField.value, "url")) {
+                  Typography(typographyType = Typography.Type.Body2)(
+                    <.a(^.href := detailField.value, ^.target := "_blank", detailField.value))
+                } else {
+                  Typography(typographyType = Typography.Type.Body2)(detailField.value)
+                }
+              Seq(
+                Grid(item = true, xs = 4, md = 2)(label),
+                Grid(item = true, xs = 8, md = 10)(content)
+              )
+            } toVdomArray
+          )
+        ),
+        Grid(item = true, xs = 12)(
+          Paper(className = InlineStyles.episodeTableContainer)(
+            Table()(
+              TableHead()(
+                TableCell()("Episode"),
+                TableCell()("Duration"),
+                TableCell()("Release")
+              ),
+              TableBody()(
+                (episodePage map { episode =>
+                  TableRow()(
+                    TableCell()(episode.getCommon.title),
+                    TableCell()(
+                      durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
+                    ),
+                    TableCell()(epochSecToDate(episode.getCommon.publishedEpochSec))
+                  )
+                }).toVdomArray
+              ),
+              TableFooter()(
+                TableRow()(
+                  TablePagination(rowsPerPage = s.rowsPerPage,
+                                  count = episodes.size,
+                                  page = s.page,
+                                  rowsPerPageOptions = Array(5, 10, 15),
+                                  onChangePage = onPageChanged)()
                 )
-              } toVdomArray
-            ),
-            // TODO: use a Table component instead of a List (has better pagination)
-            List(dense = true, className = InlineStyles.episodeList).withKey("list")(
-              (episodesByRecency(p.dotable) map { episode =>
-                ListItem(dense = true)(ListItemText(
-                  primary = episode.getCommon.title,
-                  secondary =
-                    s"${durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)}, ${epochSecToDate(
-                      episode.getCommon.publishedEpochSec)}"
-                )())
-              }).toVdomArray
+              )
             )
           )
         )

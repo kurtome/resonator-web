@@ -39,8 +39,8 @@ object InlineStyles extends StyleSheet.Inline {
     marginBottom(spacingUnit * 3)
   )
 
-  val detailsRoot = style(
-    padding(spacingUnit * 2),
+  val episodeTableContainer = style(
+    padding(spacingUnit * 2)
   )
 
   val titleFieldContainer = style(
@@ -51,7 +51,7 @@ object InlineStyles extends StyleSheet.Inline {
   )
 
   val plainAnchor = style(
-    textDecorationLine.none,
+    textDecorationLine.none
   )
 
   val centerText = style(

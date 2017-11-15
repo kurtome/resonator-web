@@ -6,11 +6,7 @@
  *@
 @import play.filters.csrf.CSRF.Token
 
-@(
-        token: Token,
-        title: String,
-        jsLibraryBundleUrl: String,
-        jsAppBundleUrl: String)
+@(token: Token, title: String, jsLibraryBundleUrl: String, jsAppBundleUrl: String)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -37,6 +33,7 @@
 
         @* Load the bundled NPM dependencies first. *@
         <script src="@jsLibraryBundleUrl"></script>
+        @* Export the all the libraries from jsLibraryBundle so it's accessible to the app script *@
         <script language="JavaScript">
                 var exports = window;
                 exports.require = window["ScalaJSBundlerLibrary"].require;

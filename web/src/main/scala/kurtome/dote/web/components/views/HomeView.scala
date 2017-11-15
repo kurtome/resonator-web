@@ -32,6 +32,7 @@ object HomeView {
     def render(routerCtl: DoteRouterCtl, s: State): VdomElement = {
       ContentFrame(ContentFrame.Props(routerCtl))(
         Grid(container = true,
+             spacing = 24,
              alignItems = Grid.AlignItems.FlexStart,
              justify = Grid.Justify.Center)(
           s.response.dotables map { dotable =>
