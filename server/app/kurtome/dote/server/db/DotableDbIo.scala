@@ -96,14 +96,24 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
       kind = row.kind match {
         case DotableKinds.Podcast => Dotable.Kind.PODCAST
         case DotableKinds.PodcastEpisode => Dotable.Kind.PODCAST_EPISODE
+        case _ => throw new IllegalStateException("unexpected type " + kind)
       },
       common = Some(common),
-      details = Some(Dotable.Details(detailsFetched = true, details = parseDetails(row.details)))
+      details =
+        Some(Dotable.Details(detailsFetched = true, details = parseDetails(kind, row.details)))
     )
   }
 
-  private def parseDetails(detailsJson: JValue): Dotable.Details.Details = {
-    Dotable.Details.Details.Podcast(JsonFormat.fromJson[DotableDetails.Podcast](detailsJson))
+  private def parseDetails(kind: DotableKinds.Value,
+                           detailsJson: JValue): Dotable.Details.Details = {
+    kind match {
+      case DotableKinds.Podcast =>
+        Dotable.Details.Details.Podcast(JsonFormat.fromJson[DotableDetails.Podcast](detailsJson))
+      case DotableKinds.PodcastEpisode =>
+        Dotable.Details.Details
+          .PodcastEpisode(JsonFormat.fromJson[DotableDetails.PodcastEpisode](detailsJson))
+      case _ => throw new IllegalStateException("unexpected type " + kind)
+    }
   }
 
   private def episodeToRow(id: Option[Long],

@@ -39,7 +39,7 @@ object ComponentHelpers {
 
   def durationSecToMin(durationSec: Int): String = {
     if (durationSec > 0) {
-      (durationSec / 60) + " minutes"
+      (durationSec / 60) + " min"
     } else {
       ""
     }

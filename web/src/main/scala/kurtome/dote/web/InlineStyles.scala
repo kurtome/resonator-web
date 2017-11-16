@@ -24,9 +24,25 @@ object InlineStyles extends StyleSheet.Inline {
     display.table
   )
 
+  val detailsTileContainer = style(
+    marginLeft.auto,
+    marginTop(spacingUnit * 3),
+    marginRight.auto,
+    marginBottom(spacingUnit * 3),
+    display.table
+  )
+
+  val detailsHeaderContainer = style(
+    margin(spacingUnit * 2)
+  )
+
   val centerTextContainer = style(
     alignItems.center,
     display.flex
+  )
+
+  val mainContentContainer = style(
+    margin(spacingUnit * 3),
   )
 
   val centerItem = style(
@@ -40,7 +56,9 @@ object InlineStyles extends StyleSheet.Inline {
   )
 
   val episodeTableContainer = style(
-    padding(spacingUnit * 2)
+    paddingTop(spacingUnit * 2),
+    paddingLeft(spacingUnit * 2),
+    paddingRight(spacingUnit * 2)
   )
 
   val titleFieldContainer = style(
@@ -63,7 +81,8 @@ object InlineStyles extends StyleSheet.Inline {
 
   val detailsFieldContainer = style(
     textAlign.left,
-    display.grid
+    display.grid,
+    margin(spacingUnit * 2)
   )
 
   val nestedImg = style(

@@ -22,7 +22,7 @@ object TablePagination {
     var rowsPerPage: js.UndefOr[Int] = js.native
     var rowsPerPageOptions: js.UndefOr[js.Array[Int]] = js.native
     var onChangePage: js.Function2[js.Dynamic, Int, Unit] = js.native
-    var onChangeRowsPerPage: js.Function2[js.Dynamic, Int, Unit] = js.native
+    var onChangeRowsPerPage: js.Function1[js.Dynamic, Unit] = js.native
     var className: js.UndefOr[String] = js.native
   }
 
@@ -33,7 +33,7 @@ object TablePagination {
             rowsPerPage: js.UndefOr[Int] = js.undefined,
             rowsPerPageOptions: js.UndefOr[Array[Int]] = js.undefined,
             onChangePage: (js.Dynamic, Int) => Callback = (_, _) => Callback.empty,
-            onChangeRowsPerPage: (js.Dynamic, Int) => Callback = (_, _) => Callback.empty,
+            onChangeRowsPerPage: (js.Dynamic) => Callback = (_) => Callback.empty,
             className: js.UndefOr[String] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.count = count
@@ -41,7 +41,7 @@ object TablePagination {
     p.rowsPerPage = rowsPerPage
     p.rowsPerPageOptions = rowsPerPageOptions.map(_.toJSArray)
     p.onChangePage = (e: js.Dynamic, v: Int) => onChangePage(e, v).runNow()
-    p.onChangeRowsPerPage = (e: js.Dynamic, v: Int) => onChangeRowsPerPage(e, v).runNow()
+    p.onChangeRowsPerPage = (e: js.Dynamic) => onChangeRowsPerPage(e).runNow()
     p.className = className
     component.withProps(p)
   }

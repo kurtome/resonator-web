@@ -16,7 +16,7 @@ object EntityDetails {
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
 
-  case class State(page: Int = 0, rowsPerPage: Int = 5)
+  case class State(page: Int = 0, rowsPerPage: Int = 10)
 
   private case class DetailField(label: String, value: String)
 
@@ -59,7 +59,8 @@ object EntityDetails {
 
   private def episodesByRecency(dotable: Dotable) = {
     dotable.kind match {
-      case Dotable.Kind.PODCAST => dotable.getRelatives.children.reverse
+      case Dotable.Kind.PODCAST =>
+        dotable.getRelatives.children.sortBy(_.getCommon.publishedEpochSec).reverse
       case _ => Nil
     }
   }
@@ -70,33 +71,53 @@ object EntityDetails {
       bs.modState(_.copy(page = page))
     }
 
+    val onPageSizeChanged: (js.Dynamic) => Callback = (event) => {
+      bs modState { curState =>
+        val rowIndex = curState.page * curState.rowsPerPage
+        val newRowsPerPage = event.target.value.asInstanceOf[Int]
+        val newPage = rowIndex / newRowsPerPage
+        curState.copy(page = newPage, rowsPerPage = newRowsPerPage)
+      }
+    }
+
     def render(p: Props, s: State): VdomElement = {
       val fields = extractFields(p.dotable)
       val episodes = episodesByRecency(p.dotable)
-      val episodePage = episodes.drop(s.rowsPerPage * s.page).take(s.rowsPerPage)
+      val episodesOnPage = episodes.drop(s.rowsPerPage * s.page).take(s.rowsPerPage)
+      // Fill the page with blank episodes if there is extra space
+      val episodePage = episodesOnPage ++
+        (1 to s.rowsPerPage - episodesOnPage.size).map(_ => Dotable.defaultInstance)
 
-      Grid(container = true, spacing = 24, alignItems = Grid.AlignItems.Center)(
-        Grid(item = true, xs = 12, lg = 4, className = InlineStyles.titleFieldContainer)(
-          Typography(typographyType = Typography.Type.Headline)(fields.title),
-          Typography(typographyType = Typography.Type.SubHeading)(fields.subtitle)
-        ),
-        Grid(item = true, xs = 12, lg = 4)(
-          <.div(^.className := InlineStyles.centerContainer,
+      Grid(container = true, spacing = 12, alignItems = Grid.AlignItems.Center)(
+        Grid(item = true, xs = 12)(
+          Grid(container = true,
+               spacing = 12,
+               alignItems = Grid.AlignItems.FlexStart,
+               className = InlineStyles.detailsHeaderContainer)(
+            Grid(item = true, xs = 12, lg = 4, className = InlineStyles.titleFieldContainer)(
+              Typography(typographyType = Typography.Type.Headline)(fields.title),
+              Typography(typographyType = Typography.Type.SubHeading)(fields.subtitle)
+            ),
+            Grid(item = true, xs = 12, lg = 4)(
+              <.div(
+                ^.className := InlineStyles.detailsTileContainer,
                 EntityTile.component(
                   EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px")))
-        ),
-        Grid(item = true, xs = 12, lg = 4, className = InlineStyles.centerTextContainer)(
-          Typography(typographyType = Typography.Type.Body1,
-                     dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
+            ),
+            Grid(item = true, xs = 12, lg = 4, className = InlineStyles.centerTextContainer)(
+              Typography(typographyType = Typography.Type.Body1,
+                         dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
+            )
+          )
         ),
         Grid(item = true, xs = 12)(
           Grid(container = true,
-               spacing = 24,
+               spacing = 12,
                alignItems = Grid.AlignItems.FlexStart,
                className = InlineStyles.detailsFieldContainer)(
             fields.details flatMap { detailField =>
               val label =
-                Typography(typographyType = Typography.Type.Body1)(
+                Typography(typographyType = Typography.Type.Body2)(
                   <.b(^.textTransform := "uppercase", detailField.label))
               val content =
                 if (detailField.label == "Website" && Linkify.test(detailField.value, "url")) {
@@ -133,11 +154,14 @@ object EntityDetails {
               ),
               TableFooter()(
                 TableRow()(
-                  TablePagination(rowsPerPage = s.rowsPerPage,
-                                  count = episodes.size,
-                                  page = s.page,
-                                  rowsPerPageOptions = Array(5, 10, 15),
-                                  onChangePage = onPageChanged)()
+                  TablePagination(
+                    rowsPerPage = s.rowsPerPage,
+                    count = episodes.size,
+                    page = s.page,
+                    rowsPerPageOptions = Array(5, 10, 20),
+                    onChangePage = onPageChanged,
+                    onChangeRowsPerPage = onPageSizeChanged
+                  )()
                 )
               )
             )

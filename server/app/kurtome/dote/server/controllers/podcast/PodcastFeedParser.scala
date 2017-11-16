@@ -14,7 +14,8 @@ import scala.xml._
 @Singleton
 class PodcastFeedParser @Inject()() {
 
-  val pubDateFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
+  //val pubDateFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
+  //val pubDateFormatter2 = DateTimeFormatter.RFC_1123_DATE_TIME.withResolverFields()
 
   def parsePodcastRss(itunesUrl: String, feedUrl: String, rssXml: String): Seq[RssFetchedPodcast] = {
     val channels = XML.loadString(rssXml) \ "channel"
@@ -82,7 +83,7 @@ class PodcastFeedParser @Inject()() {
     val author: String = episode \ "author"
     val guid: String = episode \ "guid"
     val pubDateEpochSec =
-      Try(ZonedDateTime.from(pubDateFormatter.parse(episode \ "pubDate")).toEpochSecond).toOption
+      Try(ZonedDateTime.from(RichRfc1123DateTimeParser.parse(episode \ "pubDate")).toEpochSecond).toOption
     val duration = parseDurationAsSeconds(episode \ "duration")
     val episodeNum = Try(Integer.parseInt(episode \ "episode")).toOption
     val explicit: Boolean = parseExplicit(episode \ "explicit")
