@@ -38,11 +38,15 @@ class PodcastFeedParser @Inject()() {
 
     val websiteUrl: String = podcast \ "link"
 
-    val languageCode: String = podcast \ "language"
+    val rawLanguage: String = podcast \ "language"
+    // split "en-US" into "en" and "US"
+    val languageParts = rawLanguage.split("-")
+    val languageCode: String = if (languageParts.size > 0) languageParts(0) else ""
+    val countryCode: String = if (languageParts.size > 1) languageParts(1) else ""
     val languageDisplay: String = languageCode match {
       case "" => ""
       case _ =>
-        Try(new Locale(languageCode).getDisplayLanguage)
+        Try(new Locale(languageCode, countryCode.toUpperCase).getDisplayLanguage)
           .recover {
             case t => {
               Logger.error(s"Unable to parse language '$languageCode'", t)

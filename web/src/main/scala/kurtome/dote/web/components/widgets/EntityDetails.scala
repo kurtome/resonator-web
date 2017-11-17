@@ -1,6 +1,7 @@
 package kurtome.dote.web.components.widgets
 
 import dote.proto.api.dotable.Dotable
+import dote.proto.db.dotable.ExternalUrls
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
@@ -10,8 +11,8 @@ import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.utils.Linkify
 import kurtome.dote.web.CssSettings._
-import scalacss.ScalaCssReact._
 
+import scalacss.ScalaCssReact._
 import scala.scalajs.js
 import scala.scalajs.js.JSON
 import scalacss.internal.{Css, CssEntry, Renderer, Style}
@@ -52,6 +53,7 @@ object EntityDetails {
                                      subtitle: String = "",
                                      summary: String = "",
                                      author: Option[String] = None,
+                                     externalUrls: ExternalUrls = ExternalUrls.defaultInstance,
                                      details: Seq[DetailField] = Nil)
 
   private def extractFields(dotable: Dotable): ExtractedFields = {
@@ -78,10 +80,11 @@ object EntityDetails {
           title = common.title,
           subtitle = subtitle,
           summary = common.description,
+          externalUrls = podcastDetails.getExternalUrls,
           details = Seq(
             DetailField("Website", podcastDetails.websiteUrl),
-            DetailField("Language", podcastDetails.languageDisplay)
-          )
+            DetailField("Language", podcastDetails.languageDisplay),
+          ) filter { !_.value.isEmpty }
         )
       case Dotable.Kind.PODCAST_EPISODE =>
         val episodeDetails = dotable.getDetails.getPodcastEpisode
@@ -107,10 +110,11 @@ object EntityDetails {
                alignItems = Grid.AlignItems.FlexStart,
                className = InlineStyles.detailsHeaderContainer)(
             Grid(item = true, xs = 12, lg = 4)(
-              <.div(
-                ^.className := InlineStyles.detailsTileContainer,
-                EntityTile(
-                  EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px"))())
+              <.div(^.className := InlineStyles.detailsTileContainer,
+                    EntityTile(
+                      EntityTile.Props(routerCtl = p.routerCtl,
+                                       dotable = p.dotable,
+                                       size = "250px"))())
             ),
             Grid(item = true, xs = 12, lg = 8, className = InlineStyles.titleFieldContainer)(
               Typography(style = styleMap(Styles.titleText),
@@ -124,8 +128,7 @@ object EntityDetails {
                 fields.details flatMap { detailField =>
                   val label = <.b(Styles.detailLabel, detailField.label)
                   val content =
-                    if (detailField.label == "Website" && Linkify
-                          .test(detailField.value, "url")) {
+                    if (Linkify.test(detailField.value, "url")) {
                       <.a(^.href := detailField.value, ^.target := "_blank", detailField.value)
                     } else {
                       <.span(detailField.value)
@@ -137,11 +140,26 @@ object EntityDetails {
                       Typography(typographyType = Typography.Type.Caption)(content))
                   )
                 } toVdomArray
+              ),
+              Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
+                if (Linkify.test(fields.externalUrls.itunes, "url")) {
+                  VdomArray(
+                    Grid(item = true, xs = 2)(
+                      Typography(typographyType = Typography.Type.Caption)("Listen")),
+                    Grid(item = true, xs = 10)(
+                      Typography(typographyType = Typography.Type.Caption)(
+                        <.a(^.href := fields.externalUrls.itunes,
+                            ^.target := "_blank",
+                            "iTunes")
+                      ))
+                  )
+                } else {
+                  <.div()
+                }
               )
             )
           )
         ),
-        Grid(item = true, xs = 12)(),
         Grid(item = true, xs = 12)(
           EpisodeTable(EpisodeTable.Props(p.routerCtl, p.dotable))()
         )
