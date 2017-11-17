@@ -56,10 +56,12 @@ object Typography {
     var paragraph: js.UndefOr[Boolean] = js.native
     var `type`: js.UndefOr[String] = js.native
     var className: js.UndefOr[String] = js.native
+    var component: js.UndefOr[String] = js.native
+    var style: js.UndefOr[js.Dynamic] = js.native
     var dangerouslySetInnerHTML: js.UndefOr[DangerousInnerHtml] = js.native
   }
 
-  val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
+  val reactComponent = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
   def apply(align: js.UndefOr[Align.Value] = js.undefined,
             color: js.UndefOr[Color.Value] = js.undefined,
@@ -67,6 +69,8 @@ object Typography {
             noWrap: js.UndefOr[Boolean] = js.undefined,
             paragraph: js.UndefOr[Boolean] = js.undefined,
             className: js.UndefOr[String] = js.undefined,
+            component: js.UndefOr[String] = js.undefined,
+            style: js.UndefOr[js.Dynamic] = js.undefined,
             typographyType: js.UndefOr[Type.Value] = js.undefined,
             dangerouslySetInnerHTML: js.UndefOr[DangerousInnerHtml] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
@@ -76,10 +80,12 @@ object Typography {
     p.gutterBottom = gutterBottom
     p.noWrap = noWrap
     p.paragraph = paragraph
+    p.component = component
     p.className = className
+    p.style = style
     p.dangerouslySetInnerHTML = dangerouslySetInnerHTML
 
-    component.withProps(p)
+    reactComponent.withProps(p)
   }
 
 }

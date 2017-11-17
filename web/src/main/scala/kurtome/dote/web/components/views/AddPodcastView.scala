@@ -89,7 +89,7 @@ object AddPodcastView {
                     ),
                     Grid(item = true, xs = 12)(
                       <.div(^.className := InlineStyles.tileContainer.className.value,
-                            EntityTile.component(EntityTile.Props(routerCtl, dotable = dotable)))
+                            EntityTile(EntityTile.Props(routerCtl, dotable = dotable))())
                     )
                   ))
               }
@@ -107,5 +107,5 @@ object AddPodcastView {
     .render(x => x.backend.render(x.props, x.state))
     .build
 
-  def apply(routerCtl: DoteRouterCtl) = component(routerCtl)
+  def apply(routerCtl: DoteRouterCtl) = component.withProps(routerCtl)
 }

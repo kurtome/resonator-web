@@ -63,32 +63,45 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
       .map(_.map(protoRowMapper(kind)))
   }
 
-  val readByIdRaw = Compiled { (kind: Rep[DotableKinds.Value], id: Rep[Long]) =>
+  val readByIdRaw = Compiled { (id: Rep[Long]) =>
     table.filter(_.id === id)
   }
 
   def readById(kind: DotableKinds.Value, id: Long) = {
-    readByIdRaw(kind, id).result.map(_.map(protoRowMapper(kind)))
+    readByIdRaw(id).result.map(_.map(protoRowMapper(kind)))
   }
 
   def readHeadById(kind: DotableKinds.Value, id: Long) = {
-    readByIdRaw(kind, id).result.headOption.map(_.map(protoRowMapper(kind)))
+    readByIdRaw(id).result.headOption.map(_.map(protoRowMapper(kind)))
   }
 
-  val readByParentIdRaw = Compiled { (kind: Rep[DotableKinds.Value], parentId: Rep[Long]) =>
+  def readHeadById(id: Long) = {
+    readByIdRaw(id).result.headOption.map(_.map(protoRowMapper))
+  }
+
+  val readByParentIdRaw = Compiled { (parentId: Rep[Long]) =>
     table.filter(_.parentId === parentId)
   }
 
   def readHeadByParentId(kind: DotableKinds.Value, parentId: Long) = {
-    readByParentIdRaw(kind, parentId).result.headOption.map(_.map(protoRowMapper(kind)))
+    readByParentIdRaw(parentId).result.headOption.map(_.map(protoRowMapper(kind)))
   }
 
   def readByParentId(kind: DotableKinds.Value, parentId: Long) = {
-    readByParentIdRaw(kind, parentId).result.map(_.map(protoRowMapper(kind)))
+    readByParentIdRaw(parentId).result.map(_.map(protoRowMapper(kind)))
+  }
+
+  def readByParentId(parentId: Long) = {
+    readByParentIdRaw(parentId).result.map(_.map(protoRowMapper))
   }
 
   def protoRowMapper(kind: DotableKinds.Value)(row: DotableRow): Dotable = {
     assert(row.kind == kind)
+    protoRowMapper(row)
+  }
+
+  def protoRowMapper(row: DotableRow): Dotable = {
+    val kind = row.kind
     val common = JsonFormat.fromJson[DotableCommon](row.common)
     Dotable(
       id = UrlIds.encode(row.id),

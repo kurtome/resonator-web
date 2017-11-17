@@ -38,7 +38,7 @@ object HomeView {
           s.response.dotables map { dotable =>
             Fade(in = true, transitionDurationMs = 300)(
               Grid(item = true)(
-                EntityTile.component(EntityTile.Props(routerCtl, dotable = dotable))
+                EntityTile(EntityTile.Props(routerCtl, dotable = dotable))()
               )
             )
           } toVdomArray
@@ -56,5 +56,5 @@ object HomeView {
     .componentDidMount(_.backend.fetchData())
     .build
 
-  def apply(routerCtl: RouterCtl[DoteRoute]) = component(routerCtl)
+  def apply(routerCtl: RouterCtl[DoteRoute]) = component.withProps(routerCtl)
 }

@@ -9,21 +9,50 @@ import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.utils.Linkify
+import kurtome.dote.web.CssSettings._
+import scalacss.ScalaCssReact._
 
 import scala.scalajs.js
+import scala.scalajs.js.JSON
+import scalacss.internal.{Css, CssEntry, Renderer, Style}
+import scalacss.internal.mutable.StyleSheet
 
 object EntityDetails {
 
+  private object Styles extends StyleSheet.Inline {
+    import dsl._
+
+    val titleText = style(
+      lineHeight(1 em)
+    )
+
+    val subTitleText = style(
+      marginBottom(InlineStyles.spacingUnit * 2)
+    )
+
+    val textSectionDivider = style(
+      marginTop(InlineStyles.spacingUnit),
+      marginBottom(InlineStyles.spacingUnit)
+    )
+
+    val detailLabel = style(
+      marginRight(InlineStyles.spacingUnit)
+    )
+  }
+  Styles.addToDocument()
+  private val styleMap: Map[String, js.Dynamic] = styleObjsByClassName(Styles)
+
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
 
-  case class State(page: Int = 0, rowsPerPage: Int = 10)
+  case class State()
 
   private case class DetailField(label: String, value: String)
 
   private case class ExtractedFields(title: String = "",
                                      subtitle: String = "",
                                      summary: String = "",
-                                     details: Seq[DetailField])
+                                     author: Option[String] = None,
+                                     details: Seq[DetailField] = Nil)
 
   private def extractFields(dotable: Dotable): ExtractedFields = {
     val common = dotable.getCommon
@@ -32,16 +61,25 @@ object EntityDetails {
         val latestEpisode =
           dotable.getRelatives.children.headOption.getOrElse(Dotable.defaultInstance)
         val podcastDetails = dotable.getDetails.getPodcast
+        val subtitle: String = {
+          val creator =
+            if (podcastDetails.author.isEmpty) None
+            else Some(s"by ${podcastDetails.author}")
+          val years = epochSecRangeToYearRange(common.publishedEpochSec, common.updatedEpochSec)
+          if (creator.isDefined && years.isDefined) {
+            s"${creator.get} (${years.get})"
+          } else if (creator.isDefined) {
+            creator.get
+          } else {
+            years.getOrElse("")
+          }
+        }
         ExtractedFields(
           title = common.title,
-          subtitle = "",
+          subtitle = subtitle,
           summary = common.description,
           details = Seq(
-            DetailField("Creator", podcastDetails.author),
             DetailField("Website", podcastDetails.websiteUrl),
-            DetailField("Years",
-                        epochSecRangeToYearRange(common.publishedEpochSec,
-                                                 common.updatedEpochSec)),
             DetailField("Language", podcastDetails.languageDisplay)
           )
         )
@@ -53,119 +91,59 @@ object EntityDetails {
           summary = common.description,
           details = Seq(DetailField("Duration", durationSecToMin(episodeDetails.durationSec)))
         )
-      case _ => ExtractedFields("", "", "", Nil)
-    }
-  }
-
-  private def episodesByRecency(dotable: Dotable) = {
-    dotable.kind match {
-      case Dotable.Kind.PODCAST =>
-        dotable.getRelatives.children.sortBy(_.getCommon.publishedEpochSec).reverse
-      case _ => Nil
+      case _ => ExtractedFields()
     }
   }
 
   class Backend(bs: BackendScope[Props, State]) {
 
-    val onPageChanged: (js.Dynamic, Int) => Callback = (event, page) => {
-      bs.modState(_.copy(page = page))
-    }
-
-    val onPageSizeChanged: (js.Dynamic) => Callback = (event) => {
-      bs modState { curState =>
-        val rowIndex = curState.page * curState.rowsPerPage
-        val newRowsPerPage = event.target.value.asInstanceOf[Int]
-        val newPage = rowIndex / newRowsPerPage
-        curState.copy(page = newPage, rowsPerPage = newRowsPerPage)
-      }
-    }
-
     def render(p: Props, s: State): VdomElement = {
       val fields = extractFields(p.dotable)
-      val episodes = episodesByRecency(p.dotable)
-      val episodesOnPage = episodes.drop(s.rowsPerPage * s.page).take(s.rowsPerPage)
-      // Fill the page with blank episodes if there is extra space
-      val episodePage = episodesOnPage ++
-        (1 to s.rowsPerPage - episodesOnPage.size).map(_ => Dotable.defaultInstance)
 
-      Grid(container = true, spacing = 12, alignItems = Grid.AlignItems.Center)(
+      Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.Center)(
         Grid(item = true, xs = 12)(
           Grid(container = true,
-               spacing = 12,
+               spacing = 24,
                alignItems = Grid.AlignItems.FlexStart,
                className = InlineStyles.detailsHeaderContainer)(
-            Grid(item = true, xs = 12, lg = 4, className = InlineStyles.titleFieldContainer)(
-              Typography(typographyType = Typography.Type.Headline)(fields.title),
-              Typography(typographyType = Typography.Type.SubHeading)(fields.subtitle)
-            ),
             Grid(item = true, xs = 12, lg = 4)(
               <.div(
                 ^.className := InlineStyles.detailsTileContainer,
-                EntityTile.component(
-                  EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px")))
+                EntityTile(
+                  EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px"))())
             ),
-            Grid(item = true, xs = 12, lg = 4, className = InlineStyles.centerTextContainer)(
+            Grid(item = true, xs = 12, lg = 8, className = InlineStyles.titleFieldContainer)(
+              Typography(style = styleMap(Styles.titleText),
+                         typographyType = Typography.Type.Headline)(fields.title),
+              Typography(style = styleMap(Styles.subTitleText),
+                         typographyType = Typography.Type.SubHeading)(fields.subtitle),
               Typography(typographyType = Typography.Type.Body1,
-                         dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
-            )
-          )
-        ),
-        Grid(item = true, xs = 12)(
-          Grid(container = true,
-               spacing = 12,
-               alignItems = Grid.AlignItems.FlexStart,
-               className = InlineStyles.detailsFieldContainer)(
-            fields.details flatMap { detailField =>
-              val label =
-                Typography(typographyType = Typography.Type.Body2)(
-                  <.b(^.textTransform := "uppercase", detailField.label))
-              val content =
-                if (detailField.label == "Website" && Linkify.test(detailField.value, "url")) {
-                  Typography(typographyType = Typography.Type.Body2)(
-                    <.a(^.href := detailField.value, ^.target := "_blank", detailField.value))
-                } else {
-                  Typography(typographyType = Typography.Type.Body2)(detailField.value)
-                }
-              Seq(
-                Grid(item = true, xs = 4, md = 2)(label),
-                Grid(item = true, xs = 8, md = 10)(content)
-              )
-            } toVdomArray
-          )
-        ),
-        Grid(item = true, xs = 12)(
-          Paper(className = InlineStyles.episodeTableContainer)(
-            Table()(
-              TableHead()(
-                TableCell()("Episode"),
-                TableCell()("Duration"),
-                TableCell()("Release")
-              ),
-              TableBody()(
-                (episodePage map { episode =>
-                  TableRow()(
-                    TableCell()(episode.getCommon.title),
-                    TableCell()(
-                      durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
-                    ),
-                    TableCell()(epochSecToDate(episode.getCommon.publishedEpochSec))
+                         dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))(),
+              Divider(style = styleMap(Styles.textSectionDivider))(),
+              Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
+                fields.details flatMap { detailField =>
+                  val label = <.b(Styles.detailLabel, detailField.label)
+                  val content =
+                    if (detailField.label == "Website" && Linkify
+                          .test(detailField.value, "url")) {
+                      <.a(^.href := detailField.value, ^.target := "_blank", detailField.value)
+                    } else {
+                      <.span(detailField.value)
+                    }
+                  Seq(
+                    Grid(item = true, xs = 2)(
+                      Typography(typographyType = Typography.Type.Caption)(label)),
+                    Grid(item = true, xs = 10)(
+                      Typography(typographyType = Typography.Type.Caption)(content))
                   )
-                }).toVdomArray
-              ),
-              TableFooter()(
-                TableRow()(
-                  TablePagination(
-                    rowsPerPage = s.rowsPerPage,
-                    count = episodes.size,
-                    page = s.page,
-                    rowsPerPageOptions = Array(5, 10, 20),
-                    onChangePage = onPageChanged,
-                    onChangeRowsPerPage = onPageSizeChanged
-                  )()
-                )
+                } toVdomArray
               )
             )
           )
+        ),
+        Grid(item = true, xs = 12)(),
+        Grid(item = true, xs = 12)(
+          EpisodeTable(EpisodeTable.Props(p.routerCtl, p.dotable))()
         )
       )
 
@@ -178,4 +156,6 @@ object EntityDetails {
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
     .build
+
+  def apply(p: Props) = component.withProps(p)
 }

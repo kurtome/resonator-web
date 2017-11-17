@@ -100,6 +100,14 @@ class PodcastDbService @Inject()(
     db.run(op)
   }
 
+  def readDotableWithChildren(id: Long): Future[Option[Dotable]] = {
+    val op = for {
+      podcast <- dotableDbIo.readHeadById(id)
+      episodes <- dotableDbIo.readByParentId(id)
+    } yield podcast.map(_.update(_.relatives.children := episodes))
+    db.run(op)
+  }
+
   private def matchToExistingEpisodeId(episodes: Seq[RssFetchedEpisode],
                                        existingEpisodes: Seq[Tables.PodcastEpisodeIngestionRow])
     : Seq[(Option[Long], RssFetchedEpisode)] = {

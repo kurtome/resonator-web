@@ -47,7 +47,7 @@ object PodcastDetailView {
         Fade(in = true, transitionDurationMs = 300)(
           Grid(container = true, spacing = 0)(
             Grid(item = true, xs = 12)(
-              EntityDetails.component(EntityDetails.Props(p.routerCtl, dotable))
+              EntityDetails(EntityDetails.Props(p.routerCtl, dotable))()
             )
           ))
       )
@@ -63,5 +63,5 @@ object PodcastDetailView {
     .componentDidMount(x => x.backend.fetchDetails(x.state))
     .build
 
-  def apply(props: Props) = component(props)
+  def apply(props: Props) = component.withProps(props)
 }

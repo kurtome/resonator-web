@@ -4,6 +4,8 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom
 import CssSettings._
+import kurtome.dote.web.components.widgets.EntityDetails
+import org.scalajs.dom.raw.Event
 
 object WebMain {
 
@@ -14,6 +16,9 @@ object WebMain {
       .build
 
   def main(args: Array[String]): Unit = {
+
+    dom.window.onerror = globalErrorHandler
+
     // Attach both style files to the head
     InlineStyles.addToDocument()
     attachStandaloneStyle(StandaloneStyles)
@@ -29,5 +34,12 @@ object WebMain {
     val styleElement = dom.document.createElement("style")
     styleElement.innerHTML = rawCssStr
     dom.document.head.appendChild(styleElement)
+  }
+
+  private def globalErrorHandler(event: Event, source: String, lineno: Int, colno: Int): Boolean = {
+    dom.window.alert(s"${event.toString}\nError from '$source' at $lineno:$colno")
+
+    // always suppress the error
+    return true;
   }
 }

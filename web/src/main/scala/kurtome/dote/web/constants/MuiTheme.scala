@@ -37,7 +37,6 @@ object MuiTheme {
         ),
         "subheading" -> l$(
           "fontFamily" -> "aileronSemiBold",
-          "textTransform" -> "uppercase"
         ),
         "button" -> l$(
           "fontFamily" -> "aileronRegular",

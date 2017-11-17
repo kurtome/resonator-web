@@ -35,4 +35,6 @@ object EntityTile {
     .backend(new Backend(_))
     .renderP((builder, props) => builder.backend.render(props, props.dotable))
     .build
+
+  def apply(p: Props) = component.withProps(p)
 }

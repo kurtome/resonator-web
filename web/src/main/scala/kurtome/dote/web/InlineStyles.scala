@@ -26,14 +26,13 @@ object InlineStyles extends StyleSheet.Inline {
 
   val detailsTileContainer = style(
     marginLeft.auto,
-    marginTop(spacingUnit * 3),
     marginRight.auto,
-    marginBottom(spacingUnit * 3),
     display.table
   )
 
   val detailsHeaderContainer = style(
-    margin(spacingUnit * 2)
+    margin(spacingUnit * 2),
+    padding(spacingUnit * 2)
   )
 
   val centerTextContainer = style(
@@ -42,7 +41,7 @@ object InlineStyles extends StyleSheet.Inline {
   )
 
   val mainContentContainer = style(
-    margin(spacingUnit * 3),
+    margin(spacingUnit * 3)
   )
 
   val centerItem = style(
@@ -62,7 +61,7 @@ object InlineStyles extends StyleSheet.Inline {
   )
 
   val titleFieldContainer = style(
-    textAlign.center,
+    textAlign.left,
     display.grid,
     alignContent.center,
     alignItems.center
@@ -81,8 +80,11 @@ object InlineStyles extends StyleSheet.Inline {
 
   val detailsFieldContainer = style(
     textAlign.left,
-    display.grid,
-    margin(spacingUnit * 2)
+    marginBottom(spacingUnit * 2),
+    marginLeft(spacingUnit * 2),
+    marginRight(spacingUnit * 2),
+    paddingLeft(spacingUnit * 2),
+    paddingRight(spacingUnit * 2)
   )
 
   val nestedImg = style(
@@ -181,6 +183,10 @@ object InlineStyles extends StyleSheet.Inline {
   val titleText = style(
     textAlign.center,
     paddingTop(spacingUnit * 2)
+  )
+
+  val siteLink = style(
+    color.rgba(0, 0, 0, 0.87)
   )
 
   val inlineBlock = style(

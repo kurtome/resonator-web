@@ -20,7 +20,7 @@ class GetDotableDetailsController @Inject()(
 
   override def action(request: GetDotableDetailsRequest): Future[GetDotableDetailsResponse] = {
     podcastDbService
-      .readPodcastWithEpisodes(UrlIds.decode(request.id))
+      .readDotableWithChildren(UrlIds.decode(request.id))
       .map(GetDotableDetailsResponse(_))
   }
 

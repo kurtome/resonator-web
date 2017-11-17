@@ -42,11 +42,11 @@ object DoteRoutes {
         | staticRedirect("") ~> redirectToPage(HomeRoute)(Redirect.Replace)
         | staticRedirect("#") ~> redirectToPage(HomeRoute)(Redirect.Replace)
         | staticRedirect("#/") ~> redirectToPage(HomeRoute)(Redirect.Replace)
-        | staticRoute("#/home", HomeRoute) ~> renderR(HomeView(_))
-        | staticRoute("#/add", AddRoute) ~> renderR(AddPodcastView(_))
+        | staticRoute("#/home", HomeRoute) ~> renderR(HomeView(_)())
+        | staticRoute("#/add", AddRoute) ~> renderR(AddPodcastView(_)())
         | dynamicRouteCT("#/podcast" ~ ("/" ~ id ~ "/" ~ slug)
           .caseClass[PodcastDetailRoute]) ~> dynRenderR((page: PodcastDetailRoute, routerCtl) =>
-          PodcastDetailView(PodcastDetailView.Props(routerCtl, page)))
+          PodcastDetailView(PodcastDetailView.Props(routerCtl, page))())
         | staticRoute("#/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))
         .notFound(redirectToPage(PageNotFoundRoute)(Redirect.Replace))
