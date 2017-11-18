@@ -27,12 +27,14 @@ object BottomNavigationButton {
     var centerRipple: js.UndefOr[Boolean] = js.native
     var onClick: js.UndefOr[js.Function0[Unit]] = js.native
     var icon: js.UndefOr[ReactElement] = js.native
+    var value: js.UndefOr[String] = js.native
     var className: js.UndefOr[String] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
   def apply(
+      value: String,
       onClick: Callback = Callback.empty,
       showLabel: js.UndefOr[Boolean] = js.undefined,
       className: js.UndefOr[String] = js.undefined,
@@ -42,6 +44,7 @@ object BottomNavigationButton {
     p.onClick = onClick.toJsCallback
     p.showLabel = showLabel
     p.className = className
+    p.value = value
     p.icon = icon.map(_.raw)
     component.withProps(p)
   }

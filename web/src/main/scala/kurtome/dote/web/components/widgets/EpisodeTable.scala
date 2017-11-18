@@ -52,27 +52,31 @@ object EpisodeTable {
       Paper(className = InlineStyles.episodeTableContainer)(
         Table()(
           TableHead()(
-            TableCell()("Episode"),
-            TableCell()("Duration"),
-            TableCell()("Release")
+            TableRow(key = Some(p.dotable.id + "header"))(
+              TableCell()("Episode"),
+              TableCell()("Duration"),
+              TableCell()("Release")
+            )
           ),
           TableBody()(
-            (episodePage map { episode =>
-              val id = episode.id
-              val slug = episode.slug
-              val detailRoute = PodcastDetailRoute(id = id, slug = slug)
+            (episodePage.zipWithIndex map {
+              case (episode, i) =>
+                val id = episode.id
+                val key: String = if (id.isEmpty) i.toString else id
+                val slug = episode.slug
+                val detailRoute = PodcastDetailRoute(id = id, slug = slug)
 
-              TableRow()(
-                TableCell()(SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
-                TableCell()(
-                  durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
-                ),
-                TableCell()(epochSecToDate(episode.getCommon.publishedEpochSec))
-              )
+                TableRow(key = Some(key))(
+                  TableCell()(SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
+                  TableCell()(
+                    durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
+                  ),
+                  TableCell()(epochSecToDate(episode.getCommon.publishedEpochSec))
+                )
             }).toVdomArray
           ),
           TableFooter()(
-            TableRow()(
+            TableRow(key = Some(p.dotable.id + "footer"))(
               TablePagination(
                 rowsPerPage = s.rowsPerPage,
                 count = episodes.size,

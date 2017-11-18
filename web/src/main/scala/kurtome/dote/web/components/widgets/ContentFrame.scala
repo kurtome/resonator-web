@@ -7,14 +7,16 @@ import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.constants.{MuiTheme, StringValues}
+import org.scalajs.dom
 
 object ContentFrame {
 
   case class Props(routerCtl: DoteRouterCtl)
+  case class State(navValue: String = "home")
 
-  class Backend(bs: BackendScope[Props, Unit]) {
+  class Backend(bs: BackendScope[Props, State]) {
 
-    def render(p: Props, mainContent: PropsChildren): VdomElement = {
+    def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
       MuiThemeProvider(MuiTheme.theme)(
         <.div(
           Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
@@ -32,7 +34,8 @@ object ContentFrame {
                         ^.className := InlineStyles.siteTitleAnchor,
                         <.span(^.className := InlineStyles.siteTitleText)(StringValues.siteTitle)
                       ),
-                      <.span(^.className := InlineStyles.underConstructionText)("under construction")
+                      <.span(^.className := InlineStyles.underConstructionText)(
+                        "under construction")
                     )
                   )
                 ),
@@ -61,12 +64,18 @@ object ContentFrame {
             ^.className := InlineStyles.bottomNavRoot,
             Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
               Grid(item = true, xs = 12)(Divider()()),
-              Grid(item = true, xs = 12)(BottomNavigation()(
-                BottomNavigationButton(icon = Icons.Home(),
-                                       onClick = p.routerCtl.set(HomeRoute))(),
-                BottomNavigationButton(icon = Icons.Add(), onClick = p.routerCtl.set(AddRoute))(),
-                BottomNavigationButton(icon = Icons.AccountCircle())()
-              ))
+              Grid(item = true, xs = 12)(
+                BottomNavigation(value = s.navValue, onChange = (_, value) => {
+                  bs.modState(_.copy(navValue = value))
+                })(
+                  BottomNavigationButton(icon = Icons.Home(),
+                                         value = "home",
+                                         onClick = p.routerCtl.set(HomeRoute))(),
+                  BottomNavigationButton(icon = Icons.Add(),
+                                         value = "add",
+                                         onClick = p.routerCtl.set(AddRoute))(),
+                  BottomNavigationButton(icon = Icons.AccountCircle(), value = "account")()
+                ))
             )
           )
         )
@@ -74,10 +83,19 @@ object ContentFrame {
     }
   }
 
+  private def navValueFromUrl: String = {
+    if (dom.window.location.hash.startsWith("#/add")) {
+      "add"
+    } else {
+      "home"
+    }
+  }
+
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
+    .initialState(State(navValue = navValueFromUrl))
     .backend(new Backend(_))
-    .renderPC((b, p, pc) => b.backend.render(p, pc))
+    .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
     .build
 
   def apply(p: Props)(c: CtorType.ChildArg*) = component.withChildren(c: _*)(p)

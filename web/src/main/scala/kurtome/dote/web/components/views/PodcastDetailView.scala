@@ -44,7 +44,7 @@ object PodcastDetailView {
     def render(p: Props, s: State): VdomElement = {
       val dotable = s.response.getDotable
       ContentFrame(ContentFrame.Props(p.routerCtl))(
-        Fade(in = true, transitionDurationMs = 300)(
+        Fade(in = true, timeoutMs = 300)(
           Grid(container = true, spacing = 0)(
             Grid(item = true, xs = 12)(
               EntityDetails(EntityDetails.Props(p.routerCtl, dotable))()

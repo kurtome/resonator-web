@@ -1,5 +1,6 @@
 package kurtome.dote.web.components.materialui
 
+import japgolly.scalajs.react
 import japgolly.scalajs.react._
 
 import scala.scalajs.js
@@ -23,13 +24,19 @@ object TableRow {
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(hover: js.UndefOr[Boolean] = js.undefined,
+  def apply(key: Option[react.Key] = None,
+            hover: js.UndefOr[Boolean] = js.undefined,
             selected: js.UndefOr[Boolean] = js.undefined,
             className: js.UndefOr[String] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.hover = hover
     p.selected = selected
     p.className = className
-    component.withProps(p)
+
+    if (key.isDefined) {
+      component.withKey(key.get).withProps(p)
+    } else {
+      component.withProps(p)
+    }
   }
 }

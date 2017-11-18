@@ -84,7 +84,9 @@ object EntityDetails {
           details = Seq(
             DetailField("Website", podcastDetails.websiteUrl),
             DetailField("Language", podcastDetails.languageDisplay),
-          ) filter { !_.value.isEmpty }
+          ) filter { field =>
+            field.value.isEmpty
+          }
         )
       case Dotable.Kind.PODCAST_EPISODE =>
         val episodeDetails = dotable.getDetails.getPodcastEpisode
@@ -110,11 +112,10 @@ object EntityDetails {
                alignItems = Grid.AlignItems.FlexStart,
                className = InlineStyles.detailsHeaderContainer)(
             Grid(item = true, xs = 12, lg = 4)(
-              <.div(^.className := InlineStyles.detailsTileContainer,
-                    EntityTile(
-                      EntityTile.Props(routerCtl = p.routerCtl,
-                                       dotable = p.dotable,
-                                       size = "250px"))())
+              <.div(
+                ^.className := InlineStyles.detailsTileContainer,
+                EntityTile(
+                  EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px"))())
             ),
             Grid(item = true, xs = 12, lg = 8, className = InlineStyles.titleFieldContainer)(
               Typography(style = styleMap(Styles.titleText),
@@ -134,9 +135,9 @@ object EntityDetails {
                       <.span(detailField.value)
                     }
                   Seq(
-                    Grid(item = true, xs = 2)(
+                    Grid(key = Some(detailField.label + "label"), item = true, xs = 2)(
                       Typography(typographyType = Typography.Type.Caption)(label)),
-                    Grid(item = true, xs = 10)(
+                    Grid(key = Some(detailField.label + "value"), item = true, xs = 10)(
                       Typography(typographyType = Typography.Type.Caption)(content))
                   )
                 } toVdomArray
@@ -144,13 +145,11 @@ object EntityDetails {
               Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
                 if (Linkify.test(fields.externalUrls.itunes, "url")) {
                   VdomArray(
-                    Grid(item = true, xs = 2)(
+                    Grid(key = Some("listen-label"), item = true, xs = 2)(
                       Typography(typographyType = Typography.Type.Caption)("Listen")),
-                    Grid(item = true, xs = 10)(
+                    Grid(key = Some("listen-value"), item = true, xs = 10)(
                       Typography(typographyType = Typography.Type.Caption)(
-                        <.a(^.href := fields.externalUrls.itunes,
-                            ^.target := "_blank",
-                            "iTunes")
+                        <.a(^.href := fields.externalUrls.itunes, ^.target := "_blank", "iTunes")
                       ))
                   )
                 } else {
@@ -175,5 +174,5 @@ object EntityDetails {
     .renderPS((builder, props, state) => builder.backend.render(props, state))
     .build
 
-  def apply(p: Props) = component.withProps(p)
+  def apply(p: Props) = component.withKey(p.dotable.id).withProps(p)
 }

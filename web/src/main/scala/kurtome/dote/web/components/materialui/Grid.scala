@@ -1,5 +1,6 @@
 package kurtome.dote.web.components.materialui
 
+import japgolly.scalajs.react
 import japgolly.scalajs.react._
 
 import scala.scalajs.js
@@ -48,7 +49,8 @@ object Grid {
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(className: js.UndefOr[String] = js.undefined,
+  def apply(key: Option[react.Key] = None,
+            className: js.UndefOr[String] = js.undefined,
             container: js.UndefOr[Boolean] = js.undefined,
             item: js.UndefOr[Boolean] = js.undefined,
             spacing: js.UndefOr[Int] = js.undefined,
@@ -71,6 +73,10 @@ object Grid {
     p.alignItems = alignItems map { _.toString }
     p.justify = justify map { _.toString }
 
-    component.withProps(p)
+    if (key.isDefined) {
+      component.withKey(key.get).withProps(p)
+    } else {
+      component.withProps(p)
+    }
   }
 }

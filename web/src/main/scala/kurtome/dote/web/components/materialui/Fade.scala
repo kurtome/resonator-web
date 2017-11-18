@@ -18,16 +18,15 @@ object Fade {
   @js.native
   trait Props extends js.Object {
     var in: js.UndefOr[Boolean] = js.native
-    var transitionDuration: js.UndefOr[Int] = js.native
+    var timeout: js.UndefOr[Int] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(in: js.UndefOr[Boolean] = js.undefined,
-            transitionDurationMs: js.UndefOr[Int] = js.undefined) = {
+  def apply(in: js.UndefOr[Boolean] = js.undefined, timeoutMs: js.UndefOr[Int] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.in = in
-    p.transitionDuration = transitionDurationMs
+    p.timeout = timeoutMs
     component.withProps(p)
   }
 }

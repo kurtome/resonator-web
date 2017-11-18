@@ -80,7 +80,7 @@ object AddPodcastView {
             // TODO handle more than one response
             s.response.podcasts.headOption match {
               case Some(dotable) => {
-                Fade(in = true, transitionDurationMs = 300)(
+                Fade(in = true, timeoutMs = 300)(
                   Grid(container = true, spacing = 0)(
                     Grid(item = true, xs = 12)(
                       Typography(typographyType = Typography.Type.SubHeading)(

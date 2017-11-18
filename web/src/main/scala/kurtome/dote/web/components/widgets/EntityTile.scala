@@ -36,5 +36,5 @@ object EntityTile {
     .renderP((builder, props) => builder.backend.render(props, props.dotable))
     .build
 
-  def apply(p: Props) = component.withProps(p)
+  def apply(p: Props) = component.withKey(p.dotable.id).withProps(p)
 }

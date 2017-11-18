@@ -36,7 +36,7 @@ object HomeView {
              alignItems = Grid.AlignItems.FlexStart,
              justify = Grid.Justify.Center)(
           s.response.dotables map { dotable =>
-            Fade(in = true, transitionDurationMs = 300)(
+            Fade(in = true, timeoutMs = 300)(
               Grid(item = true)(
                 EntityTile(EntityTile.Props(routerCtl, dotable = dotable))()
               )
