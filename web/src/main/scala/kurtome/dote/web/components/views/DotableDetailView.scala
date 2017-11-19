@@ -71,7 +71,6 @@ object DotableDetailView {
     .build
 
   def apply(routerCtl: DoteRouterCtl, route: DotableRoute) = {
-    println("creating DotableDetailView component " + route)
     component.withProps(Props(routerCtl, route))
   }
 }

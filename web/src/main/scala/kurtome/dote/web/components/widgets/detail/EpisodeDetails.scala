@@ -10,11 +10,7 @@ import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.EntityTile
-import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
-  DetailField,
-  LinkFieldValue,
-  TextFieldValue
-}
+import kurtome.dote.web.components.widgets.detail.DetailFieldList._
 import kurtome.dote.web.utils.MuiInlineStyleSheet
 
 import scalacss.internal.mutable.StyleSheet
@@ -28,6 +24,12 @@ object EpisodeDetails {
       lineHeight(1 em)
     )
 
+    val podcastTitleText = style(
+      color.rgba(0, 0, 0, 0.5),
+      verticalAlign.top,
+      display.inline
+    )
+
     val subTitleText = style(
       marginBottom(InlineStyles.spacingUnit * 2)
     )
@@ -37,47 +39,35 @@ object EpisodeDetails {
       marginBottom(InlineStyles.spacingUnit)
     )
 
+    val podcastTile = style(
+      float.left,
+      marginRight(InlineStyles.spacingUnit * 2)
+    )
+
   }
+  Styles.addToDocument()
   val muiStyles = new MuiInlineStyleSheet(Styles)
   import muiStyles._
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
   case class State()
 
-  private case class ExtractedFields(title: String = "",
-                                     subtitle: String = "",
-                                     summary: String = "",
-                                     author: Option[String] = None)
-
-  private def extractFields(dotable: Dotable): ExtractedFields = {
-    val episodeDetails = dotable.getDetails.getPodcastEpisode
-    val common = dotable.getCommon
-    ExtractedFields(
-      title = common.title,
-      subtitle = epochSecToDate(common.publishedEpochSec),
-      summary = common.description
-      //Seq(DetailField("Duration", durationSecToMin(episodeDetails.durationSec)))
-    )
-  }
-
   class Backend(bs: BackendScope[Props, State]) {
 
     def render(p: Props, s: State): VdomElement = {
-      val fields = extractFields(p.dotable)
-      val podcastDetails = p.dotable.getDetails.getPodcast
-      val detailFields =
-        Seq[DetailFieldList.DetailField](
-          DetailField("Website",
-                      Seq(LinkFieldValue(podcastDetails.websiteUrl, podcastDetails.websiteUrl))),
-          DetailField("Language", Seq(TextFieldValue(podcastDetails.languageDisplay))),
-          DetailField("Listen",
-                      Seq(LinkFieldValue("iTunes", podcastDetails.getExternalUrls.itunes)))
-        ) filter { field =>
-          field.values exists {
-            case TextFieldValue(text) => text.nonEmpty
-            case LinkFieldValue(text, url) => text.nonEmpty && url.nonEmpty
-          }
-        }
+      val podcast = p.dotable.getRelatives.getParent
+      val episodeDetails = p.dotable.getDetails.getPodcastEpisode
+      val duration = durationSecToMin(episodeDetails.durationSec)
+      val title = p.dotable.getCommon.title
+      val description = p.dotable.getCommon.description
+      val published = epochSecToDate(p.dotable.getCommon.publishedEpochSec)
+      val subtitle = if (duration.nonEmpty && published.nonEmpty) {
+        s"$duration - $published"
+      } else if (duration.nonEmpty) {
+        published
+      } else {
+        duration
+      }
 
       Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.Center)(
         Grid(item = true, xs = 12)(
@@ -85,24 +75,23 @@ object EpisodeDetails {
                spacing = 24,
                alignItems = Grid.AlignItems.FlexStart,
                className = InlineStyles.detailsHeaderContainer)(
-            Grid(item = true, xs = 12, lg = 4)(
+            Grid(item = true, xs = 12)(
               <.div(
-                ^.className := InlineStyles.detailsTileContainer,
-                EntityTile(
-                  EntityTile.Props(routerCtl = p.routerCtl,
-                                   dotable = p.dotable.getRelatives.getParent,
-                                   size = "125px"))()
+                <.div(^.className := Styles.podcastTile,
+                      EntityTile(routerCtl = p.routerCtl,
+                                 dotable = p.dotable.getRelatives.getParent,
+                                 size = "125px")()),
+                Typography(style = Styles.podcastTitleText.inline,
+                           typographyType = Typography.Type.SubHeading)(podcast.getCommon.title),
+                Typography(style = Styles.titleText.inline,
+                           typographyType = Typography.Type.Headline)(title),
+                Typography(style = Styles.subTitleText.inline,
+                           typographyType = Typography.Type.SubHeading)(subtitle)
               )
             ),
             Grid(item = true, xs = 12, lg = 8, className = InlineStyles.titleFieldContainer)(
-              Typography(style = Styles.titleText.inline,
-                         typographyType = Typography.Type.Headline)(fields.title),
-              Typography(style = Styles.subTitleText.inline,
-                         typographyType = Typography.Type.SubHeading)(fields.subtitle),
               Typography(typographyType = Typography.Type.Body1,
-                         dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))(),
-              Divider(style = Styles.textSectionDivider.inline)(),
-              DetailFieldList(detailFields)()
+                         dangerouslySetInnerHTML = linkifyAndSanitize(description))()
             )
           )
         )

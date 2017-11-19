@@ -78,23 +78,20 @@ object AddPodcastView {
           ),
           Grid(item = true, xs = 12)(
             // TODO handle more than one response
-            s.response.podcasts.headOption match {
-              case Some(dotable) => {
-                Fade(in = true, timeoutMs = 300)(
-                  Grid(container = true, spacing = 0)(
-                    Grid(item = true, xs = 12)(
-                      Typography(typographyType = Typography.Type.SubHeading)(
-                        s"Added ${dotable.getCommon.title}"
-                      )
-                    ),
-                    Grid(item = true, xs = 12)(
-                      <.div(^.className := InlineStyles.tileContainer.className.value,
-                            EntityTile(EntityTile.Props(routerCtl, dotable = dotable))())
-                    )
-                  ))
-              }
-              case None => ""
-            }
+            Fade(in = true, timeoutMs = 300)(
+              Grid(container = true, spacing = 0)(
+                Grid(item = true, xs = 12)(
+                  Typography(typographyType = Typography.Type.SubHeading)(
+                    s"Added"
+                  )
+                ),
+                s.response.podcasts map { dotable =>
+                  Grid(item = true, xs = 12)(
+                    <.div(^.className := InlineStyles.tileContainer.className.value,
+                          EntityTile(routerCtl, dotable = dotable)())
+                  )
+                } toVdomArray
+              ))
           )
         )
       )

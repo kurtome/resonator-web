@@ -43,17 +43,10 @@ class PodcastFeedParser @Inject()() {
     val languageParts = rawLanguage.split("-")
     val languageCode: String = if (languageParts.size > 0) languageParts(0) else ""
     val countryCode: String = if (languageParts.size > 1) languageParts(1) else ""
-    val languageDisplay: String = languageCode match {
-      case "" => ""
+    val locale: Option[Locale] = languageCode match {
+      case "" => None
       case _ =>
-        Try(new Locale(languageCode, countryCode.toUpperCase).getDisplayLanguage)
-          .recover {
-            case t => {
-              Logger.error(s"Unable to parse language '$languageCode'", t)
-              ""
-            }
-          }
-          .getOrElse("")
+        Try(new Locale(languageCode, countryCode.toUpperCase)).toOption
     }
 
     val author: String = podcast \ "author"
@@ -75,7 +68,7 @@ class PodcastFeedParser @Inject()() {
         imageUrl = imageUrl,
         externalUrls = Some(ExternalUrls(itunes = itunesUrl)),
         languageCode = languageCode,
-        languageDisplay = languageDisplay
+        languageDisplay = locale.map(_.getDisplayLanguage).getOrElse("")
       ),
       episodes = episodes
     )

@@ -96,12 +96,11 @@ object PodcastDetails {
       val detailFields =
         Seq[DetailFieldList.DetailField](
           DetailField("Website",
-                      Seq(LinkFieldValue(podcastDetails.websiteUrl, podcastDetails.websiteUrl))),
-          DetailField("Language", Seq(TextFieldValue(podcastDetails.languageDisplay))),
-          DetailField("Listen",
-                      Seq(LinkFieldValue("iTunes", podcastDetails.getExternalUrls.itunes)))
+                      LinkFieldValue(podcastDetails.websiteUrl, podcastDetails.websiteUrl)),
+          DetailField("Language", TextFieldValue(podcastDetails.languageDisplay)),
+          DetailField("Listen", LinkFieldValue("iTunes", podcastDetails.getExternalUrls.itunes))
         ) filter { field =>
-          field.values exists  {
+          field.values exists {
             case TextFieldValue(text)      => text.nonEmpty
             case LinkFieldValue(text, url) => text.nonEmpty && url.nonEmpty
           }
@@ -114,10 +113,8 @@ object PodcastDetails {
                alignItems = Grid.AlignItems.FlexStart,
                className = InlineStyles.detailsHeaderContainer)(
             Grid(item = true, xs = 12, lg = 4)(
-              <.div(
-                ^.className := InlineStyles.detailsTileContainer,
-                EntityTile(
-                  EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px"))())
+              <.div(^.className := InlineStyles.detailsTileContainer,
+                    EntityTile(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px")())
             ),
             Grid(item = true, xs = 12, lg = 8, className = InlineStyles.titleFieldContainer)(
               Typography(style = Styles.titleText.inline,

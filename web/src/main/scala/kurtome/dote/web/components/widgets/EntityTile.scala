@@ -36,5 +36,6 @@ object EntityTile {
     .renderP((builder, props) => builder.backend.render(props, props.dotable))
     .build
 
-  def apply(p: Props) = component.withKey(p.dotable.id).withProps(p)
+  def apply(routerCtl: DoteRouterCtl, dotable: Dotable, size: String = "175px") =
+    component.withKey(dotable.id).withProps(Props(routerCtl, dotable, size))
 }

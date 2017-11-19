@@ -24,7 +24,7 @@ object DetailFieldList {
   }
 
   case class Props(detailFields: Seq[DetailField])
-  case class DetailField(label: String, values: Seq[DetailFieldValue])
+  case class DetailField(label: String, values: DetailFieldValue*)
 
   sealed trait DetailFieldValue {
     val text: String

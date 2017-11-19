@@ -38,7 +38,7 @@ object HomeView {
                justify = Grid.Justify.Center)(
             s.response.dotables map { dotable =>
               Grid(key = Some(dotable.id), item = true)(
-                EntityTile(EntityTile.Props(routerCtl, dotable = dotable))()
+                EntityTile(routerCtl, dotable = dotable)()
               )
             } toVdomArray
           )
