@@ -15,9 +15,7 @@ object DoteRoutes {
 
   case object HomeRoute extends DoteRoute
 
-  case class PodcastDetailRoute(id: String, slug: String) extends DoteRoute
-
-  case class PodcastPrefetchRoute(prefetched: Dotable = Dotable.defaultInstance) extends DoteRoute
+  case class DotableRoute(id: String, slug: String) extends DoteRoute
 
   case object PageNotFoundRoute extends DoteRoute
 
@@ -40,16 +38,27 @@ object DoteRoutes {
 
       (emptyRule
         | staticRedirect("") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+
         | staticRedirect("#") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+
         | staticRedirect("#/") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+
         | staticRoute("#/home", HomeRoute) ~> renderR(HomeView(_)())
+
         | staticRoute("#/add", AddRoute) ~> renderR(AddPodcastView(_)())
+
         | dynamicRouteCT("#/podcast" ~ ("/" ~ id ~ "/" ~ slug)
-          .caseClass[PodcastDetailRoute]) ~> dynRenderR((page: PodcastDetailRoute, routerCtl) =>
-          PodcastDetailView(PodcastDetailView.Props(routerCtl, page))())
+          .caseClass[DotableRoute]) ~> dynRenderR(
+          (page: DotableRoute, routerCtl) => DotableDetailView(routerCtl, page)())
+
+        | dynamicRouteCT("#/podcast-episode" ~ ("/" ~ id ~ "/" ~ slug)
+          .caseClass[DotableRoute]) ~> dynRenderR(
+          (page: DotableRoute, routerCtl) => DotableDetailView(routerCtl, page)())
+
         | staticRoute("#/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))
         .notFound(redirectToPage(PageNotFoundRoute)(Redirect.Replace))
+
         // Verify the Home route is used
         .verify(HomeRoute)
     }

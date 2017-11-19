@@ -95,13 +95,22 @@ object ComponentHelpers {
     htmlWrapper
   }
 
+  /**
+    * snake-case-string to camelCaseString
+    */
+  def snakeToCamel(snake: String): String = {
+    snake.split("-").foldRight("")((s, word) => if (s.isEmpty) word else s + word.capitalize)
+  }
+
   implicit val dynamicRenderer = new Renderer[Map[String, js.Dynamic]] {
     override def apply(css: Css) = {
       css map {
         case style: CssEntry.Style =>
           val jsStyle = js.Dynamic.literal()
           style.content.foreach(kv => {
-            jsStyle.updateDynamic(kv.key)(kv.value)
+            // js representation of CSS rules should be camel case, like lineHeight, etc.
+            val jsKey = snakeToCamel(kv.key)
+            jsStyle.updateDynamic(jsKey)(kv.value)
           })
           (style.sel.replace(".", "") -> jsStyle)
         case x => throw new IllegalArgumentException("unsupported " + x.toString)

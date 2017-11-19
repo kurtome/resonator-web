@@ -1,24 +1,22 @@
-package kurtome.dote.web.components.widgets
+package kurtome.dote.web.components.widgets.detail
 
 import dote.proto.api.dotable.Dotable
 import dote.proto.db.dotable.ExternalUrls
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.InlineStyles
-import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.utils.Linkify
-import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.detail.DetailFieldList.{DetailField, LinkFieldValue, TextFieldValue}
+import kurtome.dote.web.components.widgets.EntityTile
+import kurtome.dote.web.utils.MuiInlineStyleSheet
 
-import scalacss.ScalaCssReact._
-import scala.scalajs.js
-import scala.scalajs.js.JSON
-import scalacss.internal.{Css, CssEntry, Renderer, Style}
 import scalacss.internal.mutable.StyleSheet
 
-object EntityDetails {
+object PodcastDetails {
 
   private object Styles extends StyleSheet.Inline {
     import dsl._
@@ -36,25 +34,19 @@ object EntityDetails {
       marginBottom(InlineStyles.spacingUnit)
     )
 
-    val detailLabel = style(
-      marginRight(InlineStyles.spacingUnit)
-    )
   }
-  Styles.addToDocument()
-  private val styleMap: Map[String, js.Dynamic] = styleObjsByClassName(Styles)
+  val muiStyles = new MuiInlineStyleSheet(Styles)
+  import muiStyles._
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
 
   case class State()
 
-  private case class DetailField(label: String, value: String)
-
   private case class ExtractedFields(title: String = "",
                                      subtitle: String = "",
                                      summary: String = "",
                                      author: Option[String] = None,
-                                     externalUrls: ExternalUrls = ExternalUrls.defaultInstance,
-                                     details: Seq[DetailField] = Nil)
+                                     externalUrls: ExternalUrls = ExternalUrls.defaultInstance)
 
   private def extractFields(dotable: Dotable): ExtractedFields = {
     val common = dotable.getCommon
@@ -81,20 +73,14 @@ object EntityDetails {
           subtitle = subtitle,
           summary = common.description,
           externalUrls = podcastDetails.getExternalUrls,
-          details = Seq(
-            DetailField("Website", podcastDetails.websiteUrl),
-            DetailField("Language", podcastDetails.languageDisplay),
-          ) filter { field =>
-            field.value.isEmpty
-          }
         )
       case Dotable.Kind.PODCAST_EPISODE =>
         val episodeDetails = dotable.getDetails.getPodcastEpisode
         ExtractedFields(
           title = common.title,
           subtitle = epochSecToDate(common.publishedEpochSec),
-          summary = common.description,
-          details = Seq(DetailField("Duration", durationSecToMin(episodeDetails.durationSec)))
+          summary = common.description
+          //Seq(DetailField("Duration", durationSecToMin(episodeDetails.durationSec)))
         )
       case _ => ExtractedFields()
     }
@@ -104,6 +90,20 @@ object EntityDetails {
 
     def render(p: Props, s: State): VdomElement = {
       val fields = extractFields(p.dotable)
+      val podcastDetails = p.dotable.getDetails.getPodcast
+      val detailFields =
+        Seq[DetailFieldList.DetailField](
+          DetailField("Website",
+                      Seq(LinkFieldValue(podcastDetails.websiteUrl, podcastDetails.websiteUrl))),
+          DetailField("Language", Seq(TextFieldValue(podcastDetails.languageDisplay))),
+          DetailField("Listen",
+                      Seq(LinkFieldValue("iTunes", podcastDetails.getExternalUrls.itunes)))
+        ) filter { field =>
+          field.values.filter {
+            case TextFieldValue(text) => text.nonEmpty
+            case LinkFieldValue(text, url) => text.nonEmpty && url.nonEmpty
+          }.nonEmpty
+        }
 
       Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.Center)(
         Grid(item = true, xs = 12)(
@@ -118,44 +118,14 @@ object EntityDetails {
                   EntityTile.Props(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px"))())
             ),
             Grid(item = true, xs = 12, lg = 8, className = InlineStyles.titleFieldContainer)(
-              Typography(style = styleMap(Styles.titleText),
+              Typography(style = Styles.titleText.inline,
                          typographyType = Typography.Type.Headline)(fields.title),
-              Typography(style = styleMap(Styles.subTitleText),
+              Typography(style = Styles.subTitleText.inline,
                          typographyType = Typography.Type.SubHeading)(fields.subtitle),
               Typography(typographyType = Typography.Type.Body1,
                          dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))(),
-              Divider(style = styleMap(Styles.textSectionDivider))(),
-              Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
-                fields.details flatMap { detailField =>
-                  val label = <.b(Styles.detailLabel, detailField.label)
-                  val content =
-                    if (Linkify.test(detailField.value, "url")) {
-                      <.a(^.href := detailField.value, ^.target := "_blank", detailField.value)
-                    } else {
-                      <.span(detailField.value)
-                    }
-                  Seq(
-                    Grid(key = Some(detailField.label + "label"), item = true, xs = 2)(
-                      Typography(typographyType = Typography.Type.Caption)(label)),
-                    Grid(key = Some(detailField.label + "value"), item = true, xs = 10)(
-                      Typography(typographyType = Typography.Type.Caption)(content))
-                  )
-                } toVdomArray
-              ),
-              Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
-                if (Linkify.test(fields.externalUrls.itunes, "url")) {
-                  VdomArray(
-                    Grid(key = Some("listen-label"), item = true, xs = 2)(
-                      Typography(typographyType = Typography.Type.Caption)("Listen")),
-                    Grid(key = Some("listen-value"), item = true, xs = 10)(
-                      Typography(typographyType = Typography.Type.Caption)(
-                        <.a(^.href := fields.externalUrls.itunes, ^.target := "_blank", "iTunes")
-                      ))
-                  )
-                } else {
-                  <.div()
-                }
-              )
+              Divider(style = Styles.textSectionDivider.inline)(),
+              DetailFieldList(detailFields)()
             )
           )
         ),

@@ -4,7 +4,7 @@ import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.InlineStyles
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastDetailRoute}
+import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, DotableRoute}
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 
@@ -16,7 +16,7 @@ object EntityTile {
     def render(props: Props, s: Dotable): VdomElement = {
       val id = s.id
       val slug = s.slug
-      val detailRoute = PodcastDetailRoute(id = id, slug = slug)
+      val detailRoute = DotableRoute(id = id, slug = slug)
 
       Paper(elevation = 8, className = InlineStyles.inlineBlock)(
         props.routerCtl.link(detailRoute)(

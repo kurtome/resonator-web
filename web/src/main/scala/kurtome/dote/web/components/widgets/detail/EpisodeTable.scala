@@ -1,15 +1,14 @@
-package kurtome.dote.web.components.widgets
+package kurtome.dote.web.components.widgets.detail
 
 import dote.proto.api.dotable.Dotable
-import japgolly.scalajs.react.extra.router.RouterCtl
-import kurtome.dote.web.DoteRoutes.{DoteRoute, PodcastDetailRoute}
-import kurtome.dote.web.InlineStyles
-import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.utils.Linkify
 import japgolly.scalajs.react._
+import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.DoteRoutes.{DoteRoute, DotableRoute}
+import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.SiteLink
 
 import scala.scalajs.js
 
@@ -17,7 +16,8 @@ object EpisodeTable {
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
 
-  case class State(page: Int = 0, rowsPerPage: Int = 10)
+  val rowsPerPageOptions = Array(5, 10, 20)
+  case class State(page: Int = 0, rowsPerPage: Int = rowsPerPageOptions(0))
 
   private def episodesByRecency(dotable: Dotable) = {
     dotable.kind match {
@@ -64,7 +64,7 @@ object EpisodeTable {
                 val id = episode.id
                 val key: String = if (id.isEmpty) i.toString else id
                 val slug = episode.slug
-                val detailRoute = PodcastDetailRoute(id = id, slug = slug)
+                val detailRoute = DotableRoute(id = id, slug = slug)
 
                 TableRow(key = Some(key))(
                   TableCell()(SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
@@ -81,7 +81,7 @@ object EpisodeTable {
                 rowsPerPage = s.rowsPerPage,
                 count = episodes.size,
                 page = s.page,
-                rowsPerPageOptions = Array(5, 10, 20),
+                rowsPerPageOptions = rowsPerPageOptions,
                 onChangePage = onPageChanged,
                 onChangeRowsPerPage = onPageSizeChanged
               )()

@@ -9,7 +9,7 @@ import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.{ContentFrame, EntityTile}
-import kurtome.dote.web.DoteRoutes.{DoteRoute, DoteRouterCtl, PodcastDetailRoute}
+import kurtome.dote.web.DoteRoutes.{DoteRoute, DoteRouterCtl, DotableRoute}
 import kurtome.dote.web.rpc.LocalCache.LsCache
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -31,17 +31,17 @@ object HomeView {
 
     def render(routerCtl: DoteRouterCtl, s: State): VdomElement = {
       ContentFrame(ContentFrame.Props(routerCtl))(
-        Grid(container = true,
-             spacing = 24,
-             alignItems = Grid.AlignItems.FlexStart,
-             justify = Grid.Justify.Center)(
-          s.response.dotables map { dotable =>
-            Fade(in = true, timeoutMs = 300)(
-              Grid(item = true)(
+        Fade(in = true, timeoutMs = 300)(
+          Grid(container = true,
+               spacing = 24,
+               alignItems = Grid.AlignItems.FlexStart,
+               justify = Grid.Justify.Center)(
+            s.response.dotables map { dotable =>
+              Grid(key = Some(dotable.id), item = true)(
                 EntityTile(EntityTile.Props(routerCtl, dotable = dotable))()
               )
-            )
-          } toVdomArray
+            } toVdomArray
+          )
         )
       )
     }

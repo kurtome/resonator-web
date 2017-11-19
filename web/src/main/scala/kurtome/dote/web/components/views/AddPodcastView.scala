@@ -7,7 +7,7 @@ import kurtome.dote.web.DoteRoutes.DoteRouterCtl
 import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.{ContentFrame, EntityDetails, EntityTile}
+import kurtome.dote.web.components.widgets.{ContentFrame, EntityTile}
 import kurtome.dote.web.components.ComponentHelpers._
 
 import scala.concurrent.ExecutionContext.Implicits.global

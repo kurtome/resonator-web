@@ -2,18 +2,20 @@ package kurtome.dote.web.components.views
 
 import dote.proto.api.action.get_dotable._
 import dote.proto.api.dotable.Dotable
+import dote.proto.api.dotable.Dotable.Kind
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastDetailRoute}
+import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, DotableRoute}
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.{ContentFrame, EntityDetails}
+import kurtome.dote.web.components.widgets.ContentFrame
+import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object PodcastDetailView {
+object DotableDetailView {
 
-  case class Props(routerCtl: DoteRouterCtl, route: PodcastDetailRoute)
+  case class Props(routerCtl: DoteRouterCtl, route: DotableRoute)
 
   case class State(request: GetDotableDetailsRequest,
                    response: GetDotableDetailsResponse,
@@ -47,7 +49,12 @@ object PodcastDetailView {
         Fade(in = true, timeoutMs = 300)(
           Grid(container = true, spacing = 0)(
             Grid(item = true, xs = 12)(
-              EntityDetails(EntityDetails.Props(p.routerCtl, dotable))()
+              dotable.kind match {
+                case Kind.PODCAST => PodcastDetails(PodcastDetails.Props(p.routerCtl, dotable))()
+                case Kind.PODCAST_EPISODE =>
+                  EpisodeDetails(EpisodeDetails.Props(p.routerCtl, dotable))()
+                case _ => <.div()
+              }
             )
           ))
       )
@@ -63,5 +70,6 @@ object PodcastDetailView {
     .componentDidMount(x => x.backend.fetchDetails(x.state))
     .build
 
-  def apply(props: Props) = component.withProps(props)
+  def apply(routerCtl: DoteRouterCtl, route: DotableRoute) =
+    component.withProps(Props(routerCtl, route))
 }

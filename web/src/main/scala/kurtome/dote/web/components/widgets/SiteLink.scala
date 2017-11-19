@@ -8,6 +8,8 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.ComponentHelpers._
 
+import scala.scalajs.js
+
 object SiteLink {
 
   case class Props(routerCtl: DoteRouterCtl, route: DoteRoute)

@@ -4,7 +4,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom
 import CssSettings._
-import kurtome.dote.web.components.widgets.EntityDetails
+import kurtome.dote.web.components.widgets.detail.PodcastDetails
 import org.scalajs.dom.raw.Event
 
 object WebMain {
