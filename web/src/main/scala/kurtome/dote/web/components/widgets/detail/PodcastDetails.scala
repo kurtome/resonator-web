@@ -10,7 +10,11 @@ import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.detail.DetailFieldList.{DetailField, LinkFieldValue, TextFieldValue}
+import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
+  DetailField,
+  LinkFieldValue,
+  TextFieldValue
+}
 import kurtome.dote.web.components.widgets.EntityTile
 import kurtome.dote.web.utils.MuiInlineStyleSheet
 
@@ -39,8 +43,6 @@ object PodcastDetails {
   import muiStyles._
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
-
-  case class State()
 
   private case class ExtractedFields(title: String = "",
                                      subtitle: String = "",
@@ -86,9 +88,9 @@ object PodcastDetails {
     }
   }
 
-  class Backend(bs: BackendScope[Props, State]) {
+  class Backend(bs: BackendScope[Props, _]) {
 
-    def render(p: Props, s: State): VdomElement = {
+    def render(p: Props): VdomElement = {
       val fields = extractFields(p.dotable)
       val podcastDetails = p.dotable.getDetails.getPodcast
       val detailFields =
@@ -99,10 +101,10 @@ object PodcastDetails {
           DetailField("Listen",
                       Seq(LinkFieldValue("iTunes", podcastDetails.getExternalUrls.itunes)))
         ) filter { field =>
-          field.values.filter {
-            case TextFieldValue(text) => text.nonEmpty
+          field.values exists  {
+            case TextFieldValue(text)      => text.nonEmpty
             case LinkFieldValue(text, url) => text.nonEmpty && url.nonEmpty
-          }.nonEmpty
+          }
         }
 
       Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.Center)(
@@ -139,9 +141,8 @@ object PodcastDetails {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State())
     .backend(new Backend(_))
-    .renderPS((builder, props, state) => builder.backend.render(props, state))
+    .renderP((builder, props) => builder.backend.render(props))
     .build
 
   def apply(p: Props) = component.withKey(p.dotable.id).withProps(p)

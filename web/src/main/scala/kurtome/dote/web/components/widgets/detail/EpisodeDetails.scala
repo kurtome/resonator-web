@@ -1,7 +1,6 @@
 package kurtome.dote.web.components.widgets.detail
 
 import dote.proto.api.dotable.Dotable
-import dote.proto.db.dotable.ExternalUrls
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
@@ -43,7 +42,6 @@ object EpisodeDetails {
   import muiStyles._
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
-
   case class State()
 
   private case class ExtractedFields(title: String = "",
@@ -88,11 +86,13 @@ object EpisodeDetails {
                alignItems = Grid.AlignItems.FlexStart,
                className = InlineStyles.detailsHeaderContainer)(
             Grid(item = true, xs = 12, lg = 4)(
-              <.div(^.className := InlineStyles.detailsTileContainer,
-                    EntityTile(
-                      EntityTile.Props(routerCtl = p.routerCtl,
-                                       dotable = p.dotable,
-                                       size = "250px"))())
+              <.div(
+                ^.className := InlineStyles.detailsTileContainer,
+                EntityTile(
+                  EntityTile.Props(routerCtl = p.routerCtl,
+                                   dotable = p.dotable.getRelatives.getParent,
+                                   size = "125px"))()
+              )
             ),
             Grid(item = true, xs = 12, lg = 8, className = InlineStyles.titleFieldContainer)(
               Typography(style = Styles.titleText.inline,
@@ -105,9 +105,6 @@ object EpisodeDetails {
               DetailFieldList(detailFields)()
             )
           )
-        ),
-        Grid(item = true, xs = 12)(
-          EpisodeTable(EpisodeTable.Props(p.routerCtl, p.dotable))()
         )
       )
 

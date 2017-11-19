@@ -83,12 +83,22 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     table.filter(_.parentId === parentId)
   }
 
+  val readByChildIdRaw = Compiled { (childId: Rep[Long]) =>
+    for {
+      (p, c) <- table join table.filter(_.id === childId) on (_.id === _.parentId)
+    } yield p
+  }
+
   def readHeadByParentId(kind: DotableKinds.Value, parentId: Long) = {
     readByParentIdRaw(parentId).result.headOption.map(_.map(protoRowMapper(kind)))
   }
 
   def readByParentId(kind: DotableKinds.Value, parentId: Long) = {
     readByParentIdRaw(parentId).result.map(_.map(protoRowMapper(kind)))
+  }
+
+  def readByChildId(kind: DotableKinds.Value, childId: Long) = {
+    readByChildIdRaw(childId).result.headOption.map(_.map(protoRowMapper(kind)))
   }
 
   def readByParentId(parentId: Long) = {
@@ -144,6 +154,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
       details = JsonFormat.toJson(ep.details)
     )
   }
+
   private def podcastToRow(id: Option[Long], podcast: RssFetchedPodcast): Tables.DotableRow = {
     Tables.DotableRow(
       id = id.getOrElse(0),

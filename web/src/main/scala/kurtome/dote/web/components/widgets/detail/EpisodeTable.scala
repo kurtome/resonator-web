@@ -4,7 +4,7 @@ import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.DoteRoutes.{DoteRoute, DotableRoute}
+import kurtome.dote.web.DoteRoutes.{DoteRoute, PodcastEpisodeRoute}
 import kurtome.dote.web.InlineStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
@@ -64,7 +64,7 @@ object EpisodeTable {
                 val id = episode.id
                 val key: String = if (id.isEmpty) i.toString else id
                 val slug = episode.slug
-                val detailRoute = DotableRoute(id = id, slug = slug)
+                val detailRoute = PodcastEpisodeRoute(id = id, slug = slug)
 
                 TableRow(key = Some(key))(
                   TableCell()(SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),

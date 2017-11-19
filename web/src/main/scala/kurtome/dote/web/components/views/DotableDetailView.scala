@@ -5,7 +5,7 @@ import dote.proto.api.dotable.Dotable
 import dote.proto.api.dotable.Dotable.Kind
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, DotableRoute}
+import kurtome.dote.web.DoteRoutes.{DotableRoute, DoteRouterCtl}
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
@@ -17,14 +17,14 @@ object DotableDetailView {
 
   case class Props(routerCtl: DoteRouterCtl, route: DotableRoute)
 
-  case class State(request: GetDotableDetailsRequest,
-                   response: GetDotableDetailsResponse,
+  case class State(response: GetDotableDetailsResponse = GetDotableDetailsResponse.defaultInstance,
                    requestInFlight: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) {
 
-    def fetchDetails(s: State): Callback = {
-      val id = s.request.id
+    def fetchDetails(p: Props): Callback = {
+      val id = p.route.id
+      val request = GetDotableDetailsRequest(id)
       val cachedDetails: Option[Dotable] = LocalCache.get(includesDetails = true, id)
 
       if (cachedDetails.isDefined) {
@@ -36,7 +36,7 @@ object DotableDetailView {
         val cachedShallow: Option[Dotable] = LocalCache.get(includesDetails = false, id)
         bs.modState(_.copy(requestInFlight = true,
                            response = GetDotableDetailsResponse(cachedShallow))) flatMap { _ =>
-          CallbackTo(DoteProtoServer.addGetDotableDetails(s.request) flatMap { response =>
+          CallbackTo(DoteProtoServer.addGetDotableDetails(request) flatMap { response =>
             bs.modState(_.copy(response = response, requestInFlight = false)).toFuture
           })
         }
@@ -62,14 +62,16 @@ object DotableDetailView {
   }
 
   val component = ScalaComponent
-    .builder[Props]("PodcastDetailView")
-    .initialStateFromProps(props =>
-      State(GetDotableDetailsRequest(props.route.id), GetDotableDetailsResponse()))
+    .builder[Props](this.getClass.getSimpleName)
+    .initialState(State())
     .backend(new Backend(_))
-    .render(x => x.backend.render(x.props, x.state))
-    .componentDidMount(x => x.backend.fetchDetails(x.state))
+    .renderPS((b, p, s) => b.backend.render(p, s))
+    .componentWillReceiveProps((x) => x.backend.fetchDetails(x.nextProps))
+    .componentWillMount((x) => x.backend.fetchDetails(x.props))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, route: DotableRoute) =
+  def apply(routerCtl: DoteRouterCtl, route: DotableRoute) = {
+    println("creating DotableDetailView component " + route)
     component.withProps(Props(routerCtl, route))
+  }
 }

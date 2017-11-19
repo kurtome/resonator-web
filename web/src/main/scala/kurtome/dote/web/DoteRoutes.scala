@@ -15,7 +15,12 @@ object DoteRoutes {
 
   case object HomeRoute extends DoteRoute
 
-  case class DotableRoute(id: String, slug: String) extends DoteRoute
+  sealed trait DotableRoute extends DoteRoute {
+    val id: String
+    val slug: String
+  }
+  case class PodcastRoute(id: String, slug: String) extends DotableRoute
+  case class PodcastEpisodeRoute(id: String, slug: String) extends DotableRoute
 
   case object PageNotFoundRoute extends DoteRoute
 
@@ -48,12 +53,12 @@ object DoteRoutes {
         | staticRoute("#/add", AddRoute) ~> renderR(AddPodcastView(_)())
 
         | dynamicRouteCT("#/podcast" ~ ("/" ~ id ~ "/" ~ slug)
-          .caseClass[DotableRoute]) ~> dynRenderR(
-          (page: DotableRoute, routerCtl) => DotableDetailView(routerCtl, page)())
+          .caseClass[PodcastRoute]) ~> dynRenderR(
+          (page: PodcastRoute, routerCtl) => DotableDetailView(routerCtl, page)())
 
         | dynamicRouteCT("#/podcast-episode" ~ ("/" ~ id ~ "/" ~ slug)
-          .caseClass[DotableRoute]) ~> dynRenderR(
-          (page: DotableRoute, routerCtl) => DotableDetailView(routerCtl, page)())
+          .caseClass[PodcastEpisodeRoute]) ~> dynRenderR(
+          (page: PodcastEpisodeRoute, routerCtl) => DotableDetailView(routerCtl, page)())
 
         | staticRoute("#/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))

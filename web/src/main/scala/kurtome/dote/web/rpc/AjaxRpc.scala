@@ -26,7 +26,6 @@ private[rpc] object AjaxRpc {
 
   def protoRequest[TRequest, TResponse](action: ProtoAction[TRequest, TResponse])(
       request: TRequest): Future[TResponse] = {
-    println("requesting from " + baseUrl + action.route)
     val url = baseUrl + action.route
     Ajax.post(
       url = baseUrl + action.route,

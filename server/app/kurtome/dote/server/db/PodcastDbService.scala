@@ -100,11 +100,15 @@ class PodcastDbService @Inject()(
     db.run(op)
   }
 
-  def readDotableWithChildren(id: Long): Future[Option[Dotable]] = {
+  def readDotableWithParentAndChildren(id: Long): Future[Option[Dotable]] = {
     val op = for {
-      podcast <- dotableDbIo.readHeadById(id)
-      episodes <- dotableDbIo.readByParentId(id)
-    } yield podcast.map(_.update(_.relatives.children := episodes))
+      dotableOpt <- dotableDbIo.readHeadById(id)
+      children <- dotableDbIo.readByParentId(id)
+      parentOpt <- dotableDbIo.readByChildId(DotableKinds.Podcast, id)
+    } yield
+      dotableOpt.map(
+        _.update(_.relatives.children := children)
+          .update(_.relatives.parent := parentOpt.getOrElse(Dotable.defaultInstance)))
     db.run(op)
   }
 
