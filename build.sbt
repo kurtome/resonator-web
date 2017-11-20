@@ -116,6 +116,8 @@ val sharedBaseDir = file("shared")
 lazy val shared = (crossProject.crossType(CrossType.Pure) in sharedBaseDir)
   .settings(
     scalaVersion := scalaV,
+    // Maark the proto directory as a resources root so it's picked up by the IDE as well
+    unmanagedResourceDirectories in Compile += sharedBaseDir / "proto",
     // Define the location for proto source files.
     PB.protoSources in Compile += sharedBaseDir / "proto",
     PB.protoSources in Compile += target.value / "protobuf_external",

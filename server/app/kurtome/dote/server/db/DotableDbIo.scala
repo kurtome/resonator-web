@@ -105,6 +105,13 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     readByParentIdRaw(parentId).result.map(_.map(protoRowMapper))
   }
 
+  def readByIdBatch(kind: DotableKinds.Value, ids: Set[Long]) = {
+    table
+      .filter(row => row.id.inSet(ids) && row.kind === kind)
+      .result
+      .map(_.map(protoRowMapper(kind)))
+  }
+
   def protoRowMapper(kind: DotableKinds.Value)(row: DotableRow): Dotable = {
     assert(row.kind == kind)
     protoRowMapper(row)

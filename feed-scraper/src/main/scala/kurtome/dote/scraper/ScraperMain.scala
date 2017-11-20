@@ -3,6 +3,7 @@ package kurtome.dote.scraper
 import java.io.StringWriter
 import java.net.URL
 
+import dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
 import dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
 import org.htmlcleaner._
 
@@ -37,7 +38,8 @@ object ScraperMain {
   private case class CategoryLinks(rootCategory: String,
                                    newCategoryLinks: Set[String],
                                    crawledCategoryLinks: Set[String] = Set(),
-                                   discoveredPodcastLinks: Set[String] = Set())
+                                   discoveredPodcastLinks: Set[String] = Set(),
+                                   popularPodcastLinks: Set[String] = Set())
 
   case class ScraperConfig(deepCrawl: Boolean = false,
                            prod: Boolean = false,
@@ -79,24 +81,26 @@ object ScraperMain {
   }
 
   private def crawl(implicit config: ScraperConfig): Unit = {
-    val url = "https://itunes.apple.com/us/genre/podcasts-arts/id1301?mt=2"
-
     val results = categoryRoots.map(crawlCategory(_))
 
     val categoryLinksCount = results.map(_.crawledCategoryLinks.size).sum
     val podcastLinksCount = results.map(_.discoveredPodcastLinks.size).sum
     println(s"Found $categoryLinksCount category pages and $podcastLinksCount podcasts.")
 
-    results
-      .flatMap(_.discoveredPodcastLinks)
+    val podcastLinks = results.map(_.discoveredPodcastLinks).flatten
+    val popularLinks: Set[String] = Set(results.map(_.popularPodcastLinks).flatten: _*)
+
+    podcastLinks
       .foreach(podcastUrl => {
         println(s"\tAdding $podcastUrl")
         Try {
-          AddPodcastServer.addPodcast(AddPodcastRequest(podcastUrl))
+          val popular = popularLinks.contains(podcastUrl)
+          AddPodcastServer.addPodcast(
+            AddPodcastRequest(podcastUrl, extras = Some(Extras(popular = popular))))
         } recover {
           case t =>
             t.printStackTrace
-            println(s"\t\tFailed adding $url: ${t.getMessage}")
+            println(s"\t\tFailed adding $podcastUrl: ${t.getMessage}")
         }
       })
     println("done")
@@ -118,30 +122,34 @@ object ScraperMain {
 
   private def updateLinks(existingLinks: CategoryLinks)(
       implicit config: ScraperConfig): CategoryLinks = {
-    val categoriesAndPodcasts = existingLinks.newCategoryLinks.foldRight(
-      (existingLinks.crawledCategoryLinks, existingLinks.discoveredPodcastLinks))(
-      (url, categoriesAndPodcasts) => {
-        Thread.sleep(10)
-        val pageCategoryLinks =
-          fetchAllLinksOnPage(url).filter(_.contains(existingLinks.rootCategory))
-        val allPagePodcastLinks =
-          fetchAllLinksOnPage(url).filter(_.startsWith(podcastUrlPrefix))
-        val pagePodcastLinks =
-          if (config.topPodcastsOnly) {
-            allPagePodcastLinks.take(topCount)
-          } else {
-            allPagePodcastLinks
-          }
-        println(
-          s"\tCrawled $url, found ${pageCategoryLinks.size} category pages and ${pagePodcastLinks.size} podcasts.")
-        (categoriesAndPodcasts._1 ++ pageCategoryLinks,
-         categoriesAndPodcasts._2 ++ pagePodcastLinks)
-      })
+    val categoriesPodcastsPopular = existingLinks.newCategoryLinks.foldRight(
+      (existingLinks.crawledCategoryLinks,
+       existingLinks.discoveredPodcastLinks,
+       existingLinks.popularPodcastLinks))((url, categoriesPodcastsPopular) => {
+      Thread.sleep(10)
+      val pageCategoryLinks =
+        fetchAllLinksOnPage(url).filter(_.contains(existingLinks.rootCategory))
+      val allPagePodcastLinks =
+        fetchAllLinksOnPage(url).filter(_.startsWith(podcastUrlPrefix))
+      val pagePodcastLinks =
+        if (config.topPodcastsOnly) {
+          allPagePodcastLinks.take(topCount)
+        } else {
+          allPagePodcastLinks
+        }
+      val popularPodcastLinks = allPagePodcastLinks.take(topCount)
+      println(
+        s"\tCrawled $url, found ${pageCategoryLinks.size} category pages and ${pagePodcastLinks.size} podcasts (${popularPodcastLinks.size} popular).")
+      (categoriesPodcastsPopular._1 ++ pageCategoryLinks,
+       categoriesPodcastsPopular._2 ++ pagePodcastLinks,
+       categoriesPodcastsPopular._3 ++ popularPodcastLinks)
+    })
 
     existingLinks.copy(
-      newCategoryLinks = categoriesAndPodcasts._1 -- existingLinks.crawledCategoryLinks,
-      crawledCategoryLinks = categoriesAndPodcasts._1 ++ existingLinks.crawledCategoryLinks,
-      discoveredPodcastLinks = existingLinks.discoveredPodcastLinks ++ categoriesAndPodcasts._2
+      newCategoryLinks = categoriesPodcastsPopular._1 -- existingLinks.crawledCategoryLinks,
+      crawledCategoryLinks = categoriesPodcastsPopular._1 ++ existingLinks.crawledCategoryLinks,
+      discoveredPodcastLinks = existingLinks.discoveredPodcastLinks ++ categoriesPodcastsPopular._2,
+      popularPodcastLinks = existingLinks.popularPodcastLinks ++ categoriesPodcastsPopular._3
     )
   }
 

@@ -80,11 +80,15 @@ object AddPodcastView {
             // TODO handle more than one response
             Fade(in = true, timeoutMs = 300)(
               Grid(container = true, spacing = 0)(
-                Grid(item = true, xs = 12)(
-                  Typography(typographyType = Typography.Type.SubHeading)(
-                    s"Added"
+                if (s.response.podcasts.nonEmpty) {
+                  Grid(item = true, xs = 12)(
+                    Typography(typographyType = Typography.Type.SubHeading)(
+                      s"Added"
+                    )
                   )
-                ),
+                } else {
+                  <.div()
+                },
                 s.response.podcasts map { dotable =>
                   Grid(item = true, xs = 12)(
                     <.div(^.className := InlineStyles.tileContainer.className.value,

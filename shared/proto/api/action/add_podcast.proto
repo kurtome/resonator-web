@@ -6,6 +6,10 @@ import "api/dotable.proto";
 
 message AddPodcastRequest {
   string itunesUrl = 1;
+  Extras extras = 2;
+  message Extras {
+    bool popular = 1;
+  }
 }
 
 message AddPodcastResponse {

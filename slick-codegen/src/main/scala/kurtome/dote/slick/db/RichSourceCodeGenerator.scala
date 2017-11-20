@@ -17,8 +17,10 @@ class RichSourceCodeGenerator(model: m.Model)
     val originalCode = super.packageCode(profile, pkg, container, parentType)
     // Hack in the profile with all the new type supported, this makes the implicit
     // conversions work to/from the new types
-    originalCode.replace("val profile: slick.jdbc.JdbcProfile",
-                         "val profile: kurtome.dote.slick.db.DotePostgresProfile")
+    originalCode
+      .replace("val profile: slick.jdbc.JdbcProfile",
+               "val profile: kurtome.dote.slick.db.DotePostgresProfile")
+      .replace("_tableTag: Tag", "_tableTag: slick.lifted.Tag")
   }
 
   override def Table = new TableDef(_)

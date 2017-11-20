@@ -20,6 +20,13 @@ object DotableKinds extends Enumeration {
   val PodcastEpisode = Value("podcast_episode")
 }
 
+object TagKinds extends Enumeration {
+  type TagKind = Value
+  val MetadataFlag = Value("metadata_flag")
+  val PodcastCreator = Value("podcast_creator")
+  val PodcastGenre = Value("podcast_genre")
+}
+
 trait DotePostgresProfile
     extends ExPostgresProfile
     with PgEnumSupport
@@ -47,6 +54,7 @@ trait DotePostgresProfile
       override def tpe: String = {
         val qualifiedClassName = meta.typeName match {
           case "dotablekind" => DotableKinds.getClass.getName + "Value"
+          case "tagkind" => TagKinds.getClass.getName + "Value"
           case _ => super.tpe
         }
         // Replace $ with . to fix nested classes in generated code because classTag.toString
@@ -94,6 +102,14 @@ trait DotePostgresProfile
       createEnumColumnExtensionMethodsBuilder(DotableKinds)
     implicit val dotableTypeOptionColumnExtensionMethodsBuilder =
       createEnumOptionColumnExtensionMethodsBuilder(DotableKinds)
+
+    implicit val tagKindTypeMapper = createEnumJdbcType("TagKind", TagKinds, false)
+    implicit val tagKindListTypeMapper =
+      createEnumListJdbcType("TagKind", TagKinds, false)
+    implicit val tagKindColumnExtensionMethodsBuilder =
+      createEnumColumnExtensionMethodsBuilder(TagKinds)
+    implicit val tagKindOptionColumnExtensionMethodsBuilder =
+      createEnumOptionColumnExtensionMethodsBuilder(TagKinds)
 
     implicit val json4sJsonArrayTypeMapper =
       new AdvancedArrayJdbcType[JValue](

@@ -20,7 +20,7 @@ class GetDotableListController @Inject()(
 
   override def action(request: GetDotableListRequest): Future[GetDotableListResponse] = {
     podcastDbService
-      .readLimitedRandom(DotableKinds.Podcast, request.maxResults)
+      .readByTagLabel(DotableKinds.Podcast, "popular", request.maxResults)
       .map(GetDotableListResponse(_))
   }
 

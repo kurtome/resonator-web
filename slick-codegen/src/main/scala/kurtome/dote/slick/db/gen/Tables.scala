@@ -14,8 +14,12 @@ trait Tables {
   import slick.jdbc.{GetResult => GR}
 
   /** DDL for all tables. Call .create to execute. */
-  lazy val schema
-    : profile.SchemaDescription = Dotable.schema ++ PlayEvolutions.schema ++ PodcastEpisodeIngestion.schema ++ PodcastFeedIngestion.schema
+  lazy val schema: profile.SchemaDescription = Array(Dotable.schema,
+                                                     DotableTag.schema,
+                                                     PlayEvolutions.schema,
+                                                     PodcastEpisodeIngestion.schema,
+                                                     PodcastFeedIngestion.schema,
+                                                     Tag.schema).reduceLeft(_ ++ _)
   @deprecated("Use .schema instead of .ddl", "3.0")
   def ddl = schema
 
@@ -60,7 +64,8 @@ trait Tables {
   }
 
   /** Table description of table dotable. Objects of this class serve as prototypes for rows in queries. */
-  class Dotable(_tableTag: Tag) extends profile.api.Table[DotableRow](_tableTag, "dotable") {
+  class Dotable(_tableTag: slick.lifted.Tag)
+      extends profile.api.Table[DotableRow](_tableTag, "dotable") {
     def * =
       (id, kind, title, description, publishedTime, editedTime, parentId, common, details) <> (DotableRow.tupled, DotableRow.unapply)
 
@@ -127,6 +132,48 @@ trait Tables {
   /** Collection-like TableQuery object for table Dotable */
   lazy val Dotable = new TableQuery(tag => new Dotable(tag))
 
+  /** Entity class storing rows of table DotableTag
+    *  @param tagId Database column tag_id SqlType(int8)
+    *  @param dotableId Database column dotable_id SqlType(int8) */
+  case class DotableTagRow(tagId: Option[Long], dotableId: Option[Long])
+
+  /** GetResult implicit for fetching DotableTagRow objects using plain SQL queries */
+  implicit def GetResultDotableTagRow(implicit e0: GR[Option[Long]]): GR[DotableTagRow] = GR {
+    prs =>
+      import prs._
+      DotableTagRow.tupled((<<?[Long], <<?[Long]))
+  }
+
+  /** Table description of table dotable_tag. Objects of this class serve as prototypes for rows in queries. */
+  class DotableTag(_tableTag: slick.lifted.Tag)
+      extends profile.api.Table[DotableTagRow](_tableTag, "dotable_tag") {
+    def * = (tagId, dotableId) <> (DotableTagRow.tupled, DotableTagRow.unapply)
+
+    /** Database column tag_id SqlType(int8) */
+    val tagId: Rep[Option[Long]] = column[Option[Long]]("tag_id")
+
+    /** Database column dotable_id SqlType(int8) */
+    val dotableId: Rep[Option[Long]] = column[Option[Long]]("dotable_id")
+
+    /** Foreign key referencing Dotable (database name dotable_tag_dotable_id_fkey) */
+    lazy val dotableFk = foreignKey("dotable_tag_dotable_id_fkey", dotableId, Dotable)(
+      r => Rep.Some(r.id),
+      onUpdate = ForeignKeyAction.NoAction,
+      onDelete = ForeignKeyAction.NoAction)
+
+    /** Foreign key referencing Tag (database name dotable_tag_tag_id_fkey) */
+    lazy val tagFk = foreignKey("dotable_tag_tag_id_fkey", tagId, Tag)(
+      r => Rep.Some(r.id),
+      onUpdate = ForeignKeyAction.NoAction,
+      onDelete = ForeignKeyAction.NoAction)
+
+    /** Uniqueness Index over (tagId,dotableId) (database name dotable_tag_id_uniq_index) */
+    val index1 = index("dotable_tag_id_uniq_index", (tagId, dotableId), unique = true)
+  }
+
+  /** Collection-like TableQuery object for table DotableTag */
+  lazy val DotableTag = new TableQuery(tag => new DotableTag(tag))
+
   /** Entity class storing rows of table PlayEvolutions
     *  @param id Database column id SqlType(int4), PrimaryKey
     *  @param hash Database column hash SqlType(varchar), Length(255,true)
@@ -161,7 +208,7 @@ trait Tables {
   }
 
   /** Table description of table play_evolutions. Objects of this class serve as prototypes for rows in queries. */
-  class PlayEvolutions(_tableTag: Tag)
+  class PlayEvolutions(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[PlayEvolutionsRow](_tableTag, "play_evolutions") {
     def * =
       (id, hash, appliedAt, applyScript, revertScript, state, lastProblem) <> (PlayEvolutionsRow.tupled, PlayEvolutionsRow.unapply)
@@ -229,7 +276,7 @@ trait Tables {
   }
 
   /** Table description of table podcast_episode_ingestion. Objects of this class serve as prototypes for rows in queries. */
-  class PodcastEpisodeIngestion(_tableTag: Tag)
+  class PodcastEpisodeIngestion(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[PodcastEpisodeIngestionRow](_tableTag, "podcast_episode_ingestion") {
     def * =
       (id, podcastDotableId, guid, episodeDotableId) <> (PodcastEpisodeIngestionRow.tupled, PodcastEpisodeIngestionRow.unapply)
@@ -275,12 +322,8 @@ trait Tables {
     val index1 =
       index("podcast_episode_ingestion_episode_dotable_id_key", episodeDotableId, unique = true)
 
-    /** Uniqueness Index over (podcastDotableId) (database name podcast_episode_ingestion_podcast_dotable_id_key) */
-    val index2 =
-      index("podcast_episode_ingestion_podcast_dotable_id_key", podcastDotableId, unique = true)
-
     /** Uniqueness Index over (podcastDotableId,guid) (database name podcast_episode_ingestion_podcast_episode_guid_uniq_index) */
-    val index3 = index("podcast_episode_ingestion_podcast_episode_guid_uniq_index",
+    val index2 = index("podcast_episode_ingestion_podcast_episode_guid_uniq_index",
                        (podcastDotableId, guid),
                        unique = true)
   }
@@ -307,7 +350,7 @@ trait Tables {
   }
 
   /** Table description of table podcast_feed_ingestion. Objects of this class serve as prototypes for rows in queries. */
-  class PodcastFeedIngestion(_tableTag: Tag)
+  class PodcastFeedIngestion(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[PodcastFeedIngestionRow](_tableTag, "podcast_feed_ingestion") {
     def * =
       (id, feedRssUrl, itunesId, podcastDotableId) <> (PodcastFeedIngestionRow.tupled, PodcastFeedIngestionRow.unapply)
@@ -356,4 +399,45 @@ trait Tables {
 
   /** Collection-like TableQuery object for table PodcastFeedIngestion */
   lazy val PodcastFeedIngestion = new TableQuery(tag => new PodcastFeedIngestion(tag))
+
+  /** Entity class storing rows of table Tag
+    *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
+    *  @param kind Database column kind SqlType(tagkind)
+    *  @param label Database column label SqlType(text), Length(2147483647,true) */
+  case class TagRow(id: Long, kind: kurtome.dote.slick.db.TagKinds.Value, label: String)
+
+  /** GetResult implicit for fetching TagRow objects using plain SQL queries */
+  implicit def GetResultTagRow(implicit e0: GR[Long],
+                               e1: GR[kurtome.dote.slick.db.TagKinds.Value],
+                               e2: GR[String]): GR[TagRow] = GR { prs =>
+    import prs._
+    TagRow.tupled((<<[Long], <<[kurtome.dote.slick.db.TagKinds.Value], <<[String]))
+  }
+
+  /** Table description of table tag. Objects of this class serve as prototypes for rows in queries. */
+  class Tag(_tableTag: slick.lifted.Tag) extends profile.api.Table[TagRow](_tableTag, "tag") {
+    def * = (id, kind, label) <> (TagRow.tupled, TagRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(id), Rep.Some(kind), Rep.Some(label)).shaped.<>({ r =>
+        import r._; _1.map(_ => TagRow.tupled((_1.get, _2.get, _3.get)))
+      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+
+    /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
+    val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+
+    /** Database column kind SqlType(tagkind) */
+    val kind: Rep[kurtome.dote.slick.db.TagKinds.Value] =
+      column[kurtome.dote.slick.db.TagKinds.Value]("kind")
+
+    /** Database column label SqlType(text), Length(2147483647,true) */
+    val label: Rep[String] = column[String]("label", O.Length(2147483647, varying = true))
+
+    /** Uniqueness Index over (id,kind,label) (database name tag_id_kind_label_uniq_index) */
+    val index1 = index("tag_id_kind_label_uniq_index", (id, kind, label), unique = true)
+  }
+
+  /** Collection-like TableQuery object for table Tag */
+  lazy val Tag = new TableQuery(tag => new Tag(tag))
 }

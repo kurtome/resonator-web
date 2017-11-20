@@ -14,10 +14,22 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
 @Singleton
-class PodcastDbService @Inject()(
-    db: BasicBackend#Database,
-    dotableDbIo: DotableDbIo,
-    podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo)(implicit ec: ExecutionContext) {
+class PodcastDbService @Inject()(db: BasicBackend#Database,
+                                 dotableDbIo: DotableDbIo,
+                                 podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo,
+                                 tagDbIo: DotableTagDbIo)(implicit ec: ExecutionContext) {
+
+  lazy val popularTagId: Future[Long] = db.run(tagDbIo.readTagIdByLabelRaw("popular")).map(_.get)
+
+  def setPopularTag(dotableId: Long) = {
+    popularTagId map { tagId =>
+      db.run(tagDbIo.tagExists(tagId, dotableId)) map { exists =>
+        if (!exists) {
+          db.run(tagDbIo.insertDotableTag(tagId, dotableId))
+        }
+      }
+    }
+  }
 
   def ingestPodcast(itunesId: Long, podcast: RssFetchedPodcast): Future[Long] = {
     // Ignore episodes without a GUID
@@ -79,6 +91,16 @@ class PodcastDbService @Inject()(
 
   def readLimited(kind: DotableKinds.Value, limit: Int): Future[Seq[Dotable]] = {
     db.run(dotableDbIo.readLimited(kind, limit))
+  }
+
+  def readByTagLabel(kind: DotableKinds.Value,
+                     tagLabel: String,
+                     limit: Long): Future[Seq[Dotable]] = {
+    val query = for {
+      ids <- tagDbIo.readDotableIdsByTagLabel(tagLabel, limit)
+      dotables <- dotableDbIo.readByIdBatch(kind, Set(ids.filter(_.isDefined).map(_.get): _*))
+    } yield dotables
+    db.run(query)
   }
 
   def readLimitedRandom(kind: DotableKinds.Value, limit: Int): Future[Seq[Dotable]] = {
