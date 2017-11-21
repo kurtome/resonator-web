@@ -12,6 +12,16 @@ import views.html.helper.CSRF
 @Singleton
 class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
+  object Emojis {
+    val cryingFace = "\uD83D\uDE22"
+    val heartEyes = "\uD83D\uDE0D"
+    val unamusedFace = "\uD83D\uDE12"
+  }
+
+  import Emojis._
+
+  val siteTitle = s"Pod ${cryingFace}${heartEyes}${unamusedFace}s"
+
   /**
     * Create an Action to render an HTML page.
     *
@@ -22,7 +32,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
   def index() = Action { implicit request: Request[AnyContent] =>
     Ok(
       kurtome.dote.server.views.html
-        .main(CSRF.getToken, "Podcasts", findJsLibraryBundleUrl("web"), findJsAppBundleUrl("web")))
+        .main(CSRF.getToken, siteTitle, findJsLibraryBundleUrl("web"), findJsAppBundleUrl("web")))
   }
 
   /**
