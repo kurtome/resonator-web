@@ -4,7 +4,7 @@ import dote.proto.api.action.get_dotable_list._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.InlineStyles
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._

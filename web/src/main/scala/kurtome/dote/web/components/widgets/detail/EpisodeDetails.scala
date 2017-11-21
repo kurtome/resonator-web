@@ -6,7 +6,7 @@ import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.DoteRoute
-import kurtome.dote.web.InlineStyles
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.EntityTile
@@ -31,17 +31,17 @@ object EpisodeDetails {
     )
 
     val subTitleText = style(
-      marginBottom(InlineStyles.spacingUnit * 2)
+      marginBottom(SharedStyles.spacingUnit * 2)
     )
 
     val textSectionDivider = style(
-      marginTop(InlineStyles.spacingUnit),
-      marginBottom(InlineStyles.spacingUnit)
+      marginTop(SharedStyles.spacingUnit),
+      marginBottom(SharedStyles.spacingUnit)
     )
 
     val podcastTile = style(
       float.left,
-      marginRight(InlineStyles.spacingUnit * 2)
+      marginRight(SharedStyles.spacingUnit * 2)
     )
 
   }
@@ -62,7 +62,7 @@ object EpisodeDetails {
       val description = p.dotable.getCommon.description
       val published = epochSecToDate(p.dotable.getCommon.publishedEpochSec)
       val subtitle = if (duration.nonEmpty && published.nonEmpty) {
-        s"$duration - $published"
+        s"$duration ($published)"
       } else if (duration.nonEmpty) {
         published
       } else {
@@ -74,7 +74,7 @@ object EpisodeDetails {
           Grid(container = true,
                spacing = 24,
                alignItems = Grid.AlignItems.FlexStart,
-               className = InlineStyles.detailsHeaderContainer)(
+               className = SharedStyles.detailsHeaderContainer)(
             Grid(item = true, xs = 12)(
               <.div(
                 <.div(^.className := Styles.podcastTile,
@@ -89,7 +89,7 @@ object EpisodeDetails {
                            typographyType = Typography.Type.SubHeading)(subtitle)
               )
             ),
-            Grid(item = true, xs = 12, lg = 8, className = InlineStyles.titleFieldContainer)(
+            Grid(item = true, xs = 12, lg = 8, className = SharedStyles.titleFieldContainer)(
               Typography(typographyType = Typography.Type.Body1,
                          dangerouslySetInnerHTML = linkifyAndSanitize(description))()
             )

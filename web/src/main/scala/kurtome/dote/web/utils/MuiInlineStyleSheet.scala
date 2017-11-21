@@ -8,7 +8,8 @@ import scalacss.internal.StyleA
 import scalacss.internal.mutable.StyleSheet
 
 /**
-  * Stylesheet which provides a method fo
+  * Stylesheet which provides a method to inline ScalaCSS style objects as javascript objects
+  * suitble for settings to the "style" attribute on a React component.
   */
 class MuiInlineStyleSheet(self: StyleSheet.Inline) {
   private val styleMap: Map[String, js.Dynamic] = styleObjsByClassName(self)

@@ -20,7 +20,7 @@ object WebMain {
     dom.window.onerror = globalErrorHandler
 
     // Attach both style files to the head
-    InlineStyles.addToDocument()
+    SharedStyles.addToDocument()
     attachStandaloneStyle(StandaloneStyles)
 
     val todoappNode =

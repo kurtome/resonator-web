@@ -8,7 +8,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.VdomElement
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.InlineStyles
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
 
 import scalacss.ScalaCssReact._
@@ -19,7 +19,7 @@ object DetailFieldList {
     import dsl._
 
     val detailLabel = style(
-      marginRight(InlineStyles.spacingUnit)
+      marginRight(SharedStyles.spacingUnit)
     )
   }
 

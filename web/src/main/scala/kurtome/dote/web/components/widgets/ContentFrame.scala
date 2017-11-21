@@ -3,7 +3,7 @@ package kurtome.dote.web.components.widgets
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes.{AddRoute, DoteRouterCtl, HomeRoute}
-import kurtome.dote.web.InlineStyles
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.constants.{MuiTheme, StringValues}
@@ -29,12 +29,12 @@ object ContentFrame {
                          md = 8,
                          lg = 6,
                          xl = 4,
-                         className = InlineStyles.siteTitleContainer)(
+                         className = SharedStyles.siteTitleContainer)(
                       p.routerCtl.link(HomeRoute)(
-                        ^.className := InlineStyles.siteTitleAnchor,
-                        <.span(^.className := InlineStyles.siteTitleText)(StringValues.siteTitle)
+                        ^.className := SharedStyles.siteTitleAnchor,
+                        <.span(^.className := SharedStyles.siteTitleText)(StringValues.siteTitle)
                       ),
-                      <.span(^.className := InlineStyles.underConstructionText)(
+                      <.span(^.className := SharedStyles.underConstructionText)(
                         "under construction")
                     )
                   )
@@ -51,7 +51,7 @@ object ContentFrame {
                          md = 10,
                          lg = 8,
                          xl = 6,
-                         className = InlineStyles.contentRoot)(mainContent)
+                         className = SharedStyles.contentRoot)(mainContent)
                   )
                 ),
                 // Add a div with fixed height so that when scrolling to the bottom of the page, the
@@ -61,7 +61,7 @@ object ContentFrame {
             )
           ),
           <.div(
-            ^.className := InlineStyles.bottomNavRoot,
+            ^.className := SharedStyles.bottomNavRoot,
             Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
               Grid(item = true, xs = 12)(Divider()()),
               Grid(item = true, xs = 12)(

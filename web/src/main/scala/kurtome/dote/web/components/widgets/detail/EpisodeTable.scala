@@ -5,7 +5,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes.{DoteRoute, PodcastEpisodeRoute}
-import kurtome.dote.web.InlineStyles
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.SiteLink
@@ -49,7 +49,7 @@ object EpisodeTable {
       val episodePage = episodesOnPage ++
         (1 to s.rowsPerPage - episodesOnPage.size).map(_ => Dotable.defaultInstance)
 
-      Paper(className = InlineStyles.episodeTableContainer)(
+      Paper(className = SharedStyles.episodeTableContainer)(
         Table()(
           TableHead()(
             TableRow(key = Some(p.dotable.id + "header"))(

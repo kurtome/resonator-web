@@ -21,7 +21,7 @@ object AddPodcastServer {
       .postData(request.toByteArray)
       .header("Content-Type", "application/x-protobuf")
       .option(HttpOptions.followRedirects(true))
-      .option(HttpOptions.readTimeout(30000))
+      .option(HttpOptions.readTimeout(60000))
       .asBytes
     AddPodcastResponse.parseFrom(result.body)
   }

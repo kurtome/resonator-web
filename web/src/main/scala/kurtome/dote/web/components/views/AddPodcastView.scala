@@ -4,7 +4,7 @@ import dote.proto.api.action.add_podcast._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes.DoteRouterCtl
-import kurtome.dote.web.InlineStyles
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.{ContentFrame, EntityTile}
@@ -24,14 +24,14 @@ object AddPodcastView {
       ContentFrame(ContentFrame.Props(routerCtl))(
         Grid(container = true, justify = Grid.Justify.Center, spacing = 24)(
           Grid(item = true, xs = 12)(
-            Typography(className = InlineStyles.titleText, typographyType = Typography.Type.Title)(
+            Typography(className = SharedStyles.titleText, typographyType = Typography.Type.Title)(
               "Add Podcast")
           ),
           Grid(item = true, xs = 12)(
             Paper()(
               <.div(
                 ^.id := "test",
-                ^.className := InlineStyles.paperContainer.className.value,
+                ^.className := SharedStyles.paperContainer.className.value,
                 Grid(container = true, spacing = 0)(
                   Grid(item = true, xs = 12, sm = 10, md = 8)(
                     TextField(
@@ -70,7 +70,7 @@ object AddPodcastView {
               ),
               if (s.requestInFlight) {
                 LinearProgress(mode = LinearProgress.Mode.Indeterminate,
-                               className = InlineStyles.linearProgress)()
+                               className = SharedStyles.linearProgress)()
               } else {
                 <.div()
               }
@@ -91,7 +91,7 @@ object AddPodcastView {
                 },
                 s.response.podcasts map { dotable =>
                   Grid(item = true, xs = 12)(
-                    <.div(^.className := InlineStyles.tileContainer.className.value,
+                    <.div(^.className := SharedStyles.tileContainer.className.value,
                           EntityTile(routerCtl, dotable = dotable)())
                   )
                 } toVdomArray

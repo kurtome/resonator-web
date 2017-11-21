@@ -7,7 +7,7 @@ import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.DoteRoute
-import kurtome.dote.web.InlineStyles
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
@@ -30,12 +30,12 @@ object PodcastDetails {
     )
 
     val subTitleText = style(
-      marginBottom(InlineStyles.spacingUnit * 2)
+      marginBottom(SharedStyles.spacingUnit * 2)
     )
 
     val textSectionDivider = style(
-      marginTop(InlineStyles.spacingUnit),
-      marginBottom(InlineStyles.spacingUnit)
+      marginTop(SharedStyles.spacingUnit),
+      marginBottom(SharedStyles.spacingUnit)
     )
 
   }
@@ -111,12 +111,12 @@ object PodcastDetails {
           Grid(container = true,
                spacing = 24,
                alignItems = Grid.AlignItems.FlexStart,
-               className = InlineStyles.detailsHeaderContainer)(
+               className = SharedStyles.detailsHeaderContainer)(
             Grid(item = true, xs = 12, lg = 4)(
-              <.div(^.className := InlineStyles.detailsTileContainer,
+              <.div(^.className := SharedStyles.detailsTileContainer,
                     EntityTile(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px")())
             ),
-            Grid(item = true, xs = 12, lg = 8, className = InlineStyles.titleFieldContainer)(
+            Grid(item = true, xs = 12, lg = 8, className = SharedStyles.titleFieldContainer)(
               Typography(style = Styles.titleText.inline,
                          typographyType = Typography.Type.Headline)(fields.title),
               Typography(style = Styles.subTitleText.inline,
