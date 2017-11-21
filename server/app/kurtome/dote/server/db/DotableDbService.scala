@@ -23,7 +23,7 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
 
   def setPopularTag(dotableId: Long) = {
     popularTagId map { tagId =>
-      db.run(tagDbIo.tagExists(tagId, dotableId)) map { exists =>
+      db.run(tagDbIo.dotableTagExists(tagId, dotableId)) map { exists =>
         if (!exists) {
           db.run(tagDbIo.insertDotableTag(tagId, dotableId))
         }
@@ -96,7 +96,7 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
   def readByTagKey(kind: DotableKinds.Value, tagKey: String, limit: Long): Future[Seq[Dotable]] = {
     val query = for {
       ids <- tagDbIo.readDotableIdsByTagKey(tagKey, limit)
-      dotables <- dotableDbIo.readByIdBatch(kind, Set(ids.filter(_.isDefined).map(_.get): _*))
+      dotables <- dotableDbIo.readByIdBatch(kind, Set(ids: _*))
     } yield dotables
     db.run(query)
   }

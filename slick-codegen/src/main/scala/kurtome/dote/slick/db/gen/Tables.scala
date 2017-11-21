@@ -135,13 +135,12 @@ trait Tables {
   /** Entity class storing rows of table DotableTag
     *  @param tagId Database column tag_id SqlType(int8)
     *  @param dotableId Database column dotable_id SqlType(int8) */
-  case class DotableTagRow(tagId: Option[Long], dotableId: Option[Long])
+  case class DotableTagRow(tagId: Long, dotableId: Long)
 
   /** GetResult implicit for fetching DotableTagRow objects using plain SQL queries */
-  implicit def GetResultDotableTagRow(implicit e0: GR[Option[Long]]): GR[DotableTagRow] = GR {
-    prs =>
-      import prs._
-      DotableTagRow.tupled((<<?[Long], <<?[Long]))
+  implicit def GetResultDotableTagRow(implicit e0: GR[Long]): GR[DotableTagRow] = GR { prs =>
+    import prs._
+    DotableTagRow.tupled((<<[Long], <<[Long]))
   }
 
   /** Table description of table dotable_tag. Objects of this class serve as prototypes for rows in queries. */
@@ -149,21 +148,27 @@ trait Tables {
       extends profile.api.Table[DotableTagRow](_tableTag, "dotable_tag") {
     def * = (tagId, dotableId) <> (DotableTagRow.tupled, DotableTagRow.unapply)
 
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(tagId), Rep.Some(dotableId)).shaped.<>({ r =>
+        import r._; _1.map(_ => DotableTagRow.tupled((_1.get, _2.get)))
+      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+
     /** Database column tag_id SqlType(int8) */
-    val tagId: Rep[Option[Long]] = column[Option[Long]]("tag_id")
+    val tagId: Rep[Long] = column[Long]("tag_id")
 
     /** Database column dotable_id SqlType(int8) */
-    val dotableId: Rep[Option[Long]] = column[Option[Long]]("dotable_id")
+    val dotableId: Rep[Long] = column[Long]("dotable_id")
 
     /** Foreign key referencing Dotable (database name dotable_tag_dotable_id_fkey) */
     lazy val dotableFk = foreignKey("dotable_tag_dotable_id_fkey", dotableId, Dotable)(
-      r => Rep.Some(r.id),
+      r => r.id,
       onUpdate = ForeignKeyAction.NoAction,
       onDelete = ForeignKeyAction.NoAction)
 
     /** Foreign key referencing Tag (database name dotable_tag_tag_id_fkey) */
     lazy val tagFk = foreignKey("dotable_tag_tag_id_fkey", tagId, Tag)(
-      r => Rep.Some(r.id),
+      r => r.id,
       onUpdate = ForeignKeyAction.NoAction,
       onDelete = ForeignKeyAction.NoAction)
 
