@@ -3,7 +3,7 @@ package kurtome.dote.server.controllers.api
 import javax.inject._
 
 import dote.proto.api.action.get_dotable._
-import kurtome.dote.server.db.PodcastDbService
+import kurtome.dote.server.db.DotableDbService
 import kurtome.dote.server.util.UrlIds
 import play.api.mvc._
 
@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class GetDotableDetailsController @Inject()(
     cc: ControllerComponents,
-    podcastDbService: PodcastDbService)(implicit ec: ExecutionContext)
+    podcastDbService: DotableDbService)(implicit ec: ExecutionContext)
     extends ProtobufController[GetDotableDetailsRequest, GetDotableDetailsResponse](cc) {
 
   override def parseRequest(bytes: Array[Byte]) =

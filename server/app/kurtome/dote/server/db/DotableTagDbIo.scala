@@ -1,20 +1,12 @@
 package kurtome.dote.server.db
 
-import java.time.{LocalDateTime, ZoneOffset}
 import javax.inject._
 
-import com.trueaccord.scalapb.json.JsonFormat
-import dote.proto.api.dotable.Dotable
-import dote.proto.db.dotable.{DotableCommon, DotableDetails}
-import kurtome.dote.server.controllers.podcast.{RssFetchedEpisode, RssFetchedPodcast}
-import kurtome.dote.server.util.{Slug, UrlIds}
-import kurtome.dote.slick.db.DotableKinds
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.slick.db.gen.Tables
-import kurtome.dote.slick.db.gen.Tables.{DotableRow, DotableTagRow}
-import org.json4s.JValue
+import kurtome.dote.slick.db.gen.Tables.{DotableTagRow}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {

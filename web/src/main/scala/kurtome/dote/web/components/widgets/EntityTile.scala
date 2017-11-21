@@ -45,10 +45,6 @@ object EntityTile {
       val slug = p.dotable.slug
       val detailRoute = PodcastRoute(id = id, slug = slug)
 
-      val onImgLoad: js.Function1[SyntheticEvent[Nothing], Any] = (e) => {
-        bs.modState(_.copy(imgLoaded = true)).runNow()
-      }
-
       Paper(elevation = 8, className = SharedStyles.inlineBlock)(
         p.routerCtl.link(detailRoute)(
           <.img(
@@ -59,8 +55,8 @@ object EntityTile {
             ^.width := p.size,
             ^.height := p.size
           ),
-          <.div( // placeholder div while loading
-            //^.visibility := (if (!s.imgLoaded) "visible" else "hidden"),
+          // placeholder div while loading, to fill the space
+          <.div(
             ^.className := Styles.placeholder,
             ^.width := p.size,
             ^.height := p.size

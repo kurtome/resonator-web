@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
 @Singleton
-class PodcastDbService @Inject()(db: BasicBackend#Database,
+class DotableDbService @Inject()(db: BasicBackend#Database,
                                  dotableDbIo: DotableDbIo,
                                  podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo,
                                  tagDbIo: DotableTagDbIo)(implicit ec: ExecutionContext) {

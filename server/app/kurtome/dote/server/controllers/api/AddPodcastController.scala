@@ -9,7 +9,7 @@ import kurtome.dote.server.controllers.podcast.{
 }
 import dote.proto.api.action.add_podcast._
 import dote.proto.api.dotable.Dotable
-import kurtome.dote.server.db.PodcastDbService
+import kurtome.dote.server.db.DotableDbService
 import play.api.{Configuration, Logger}
 import play.api.mvc._
 
@@ -21,7 +21,7 @@ class AddPodcastController @Inject()(
     config: Configuration,
     itunesEntityFetcher: ItunesEntityFetcher,
     podcastFetcher: PodcastFeedFetcher,
-    podcastDbService: PodcastDbService)(implicit ec: ExecutionContext)
+    podcastDbService: DotableDbService)(implicit ec: ExecutionContext)
     extends ProtobufController[AddPodcastRequest, AddPodcastResponse](cc) {
 
   val allowExtras = config.get[Boolean]("kurtome.dote.add.podcast.extras")
