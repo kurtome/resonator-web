@@ -19,7 +19,7 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
                                  podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo,
                                  tagDbIo: DotableTagDbIo)(implicit ec: ExecutionContext) {
 
-  lazy val popularTagId: Future[Long] = db.run(tagDbIo.readTagIdByLabelRaw("popular")).map(_.get)
+  lazy val popularTagId: Future[Long] = db.run(tagDbIo.readTagIdByKeyRaw("popular")).map(_.get)
 
   def setPopularTag(dotableId: Long) = {
     popularTagId map { tagId =>
@@ -93,11 +93,9 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
     db.run(dotableDbIo.readLimited(kind, limit))
   }
 
-  def readByTagLabel(kind: DotableKinds.Value,
-                     tagLabel: String,
-                     limit: Long): Future[Seq[Dotable]] = {
+  def readByTagKey(kind: DotableKinds.Value, tagKey: String, limit: Long): Future[Seq[Dotable]] = {
     val query = for {
-      ids <- tagDbIo.readDotableIdsByTagLabel(tagLabel, limit)
+      ids <- tagDbIo.readDotableIdsByTagKey(tagKey, limit)
       dotables <- dotableDbIo.readByIdBatch(kind, Set(ids.filter(_.isDefined).map(_.get): _*))
     } yield dotables
     db.run(query)

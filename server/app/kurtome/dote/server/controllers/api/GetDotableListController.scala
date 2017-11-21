@@ -20,7 +20,7 @@ class GetDotableListController @Inject()(
 
   override def action(request: GetDotableListRequest): Future[GetDotableListResponse] = {
     podcastDbService
-      .readByTagLabel(DotableKinds.Podcast, "popular", request.maxResults)
+      .readByTagKey(DotableKinds.Podcast, "popular", request.maxResults)
       .map(GetDotableListResponse(_))
   }
 

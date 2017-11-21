@@ -403,25 +403,29 @@ trait Tables {
   /** Entity class storing rows of table Tag
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
     *  @param kind Database column kind SqlType(tagkind)
-    *  @param label Database column label SqlType(text), Length(2147483647,true) */
-  case class TagRow(id: Long, kind: kurtome.dote.slick.db.TagKinds.Value, label: String)
+    *  @param key Database column key SqlType(text), Length(2147483647,true)
+    *  @param name Database column name SqlType(text), Length(2147483647,true) */
+  case class TagRow(id: Long,
+                    kind: kurtome.dote.slick.db.TagKinds.Value,
+                    key: String,
+                    name: String)
 
   /** GetResult implicit for fetching TagRow objects using plain SQL queries */
   implicit def GetResultTagRow(implicit e0: GR[Long],
                                e1: GR[kurtome.dote.slick.db.TagKinds.Value],
                                e2: GR[String]): GR[TagRow] = GR { prs =>
     import prs._
-    TagRow.tupled((<<[Long], <<[kurtome.dote.slick.db.TagKinds.Value], <<[String]))
+    TagRow.tupled((<<[Long], <<[kurtome.dote.slick.db.TagKinds.Value], <<[String], <<[String]))
   }
 
   /** Table description of table tag. Objects of this class serve as prototypes for rows in queries. */
   class Tag(_tableTag: slick.lifted.Tag) extends profile.api.Table[TagRow](_tableTag, "tag") {
-    def * = (id, kind, label) <> (TagRow.tupled, TagRow.unapply)
+    def * = (id, kind, key, name) <> (TagRow.tupled, TagRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(id), Rep.Some(kind), Rep.Some(label)).shaped.<>({ r =>
-        import r._; _1.map(_ => TagRow.tupled((_1.get, _2.get, _3.get)))
+      (Rep.Some(id), Rep.Some(kind), Rep.Some(key), Rep.Some(name)).shaped.<>({ r =>
+        import r._; _1.map(_ => TagRow.tupled((_1.get, _2.get, _3.get, _4.get)))
       }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
@@ -431,11 +435,14 @@ trait Tables {
     val kind: Rep[kurtome.dote.slick.db.TagKinds.Value] =
       column[kurtome.dote.slick.db.TagKinds.Value]("kind")
 
-    /** Database column label SqlType(text), Length(2147483647,true) */
-    val label: Rep[String] = column[String]("label", O.Length(2147483647, varying = true))
+    /** Database column key SqlType(text), Length(2147483647,true) */
+    val key: Rep[String] = column[String]("key", O.Length(2147483647, varying = true))
 
-    /** Uniqueness Index over (id,kind,label) (database name tag_id_kind_label_uniq_index) */
-    val index1 = index("tag_id_kind_label_uniq_index", (id, kind, label), unique = true)
+    /** Database column name SqlType(text), Length(2147483647,true) */
+    val name: Rep[String] = column[String]("name", O.Length(2147483647, varying = true))
+
+    /** Uniqueness Index over (kind,key) (database name tag_kind_label_uniq_index) */
+    val index1 = index("tag_kind_label_uniq_index", (kind, key), unique = true)
   }
 
   /** Collection-like TableQuery object for table Tag */

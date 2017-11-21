@@ -18,31 +18,30 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
     table.filter(_.dotableId === dotableId)
   }
 
-  private val readTagByLabelRaw = Compiled { (label: Rep[String]) =>
-    tagTable.filter(_.label === label)
+  private val readTagByKeyRaw = Compiled { (key: Rep[String]) =>
+    tagTable.filter(_.key === key)
   }
 
   private val readRowRaw = Compiled { (tagId: Rep[Long], dotableId: Rep[Long]) =>
     table.filter(row => row.tagId === tagId && row.dotableId === dotableId)
   }
 
-  private val readDotableIdsByTabLabel = Compiled {
-    (label: Rep[String], limit: ConstColumn[Long]) =>
-      (for {
-        (t, td) <- tagTable.filter(_.label === label) join table on (_.id === _.tagId)
-      } yield (td.dotableId)).take(limit)
+  private val readDotableIdsByTabKey = Compiled { (key: Rep[String], limit: ConstColumn[Long]) =>
+    (for {
+      (t, td) <- tagTable.filter(_.key === key) join table on (_.id === _.tagId)
+    } yield (td.dotableId)).take(limit)
   }
 
-  def readTagIdByLabelRaw(label: String) = {
-    readTagByLabelRaw(label).result.headOption.map(_.map(_.id))
+  def readTagIdByKeyRaw(key: String) = {
+    readTagByKeyRaw(key).result.headOption.map(_.map(_.id))
   }
 
   def readByDotableId(dotableId: Long) = {
     readByDotableIdRaw(dotableId).result
   }
 
-  def readDotableIdsByTagLabel(label: String, limit: Long) = {
-    readDotableIdsByTabLabel(label, limit).result
+  def readDotableIdsByTagKey(key: String, limit: Long) = {
+    readDotableIdsByTabKey(key, limit).result
   }
 
   def insertDotableTag(tagId: Long, dotableId: Long) = {

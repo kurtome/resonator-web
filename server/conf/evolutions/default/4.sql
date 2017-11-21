@@ -1,0 +1,11 @@
+# --- !Ups
+
+ALTER TABLE tag RENAME COLUMN label TO key;
+ALTER TABLE tag ADD COLUMN name TEXT;
+UPDATE tag SET name = key;
+ALTER TABLE tag ALTER COLUMN name SET NOT NULL;
+
+# --- !Downs
+
+ALTER TABLE tag DROP COLUMN name;
+ALTER TABLE tag RENAME COLUMN key TO label;
