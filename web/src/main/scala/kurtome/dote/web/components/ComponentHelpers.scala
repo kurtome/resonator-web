@@ -49,7 +49,13 @@ object ComponentHelpers {
 
   def durationSecToMin(durationSec: Int): String = {
     if (durationSec > 0) {
-      (durationSec / 60) + " min"
+      val hours = durationSec / 3600
+      val minutes = (durationSec % 3600) / 60
+      if (hours > 0) {
+        s"$hours hr $minutes min"
+      } else {
+        s"$minutes min"
+      }
     } else {
       ""
     }
