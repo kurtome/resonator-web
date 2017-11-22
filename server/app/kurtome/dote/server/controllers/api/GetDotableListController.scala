@@ -3,8 +3,8 @@ package kurtome.dote.server.controllers.api
 import javax.inject._
 
 import dote.proto.api.action.get_dotable_list._
-import kurtome.dote.server.db.DotableDbService
-import kurtome.dote.slick.db.DotableKinds
+import kurtome.dote.server.db.{DotableDbService, MetadataFlag}
+import kurtome.dote.slick.db.{DotableKinds}
 import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -20,7 +20,7 @@ class GetDotableListController @Inject()(
 
   override def action(request: GetDotableListRequest): Future[GetDotableListResponse] = {
     podcastDbService
-      .readByTagKey(DotableKinds.Podcast, "popular", request.maxResults)
+      .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.maxResults)
       .map(GetDotableListResponse(_))
   }
 

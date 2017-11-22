@@ -4,9 +4,10 @@ import javax.inject._
 
 import dote.proto.api.dotable.Dotable
 import kurtome.dote.server.controllers.podcast.{RssFetchedEpisode, RssFetchedPodcast}
-import kurtome.dote.slick.db.DotableKinds
+import kurtome.dote.slick.db.{DotableKinds, TagKinds}
 import slick.basic.BasicBackend
 import kurtome.dote.slick.db.DotePostgresProfile.api._
+import kurtome.dote.slick.db.TagKinds.TagKind
 import kurtome.dote.slick.db.gen.Tables
 import play.api.Logger
 
@@ -19,10 +20,11 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
                                  podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo,
                                  tagDbIo: DotableTagDbIo)(implicit ec: ExecutionContext) {
 
-  lazy val popularTagId: Future[Long] = db.run(tagDbIo.readTagIdByKeyRaw("popular")).map(_.get)
+  lazy val popularTagDbId: Future[Long] =
+    db.run(tagDbIo.readTagDbId(MetadataFlag.Ids.popular)).map(_.get)
 
   def setPopularTag(dotableId: Long) = {
-    popularTagId map { tagId =>
+    popularTagDbId map { tagId =>
       db.run(tagDbIo.dotableTagExists(tagId, dotableId)) map { exists =>
         if (!exists) {
           db.run(tagDbIo.insertDotableTag(tagId, dotableId))
@@ -64,6 +66,7 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
       _ <- podcastFeedIngestionDbIo.insert(podcastId, itunesId, podcast.feedUrl)
       episodeIdAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, episodes)
       _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, episodeIdAndGuids)
+      _ <- updateTagsForDotable(podcastId, podcast.tags)
     } yield podcastId).transactionally
     db.run(insertPodcastRowOp)
   }
@@ -85,6 +88,7 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
       newEpisodesAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, newEpisodes)
       _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, newEpisodesAndGuids)
       _ <- dotableDbIo.updateEpisodes(podcastId, existingEpisodesWithId)
+      _ <- updateTagsForDotable(podcastId, podcast.tags)
     } yield ()).transactionally
     db.run(insertPodcastRowOp).map(_ => podcastId)
   }
@@ -93,9 +97,9 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
     db.run(dotableDbIo.readLimited(kind, limit))
   }
 
-  def readByTagKey(kind: DotableKinds.Value, tagKey: String, limit: Long): Future[Seq[Dotable]] = {
+  def readTagList(kind: DotableKinds.Value, tagId: TagId, limit: Long): Future[Seq[Dotable]] = {
     val query = for {
-      ids <- tagDbIo.readDotableIdsByTagKey(tagKey, limit)
+      ids <- tagDbIo.readDotableIdsByTagKey(tagId, limit)
       dotables <- dotableDbIo.readByIdBatch(kind, Set(ids: _*))
     } yield dotables
     db.run(query)
@@ -130,6 +134,12 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
         _.update(_.relatives.children := children)
           .update(_.relatives.parent := parentOpt.getOrElse(Dotable.defaultInstance)))
     db.run(op)
+  }
+
+  private def updateTagsForDotable(dotableId: Long, tags: Seq[Tag]) = {
+    val validatedTags = tags.filter(t => t.id.key.nonEmpty && t.name.nonEmpty)
+    DBIO.seq(tagDbIo.upsertTagBatch(validatedTags),
+             tagDbIo.upsertDotableTagBatch(dotableId, validatedTags.map(_.id)))
   }
 
   private def matchToExistingEpisodeId(episodes: Seq[RssFetchedEpisode],

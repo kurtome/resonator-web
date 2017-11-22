@@ -1,7 +1,7 @@
 package kurtome.dote.server.util
 
 object Slug {
-  def apply(input: String) = slugify(input)
+  def apply(input: String): String = slugify(input)
 
   def slugify(input: String): String = {
     import java.text.Normalizer

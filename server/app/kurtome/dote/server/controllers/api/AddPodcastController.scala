@@ -49,7 +49,8 @@ class AddPodcastController @Inject()(
                                  itunesId: Long,
                                  itunesUrl: String,
                                  feedUrl: String): Future[AddPodcastResponse] = {
-    val eventualPodcast: Future[Seq[RssFetchedPodcast]] = podcastFetcher.fetch(itunesUrl, feedUrl)
+    val eventualPodcast: Future[Seq[RssFetchedPodcast]] =
+      podcastFetcher.fetch(itunesUrl, feedUrl, extras)
 
     eventualPodcast flatMap { rssPodcasts =>
       Future.sequence(rssPodcasts.map(ingestToDatabase(extras, itunesId, _)))

@@ -1,11 +1,14 @@
 package kurtome.dote.server.controllers.podcast
 
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject._
 
+import dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
 import dote.proto.db.dotable.{DotableCommon, DotableDetails, ExternalUrls}
+import kurtome.dote.server.db.{MetadataFlag, Tag}
+import kurtome.dote.server.util.Slug
+import kurtome.dote.slick.db.TagKinds
 import play.Logger
 
 import scala.util.{Failure, Try}
@@ -17,12 +20,18 @@ class PodcastFeedParser @Inject()() {
   //val pubDateFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
   //val pubDateFormatter2 = DateTimeFormatter.RFC_1123_DATE_TIME.withResolverFields()
 
-  def parsePodcastRss(itunesUrl: String, feedUrl: String, rssXml: String): Seq[RssFetchedPodcast] = {
+  def parsePodcastRss(itunesUrl: String,
+                      feedUrl: String,
+                      extras: Extras,
+                      rssXml: String): Seq[RssFetchedPodcast] = {
     val channels = XML.loadString(rssXml) \ "channel"
-    channels.map(parsePodcast(itunesUrl, feedUrl, _))
+    channels.map(parsePodcast(itunesUrl, feedUrl, extras, _))
   }
 
-  private def parsePodcast(itunesUrl: String, feedUrl: String, podcast: Node): RssFetchedPodcast = {
+  private def parsePodcast(itunesUrl: String,
+                           feedUrl: String,
+                           extras: Extras,
+                           podcast: Node): RssFetchedPodcast = {
     val title: String = podcast \ "title"
     val description: String = podcast \ "description"
 
@@ -49,13 +58,36 @@ class PodcastFeedParser @Inject()() {
         Try(new Locale(languageCode, countryCode.toUpperCase)).toOption
     }
 
+    val categories: Seq[String] =
+      ((podcast \ "category").map(nodeseq2text(_)) ++
+        (podcast \ "category").map(_ \@ "text") ++
+        (podcast \ "keywords").map(nodeseq2text(_)).flatMap(_.split(",")))
+        .map(_.trim)
+        .filter(_.size > 2)
+        .distinct
+
+    val keywords: Seq[String] =
+      (podcast \ "keywords")
+        .map(nodeseq2text(_))
+        .flatMap(_.split(","))
+        .map(_.trim)
+        .filter(_.size > 2)
+        .distinct
+
     val author: String = podcast \ "author"
 
     val episodeNodes = podcast \ "item"
     val episodes = episodeNodes map parseEpisode reverse
 
+    val tags: Seq[Tag] =
+      Seq(Tag(TagKinds.PodcastCreator, Slug(author), author)) ++
+        categories.map(category => Tag(TagKinds.PodcastGenre, Slug(category), category)) ++
+        keywords.map(keyword => Tag(TagKinds.Keyword, Slug(keyword), keyword)) ++
+        maybeSeq(extras.popular, Tag(MetadataFlag.Ids.popular, "Popular"))
+
     RssFetchedPodcast(
       feedUrl = feedUrl,
+      tags = tags,
       common = DotableCommon(
         title = title,
         description = description,
@@ -137,6 +169,14 @@ class PodcastFeedParser @Inject()() {
   private def parseExplicit(s: String): Boolean = s match {
     case "yes" => true
     case _ => false
+  }
+
+  private def maybeSeq[T](cond: Boolean, x: T): Seq[T] = {
+    if (cond) {
+      Seq(x)
+    } else {
+      Nil
+    }
   }
 
   /**
