@@ -53,9 +53,7 @@ object EpisodeTable {
         Table()(
           TableHead()(
             TableRow(key = Some(p.dotable.id + "header"))(
-              TableCell()("Episode"),
-              TableCell()("Duration"),
-              TableCell()("Release")
+              TableCell()("Episodes"),
             )
           ),
           TableBody()(
@@ -65,13 +63,22 @@ object EpisodeTable {
                 val key: String = if (id.isEmpty) i.toString else id
                 val slug = episode.slug
                 val detailRoute = PodcastEpisodeRoute(id = id, slug = slug)
+                val durationInfo = durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
+                val releaseDate = epochSecToDate(episode.getCommon.publishedEpochSec)
+                val summaryInfo =
+                  if (durationInfo.nonEmpty && releaseDate.nonEmpty) {
+                   s"$durationInfo ($releaseDate)"
+                  } else if (durationInfo.nonEmpty) {
+                    durationInfo
+                  } else {
+                    releaseDate
+                  }
 
                 TableRow(key = Some(key))(
-                  TableCell()(SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
                   TableCell()(
-                    durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
-                  ),
-                  TableCell()(epochSecToDate(episode.getCommon.publishedEpochSec))
+                    Typography(typographyType = Typography.Type.Body1)(SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
+                    Typography(typographyType = Typography.Type.Body2)(summaryInfo)
+                  )
                 )
             }).toVdomArray
           ),

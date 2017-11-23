@@ -39,6 +39,15 @@ object EpisodeDetails {
       marginBottom(SharedStyles.spacingUnit)
     )
 
+    val headerContainer = style(
+      display.flex
+    )
+
+    val podcastTileContainer = style(
+      display.flex,
+      alignItems.flexEnd
+    )
+
     val podcastTile = style(
       float.left,
       marginRight(SharedStyles.spacingUnit * 2)
@@ -77,16 +86,17 @@ object EpisodeDetails {
                className = SharedStyles.detailsHeaderContainer)(
             Grid(item = true, xs = 12)(
               <.div(
+                ^.className := Styles.headerContainer,
                 <.div(^.className := Styles.podcastTile,
                       EntityTile(routerCtl = p.routerCtl,
                                  dotable = p.dotable.getRelatives.getParent,
                                  size = "125px")()),
-                Typography(style = Styles.podcastTitleText.inline,
-                           typographyType = Typography.Type.SubHeading)(podcast.getCommon.title),
-                Typography(style = Styles.titleText.inline,
-                           typographyType = Typography.Type.Headline)(title),
-                Typography(style = Styles.subTitleText.inline,
-                           typographyType = Typography.Type.SubHeading)(subtitle)
+                <.div(
+                  Typography(style = Styles.titleText.inline,
+                             typographyType = Typography.Type.Headline)(title),
+                  Typography(style = Styles.subTitleText.inline,
+                             typographyType = Typography.Type.SubHeading)(subtitle)
+                )
               )
             ),
             Grid(item = true, xs = 12, lg = 8, className = SharedStyles.titleFieldContainer)(

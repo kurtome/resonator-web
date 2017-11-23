@@ -34,7 +34,7 @@
   <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
 
   <!-- Use DEBUG to print SQL statements from Slick  -->
-  <logger name="slick.jdbc" level="DEBUG" />
+  <logger name="slick.jdbc" level="INFO" />
 
   <root level="WARN">
     <!--<appender-ref ref="ASYNCFILE" />-->
