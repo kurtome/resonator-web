@@ -60,11 +60,12 @@ class PodcastFeedParser @Inject()() {
 
     val categories: Seq[String] =
       ((podcast \ "category").map(nodeseq2text(_)) ++
-        (podcast \ "category").map(_ \@ "text") ++
-        (podcast \ "keywords").map(nodeseq2text(_)).flatMap(_.split(",")))
+        (podcast \ "category").map(_ \@ "text"))
         .map(_.trim)
         .filter(_.size > 2)
         .distinct
+        // only the first category is actually representative of the category for most podcasts
+        .take(1)
 
     val keywords: Seq[String] =
       (podcast \ "keywords")

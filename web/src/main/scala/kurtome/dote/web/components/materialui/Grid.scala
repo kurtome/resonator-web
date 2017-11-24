@@ -36,6 +36,7 @@ object Grid {
   @js.native
   trait Props extends js.Object {
     var className: js.UndefOr[String] = js.native
+    var style: js.UndefOr[js.Dynamic] = js.native
     var alignItems: js.UndefOr[String] = js.native
     var justify: js.UndefOr[String] = js.native
     var container: js.UndefOr[Boolean] = js.native
@@ -51,6 +52,7 @@ object Grid {
 
   def apply(key: Option[react.Key] = None,
             className: js.UndefOr[String] = js.undefined,
+            style: js.UndefOr[js.Dynamic] = js.undefined,
             container: js.UndefOr[Boolean] = js.undefined,
             item: js.UndefOr[Boolean] = js.undefined,
             spacing: js.UndefOr[Int] = js.undefined,
@@ -63,6 +65,7 @@ object Grid {
             xs: js.UndefOr[Int] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.className = className
+    p.style = style
     p.container = container
     p.item = item
     p.spacing = spacing

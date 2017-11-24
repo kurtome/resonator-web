@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package dote.proto.api;
+
+import "api/dotable_list.proto";
+
+message Feed {
+  repeated FeedItem items = 1;
+}
+
+
+message FeedItem {
+  enum Kind {
+    UNKNOWN_ITEM_KIND = 0;
+    DOTABLE_LIST = 1;
+  }
+  Kind kind = 1;
+
+  oneof content {
+    FeedDotableList dotable_list = 2;
+  }
+
+}
+
+message FeedDotableList {
+  DotableList list = 1;
+}

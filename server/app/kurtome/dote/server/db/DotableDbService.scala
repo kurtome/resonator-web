@@ -97,11 +97,12 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
     db.run(dotableDbIo.readLimited(kind, limit))
   }
 
-  def readTagList(kind: DotableKinds.Value, tagId: TagId, limit: Long): Future[Seq[Dotable]] = {
+  def readTagList(kind: DotableKinds.Value, tagId: TagId, limit: Long): Future[Option[TagList]] = {
     val query = for {
+      tag <- tagDbIo.readTagById(tagId)
       ids <- tagDbIo.readDotableIdsByTagKey(tagId, limit)
       dotables <- dotableDbIo.readByIdBatch(kind, Set(ids: _*))
-    } yield dotables
+    } yield tag.map(TagList(_, dotables))
     db.run(query)
   }
 

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package dote.proto.api.action;
+
+import "api/feed.proto";
+
+message GetFeedRequest {
+  int32 max_items = 1;
+  int32 max_item_size = 2;
+}
+
+message GetFeedResponse {
+  api.Feed feed = 1;
+}

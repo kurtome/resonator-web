@@ -14,5 +14,6 @@ POST     /api/v1/hello                  kurtome.dote.server.controllers.api.Hell
 POST     /api/v1/add-podcast            kurtome.dote.server.controllers.api.AddPodcastController.protoAction
 POST     /api/v1/get-dotable-details    kurtome.dote.server.controllers.api.GetDotableDetailsController.protoAction
 POST     /api/v1/get-dotable-list       kurtome.dote.server.controllers.api.GetDotableListController.protoAction
+POST     /api/v1/get-feed               kurtome.dote.server.controllers.api.GetFeedController.protoAction
 
 GET     /*route                         kurtome.dote.server.controllers.HomeController.redirectToRoot(route: String)

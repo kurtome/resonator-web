@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package dote.proto.api;
+
+import "api/dotable.proto";
+
+message DotableList {
+  repeated Dotable dotables = 1;
+  string title = 2;
+}
+
+

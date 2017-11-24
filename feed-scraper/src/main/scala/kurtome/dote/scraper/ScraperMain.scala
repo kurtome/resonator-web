@@ -12,7 +12,8 @@ import scala.xml._
 
 object ScraperMain {
 
-  private val topCount = 5
+  private val topCount = 20
+  private val popularCount = 10
 
   private val podcastUrlPrefix: String = "https://itunes.apple.com/us/podcast/"
 
@@ -137,7 +138,7 @@ object ScraperMain {
         } else {
           allPagePodcastLinks
         }
-      val popularPodcastLinks = allPagePodcastLinks.take(topCount)
+      val popularPodcastLinks = allPagePodcastLinks.take(popularCount)
       println(
         s"\tCrawled $url, found ${pageCategoryLinks.size} category pages and ${pagePodcastLinks.size} podcasts (${popularPodcastLinks.size} popular).")
       (categoriesPodcastsPopular._1 ++ pageCategoryLinks,

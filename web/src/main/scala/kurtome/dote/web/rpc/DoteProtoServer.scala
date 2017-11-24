@@ -4,11 +4,12 @@ import dote.proto.api.action.add_podcast._
 import dote.proto.action.hello._
 import dote.proto.api.action.get_dotable._
 import dote.proto.api.action.get_dotable_list._
+import dote.proto.api.action.get_feed_controller.{GetFeedRequest, GetFeedResponse}
 import dote.proto.api.dotable.Dotable
 import kurtome.dote.web.rpc.AjaxRpc.ProtoAction
 import org.scalajs.dom
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object DoteProtoServer {
@@ -36,7 +37,7 @@ object DoteProtoServer {
         AddPodcastResponse.parseFrom(r)
     })(request)
 
-  def addGetDotableDetails(request: GetDotableDetailsRequest) =
+  def getDotableDetails(request: GetDotableDetailsRequest) =
     AjaxRpc.protoRequest(new ProtoAction[GetDotableDetailsRequest, GetDotableDetailsResponse] {
       override val route = "get-dotable-details"
 
@@ -51,7 +52,7 @@ object DoteProtoServer {
       response
     }
 
-  def addGetDotableList(request: GetDotableListRequest) =
+  def getDotableList(request: GetDotableListRequest) =
     AjaxRpc.protoRequest(new ProtoAction[GetDotableListRequest, GetDotableListResponse] {
       override val route = "get-dotable-list"
 
@@ -61,6 +62,20 @@ object DoteProtoServer {
       override def parseResponse(r: Array[Byte]) = GetDotableListResponse.parseFrom(r)
     })(request) map { response =>
       response.dotables.foreach(d => LocalCache.put(includesDetails = false, dotable = d))
+      response
+    }
+
+  def getFeed(request: GetFeedRequest) =
+    AjaxRpc.protoRequest(new ProtoAction[GetFeedRequest, GetFeedResponse] {
+      override val route = "get-feed"
+
+      override def serializeRequest(r: GetFeedRequest) =
+        GetFeedRequest.toByteArray(r)
+
+      override def parseResponse(r: Array[Byte]) = GetFeedResponse.parseFrom(r)
+    })(request) map { response =>
+      val lists = response.getFeed.items.map(_.getDotableList.getList)
+      lists.flatMap(_.dotables).foreach(d => LocalCache.put(includesDetails = false, dotable = d))
       response
     }
 

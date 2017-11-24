@@ -84,8 +84,16 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
     DBIO.sequence(tagIds.map(upsertDotableTag(dotableId, _))).map(_.sum)
   }
 
-  def readDotableIdsByTagKey(tag: TagId, limit: Long) = {
-    readDotableIdsByTabKey(tag.kind, tag.key, limit).result
+  def readDotableIdsByTagKey(tagId: TagId, limit: Long) = {
+    readDotableIdsByTabKey(tagId.kind, tagId.key, limit).result
+  }
+
+  def readTagById(tagId: TagId) = {
+    readTagByKeyRaw(tagId.kind, tagId.key).result.headOption.map(_.map(row => {
+      assert(tagId.kind == row.kind)
+      assert(tagId.key == row.key)
+      Tag(tagId, row.name)
+    }))
   }
 
   def insertDotableTag(tagId: Long, dotableId: Long) = {
