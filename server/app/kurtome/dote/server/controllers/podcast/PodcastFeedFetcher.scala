@@ -41,17 +41,20 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
   }
 
   private def toValidPodcast(podcast: RssFetchedPodcast): Future[Option[RssFetchedPodcast]] = {
-    Try {
-      ws.url(podcast.details.imageUrl).head() map { response =>
-        if (response.status == 200) {
-          Some(podcast)
-        } else {
-          None
+    val hasAudio = podcast.episodes.exists(_.details.audio.isDefined)
+
+    if (hasAudio) {
+      Try {
+        ws.url(podcast.details.imageUrl).head() map { response =>
+          if (response.status == 200) {
+            Some(podcast)
+          } else {
+            None
+          }
         }
-      }
-    } recover {
-      case t =>
-        Future(None)
-    } get
+      }.getOrElse(Future(None))
+    } else {
+      Future(None)
+    }
   }
 }

@@ -28,8 +28,11 @@ message DotableDetails {
     ExternalUrls external_urls = 6;
 
     message Audio {
+      // url of the audio file
       string url = 1;
+      // file MIME type, like "audio/mpeg"
       string type = 2;
+      // length of the file in bytes
       int64 size_bytes = 3;
     }
   }

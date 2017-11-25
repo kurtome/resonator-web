@@ -8,7 +8,6 @@ import kurtome.dote.slick.db.TagKinds.TagKind
 import kurtome.dote.slick.db.gen.Tables
 import kurtome.dote.slick.db.gen.Tables.{DotableTagRow, TagRow}
 import slick.jdbc.SetParameter
-import slick.sql.SqlProfile.ColumnOption.SqlType
 
 import scala.concurrent.ExecutionContext
 
@@ -37,7 +36,9 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
   private val readDotableIdsByTabKey = Compiled {
     (kind: Rep[TagKind], key: Rep[String], limit: ConstColumn[Long]) =>
       (for {
-        (t, td) <- tagTable.filter(row => row.kind === kind && row.key === key) join table on (_.id === _.tagId)
+        t <- tagTable.filter(row => row.kind === kind && row.key === key)
+        td <- table if td.tagId === t.id
+        d <- Tables.Dotable.sortBy(_.editedTime.desc) if d.id === td.dotableId
       } yield (td.dotableId)).take(limit)
   }
 

@@ -9,10 +9,22 @@ import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.components.widgets.{ContentFrame}
 import kurtome.dote.web.DoteRoutes.{DoteRoute, DoteRouterCtl}
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
+import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.components.ComponentHelpers._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object HomeView {
+
+  private object Styles extends StyleSheet.Inline {
+    import dsl._
+
+    val feedItemContainer = style(
+      marginTop(24 px)
+    )
+
+  }
+  Styles.addToDocument()
 
   case class State(request: GetFeedRequest = GetFeedRequest.defaultInstance,
                    response: GetFeedResponse = GetFeedResponse.defaultInstance,
@@ -30,12 +42,14 @@ object HomeView {
     def render(routerCtl: DoteRouterCtl, s: State): VdomElement = {
       ContentFrame(ContentFrame.Props(routerCtl))(
         s.response.getFeed.items map { item =>
-          val element: VdomElement = item.kind match {
-            case FeedItem.Kind.DOTABLE_LIST =>
-              FeedDotableList(routerCtl, item.getDotableList)()
-            case _ => <.div()
-          }
-          element
+          <.div(
+            ^.className := Styles.feedItemContainer,
+            item.kind match {
+              case FeedItem.Kind.DOTABLE_LIST =>
+                FeedDotableList(routerCtl, item.getDotableList)()
+              case _ => <.div()
+            }
+          )
         } toVdomArray
       )
     }

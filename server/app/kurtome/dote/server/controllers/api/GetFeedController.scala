@@ -82,20 +82,28 @@ class GetFeedController @Inject()(cc: ControllerComponents, podcastDbService: Do
                    TagId(TagKinds.PodcastCreator, "wnyc-studios"),
                    request.maxItemSize)
 
+    val theRinger = podcastDbService
+      .readTagList(DotableKinds.Podcast,
+                   TagId(TagKinds.PodcastCreator, "the-ringer"),
+                   request.maxItemSize)
+
     val lists = Future.sequence(
-      Seq(popularList,
-          societyAndCulture,
-          nprList,
-          comedy,
-          crookedMediaList,
-          technology,
-          gimlet,
-          sportsAndRecreation,
-          arts,
-          music,
-          wnyc,
-          newsAndPolitics,
-          tvAndFilm))
+      Seq(
+        popularList,
+        societyAndCulture,
+        nprList,
+        comedy,
+        crookedMediaList,
+        technology,
+        gimlet,
+        sportsAndRecreation,
+        arts,
+        music,
+        wnyc,
+        theRinger,
+        newsAndPolitics,
+        tvAndFilm
+      ))
 
     lists map { lists =>
       val feedItems = lists.filter(_.isDefined).map(_.get) map toListFeedItem

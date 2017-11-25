@@ -5,6 +5,7 @@ import java.util.Locale
 import javax.inject._
 
 import dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
+import dote.proto.db.dotable.DotableDetails.PodcastEpisode.Audio
 import dote.proto.db.dotable.{DotableCommon, DotableDetails, ExternalUrls}
 import kurtome.dote.server.db.{MetadataFlag, Tag}
 import kurtome.dote.server.util.Slug
@@ -117,6 +118,7 @@ class PodcastFeedParser @Inject()() {
     val duration = parseDurationAsSeconds(episode \ "duration")
     val episodeNum = Try(Integer.parseInt(episode \ "episode")).toOption
     val explicit: Boolean = parseExplicit(episode \ "explicit")
+    val audio = parseAudioEnclosure(episode \ "enclosure")
 
     RssFetchedEpisode(
       common = DotableCommon(title = title,
@@ -126,9 +128,21 @@ class PodcastFeedParser @Inject()() {
       details = DotableDetails.PodcastEpisode(
         durationSec = duration.getOrElse(0),
         episodeNumber = episodeNum.getOrElse(0),
-        rssGuid = guid
+        rssGuid = guid,
+        audio = audio
       )
     )
+  }
+
+  private def parseAudioEnclosure(enclosure: NodeSeq): Option[Audio] = {
+    val url = enclosure \@ "url"
+    val fileType = enclosure \@ "type"
+    val sizeBytes = Try((enclosure \@ "length").toLong).getOrElse(0L)
+    if (fileType.startsWith("audio/")) {
+      Some(Audio(url, fileType, sizeBytes))
+    } else {
+      None
+    }
   }
 
   private def parseDurationAsSeconds(raw: String): Option[Int] = {
