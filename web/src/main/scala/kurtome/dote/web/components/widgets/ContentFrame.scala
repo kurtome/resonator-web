@@ -32,7 +32,8 @@ object ContentFrame {
       case _    => 12.0 / 12.0
     }
 
-    Math.round(dom.window.innerWidth * usableRatio).toInt
+    val paddingPx = 32
+    Math.round(dom.window.innerWidth * usableRatio).toInt - paddingPx
   }
 
   class Backend(bs: BackendScope[Props, State]) {
