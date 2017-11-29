@@ -9,6 +9,8 @@ import scala.scalajs.js.Date
 import scala.scalajs.js.annotation.{JSImport, JSName}
 import scalacss.internal.StyleA
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.constants.MuiTheme
+import org.scalajs.dom
 
 import scala.scalajs.js
 import scala.scalajs.js.JSON
@@ -132,5 +134,19 @@ object ComponentHelpers {
     */
   def styleObjsByClassName(styleSheet: StyleSheet.Inline): Map[String, js.Dynamic] = {
     styleSheet.render[Map[String, js.Dynamic]]
+  }
+
+  val breakpointKeys = MuiTheme.theme
+    .selectDynamic("breakpoints")
+    .selectDynamic("keys")
+    .asInstanceOf[js.Array[String]]
+
+  val breakpoints = MuiTheme.theme.selectDynamic("breakpoints").selectDynamic("values")
+
+  def currentBreakpointString = {
+    val width = dom.window.innerWidth
+    breakpointKeys.reverse
+      .find(v => width > breakpoints.selectDynamic(v).asInstanceOf[Int])
+      .getOrElse("xs")
   }
 }

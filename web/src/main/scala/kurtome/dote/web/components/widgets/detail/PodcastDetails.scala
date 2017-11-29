@@ -114,7 +114,10 @@ object PodcastDetails {
                className = SharedStyles.detailsHeaderContainer)(
             Grid(item = true, xs = 12, lg = 4)(
               <.div(^.className := SharedStyles.detailsTileContainer,
-                    EntityTile(routerCtl = p.routerCtl, dotable = p.dotable, size = "250px")())
+                    EntityTile(routerCtl = p.routerCtl,
+                               dotable = p.dotable,
+                               width = "250px",
+                               height = "unset")())
             ),
             Grid(item = true, xs = 12, lg = 8, className = SharedStyles.titleFieldContainer)(
               Typography(style = Styles.titleText.inline,

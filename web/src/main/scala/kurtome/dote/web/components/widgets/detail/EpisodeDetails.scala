@@ -7,12 +7,15 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.SharedStyles
+import kurtome.dote.web.audio.Howler
+import kurtome.dote.web.audio.Howler.Howl
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.EntityTile
 import kurtome.dote.web.components.widgets.detail.DetailFieldList._
 import kurtome.dote.web.utils.MuiInlineStyleSheet
 
+import scala.scalajs.js
 import scalacss.internal.mutable.StyleSheet
 
 object EpisodeDetails {
@@ -53,6 +56,10 @@ object EpisodeDetails {
       marginRight(SharedStyles.spacingUnit * 2)
     )
 
+    val playButton = style(
+      margin(SharedStyles.spacingUnit * 2)
+    )
+
   }
   Styles.addToDocument()
   val muiStyles = new MuiInlineStyleSheet(Styles)
@@ -62,6 +69,13 @@ object EpisodeDetails {
   case class State()
 
   class Backend(bs: BackendScope[Props, State]) {
+
+    val playAudio = bs.props map { p =>
+      val url: String = p.dotable.getDetails.getPodcastEpisode.getAudio.url
+      val sound = Howler.createHowl(src = js.Array[String](url), html5 = true)
+      val id = sound.play()
+      println(id)
+    }
 
     def render(p: Props, s: State): VdomElement = {
       val podcast = p.dotable.getRelatives.getParent
@@ -90,7 +104,8 @@ object EpisodeDetails {
                 <.div(^.className := Styles.podcastTile,
                       EntityTile(routerCtl = p.routerCtl,
                                  dotable = p.dotable.getRelatives.getParent,
-                                 size = "125px")()),
+                                 width = "125px",
+                                 height = "unset")()),
                 <.div(
                   Typography(style = Styles.titleText.inline,
                              typographyType = Typography.Type.Headline)(title),
@@ -100,6 +115,10 @@ object EpisodeDetails {
               )
             ),
             Grid(item = true, xs = 12, lg = 8, className = SharedStyles.titleFieldContainer)(
+              <.div(
+                Button(onClick = playAudio, raised = true, style = Styles.playButton.inline)(
+                  "Play")
+              ),
               Typography(typographyType = Typography.Type.Body1,
                          dangerouslySetInnerHTML = linkifyAndSanitize(description))()
             )

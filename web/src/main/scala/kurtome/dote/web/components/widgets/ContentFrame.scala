@@ -4,15 +4,36 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes.{AddRoute, DoteRouterCtl, HomeRoute}
 import kurtome.dote.web.SharedStyles
+import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.constants.{MuiTheme, StringValues}
 import org.scalajs.dom
 
+/**
+  * Pager wrapper includes header/footer and renders child content within a centered portion of the
+  * screen.
+  */
 object ContentFrame {
 
   case class Props(routerCtl: DoteRouterCtl)
   case class State(navValue: String = "home")
+
+  /**
+    * Width of the main content area (based on the current viewport size).
+    */
+  def innerWidthPx: Int = {
+    // Based on the grid sizing of the mainContent wrapper
+    val usableRatio = ComponentHelpers.currentBreakpointString match {
+      case "xl" => 6.0 / 12.0
+      case "lg" => 8.0 / 12.0
+      case "md" => 10.0 / 12.0
+      case "sm" => 10.0 / 12.0
+      case _    => 12.0 / 12.0
+    }
+
+    Math.round(dom.window.innerWidth * usableRatio).toInt
+  }
 
   class Backend(bs: BackendScope[Props, State]) {
 
@@ -26,6 +47,7 @@ object ContentFrame {
                   Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
                     Grid(item = true,
                          xs = 10,
+                         sm = 8,
                          md = 8,
                          lg = 6,
                          xl = 4,
@@ -48,6 +70,7 @@ object ContentFrame {
                   Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
                     Grid(item = true,
                          xs = 12,
+                         sm = 10,
                          md = 10,
                          lg = 8,
                          xl = 6,

@@ -79,7 +79,7 @@ class PodcastFeedParser @Inject()() {
     val author: String = podcast \ "author"
 
     val episodeNodes = podcast \ "item"
-    val episodes = episodeNodes map parseEpisode reverse
+    val episodes = episodeNodes map parseEpisode
 
     val tags: Seq[Tag] =
       Seq(Tag(TagKinds.PodcastCreator, Slug(author), author)) ++
@@ -110,7 +110,8 @@ class PodcastFeedParser @Inject()() {
 
   private def parseEpisode(episode: Node): RssFetchedEpisode = {
     val title: String = episode \ "title"
-    val description: String = episode \ "summary"
+    val summary: String = episode \ "summary"
+    val description: String = if (summary.nonEmpty) summary else (episode \ "description")
     val author: String = episode \ "author"
     val guid: String = episode \ "guid"
     val pubDateEpochSec =

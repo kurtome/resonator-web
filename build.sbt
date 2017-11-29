@@ -99,12 +99,14 @@ lazy val web = (project in webBaseDir)
     // Pure javascript libraries (from npm)
     npmDependencies in Compile ++= Seq(
       "json-loader" -> "latest",
+      "debounce" -> "1.1.0",
       "linkifyjs" -> "2.1.5",
       "jquery" -> "3.2.1",
       "react" -> "15.6.1",
       "react-dom" -> "15.6.1",
       "lscache" -> "1.1.0",
       "lz-string" -> "1.4.4",
+      "howler" -> "2.0.5",
       "sanitize-html" -> "1.15.0",
       "material-ui" -> "next", // Using "next" to use the 1.0 release while its in beta
       "material-ui-icons" -> "1.0.0-beta.15"

@@ -29,6 +29,7 @@ object Button {
   trait Props extends js.Object {
     var color: js.UndefOr[String] = js.native
     var className: js.UndefOr[String] = js.native
+    var style: js.UndefOr[js.Dynamic] = js.native
     var disabled: js.UndefOr[Boolean] = js.native
     var disableRipple: js.UndefOr[Boolean] = js.native
     var disableFocusRipple: js.UndefOr[Boolean] = js.native
@@ -40,6 +41,7 @@ object Button {
 
   def apply(color: js.UndefOr[Color.Value] = js.undefined,
             className: js.UndefOr[String] = js.undefined,
+            style: js.UndefOr[js.Dynamic] = js.undefined,
             raised: js.UndefOr[Boolean] = js.undefined,
             disabled: js.UndefOr[Boolean] = js.undefined,
             disableRipple: js.UndefOr[Boolean] = js.undefined,
@@ -48,6 +50,7 @@ object Button {
     val p = (new js.Object).asInstanceOf[Props]
     p.color = color map { _.toString }
     p.className = className
+    p.style = style
     p.onClick = onClick.toJsFn
     p.disabled = disabled
     p.disableRipple = disableRipple

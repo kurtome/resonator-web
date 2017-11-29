@@ -23,20 +23,29 @@ object EntityTile {
       (100 %%) -> keyframe(opacity(1))
     )
 
+    val wrapper = style(
+      position.relative
+    )
+
     val nestedImg = style(
       position.absolute,
       animation := s"${fadeIn.name.value} 1s",
-      display.block,
-      margin.auto // margin: 'auto' make this img centered in its space
+      width(100 %%)
     )
 
     val placeholder = style(
-      backgroundColor(rgb(200, 200, 200))
+      backgroundColor(rgb(200, 200, 200)),
+      width(100 %%),
+      // Use padding top to force the height of the div to match the width
+      paddingTop(100 %%)
     )
   }
   Styles.addToDocument()
 
-  case class Props(routerCtl: DoteRouterCtl, dotable: Dotable, size: String = "175px")
+  case class Props(routerCtl: DoteRouterCtl,
+                   dotable: Dotable,
+                   width: String = "175px",
+                   height: String = "175px")
   case class State(imgLoaded: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) {
@@ -47,19 +56,20 @@ object EntityTile {
 
       Paper(elevation = 8, className = SharedStyles.inlineBlock)(
         p.routerCtl.link(detailRoute)(
-          <.img(
-            ^.className := Styles.nestedImg,
-            ^.visibility := (if (s.imgLoaded) "visible" else "hidden"),
-            ^.src := p.dotable.getDetails.getPodcast.imageUrl,
-            ^.onLoad --> bs.modState(_.copy(imgLoaded = true)),
-            ^.width := p.size,
-            ^.height := p.size
-          ),
-          // placeholder div while loading, to fill the space
           <.div(
-            ^.className := Styles.placeholder,
-            ^.width := p.size,
-            ^.height := p.size
+            ^.className := Styles.wrapper,
+            ^.width := p.width,
+            ^.height := p.width,
+            <.img(
+              ^.className := Styles.nestedImg,
+              ^.visibility := (if (s.imgLoaded) "visible" else "hidden"),
+              ^.src := p.dotable.getDetails.getPodcast.imageUrl,
+              ^.onLoad --> bs.modState(_.copy(imgLoaded = true)),
+            ),
+            // placeholder div while loading, to fill the space
+            <.div(
+              ^.className := Styles.placeholder,
+            )
           )
         )
       )
@@ -73,6 +83,9 @@ object EntityTile {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, dotable: Dotable, size: String = "175px") =
-    component.withKey(dotable.id).withProps(Props(routerCtl, dotable, size))
+  def apply(routerCtl: DoteRouterCtl,
+            dotable: Dotable,
+            width: String = "175px",
+            height: String = "175px") =
+    component.withKey(dotable.id).withProps(Props(routerCtl, dotable, width, height))
 }

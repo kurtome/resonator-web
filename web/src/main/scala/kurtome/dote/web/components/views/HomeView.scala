@@ -34,22 +34,24 @@ object HomeView {
 
     def fetchData(): Callback = Callback {
       bs.modState(_.copy(requestInFlight = true)).runNow
-      DoteProtoServer.getFeed(GetFeedRequest(maxItems = 5, maxItemSize = 5)) map { response =>
+      DoteProtoServer.getFeed(GetFeedRequest(maxItems = 20, maxItemSize = 10)) map { response =>
         bs.modState(_.copy(response = response, requestInFlight = false)).runNow()
       }
     }
 
     def render(routerCtl: DoteRouterCtl, s: State): VdomElement = {
       ContentFrame(ContentFrame.Props(routerCtl))(
-        s.response.getFeed.items map { item =>
-          <.div(
-            ^.className := Styles.feedItemContainer,
-            item.kind match {
-              case FeedItem.Kind.DOTABLE_LIST =>
-                FeedDotableList(routerCtl, item.getDotableList)()
-              case _ => <.div()
-            }
-          )
+        s.response.getFeed.items.zipWithIndex map {
+          case (item, i) =>
+            <.div(
+              ^.key := i,
+              ^.className := Styles.feedItemContainer,
+              item.kind match {
+                case FeedItem.Kind.DOTABLE_LIST =>
+                  FeedDotableList(routerCtl, item.getDotableList, key = Some(i.toString))()
+                case _ => <.div(^.key := i)
+              }
+            )
         } toVdomArray
       )
     }
