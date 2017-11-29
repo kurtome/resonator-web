@@ -103,7 +103,7 @@ object AddPodcastView {
 
   val component = ScalaComponent
     .builder[DoteRouterCtl]("AddPodcastView")
-    .initialState(State(AddPodcastRequest(), AddPodcastResponse()))
+    .initialState(State(AddPodcastRequest(ingestLater = false), AddPodcastResponse()))
     .backend(new Backend(_))
     .render(x => x.backend.render(x.props, x.state))
     .build

@@ -340,36 +340,47 @@ trait Tables {
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
     *  @param feedRssUrl Database column feed_rss_url SqlType(text), Length(2147483647,true)
     *  @param itunesId Database column itunes_id SqlType(int8)
-    *  @param podcastDotableId Database column podcast_dotable_id SqlType(int8) */
+    *  @param podcastDotableId Database column podcast_dotable_id SqlType(int8)
+    *  @param nextIngestionTime Database column next_ingestion_time SqlType(timestamp)
+    *  @param lastFeedEtag Database column last_feed_etag SqlType(text), Length(2147483647,true) */
   case class PodcastFeedIngestionRow(id: Long,
                                      feedRssUrl: String,
                                      itunesId: Long,
-                                     podcastDotableId: Long)
+                                     podcastDotableId: Option[Long],
+                                     nextIngestionTime: java.time.LocalDateTime,
+                                     lastFeedEtag: String)
 
   /** GetResult implicit for fetching PodcastFeedIngestionRow objects using plain SQL queries */
-  implicit def GetResultPodcastFeedIngestionRow(implicit e0: GR[Long],
-                                                e1: GR[String]): GR[PodcastFeedIngestionRow] = GR {
-    prs =>
-      import prs._
-      PodcastFeedIngestionRow.tupled((<<[Long], <<[String], <<[Long], <<[Long]))
+  implicit def GetResultPodcastFeedIngestionRow(
+      implicit e0: GR[Long],
+      e1: GR[String],
+      e2: GR[Option[Long]],
+      e3: GR[java.time.LocalDateTime]): GR[PodcastFeedIngestionRow] = GR { prs =>
+    import prs._
+    PodcastFeedIngestionRow.tupled(
+      (<<[Long], <<[String], <<[Long], <<?[Long], <<[java.time.LocalDateTime], <<[String]))
   }
 
   /** Table description of table podcast_feed_ingestion. Objects of this class serve as prototypes for rows in queries. */
   class PodcastFeedIngestion(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[PodcastFeedIngestionRow](_tableTag, "podcast_feed_ingestion") {
     def * =
-      (id, feedRssUrl, itunesId, podcastDotableId) <> (PodcastFeedIngestionRow.tupled, PodcastFeedIngestionRow.unapply)
+      (id, feedRssUrl, itunesId, podcastDotableId, nextIngestionTime, lastFeedEtag) <> (PodcastFeedIngestionRow.tupled, PodcastFeedIngestionRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(id), Rep.Some(feedRssUrl), Rep.Some(itunesId), Rep.Some(podcastDotableId)).shaped
-        .<>(
-          { r =>
-            import r._;
-            _1.map(_ => PodcastFeedIngestionRow.tupled((_1.get, _2.get, _3.get, _4.get)))
-          },
-          (_: Any) => throw new Exception("Inserting into ? projection not supported.")
-        )
+      (Rep.Some(id),
+       Rep.Some(feedRssUrl),
+       Rep.Some(itunesId),
+       podcastDotableId,
+       Rep.Some(nextIngestionTime),
+       Rep.Some(lastFeedEtag)).shaped.<>(
+        { r =>
+          import r._;
+          _1.map(_ => PodcastFeedIngestionRow.tupled((_1.get, _2.get, _3.get, _4, _5.get, _6.get)))
+        },
+        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+      )
 
     /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -382,12 +393,20 @@ trait Tables {
     val itunesId: Rep[Long] = column[Long]("itunes_id")
 
     /** Database column podcast_dotable_id SqlType(int8) */
-    val podcastDotableId: Rep[Long] = column[Long]("podcast_dotable_id")
+    val podcastDotableId: Rep[Option[Long]] = column[Option[Long]]("podcast_dotable_id")
+
+    /** Database column next_ingestion_time SqlType(timestamp) */
+    val nextIngestionTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("next_ingestion_time")
+
+    /** Database column last_feed_etag SqlType(text), Length(2147483647,true) */
+    val lastFeedEtag: Rep[String] =
+      column[String]("last_feed_etag", O.Length(2147483647, varying = true))
 
     /** Foreign key referencing Dotable (database name podcast_feed_ingestion_podcast_dotable_id_fkey) */
     lazy val dotableFk =
       foreignKey("podcast_feed_ingestion_podcast_dotable_id_fkey", podcastDotableId, Dotable)(
-        r => r.id,
+        r => Rep.Some(r.id),
         onUpdate = ForeignKeyAction.NoAction,
         onDelete = ForeignKeyAction.NoAction)
 

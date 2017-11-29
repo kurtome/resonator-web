@@ -2,15 +2,10 @@ package kurtome.dote.server.controllers.api
 
 import javax.inject._
 
-import kurtome.dote.server.controllers.podcast.{
-  ItunesEntityFetcher,
-  PodcastFeedFetcher,
-  RssFetchedPodcast
-}
+import kurtome.dote.server.controllers.podcast._
 import dote.proto.api.action.add_podcast._
-import dote.proto.api.dotable.Dotable
 import kurtome.dote.server.db.DotableDbService
-import play.api.{Configuration, Logger}
+import play.api.Configuration
 import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -20,8 +15,8 @@ class AddPodcastController @Inject()(
     cc: ControllerComponents,
     config: Configuration,
     itunesEntityFetcher: ItunesEntityFetcher,
-    podcastFetcher: PodcastFeedFetcher,
-    podcastDbService: DotableDbService)(implicit ec: ExecutionContext)
+    dotableDbService: DotableDbService,
+    podcastFeedIngester: PodcastFeedIngester)(implicit ec: ExecutionContext)
     extends ProtobufController[AddPodcastRequest, AddPodcastResponse](cc) {
 
   val allowExtras = config.get[Boolean]("kurtome.dote.add.podcast.extras")
@@ -38,37 +33,20 @@ class AddPodcastController @Inject()(
   override def action(request: AddPodcastRequest): Future[AddPodcastResponse] = {
     val itunesIdStr = request.itunesUrl.split('/').last.substring(2).replaceAll("\\?.*", "")
     val itunesId = itunesIdStr.toLong
-    itunesEntityFetcher.fetch(itunesId, "podcast") flatMap { itunesEntity =>
-      assert(itunesEntity.resultCount == 1, "must have exactly 1 result")
-      val entity = itunesEntity.results.head
-      fetchFeedAndIngest(request.getExtras, itunesId, entity.trackViewUrl, entity.feedUrl)
+    dotableDbService.getPodcastIngestionRowByItunesId(itunesId) flatMap { ingestRowOpt =>
+      if (ingestRowOpt.isEmpty) {
+        itunesEntityFetcher.fetch(itunesId, "podcast") flatMap { itunesEntity =>
+          assert(itunesEntity.resultCount == 1, "must have exactly 1 result")
+          val entity = itunesEntity.results.head
+          podcastFeedIngester.fetchFeedAndIngestRequest(request,
+                                                        itunesId,
+                                                        entity.trackViewUrl,
+                                                        entity.feedUrl)
+        }
+      } else {
+        podcastFeedIngester.reingestPodcastByItunesId(itunesId)
+      }
     }
-  }
-
-  private def fetchFeedAndIngest(extras: AddPodcastRequest.Extras,
-                                 itunesId: Long,
-                                 itunesUrl: String,
-                                 feedUrl: String): Future[AddPodcastResponse] = {
-    val eventualPodcast: Future[Seq[RssFetchedPodcast]] =
-      podcastFetcher.fetch(itunesUrl, feedUrl, extras)
-
-    eventualPodcast flatMap { rssPodcasts =>
-      Future.sequence(rssPodcasts.map(ingestToDatabase(extras, itunesId, _)))
-    } flatMap { podcastIds =>
-      Future.sequence(podcastIds.map(podcastDbService.readPodcastWithEpisodes(_)))
-    } map { podcasts =>
-      AddPodcastResponse(podcasts.filter(_.isDefined).map(_.get))
-    }
-  }
-
-  private def ingestToDatabase(extras: AddPodcastRequest.Extras,
-                               itunesId: Long,
-                               podcast: RssFetchedPodcast): Future[Long] = {
-    val id = podcastDbService.ingestPodcast(itunesId, podcast)
-    if (extras.popular) {
-      id.map(podcastDbService.setPopularTag(_))
-    }
-    id
   }
 
 }

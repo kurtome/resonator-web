@@ -1,5 +1,6 @@
 package kurtome.dote.server.db
 
+import java.time.LocalDateTime
 import javax.inject._
 
 import kurtome.dote.slick.db.DotePostgresProfile.api._
@@ -26,17 +27,22 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
     episodeTable ++= rows
   }
 
-  def insert(podcastDotableId: Long, itunesId: Long, feedUrl: String) = {
-    assert(podcastDotableId > 0)
-    assert(itunesId > 0)
-    assert(!feedUrl.isEmpty)
-    val row = Tables.PodcastFeedIngestionRow(
-      id = 0,
-      feedRssUrl = feedUrl,
-      podcastDotableId = podcastDotableId,
-      itunesId = itunesId
-    )
-    table += row
+  def insertIfNew(itunesId: Long, feedUrl: String) = {
+    sqlu"""INSERT INTO podcast_feed_ingestion (itunes_id, feed_rss_url)
+         SELECT ${itunesId}, ${feedUrl}
+         WHERE NOT EXISTS (
+         SELECT 1 FROM dote.public.podcast_feed_ingestion pfi WHERE pfi.itunes_id = ${itunesId})"""
+  }
+
+  def updatePodcastRecordByItunesId(podcastDotableId: Long,
+                                    itunesId: Long,
+                                    feedUrl: String,
+                                    feedEtag: String,
+                                    nextIngestionTime: LocalDateTime) = {
+    val q = for {
+      row <- table.filter(_.itunesId === itunesId)
+    } yield (row.podcastDotableId, row.feedRssUrl, row.lastFeedEtag, row.nextIngestionTime)
+    q.update((Some(podcastDotableId), feedUrl, feedEtag, nextIngestionTime))
   }
 
   def updateFeedUrByItunesId(itunesId: Long, feedUrl: String) = {
@@ -44,11 +50,20 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   def readPodcastIdFromItunesId(itunesId: Long): DBIOAction[Option[Long], NoStream, Effect.Read] = {
-    table.filter(_.itunesId === itunesId).map(_.podcastDotableId).result.headOption
+    table
+      .filter(row => row.itunesId === itunesId && row.podcastDotableId.isDefined)
+      .map(_.podcastDotableId.get)
+      .result
+      .headOption
   }
 
   def readEpisodesByPodcastId(podcastId: Long)
     : DBIOAction[Seq[Tables.PodcastEpisodeIngestionRow], NoStream, Effect.Read] = {
     episodeTable.filter(_.podcastDotableId === podcastId).result
   }
+
+  def readRowByItunesId(itunesId: Long) = {
+    table.filter(_.itunesId === itunesId).result.headOption
+  }
+
 }

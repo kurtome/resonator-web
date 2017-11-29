@@ -12,17 +12,28 @@ import scala.util.Try
 class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
     implicit ec: ExecutionContext) { self =>
 
-  def fetch(itunesUrl: String, feedUrl: String, extras: Extras): Future[Seq[RssFetchedPodcast]] = {
+  def fetch(itunesUrl: String,
+            feedUrl: String,
+            previousEtag: String,
+            extras: Extras): Future[Seq[RssFetchedPodcast]] = {
     Try {
-      ws.url(feedUrl).get() flatMap { response =>
-        // Remove any spurious leading characters, which will break the parsing
-        val startXmlIndex = response.body.indexOf('<')
-        if (startXmlIndex >= 0) {
-          val xmlString = response.body.substring(startXmlIndex)
-          val fetchedPodasts = parser.parsePodcastRss(itunesUrl, feedUrl, extras, xmlString)
-          filterInvalidPodcasts(fetchedPodasts)
+      val etag = if (previousEtag.nonEmpty) previousEtag else "*"
+      ws.url(feedUrl).withHttpHeaders("If-None-Match" -> etag).get() flatMap { response =>
+        if (response.status == 200) {
+          val etag: String = response.header("ETag").getOrElse("")
+          // Remove any spurious leading characters, which will break the parsing
+          val startXmlIndex = response.body.indexOf('<')
+          if (startXmlIndex >= 0) {
+            val xmlString = response.body.substring(startXmlIndex)
+            val fetchedPodasts =
+              parser.parsePodcastRss(itunesUrl, feedUrl, etag, extras, xmlString)
+            filterInvalidPodcasts(fetchedPodasts)
+          } else {
+            Logger.info(s"Response wasn't valid feed url: $feedUrl")
+            Future(Seq())
+          }
         } else {
-          Logger.info(s"Response wasn't valid feed url: $feedUrl")
+          Logger.info(s"Response status was ${response.status} for feed url: $feedUrl")
           Future(Seq())
         }
       }

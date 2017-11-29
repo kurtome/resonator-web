@@ -1,15 +1,14 @@
 package kurtome.dote.server.db
 
+import java.time.LocalDateTime
 import javax.inject._
 
 import dote.proto.api.dotable.Dotable
 import kurtome.dote.server.controllers.podcast.{RssFetchedEpisode, RssFetchedPodcast}
-import kurtome.dote.slick.db.{DotableKinds, TagKinds}
+import kurtome.dote.slick.db.DotableKinds
 import slick.basic.BasicBackend
 import kurtome.dote.slick.db.DotePostgresProfile.api._
-import kurtome.dote.slick.db.TagKinds.TagKind
 import kurtome.dote.slick.db.gen.Tables
-import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
@@ -33,16 +32,20 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
     }
   }
 
+  def addFeedForLaterIngestion(itunesId: Long, feedUrl: String): Future[Unit] = {
+    db.run(podcastFeedIngestionDbIo.insertIfNew(itunesId, feedUrl)).map(_ => Unit)
+  }
+
   def ingestPodcast(itunesId: Long, podcast: RssFetchedPodcast): Future[Long] = {
     // Ignore episodes without a GUID
-    val episodesWithGuids = podcast.episodes.filter(_.details.rssGuid.size > 0)
+    val episodesWithGuids = podcast.episodes.filter(_.details.rssGuid.nonEmpty)
     // Dedupe GUIDs, just throw away duplicate episodes
     val episodes = episodesWithGuids
       .groupBy(_.details.rssGuid)
       .map(pair => {
         val guid = pair._1
         val dupes = pair._2
-        dupes.sortBy(_.common.publishedEpochSec).head
+        dupes.minBy(_.common.publishedEpochSec)
       })
       .toSeq
 
@@ -63,7 +66,13 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
     // New podcast, insert
     val insertPodcastRowOp = (for {
       podcastId <- dotableDbIo.insertAndGetId(podcast)
-      _ <- podcastFeedIngestionDbIo.insert(podcastId, itunesId, podcast.feedUrl)
+      _ <- podcastFeedIngestionDbIo.insertIfNew(itunesId, podcast.feedUrl)
+      _ <- podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
+        podcastId,
+        itunesId,
+        podcast.feedUrl,
+        podcast.feedEtag,
+        nextIngestionTime = LocalDateTime.now().plusHours(1))
       episodeIdAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, episodes)
       _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, episodeIdAndGuids)
       _ <- updateTagsForDotable(podcastId, podcast.tags)
@@ -79,12 +88,17 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
     val insertPodcastRowOp = (for {
       existingEpisodes <- podcastFeedIngestionDbIo.readEpisodesByPodcastId(podcastId)
       episodesWithExistingId = matchToExistingEpisodeId(episodes, existingEpisodes)
-      newEpisodes = episodesWithExistingId.filter(!_._1.isDefined).map(_._2)
+      newEpisodes = episodesWithExistingId.filter(_._1.isEmpty).map(_._2)
       existingEpisodesWithId = episodesWithExistingId
         .filter(_._1.isDefined)
         .map(pair => pair._1.get -> pair._2)
       _ <- dotableDbIo.updateExisting(podcastId, podcast)
-      _ <- podcastFeedIngestionDbIo.updateFeedUrByItunesId(itunesId, podcast.feedUrl)
+      _ <- podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
+        podcastId,
+        itunesId,
+        podcast.feedUrl,
+        podcast.feedEtag,
+        nextIngestionTime = LocalDateTime.now().plusHours(1))
       newEpisodesAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, newEpisodes)
       _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, newEpisodesAndGuids)
       _ <- dotableDbIo.updateEpisodes(podcastId, existingEpisodesWithId)
@@ -135,6 +149,15 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
         _.update(_.relatives.children := children)
           .update(_.relatives.parent := parentOpt.getOrElse(Dotable.defaultInstance)))
     db.run(op)
+  }
+
+  def readDotableShallow(id: Long): Future[Option[Dotable]] = {
+    db.run(dotableDbIo.readHeadById(id))
+  }
+
+  def getPodcastIngestionRowByItunesId(
+      itunesId: Long): Future[Option[Tables.PodcastFeedIngestionRow]] = {
+    db.run(podcastFeedIngestionDbIo.readRowByItunesId(itunesId))
   }
 
   private def updateTagsForDotable(dotableId: Long, tags: Seq[Tag]) = {
