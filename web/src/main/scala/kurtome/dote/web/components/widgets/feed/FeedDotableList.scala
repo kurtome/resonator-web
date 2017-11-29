@@ -1,5 +1,6 @@
 package kurtome.dote.web.components.widgets.feed
 
+import dote.proto.api.dotable.Dotable
 import dote.proto.api.feed.FeedDotableList
 import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
@@ -37,8 +38,8 @@ object FeedDotableList {
   case class State(tileSizePx: Int = 100)
 
   private val breakpointTileSizes = Map[String, Int](
-    "xs" -> 65,
-    "sm" -> 90,
+    "xs" -> 100,
+    "sm" -> 100,
     "md" -> 125,
     "lg" -> 140,
     "xl" -> 160
@@ -68,7 +69,12 @@ object FeedDotableList {
       // the number of tiles has some extra space
       val tilePaddingPx = s.tileSizePx / 5
       val numTiles: Int = ContentFrame.innerWidthPx / (s.tileSizePx + tilePaddingPx)
-      val dotables = list.dotables.take(numTiles)
+      val dotables = list.dotables
+      // Pad with placeholders to make the list spacing balanced, rendering code below
+      // will handle the placeholders
+        .padTo(numTiles, Dotable.defaultInstance)
+        // take the number that fit
+        .take(numTiles)
 
       Grid(container = true, spacing = 0)(
         Grid(item = true, xs = 12)(
@@ -80,10 +86,15 @@ object FeedDotableList {
                justify = Grid.Justify.SpaceBetween)(
             dotables map { dotable =>
               Grid(key = Some(dotable.id), item = true, style = Styles.tileContainer.inline)(
-                EntityTile(p.routerCtl,
-                           dotable = dotable,
-                           width = s.tileSizePx + "px",
-                           height = "auto")()
+                if (dotable != Dotable.defaultInstance) {
+                  EntityTile(p.routerCtl,
+                             dotable = dotable,
+                             width = s.tileSizePx + "px",
+                             height = "auto")()
+                } else {
+                  // Placeholder for correct spacing
+                  <.div(^.width := s.tileSizePx + "px")
+                }
               )
             } toVdomArray
           )
