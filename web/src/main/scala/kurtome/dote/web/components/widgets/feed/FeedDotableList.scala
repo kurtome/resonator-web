@@ -59,7 +59,6 @@ object FeedDotableList {
     dom.window.addEventListener("resize", resizeListener)
 
     val onUnmount: Callback = Callback {
-      println("removing listener")
       dom.window.removeEventListener("resize", resizeListener)
     }
 
