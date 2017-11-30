@@ -1,4 +1,4 @@
-package kurtome.dote.server.controllers.podcast
+package kurtome.dote.server.ingestion
 
 import com.google.inject._
 import dote.proto.api.action.add_podcast.AddPodcastRequest.Extras

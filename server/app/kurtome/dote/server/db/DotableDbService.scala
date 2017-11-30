@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import javax.inject._
 
 import dote.proto.api.dotable.Dotable
-import kurtome.dote.server.controllers.podcast.{RssFetchedEpisode, RssFetchedPodcast}
+import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.slick.db.DotableKinds
 import slick.basic.BasicBackend
 import kurtome.dote.slick.db.DotePostgresProfile.api._

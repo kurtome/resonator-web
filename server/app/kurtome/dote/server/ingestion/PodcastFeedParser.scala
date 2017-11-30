@@ -1,4 +1,4 @@
-package kurtome.dote.server.controllers.podcast
+package kurtome.dote.server.ingestion
 
 import java.time.ZonedDateTime
 import java.util.Locale

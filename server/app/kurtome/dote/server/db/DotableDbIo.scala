@@ -5,7 +5,7 @@ import java.time.{LocalDateTime, ZoneOffset}
 import com.trueaccord.scalapb.json.JsonFormat
 import dote.proto.api.dotable.Dotable
 import dote.proto.db.dotable.{DotableCommon, DotableDetails}
-import kurtome.dote.server.controllers.podcast.{RssFetchedEpisode, RssFetchedPodcast}
+import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.server.util.{Slug, UrlIds}
 import kurtome.dote.slick.db.DotableKinds
 import kurtome.dote.slick.db.gen.Tables
