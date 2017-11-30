@@ -31,7 +31,7 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
     sqlu"""INSERT INTO podcast_feed_ingestion (itunes_id, feed_rss_url)
          SELECT ${itunesId}, ${feedUrl}
          WHERE NOT EXISTS (
-         SELECT 1 FROM dote.public.podcast_feed_ingestion pfi WHERE pfi.itunes_id = ${itunesId})"""
+         SELECT 1 FROM podcast_feed_ingestion pfi WHERE pfi.itunes_id = ${itunesId})"""
   }
 
   def updatePodcastRecordByItunesId(podcastDotableId: Long,
@@ -43,6 +43,13 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
       row <- table.filter(_.itunesId === itunesId)
     } yield (row.podcastDotableId, row.feedRssUrl, row.lastFeedEtag, row.nextIngestionTime)
     q.update((Some(podcastDotableId), feedUrl, feedEtag, nextIngestionTime))
+  }
+
+  def updateNextIngestionTimeByItunesId(itunesId: Long, nextIngestionTime: LocalDateTime) = {
+    val q = for {
+      row <- table.filter(_.itunesId === itunesId)
+    } yield (row.nextIngestionTime)
+    q.update(nextIngestionTime)
   }
 
   def updateFeedUrByItunesId(itunesId: Long, feedUrl: String) = {
@@ -64,6 +71,17 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
 
   def readRowByItunesId(itunesId: Long) = {
     table.filter(_.itunesId === itunesId).result.headOption
+  }
+
+  private val readNextIngestionRowsRaw = Compiled { (limit: ConstColumn[Long]) =>
+    table
+      .sortBy(_.nextIngestionTime.asc)
+      .filter(_.nextIngestionTime < LocalDateTime.now())
+      .take(limit)
+  }
+
+  def readNextIngestionRows(limit: Long) = {
+    readNextIngestionRowsRaw(limit).result
   }
 
 }

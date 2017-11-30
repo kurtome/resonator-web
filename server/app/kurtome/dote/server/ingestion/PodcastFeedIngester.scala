@@ -39,11 +39,7 @@ class PodcastFeedIngester @Inject()(
                              itunesId,
                              ingestionRow.feedRssUrl,
                              ingestionRow.lastFeedEtag,
-                             itunesUrl) flatMap { _ =>
-            podcastDbService.readPodcastWithEpisodes(podcastId)
-          } map { podcast =>
-            AddPodcastResponse(podcast.map(Seq(_)).getOrElse(Nil))
-          }
+                             itunesUrl)
         }
       }
     ) recover {

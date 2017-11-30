@@ -13,8 +13,8 @@ object MuiTheme {
   val theme: js.Dynamic = MuiThemeProvider.CreateMuiTheme.createMuiTheme(
     l$(
       "palette" -> l$(
-        "primary" -> Colors.blueGrey,
-        "secondary" -> Colors.deepOrange,
+        "primary" -> Colors.grey,
+        "secondary" -> Colors.blueGrey,
         "light" -> l$(
           "background" -> l$(
             "default" -> "#e0ddc0",
@@ -26,7 +26,7 @@ object MuiTheme {
       ),
       "typography" -> l$(
         "fontFamily" -> "syntesia",
-        "htmlFontSize" -> 13,
+        "htmlFontSize" -> 14,
         "headline" -> l$(
           "fontFamily" -> "aileronHeavy",
           "textTransform" -> "uppercase"

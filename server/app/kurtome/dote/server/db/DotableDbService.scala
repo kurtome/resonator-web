@@ -3,6 +3,7 @@ package kurtome.dote.server.db
 import java.time.LocalDateTime
 import javax.inject._
 
+import com.sun.org.apache.xalan.internal.utils.XMLSecurityManager.Limit
 import dote.proto.api.dotable.Dotable
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.slick.db.DotableKinds
@@ -158,6 +159,14 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
   def getPodcastIngestionRowByItunesId(
       itunesId: Long): Future[Option[Tables.PodcastFeedIngestionRow]] = {
     db.run(podcastFeedIngestionDbIo.readRowByItunesId(itunesId))
+  }
+
+  def updateNextIngestionTimeByItunesId(itunesId: Long, nextIngestionTime: LocalDateTime) = {
+    db.run(podcastFeedIngestionDbIo.updateNextIngestionTimeByItunesId(itunesId, nextIngestionTime))
+  }
+
+  def getNextPodcastIngestionRows(limit: Int): Future[Seq[Tables.PodcastFeedIngestionRow]] = {
+    db.run(podcastFeedIngestionDbIo.readNextIngestionRows(limit))
   }
 
   private def updateTagsForDotable(dotableId: Long, tags: Seq[Tag]) = {

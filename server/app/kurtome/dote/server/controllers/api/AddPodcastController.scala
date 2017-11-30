@@ -33,20 +33,28 @@ class AddPodcastController @Inject()(
   override def action(request: AddPodcastRequest): Future[AddPodcastResponse] = {
     val itunesIdStr = request.itunesUrl.split('/').last.substring(2).replaceAll("\\?.*", "")
     val itunesId = itunesIdStr.toLong
-    dotableDbService.getPodcastIngestionRowByItunesId(itunesId) flatMap { ingestRowOpt =>
-      if (ingestRowOpt.isEmpty) {
-        itunesEntityFetcher.fetch(itunesId, "podcast") flatMap { itunesEntity =>
-          assert(itunesEntity.resultCount == 1, "must have exactly 1 result")
-          val entity = itunesEntity.results.head
-          podcastFeedIngester.fetchFeedAndIngestRequest(request,
-                                                        itunesId,
-                                                        entity.trackViewUrl,
-                                                        entity.feedUrl)
+    if (request.ingestLater) {
+      fetchFromItunesAndIngest(request, itunesId)
+    } else {
+      dotableDbService.getPodcastIngestionRowByItunesId(itunesId) flatMap { ingestRowOpt =>
+        if (ingestRowOpt.isEmpty) {
+          fetchFromItunesAndIngest(request, itunesId)
+        } else {
+          podcastFeedIngester.reingestPodcastByItunesId(itunesId)
         }
-      } else {
-        podcastFeedIngester.reingestPodcastByItunesId(itunesId)
       }
     }
   }
 
+  private def fetchFromItunesAndIngest(request: AddPodcastRequest,
+                                       itunesId: Long): Future[AddPodcastResponse] = {
+    itunesEntityFetcher.fetch(itunesId, "podcast") flatMap { itunesEntity =>
+      assert(itunesEntity.resultCount == 1, "must have exactly 1 result")
+      val entity = itunesEntity.results.head
+      podcastFeedIngester.fetchFeedAndIngestRequest(request,
+                                                    itunesId,
+                                                    entity.trackViewUrl,
+                                                    entity.feedUrl)
+    }
+  }
 }

@@ -153,7 +153,7 @@ object SharedStyles extends StyleSheet.Inline {
     fontFamily(jaapokkiEnchanceFf),
     fontSize(3 rem),
     textAlign.center,
-    color(Color(MuiTheme.theme.palette.primary.`A700`.toString))
+    color(Color(MuiTheme.theme.palette.text.primary.toString))
   )
 
   val underConstructionText = style(

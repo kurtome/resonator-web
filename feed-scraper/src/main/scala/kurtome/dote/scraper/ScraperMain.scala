@@ -82,14 +82,14 @@ object ScraperMain {
   }
 
   private def crawl(implicit config: ScraperConfig): Unit = {
-    val results = categoryRoots.map(crawlCategory(_))
+    val results = categoryRoots.map(crawlCategory)
 
     val categoryLinksCount = results.map(_.crawledCategoryLinks.size).sum
     val podcastLinksCount = results.map(_.discoveredPodcastLinks.size).sum
     println(s"Found $categoryLinksCount category pages and $podcastLinksCount podcasts.")
 
-    val podcastLinks = results.map(_.discoveredPodcastLinks).flatten
-    val popularLinks: Set[String] = Set(results.map(_.popularPodcastLinks).flatten: _*)
+    val podcastLinks = results.flatMap(_.discoveredPodcastLinks)
+    val popularLinks: Set[String] = Set(results.flatMap(_.popularPodcastLinks): _*)
 
     podcastLinks
       .foreach(podcastUrl => {
@@ -97,7 +97,9 @@ object ScraperMain {
         Try {
           val popular = popularLinks.contains(podcastUrl)
           AddPodcastServer.addPodcast(
-            AddPodcastRequest(podcastUrl, extras = Some(Extras(popular = popular))))
+            AddPodcastRequest(podcastUrl,
+                              ingestLater = true,
+                              extras = Some(Extras(popular = popular))))
         } recover {
           case t =>
             t.printStackTrace
