@@ -37,7 +37,7 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
   def updatePodcastRecordByItunesId(podcastDotableId: Long,
                                     itunesId: Long,
                                     feedUrl: String,
-                                    feedEtag: String,
+                                    feedEtag: Option[String],
                                     nextIngestionTime: LocalDateTime) = {
     val q = for {
       row <- table.filter(_.itunesId === itunesId)

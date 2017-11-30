@@ -348,17 +348,18 @@ trait Tables {
                                      itunesId: Long,
                                      podcastDotableId: Option[Long],
                                      nextIngestionTime: java.time.LocalDateTime,
-                                     lastFeedEtag: String)
+                                     lastFeedEtag: Option[String])
 
   /** GetResult implicit for fetching PodcastFeedIngestionRow objects using plain SQL queries */
   implicit def GetResultPodcastFeedIngestionRow(
       implicit e0: GR[Long],
       e1: GR[String],
       e2: GR[Option[Long]],
-      e3: GR[java.time.LocalDateTime]): GR[PodcastFeedIngestionRow] = GR { prs =>
+      e3: GR[java.time.LocalDateTime],
+      e4: GR[Option[String]]): GR[PodcastFeedIngestionRow] = GR { prs =>
     import prs._
     PodcastFeedIngestionRow.tupled(
-      (<<[Long], <<[String], <<[Long], <<?[Long], <<[java.time.LocalDateTime], <<[String]))
+      (<<[Long], <<[String], <<[Long], <<?[Long], <<[java.time.LocalDateTime], <<?[String]))
   }
 
   /** Table description of table podcast_feed_ingestion. Objects of this class serve as prototypes for rows in queries. */
@@ -374,10 +375,10 @@ trait Tables {
        Rep.Some(itunesId),
        podcastDotableId,
        Rep.Some(nextIngestionTime),
-       Rep.Some(lastFeedEtag)).shaped.<>(
+       lastFeedEtag).shaped.<>(
         { r =>
           import r._;
-          _1.map(_ => PodcastFeedIngestionRow.tupled((_1.get, _2.get, _3.get, _4, _5.get, _6.get)))
+          _1.map(_ => PodcastFeedIngestionRow.tupled((_1.get, _2.get, _3.get, _4, _5.get, _6)))
         },
         (_: Any) => throw new Exception("Inserting into ? projection not supported.")
       )
@@ -400,8 +401,8 @@ trait Tables {
       column[java.time.LocalDateTime]("next_ingestion_time")
 
     /** Database column last_feed_etag SqlType(text), Length(2147483647,true) */
-    val lastFeedEtag: Rep[String] =
-      column[String]("last_feed_etag", O.Length(2147483647, varying = true))
+    val lastFeedEtag: Rep[Option[String]] =
+      column[Option[String]]("last_feed_etag", O.Length(2147483647, varying = true))
 
     /** Foreign key referencing Dotable (database name podcast_feed_ingestion_podcast_dotable_id_fkey) */
     lazy val dotableFk =

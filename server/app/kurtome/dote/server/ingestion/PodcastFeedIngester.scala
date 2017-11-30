@@ -24,8 +24,7 @@ class PodcastFeedIngester @Inject()(
       }
     } else {
       // use a blank etag to force the GET
-      val previousEtag = ""
-      fetchFeedAndIngest(request.getExtras, itunesId, feedUrl, previousEtag, itunesUrl)
+      fetchFeedAndIngest(request.getExtras, itunesId, feedUrl, None, itunesUrl)
     }
   }
 
@@ -57,7 +56,7 @@ class PodcastFeedIngester @Inject()(
   def fetchFeedAndIngest(extras: AddPodcastRequest.Extras,
                          itunesId: Long,
                          feedUrl: String,
-                         previousFeedEtag: String,
+                         previousFeedEtag: Option[String],
                          itunesUrl: String): Future[AddPodcastResponse] = {
     val eventualPodcast: Future[Seq[RssFetchedPodcast]] =
       podcastFetcher.fetch(itunesUrl, feedUrl, previousFeedEtag, extras)

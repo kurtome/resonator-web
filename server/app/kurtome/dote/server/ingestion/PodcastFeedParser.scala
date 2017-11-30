@@ -23,7 +23,7 @@ class PodcastFeedParser @Inject()() {
 
   def parsePodcastRss(itunesUrl: String,
                       feedUrl: String,
-                      feedEtag: String,
+                      feedEtag: Option[String],
                       extras: Extras,
                       rssXml: String): Seq[RssFetchedPodcast] = {
     val channels = XML.loadString(rssXml) \ "channel"
@@ -32,7 +32,7 @@ class PodcastFeedParser @Inject()() {
 
   private def parsePodcast(itunesUrl: String,
                            feedUrl: String,
-                           feedEtag: String,
+                           feedEtag: Option[String],
                            extras: Extras,
                            podcast: Node): RssFetchedPodcast = {
     val title: String = podcast \ "title"

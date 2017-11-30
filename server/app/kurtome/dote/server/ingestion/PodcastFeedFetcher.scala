@@ -14,13 +14,19 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
 
   def fetch(itunesUrl: String,
             feedUrl: String,
-            previousEtag: String,
+            previousEtag: Option[String],
             extras: Extras): Future[Seq[RssFetchedPodcast]] = {
     Try {
-      val etag = if (previousEtag.nonEmpty) previousEtag else "*"
-      ws.url(feedUrl).withHttpHeaders("If-None-Match" -> etag).get() flatMap { response =>
+      val headers: Seq[(String, String)] =
+        if (previousEtag.isDefined) {
+          Seq("If-None-Match" -> previousEtag.get)
+        } else {
+          Nil
+        }
+
+      ws.url(feedUrl).withHttpHeaders(headers: _*).get() flatMap { response =>
         if (response.status == 200) {
-          val etag: String = response.header("ETag").getOrElse("")
+          val etag: Option[String] = response.header("ETag")
           // Remove any spurious leading characters, which will break the parsing
           val startXmlIndex = response.body.indexOf('<')
           if (startXmlIndex >= 0) {
