@@ -42,21 +42,21 @@ object ScraperMain {
                                    discoveredPodcastLinks: Set[String] = Set(),
                                    popularPodcastLinks: Set[String] = Set())
 
-  case class ScraperConfig(deepCrawl: Boolean = false,
+  case class ScraperConfig(depth: Int = 0,
                            prod: Boolean = false,
                            ingestAllPodcasts: Boolean = false) {
-    def topPodcastsOnly = !ingestAllPodcasts && !deepCrawl
+    def topPodcastsOnly = !ingestAllPodcasts && (depth == 0)
   }
 
   // Documentation at https://github.com/scopt/scopt
   private val argParser = new scopt.OptionParser[ScraperConfig]("scraper") {
     head("feed scraper")
 
-    opt[Unit]("deepCrawl")
-      .action((_, c) => {
-        c.copy(deepCrawl = true)
+    opt[Int]("depth")
+      .action((x, c) => {
+        c.copy(depth = x)
       })
-      .text("crawl all category pages instead of just the top of each category")
+      .text("recursion depth to crawl to, defaults to 0 for top pages only")
 
     opt[Unit]("ingestAllPodcasts")
       .action((_, c) => {
@@ -112,13 +112,15 @@ object ScraperMain {
   private def crawlCategory(url: String)(implicit config: ScraperConfig): CategoryLinks = {
     val root = CategoryLinks(rootCategory = url, newCategoryLinks = Set(url))
     var current = root
+    var depth = 0
     do {
       current = updateLinks(current)
       println(s"Found ${current.newCategoryLinks.size} new category URLs")
-      if (config.deepCrawl) {
+      depth += 1
+      if (depth <= config.depth) {
         Thread.sleep(500)
       }
-    } while (current.newCategoryLinks.size > 0 && config.deepCrawl)
+    } while (current.newCategoryLinks.nonEmpty && depth <= config.depth)
 
     current
   }

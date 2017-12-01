@@ -34,6 +34,10 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
          SELECT 1 FROM podcast_feed_ingestion pfi WHERE pfi.itunes_id = ${itunesId})"""
   }
 
+  def lockIngestionRow(itunesId: Long) = {
+    table.filter(_.itunesId === itunesId).forUpdate.result.headOption.map(_.get)
+  }
+
   def updatePodcastRecordByItunesId(podcastDotableId: Long,
                                     itunesId: Long,
                                     feedUrl: String,

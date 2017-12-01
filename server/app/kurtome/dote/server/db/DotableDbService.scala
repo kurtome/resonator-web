@@ -3,7 +3,6 @@ package kurtome.dote.server.db
 import java.time.LocalDateTime
 import javax.inject._
 
-import com.sun.org.apache.xalan.internal.utils.XMLSecurityManager.Limit
 import dote.proto.api.dotable.Dotable
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.slick.db.DotableKinds
@@ -66,8 +65,12 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
                                episodes: Seq[RssFetchedEpisode]) = {
     // New podcast, insert
     val insertPodcastRowOp = (for {
-      podcastId <- dotableDbIo.insertAndGetId(podcast)
       _ <- podcastFeedIngestionDbIo.insertIfNew(itunesId, podcast.feedUrl)
+      row <- podcastFeedIngestionDbIo.lockIngestionRow(itunesId)
+      // throw an exception if the locked row already has a dotable, means there was a race
+      // condition and this transaciton should be rolled back
+      _ = assert(row.podcastDotableId.isEmpty)
+      podcastId <- dotableDbIo.insertAndGetId(podcast) if row.podcastDotableId.isEmpty
       _ <- podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
         podcastId,
         itunesId,
@@ -113,12 +116,24 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
   }
 
   def readTagList(kind: DotableKinds.Value, tagId: TagId, limit: Long): Future[Option[TagList]] = {
-    val query = for {
-      tag <- tagDbIo.readTagById(tagId)
-      ids <- tagDbIo.readDotableIdsByTagKey(tagId, limit)
-      dotables <- dotableDbIo.readByIdBatch(kind, Set(ids: _*))
-    } yield tag.map(TagList(_, dotables))
-    db.run(query)
+    val tagQuery = for {
+      tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
+    } yield tags
+
+    val query = (for {
+      tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
+      dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
+      dotables <- Tables.Dotable if dotables.id === dotableTags.dotableId
+    } yield dotables).take(limit)
+
+    db.run(query.result.map(_.map(dotableDbIo.protoRowMapper))) flatMap { dotables =>
+      if (dotables.nonEmpty) {
+        db.run(tagQuery.result.headOption.map(_.map(t =>
+          TagList(Tag(t.kind, t.key, t.name), dotables))))
+      } else {
+        Future(None)
+      }
+    }
   }
 
   def readLimitedRandom(kind: DotableKinds.Value, limit: Int): Future[Seq[Dotable]] = {

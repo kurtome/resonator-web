@@ -11,6 +11,7 @@ import scala.util.Try
 
 @Singleton
 class PodcastFeedIngester @Inject()(
+    itunesEntityFetcher: ItunesEntityFetcher,
     podcastFetcher: PodcastFeedFetcher,
     podcastDbService: DotableDbService)(implicit ec: ExecutionContext) {
 
@@ -32,14 +33,26 @@ class PodcastFeedIngester @Inject()(
     Try(
       podcastDbService.getPodcastIngestionRowByItunesId(itunesId) flatMap { ingestionRowOpt =>
         val ingestionRow = ingestionRowOpt.get
-        val podcastId = ingestionRow.podcastDotableId.get
-        podcastDbService.readDotableShallow(podcastId) flatMap { dotableOpt =>
-          val itunesUrl = dotableOpt.get.getDetails.getPodcast.getExternalUrls.itunes
-          fetchFeedAndIngest(AddPodcastRequest.Extras.defaultInstance,
-                             itunesId,
-                             ingestionRow.feedRssUrl,
-                             ingestionRow.lastFeedEtag,
-                             itunesUrl)
+        if (ingestionRow.podcastDotableId.isEmpty) {
+          itunesEntityFetcher.fetch(itunesId, "podcast") flatMap { itunesEntity =>
+            assert(itunesEntity.resultCount == 1, "must have exactly 1 result")
+            val entity = itunesEntity.results.head
+            fetchFeedAndIngest(AddPodcastRequest.Extras.defaultInstance,
+                               itunesId,
+                               entity.feedUrl,
+                               ingestionRow.lastFeedEtag,
+                               entity.trackViewUrl)
+          }
+        } else {
+          val podcastId = ingestionRow.podcastDotableId.get
+          podcastDbService.readDotableShallow(podcastId) flatMap { dotableOpt =>
+            val itunesUrl = dotableOpt.get.getDetails.getPodcast.getExternalUrls.itunes
+            fetchFeedAndIngest(AddPodcastRequest.Extras.defaultInstance,
+                               itunesId,
+                               ingestionRow.feedRssUrl,
+                               ingestionRow.lastFeedEtag,
+                               itunesUrl)
+          }
         }
       }
     ) recover {
