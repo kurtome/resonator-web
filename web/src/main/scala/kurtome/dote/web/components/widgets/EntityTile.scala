@@ -44,6 +44,7 @@ object EntityTile {
 
   case class Props(routerCtl: DoteRouterCtl,
                    dotable: Dotable,
+                   elevation: Int = 8,
                    width: String = "175px",
                    height: String = "175px")
   case class State(imgLoaded: Boolean = false)
@@ -54,7 +55,7 @@ object EntityTile {
       val slug = p.dotable.slug
       val detailRoute = PodcastRoute(id = id, slug = slug)
 
-      Paper(elevation = 8, className = SharedStyles.inlineBlock)(
+      Paper(elevation = p.elevation, className = SharedStyles.inlineBlock)(
         p.routerCtl.link(detailRoute)(
           <.div(
             ^.className := Styles.wrapper,
@@ -85,7 +86,8 @@ object EntityTile {
 
   def apply(routerCtl: DoteRouterCtl,
             dotable: Dotable,
+            elevation: Int = 8,
             width: String = "175px",
             height: String = "175px") =
-    component.withKey(dotable.id).withProps(Props(routerCtl, dotable, width, height))
+    component.withKey(dotable.id).withProps(Props(routerCtl, dotable, elevation, width, height))
 }

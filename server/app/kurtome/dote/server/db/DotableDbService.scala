@@ -6,6 +6,7 @@ import javax.inject._
 import dote.proto.api.dotable.Dotable
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.slick.db.DotableKinds
+import kurtome.dote.slick.db.DotableKinds.DotableKind
 import slick.basic.BasicBackend
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.slick.db.gen.Tables
@@ -113,6 +114,10 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
 
   def readLimited(kind: DotableKinds.Value, limit: Int): Future[Seq[Dotable]] = {
     db.run(dotableDbIo.readLimited(kind, limit))
+  }
+
+  def search(query: String, kind: DotableKind, limit: Long) = {
+    db.run(dotableDbIo.search(query, kind, limit))
   }
 
   def readTagList(kind: DotableKinds.Value, tagId: TagId, limit: Long): Future[Option[TagList]] = {

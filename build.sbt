@@ -103,6 +103,7 @@ lazy val web = (project in webBaseDir)
       "linkifyjs" -> "2.1.5",
       "jquery" -> "3.2.1",
       "react" -> "15.6.1",
+      "react-autosuggest" -> "9.3.2",
       "react-dom" -> "15.6.1",
       "lscache" -> "1.1.0",
       "lz-string" -> "1.4.4",

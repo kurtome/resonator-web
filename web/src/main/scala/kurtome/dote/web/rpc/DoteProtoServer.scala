@@ -5,6 +5,7 @@ import dote.proto.action.hello._
 import dote.proto.api.action.get_dotable._
 import dote.proto.api.action.get_dotable_list._
 import dote.proto.api.action.get_feed_controller.{GetFeedRequest, GetFeedResponse}
+import dote.proto.api.action.search.{SearchRequest, SearchResponse}
 import dote.proto.api.dotable.Dotable
 import kurtome.dote.web.rpc.AjaxRpc.ProtoAction
 import org.scalajs.dom
@@ -76,6 +77,19 @@ object DoteProtoServer {
     })(request) map { response =>
       val lists = response.getFeed.items.map(_.getDotableList.getList)
       lists.flatMap(_.dotables).foreach(d => LocalCache.put(includesDetails = false, dotable = d))
+      response
+    }
+
+  def search(request: SearchRequest) =
+    AjaxRpc.protoRequest(new ProtoAction[SearchRequest, SearchResponse] {
+      override val route = "search"
+
+      override def serializeRequest(r: SearchRequest) =
+        SearchRequest.toByteArray(r)
+
+      override def parseResponse(r: Array[Byte]) = SearchResponse.parseFrom(r)
+    })(request) map { response =>
+      response.dotables.foreach(d => LocalCache.put(includesDetails = false, dotable = d))
       response
     }
 

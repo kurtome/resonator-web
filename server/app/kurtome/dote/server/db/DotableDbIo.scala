@@ -14,6 +14,8 @@ import org.json4s.JValue
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import javax.inject._
 
+import kurtome.dote.slick.db.DotableKinds.DotableKind
+
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -55,7 +57,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     table.map(_.id).max.result
   }
 
-  def readLimited(kind: DotableKinds.Value, limit: Int, minId: Long = 0) = {
+  def readLimited(kind: DotableKind, limit: Int, minId: Long = 0) = {
     table
       .filter(row => row.kind === kind && row.id >= minId)
       .take(limit)
@@ -67,11 +69,11 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     table.filter(_.id === id)
   }
 
-  def readById(kind: DotableKinds.Value, id: Long) = {
+  def readById(kind: DotableKind, id: Long) = {
     readByIdRaw(id).result.map(_.map(protoRowMapper(kind)))
   }
 
-  def readHeadById(kind: DotableKinds.Value, id: Long) = {
+  def readHeadById(kind: DotableKind, id: Long) = {
     readByIdRaw(id).result.headOption.map(_.map(protoRowMapper(kind)))
   }
 
@@ -89,15 +91,15 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     } yield p
   }
 
-  def readHeadByParentId(kind: DotableKinds.Value, parentId: Long) = {
+  def readHeadByParentId(kind: DotableKind, parentId: Long) = {
     readByParentIdRaw(parentId).result.headOption.map(_.map(protoRowMapper(kind)))
   }
 
-  def readByParentId(kind: DotableKinds.Value, parentId: Long) = {
+  def readByParentId(kind: DotableKind, parentId: Long) = {
     readByParentIdRaw(parentId).result.map(_.map(protoRowMapper(kind)))
   }
 
-  def readByChildId(kind: DotableKinds.Value, childId: Long) = {
+  def readByChildId(kind: DotableKind, childId: Long) = {
     readByChildIdRaw(childId).result.headOption.map(_.map(protoRowMapper(kind)))
   }
 
@@ -105,14 +107,14 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     readByParentIdRaw(parentId).result.map(_.map(protoRowMapper))
   }
 
-  def readByIdBatch(kind: DotableKinds.Value, ids: Set[Long]) = {
+  def readByIdBatch(kind: DotableKind, ids: Set[Long]) = {
     table
       .filter(row => row.id.inSet(ids) && row.kind === kind)
       .result
       .map(_.map(protoRowMapper(kind)))
   }
 
-  def protoRowMapper(kind: DotableKinds.Value)(row: DotableRow): Dotable = {
+  def protoRowMapper(kind: DotableKind)(row: DotableRow): Dotable = {
     assert(row.kind == kind)
     protoRowMapper(row)
   }
@@ -134,8 +136,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     )
   }
 
-  private def parseDetails(kind: DotableKinds.Value,
-                           detailsJson: JValue): Dotable.Details.Details = {
+  private def parseDetails(kind: DotableKind, detailsJson: JValue): Dotable.Details.Details = {
     kind match {
       case DotableKinds.Podcast =>
         Dotable.Details.Details.Podcast(JsonFormat.fromJson[DotableDetails.Podcast](detailsJson))
@@ -175,5 +176,23 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
       common = JsonFormat.toJson(podcast.common),
       details = JsonFormat.toJson(podcast.details)
     )
+  }
+
+  def search(query: String, kind: DotableKind, limit: Long) = {
+    val parts = query.split("\\W")
+    // add ':*' to allow search on prefixes (instead of exact word match)
+    // and join on '|' to logically or the words together
+    val psqlQueryStr = parts.map(_ + ":*").mkString("|")
+    // Use full text search on the title column and order by the highest text ranking
+    table
+      .filter(row => {
+        toTsVector(row.title) @@ toTsQuery(psqlQueryStr) && row.kind === kind
+      })
+      .map(row => (row, tsRank(toTsVector(row.title), toTsQuery(psqlQueryStr))))
+      .sortBy(_._2.desc)
+      .take(limit)
+      .map(_._1)
+      .result
+      .map(_.map(protoRowMapper(kind)))
   }
 }

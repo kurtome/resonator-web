@@ -16,9 +16,6 @@ object WebMain {
       .build
 
   def main(args: Array[String]): Unit = {
-
-    dom.window.onerror = globalErrorHandler
-
     // Attach both style files to the head
     SharedStyles.addToDocument()
     attachStandaloneStyle(StandaloneStyles)
@@ -36,10 +33,4 @@ object WebMain {
     dom.document.head.appendChild(styleElement)
   }
 
-  private def globalErrorHandler(event: Event, source: String, lineno: Int, colno: Int): Boolean = {
-    dom.window.alert(s"${event.toString}\nError from '$source' at $lineno:$colno")
-
-    // always suppress the error
-    return true;
-  }
 }

@@ -33,7 +33,7 @@ object AddPodcastView {
                 ^.id := "test",
                 ^.className := SharedStyles.paperContainer.className.value,
                 Grid(container = true, spacing = 0)(
-                  Grid(item = true, xs = 12, sm = 10, md = 8)(
+                  Grid(item = true, xs = 12)(
                     TextField(
                       value = s.request.itunesUrl,
                       label = "iTunes Podcast URL",
@@ -43,7 +43,6 @@ object AddPodcastView {
                         bs.setState(
                           s.copy(request = s.request.copy(itunesUrl = newValue.target.value)))
                       },
-                      autoFocus = true,
                       fullWidth = true
                     )()
                   ),

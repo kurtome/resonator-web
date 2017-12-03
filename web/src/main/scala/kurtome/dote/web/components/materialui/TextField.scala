@@ -32,6 +32,7 @@ object TextField {
     var id: js.UndefOr[String] = js.native
     var margin: js.UndefOr[String] = js.native
     var `type`: js.UndefOr[String] = js.native
+    var inputRef: js.UndefOr[js.Any] = js.native
     var onChange: js.Function1[ReactEventFromInput, Unit] = js.native
   }
 
@@ -44,6 +45,8 @@ object TextField {
             placeholder: js.UndefOr[String] = js.undefined,
             label: js.UndefOr[String] = js.undefined,
             helperText: js.UndefOr[String] = js.undefined,
+            inputType: js.UndefOr[String] = js.undefined,
+            inputRef: js.UndefOr[js.Any] = js.undefined,
             onChange: ReactEventFromInput => Callback = _ => Callback.empty,
             className: js.UndefOr[String] = js.undefined,
             margin: String = "normal") = {
@@ -57,6 +60,8 @@ object TextField {
     p.className = className
     p.margin = margin
     p.fullWidth = fullWidth
+    p.`type` = inputType
+    p.inputRef = inputRef
     p.onChange = (s: ReactEventFromInput) => onChange(s).runNow()
 
     component.withProps(p)

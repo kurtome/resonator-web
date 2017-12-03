@@ -1,6 +1,7 @@
 package kurtome.dote.web.components.materialui
 
 import japgolly.scalajs.react._
+import kurtome.dote.web.components.ComponentHelpers
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
@@ -21,17 +22,25 @@ object Paper {
     var className: js.UndefOr[String] = js.native
     var elevation: js.UndefOr[Int] = js.native
     var square: js.UndefOr[Boolean] = js.native
+    var style: js.UndefOr[js.Dynamic] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(elevation: js.UndefOr[Int] = js.undefined,
+  def apply(baseProps: js.Any = new js.Object,
+            elevation: js.UndefOr[Int] = js.undefined,
             className: js.UndefOr[String] = js.undefined,
-            square: js.UndefOr[Boolean] = js.undefined) = {
-    val p = (new js.Object).asInstanceOf[Props]
+            square: js.UndefOr[Boolean] = js.undefined,
+            style: js.UndefOr[js.Dynamic] = js.undefined) = {
+    val p = baseProps.asInstanceOf[Props]
     p.elevation = elevation
     p.square = square
     p.className = className
+    if (p.style.isDefined && style.isDefined) {
+      p.style = ComponentHelpers.mergeJSObjects(p.style.get, style.get)
+    } else if (style.isDefined) {
+      p.style = style.get
+    }
 
     component.withProps(p)
   }

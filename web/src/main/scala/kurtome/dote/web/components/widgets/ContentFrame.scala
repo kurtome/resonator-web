@@ -69,6 +69,13 @@ object ContentFrame {
                 ),
                 Grid(item = true, xs = 12)(
                   Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
+                    Grid(item = true, xs = 12, md = 8, lg = 6, xl = 4)(
+                      SearchBox(p.routerCtl)()
+                    )
+                  )
+                ),
+                Grid(item = true, xs = 12)(
+                  Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
                     Grid(item = true,
                          xs = 12,
                          sm = 10,
