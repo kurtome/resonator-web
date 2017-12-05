@@ -20,8 +20,7 @@ object WebMain {
     SharedStyles.addToDocument()
     attachStandaloneStyle(StandaloneStyles)
 
-    val todoappNode =
-      dom.document.body.getElementsByClassName("doteapp")(0).domAsHtml
+    val todoappNode = dom.document.body.querySelector("#reactroot")
 
     DoteRoutes.router().renderIntoDOM(todoappNode)
   }

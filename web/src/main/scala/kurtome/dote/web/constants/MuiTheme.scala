@@ -15,13 +15,18 @@ object MuiTheme {
       "palette" -> l$(
         "primary" -> Colors.grey,
         "secondary" -> Colors.blueGrey,
-        "light" -> l$(
-          "background" -> l$(
-            "default" -> "#e0ddc0",
-            "paper" -> "#fff",
-            "appBar" -> "#f5f5f5",
-            "contentFrame" -> "#eeeeee"
+        "type" -> "light",
+        "shades" -> l$(
+          "light" -> l$(
+            "background" -> l$(
+              "default" -> "#616161",
+              "paper" -> "#eeeeee",
+            )
           )
+        ),
+        "background" -> l$(
+          "default" -> "#f5f5f5",
+          "paper" -> "#e0e0e0",
         )
       ),
       "typography" -> l$(

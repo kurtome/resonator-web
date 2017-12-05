@@ -10,6 +10,9 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.constants.{MuiTheme, StringValues}
 import org.scalajs.dom
 
+import scala.scalajs.js
+import scala.scalajs.js.JSON
+
 /**
   * Pager wrapper includes header/footer and renders child content within a centered portion of the
   * screen.

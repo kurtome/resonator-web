@@ -180,9 +180,9 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
 
   def search(query: String, kind: DotableKind, limit: Long) = {
     val parts = query.split("\\W")
-    // add ':*' to allow search on prefixes (instead of exact word match)
-    // and join on '|' to logically or the words together
-    val psqlQueryStr = parts.map(_ + ":*").mkString("|")
+    // join on '|' to logically or the words together
+    // add ':*' to the last word, assuming it may be a partial word
+    val psqlQueryStr = if (query.nonEmpty) parts.mkString("|") + ":*" else ""
     // Use full text search on the title column and order by the highest text ranking
     table
       .filter(row => {

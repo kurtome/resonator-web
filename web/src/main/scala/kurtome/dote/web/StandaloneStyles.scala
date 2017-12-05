@@ -1,6 +1,7 @@
 package kurtome.dote.web
 
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.constants.MuiTheme
 
 import scalacss.internal.mutable.StyleSheet
 
@@ -9,6 +10,10 @@ import scalacss.internal.mutable.StyleSheet
   */
 object StandaloneStyles extends StyleSheet.Standalone {
   import dsl._
+
+  "html" - (
+    backgroundColor :=! MuiTheme.theme.palette.background.default.asInstanceOf[String]
+  )
 
   "body" - (
     // To override the builtin style from the browser and ensure content goes all the way to the

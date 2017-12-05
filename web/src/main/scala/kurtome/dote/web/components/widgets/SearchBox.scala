@@ -8,6 +8,7 @@ import scala.scalajs.js._
 import scala.scalajs.js.JSConverters._
 import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
+import japgolly.scalajs.react.component.Generic.MountedSimple
 import japgolly.scalajs.react.raw.SyntheticEvent
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.SharedStyles
@@ -21,6 +22,7 @@ import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.{Debounce, MuiInlineStyleSheet}
 
+import scala.collection.mutable
 import scala.scalajs.js
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -37,6 +39,7 @@ object SearchBox {
     val suggestDropdownSheet = style(
       zIndex := "1",
       position.absolute,
+      //backgroundColor :=! MuiTheme.theme.palette.grey.`300`.asInstanceOf[String],
       marginBottom(SharedStyles.spacingUnit),
       left(0 px),
       right(0 px)
@@ -56,7 +59,7 @@ object SearchBox {
                        MuiTheme.theme.palette.text.secondary.asInstanceOf[String]
 
                      }),
-          fontSize(if (isHighlighted) 1.1 rem else 1 rem),
+          fontSize(if (isHighlighted) 1.2 rem else 1 rem),
           textDecoration := "none"
       ))
   }
@@ -114,10 +117,35 @@ object SearchBox {
     }
 
     def renderSuggestion(suggestion: Dotable, params: SuggestionRenderParams): raw.ReactElement = {
+      val query = params.query
+
       val routerCtl = bs.props.runNow().routerCtl
       val route = PodcastRoute(suggestion.id, suggestion.slug)
 
       val style = Styles.suggestTitleText(params.isHighlighted)
+
+      val title = suggestion.getCommon.title
+
+      var textRemaining: String = title
+      var textNodes: VdomArray = VdomArray()
+      while (textRemaining.nonEmpty && query.nonEmpty) {
+        val i = textRemaining.toLowerCase.indexOf(query.toLowerCase)
+        println(textRemaining)
+        println(i)
+        if (i < 0) {
+          if (textRemaining.nonEmpty) {
+            textNodes ++= Seq(<.i(textRemaining))
+          }
+          textRemaining = ""
+        } else {
+          if (i > 0) {
+            textNodes ++= Seq(<.i(textRemaining.substring(0, i)))
+          }
+          textNodes ++= Seq(<.span(textRemaining.substring(i, i + query.length)))
+          textRemaining = textRemaining.substring(i + query.length)
+        }
+      }
+      println(textNodes)
 
       Grid(container = true,
            spacing = 0,
@@ -127,7 +155,8 @@ object SearchBox {
           <.span(EntityTile(routerCtl, suggestion, elevation = 0, width = "70px")())),
         Grid(item = true)(
           Typography(style = style.inline, typographyType = Typography.Type.SubHeading)(
-            suggestion.getCommon.title))
+            textNodes
+          ))
       ).rawElement
     }
 
