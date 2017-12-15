@@ -5,6 +5,7 @@ import javax.inject._
 import dote.proto.api.action.get_dotable._
 import kurtome.dote.server.db.DotableDbService
 import kurtome.dote.server.util.UrlIds
+import kurtome.dote.server.util.UrlIds.IdKinds
 import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -20,7 +21,7 @@ class GetDotableDetailsController @Inject()(
 
   override def action(request: GetDotableDetailsRequest): Future[GetDotableDetailsResponse] = {
     podcastDbService
-      .readDotableWithParentAndChildren(UrlIds.decode(request.id))
+      .readDotableWithParentAndChildren(UrlIds.decode(IdKinds.Dotable, request.id))
       .map(GetDotableDetailsResponse(_))
   }
 

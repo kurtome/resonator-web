@@ -14,6 +14,7 @@ import org.json4s.JValue
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import javax.inject._
 
+import kurtome.dote.server.util.UrlIds.IdKinds
 import kurtome.dote.slick.db.DotableKinds.DotableKind
 
 import scala.concurrent.ExecutionContext
@@ -123,7 +124,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     val kind = row.kind
     val common = JsonFormat.fromJson[DotableCommon](row.common)
     Dotable(
-      id = UrlIds.encode(row.id),
+      id = UrlIds.encode(IdKinds.Dotable, row.id),
       slug = Slug.slugify(common.title),
       kind = row.kind match {
         case DotableKinds.Podcast => Dotable.Kind.PODCAST

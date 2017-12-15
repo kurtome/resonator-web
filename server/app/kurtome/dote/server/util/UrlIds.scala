@@ -1,5 +1,6 @@
 package kurtome.dote.server.util
 
+import kurtome.dote.server.util.UrlIds.IdKinds.IdKind
 import org.pico.hashids.Hashids
 
 /**
@@ -9,19 +10,29 @@ object UrlIds {
 
   private val salt: String = ">CM57dVeU?Tbajk8pAS/Bi3AWudoQ`Zwoj=S=Ho=xVwfLapHyDa;Zoyd4Uj6[[us"
 
+  /**
+    * Used to differentiate sequential IDs, so that after encoding:
+    *   1 in sequence KindA != 1 in sequence KindB
+    */
+  object IdKinds extends Enumeration {
+    type IdKind = Value
+    // Numeric values must never change, as it is used in the encoding.
+    val Dotable = Value(1)
+  }
+
   private val encoder = Hashids.reference(
     salt = salt,
     minHashLength = 6
   )
 
-  def encode(id: Long): String = {
-    encoder.encode(id)
+  def encode(kind: IdKind, id: Long): String = {
+    encoder.encode(kind.id, id)
   }
 
-  def decode(urlId: String): Long = {
+  def decode(kind: IdKind, urlId: String): Long = {
     encoder.decode(urlId) match {
       // Only match for a list of length one since this isn't meant for arrays of IDs
-      case id :: Nil => id
+      case kindId :: id :: Nil => id
     }
   }
 
