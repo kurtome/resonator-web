@@ -9,7 +9,7 @@ import japgolly.scalajs.react.vdom.VdomElement
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.DoteRouterCtl
-import kurtome.dote.web.components.ComponentHelpers
+import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.{ContentFrame, EntityTile}
 import kurtome.dote.web.utils.MuiInlineStyleSheet
@@ -44,7 +44,7 @@ object FeedDotableList {
   )
 
   private def currentTileSizePx: Int =
-    breakpointTileSizes(ComponentHelpers.currentBreakpointString)
+    breakpointTileSizes(currentBreakpointString)
 
   class Backend(bs: BackendScope[Props, State]) {
     val updateTileSize: Callback = {
@@ -68,7 +68,7 @@ object FeedDotableList {
       val tilePaddingPx = s.tileSizePx / 5
       val availableWidthPx = ContentFrame.innerWidthPx
       val numTilesPerRow: Int = availableWidthPx / (s.tileSizePx + tilePaddingPx)
-      val numRows = if (numTilesPerRow < 4) 2 else 1
+      val numRows = if (numTilesPerRow < 6) 2 else 1
       val numTiles = numTilesPerRow * numRows
       val dotables = list.dotables
       // Pad with placeholders to make the list spacing balanced, rendering code below
@@ -92,13 +92,10 @@ object FeedDotableList {
               case (dotable, i) =>
                 Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer.inline)(
                   if (dotable != Dotable.defaultInstance) {
-                    EntityTile(p.routerCtl,
-                               dotable = dotable,
-                               width = tileWidthPx + "px",
-                               height = "auto")()
+                    EntityTile(p.routerCtl, dotable = dotable, width = asPxStr(tileWidthPx))()
                   } else {
                     // Placeholder for correct spacing
-                    <.div(^.width := tileWidthPx + "px")
+                    <.div(^.width := asPxStr(tileWidthPx))
                   }
                 )
             } toVdomArray

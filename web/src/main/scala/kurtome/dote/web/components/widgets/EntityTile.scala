@@ -10,6 +10,7 @@ import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.utils.MuiInlineStyleSheet
+import org.scalajs.dom
 
 import scala.scalajs.js
 
@@ -45,8 +46,7 @@ object EntityTile {
   case class Props(routerCtl: DoteRouterCtl,
                    dotable: Dotable,
                    elevation: Int = 8,
-                   width: String = "175px",
-                   height: String = "175px")
+                   width: String = "175px")
   case class State(imgLoaded: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) {
@@ -55,21 +55,31 @@ object EntityTile {
       val slug = p.dotable.slug
       val detailRoute = PodcastRoute(id = id, slug = slug)
 
+      val url = if (p.dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
+        p.dotable.getRelatives.getParent.getDetails.getPodcast.imageUrl
+      } else {
+        p.dotable.getDetails.getPodcast.imageUrl
+      }
+
       Paper(elevation = p.elevation, className = SharedStyles.inlineBlock)(
         p.routerCtl.link(detailRoute)(
           <.div(
             ^.className := Styles.wrapper,
             ^.width := p.width,
             ^.height := p.width,
-            <.img(
-              ^.className := Styles.nestedImg,
-              ^.visibility := (if (s.imgLoaded) "visible" else "hidden"),
-              ^.src := p.dotable.getDetails.getPodcast.imageUrl,
-              ^.onLoad --> bs.modState(_.copy(imgLoaded = true)),
-            ),
+            if (url.nonEmpty) {
+              <.img(
+                ^.className := Styles.nestedImg,
+                ^.visibility := (if (s.imgLoaded) "visible" else "hidden"),
+                ^.onLoad --> bs.modState(_.copy(imgLoaded = true)),
+                ^.src := url
+              )
+            } else {
+              <.div()
+            },
             // placeholder div while loading, to fill the space
             <.div(
-              ^.className := Styles.placeholder,
+              ^.className := Styles.placeholder
             )
           )
         )
@@ -87,7 +97,6 @@ object EntityTile {
   def apply(routerCtl: DoteRouterCtl,
             dotable: Dotable,
             elevation: Int = 8,
-            width: String = "175px",
-            height: String = "175px") =
-    component.withKey(dotable.id).withProps(Props(routerCtl, dotable, elevation, width, height))
+            width: String = "175px") =
+    component.withProps(Props(routerCtl, dotable, elevation, width))
 }

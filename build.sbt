@@ -109,6 +109,7 @@ lazy val web = (project in webBaseDir)
       "lz-string" -> "1.4.4",
       "howler" -> "2.0.5",
       "sanitize-html" -> "1.15.0",
+      "siriwavejs" -> "2.0.2",
       "material-ui" -> "next", // Using "next" to use the 1.0 release while its in beta
       "material-ui-icons" -> "1.0.0-beta.15"
     )

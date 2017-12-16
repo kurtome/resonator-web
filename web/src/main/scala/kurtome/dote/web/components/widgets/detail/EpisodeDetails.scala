@@ -7,7 +7,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.audio.Howler
+import kurtome.dote.web.audio.{AudioPlayer, Howler}
 import kurtome.dote.web.audio.Howler.Howl
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
@@ -71,10 +71,7 @@ object EpisodeDetails {
   class Backend(bs: BackendScope[Props, State]) {
 
     val playAudio = bs.props map { p =>
-      val url: String = p.dotable.getDetails.getPodcastEpisode.getAudio.url
-      val sound = Howler.createHowl(src = js.Array[String](url), html5 = true)
-      val id = sound.play()
-      println(id)
+      AudioPlayer.startPlayingEpisode(p.dotable)
     }
 
     def render(p: Props, s: State): VdomElement = {
@@ -104,8 +101,7 @@ object EpisodeDetails {
                 <.div(^.className := Styles.podcastTile,
                       EntityTile(routerCtl = p.routerCtl,
                                  dotable = p.dotable.getRelatives.getParent,
-                                 width = "125px",
-                                 height = "unset")()),
+                                 width = "125px")()),
                 <.div(
                   Typography(style = Styles.titleText.inline,
                              typographyType = Typography.Type.Headline)(title),

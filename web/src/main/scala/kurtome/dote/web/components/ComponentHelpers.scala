@@ -74,6 +74,11 @@ object ComponentHelpers {
     style.htmlClass
   }
 
+  implicit def func2jsUndefOr[T1, T2, R](
+      fn: Function2[T1, T2, R]): js.UndefOr[js.Function2[T1, T2, R]] = {
+    js.UndefOr.any2undefOrA(fn)
+  }
+
   /**
     * https://github.com/punkave/sanitize-html
     */
@@ -158,4 +163,6 @@ object ComponentHelpers {
     }
     result.asInstanceOf[js.Dynamic]
   }
+
+  def asPxStr(px: Int): String = s"${px}px"
 }

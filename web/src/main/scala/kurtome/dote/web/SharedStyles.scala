@@ -87,12 +87,6 @@ object SharedStyles extends StyleSheet.Inline {
     paddingRight(spacingUnit * 2)
   )
 
-  val bottomNavRoot = style(
-    position.fixed,
-    width(100 %%),
-    bottom(0 px)
-  )
-
   val entityDetailsContainer = style(
     margin(spacingUnit * 2)
   )
@@ -135,13 +129,6 @@ object SharedStyles extends StyleSheet.Inline {
 
   val ssEmojiFf = fontFace("ssEmoji")(
     _.src("url(/assets/fonts/ss-emoji/ss-emoji-adobe-mozilla.ttf)")
-  )
-
-  val siteTitleContainer = style(
-    margin.auto,
-    display.block,
-    textAlign.center,
-    paddingTop(30 px)
   )
 
   val siteTitleAnchor = style(

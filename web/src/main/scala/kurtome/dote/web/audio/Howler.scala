@@ -1,7 +1,7 @@
 package kurtome.dote.web.audio
 
 import scala.scalajs.js
-import scala.scalajs.js.annotation.JSImport
+import scala.scalajs.js.annotation.{JSImport, JSName}
 
 /**
   * API for https://github.com/goldfire/howler.js#documentation
@@ -283,7 +283,8 @@ object Howler {
     def fade(from: Double,
              to: Double,
              duration: Double,
-             id: js.UndefOr[Int] = js.undefined): Howl = js.native
+             id: js.UndefOr[Int] = js.undefined): Howl =
+      js.native
 
     /**
       * Get/set the rate of playback for a sound. This method optionally takes 0, 1 or 2 arguments.
@@ -294,13 +295,23 @@ object Howler {
     def rate(rate: Double, id: js.UndefOr[Int] = js.undefined): Howl = js.native
 
     /**
-      * Get/set the position of playback for a sound. This method optionally takes 0, 1 or 2
-      * arguments.
+      * Get/set the position of playback for a sound.
+      * @param unused DO NOT SET THIS PARAM (it becomes a setSeek then)
+      * @param id The sound ID. If none is passed, get for the first sound
+      * @return the current seek of the first sound
+      */
+    @JSName("seek")
+    def getSeek(unused: js.UndefOr[Double] = js.undefined,
+                id: js.UndefOr[Int] = js.undefined): Double = js.native
+
+    /**
+      * Get/set the position of playback for a sound.
       * @param seek The position to move current playback to (in seconds).
       * @param id The sound ID. If none is passed, the first sound will seek.
       * @return this instance
       */
-    def seek(seek: Double, id: js.UndefOr[Int] = js.undefined): Howl = js.native
+    @JSName("seek")
+    def setSeek(seek: Double, id: js.UndefOr[Int] = js.undefined): Howl = js.native
 
     /**
       * Get/set whether to loop the sound or group. This method can optionally take 0, 1 or 2 arguments.
