@@ -30,8 +30,6 @@ object IconButton {
     var style: js.UndefOr[js.Dynamic] = js.native
     var disabled: js.UndefOr[Boolean] = js.native
     var disableRipple: js.UndefOr[Boolean] = js.native
-    var disableFocusRipple: js.UndefOr[Boolean] = js.native
-    var raised: js.UndefOr[Boolean] = js.native
     var onClick: js.Function0[Unit] = js.native
   }
 
@@ -40,10 +38,8 @@ object IconButton {
   def apply(color: js.UndefOr[Color.Value] = js.undefined,
             className: js.UndefOr[String] = js.undefined,
             style: js.UndefOr[js.Dynamic] = js.undefined,
-            raised: js.UndefOr[Boolean] = js.undefined,
             disabled: js.UndefOr[Boolean] = js.undefined,
             disableRipple: js.UndefOr[Boolean] = js.undefined,
-            disableFocusRipple: js.UndefOr[Boolean] = js.undefined,
             onClick: Callback = Callback.empty) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.color = color map { _.toString }
@@ -52,8 +48,6 @@ object IconButton {
     p.onClick = onClick.toJsFn
     p.disabled = disabled
     p.disableRipple = disableRipple
-    p.disableFocusRipple = disableFocusRipple
-    p.raised = raised
 
     component.withProps(p)
   }

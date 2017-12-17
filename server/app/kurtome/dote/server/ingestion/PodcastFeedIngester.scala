@@ -4,7 +4,7 @@ import javax.inject._
 
 import dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
 import kurtome.dote.server.db.DotableDbService
-import play.api.Logger
+import wvlet.log.LogSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -13,7 +13,8 @@ import scala.util.Try
 class PodcastFeedIngester @Inject()(
     itunesEntityFetcher: ItunesEntityFetcher,
     podcastFetcher: PodcastFeedFetcher,
-    podcastDbService: DotableDbService)(implicit ec: ExecutionContext) {
+    podcastDbService: DotableDbService)(implicit ec: ExecutionContext)
+    extends LogSupport {
 
   def fetchFeedAndIngestRequest(request: AddPodcastRequest,
                                 itunesId: Long,
@@ -57,7 +58,7 @@ class PodcastFeedIngester @Inject()(
       }
     ) recover {
       case t: Throwable =>
-        Logger.error("Reingestion failed.", t)
+        error("Reingestion failed.", t)
         Future(AddPodcastResponse.defaultInstance)
     } get
   }

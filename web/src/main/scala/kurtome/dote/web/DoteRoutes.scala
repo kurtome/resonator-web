@@ -15,6 +15,8 @@ object DoteRoutes {
 
   case object HomeRoute extends DoteRoute
 
+  case object SearchRoute extends DoteRoute
+
   sealed trait DotableRoute extends DoteRoute {
     val id: String
     val slug: String
@@ -49,6 +51,8 @@ object DoteRoutes {
         | staticRedirect("#/") ~> redirectToPage(HomeRoute)(Redirect.Replace)
 
         | staticRoute("#/home", HomeRoute) ~> renderR(HomeView(_)())
+
+        | staticRoute("#/search", SearchRoute) ~> renderR(SearchView(_)())
 
         | staticRoute("#/add", AddRoute) ~> renderR(AddPodcastView(_)())
 

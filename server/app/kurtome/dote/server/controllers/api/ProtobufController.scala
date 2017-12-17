@@ -7,9 +7,9 @@ import akka.stream.scaladsl.{Flow, Keep, Sink}
 import akka.util.ByteString
 import com.trueaccord.scalapb.json.JsonFormat
 import com.trueaccord.scalapb.{GeneratedMessage, GeneratedMessageCompanion, Message}
-import play.api.Logger
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
+import wvlet.log.LogSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -18,7 +18,8 @@ abstract class ProtobufController[
     TRequest <: GeneratedMessage with Message[TRequest]: GeneratedMessageCompanion,
     TResponse <: GeneratedMessage with Message[TResponse]: GeneratedMessageCompanion](
     cc: ControllerComponents)(implicit ec: ExecutionContext)
-    extends AbstractController(cc) {
+    extends AbstractController(cc)
+    with LogSupport {
 
   def parseRequest(bytes: Array[Byte]): TRequest
 
@@ -28,12 +29,14 @@ abstract class ProtobufController[
     JsonFormat.fromJsonString[TRequest](json)
 
   def protoAction() = Action.async(new ProtoParser) { implicit request: Request[TRequest] =>
+    debug(s"Request received.")
+
     action(request.body) map { response =>
       // See if request accepts gzip responses, web browsers will automatically inflate from gzip
       // when the Content-Encoding header is set in the response below
-      val acceptsGzip = request.headers.get("Accept-Encoding").map { header =>
+      val acceptsGzip = request.headers.get("Accept-Encoding").exists { header =>
         header.split(Array(' ', ',', ';')).contains("gzip")
-      } getOrElse false
+      }
 
       request.contentType map {
         case "application/x-protobuf" => {

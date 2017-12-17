@@ -4,10 +4,11 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom
 import CssSettings._
-import kurtome.dote.web.components.widgets.detail.PodcastDetails
-import org.scalajs.dom.raw.Event
+import wvlet.log._
 
-object WebMain {
+import scala.scalajs.LinkingInfo
+
+object WebMain extends LogSupport {
 
   val Hello =
     ScalaComponent
@@ -20,11 +21,22 @@ object WebMain {
     SharedStyles.addToDocument()
     attachStandaloneStyle(StandaloneStyles)
 
+    Logger.setDefaultHandler(new JSConsoleLogHandler())
+    if (LinkingInfo.productionMode) {
+      Logger.setDefaultLogLevel(LogLevel.WARN)
+    } else {
+      Logger.setDefaultLogLevel(LogLevel.DEBUG)
+      debug("dev logging enabled.")
+    }
+
     val todoappNode = dom.document.body.querySelector("#reactroot")
 
     DoteRoutes.router().renderIntoDOM(todoappNode)
   }
 
+  /**
+    * Inject stylesheet into the DOM.
+    */
   private def attachStandaloneStyle(stylesheet: StyleSheet.Standalone): Unit = {
     val rawCssStr: String = stylesheet.render
     val styleElement = dom.document.createElement("style")

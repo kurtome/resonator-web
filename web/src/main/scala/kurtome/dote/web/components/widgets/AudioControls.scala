@@ -1,13 +1,8 @@
 package kurtome.dote.web.components.widgets
 
-import dote.proto.api.dotable.Dotable
-import kurtome.dote.web.DoteRoutes.DoteRouterCtl
-import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.raw.SyntheticEvent
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
+import kurtome.dote.web.DoteRoutes.DoteRouterCtl
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
@@ -16,11 +11,11 @@ import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.shared.util.observer.Observer
 import kurtome.dote.web.utils.MuiInlineStyleSheet
+import wvlet.log.LogSupport
 
-import scala.scalajs.js
 import scalacss.internal.mutable.StyleSheet
 
-object AudioControls {
+object AudioControls extends LogSupport {
 
   val bottomNavHeight = 56
   val controlsHeight = 80
@@ -98,7 +93,7 @@ object AudioControls {
   case class Props(routerCtl: DoteRouterCtl)
   case class State(playerState: AudioPlayer.State)
 
-  class Backend(bs: BackendScope[Props, State]) {
+  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
     val stateObserver: Observer[AudioPlayer.State] = (state: AudioPlayer.State) => {
       bs.modState(_.copy(playerState = state)).runNow()

@@ -136,22 +136,6 @@ object SharedStyles extends StyleSheet.Inline {
     display.block
   )
 
-  val siteTitleText = style(
-    fontFamily(jaapokkiEnchanceFf),
-    fontSize(3 rem),
-    textAlign.center,
-    color(Color(MuiTheme.theme.palette.text.primary.toString))
-  )
-
-  val underConstructionText = style(
-    transform := "rotate(-25deg)",
-    fontSize(2 rem),
-    left(40 %%),
-    top(4 %%),
-    position.absolute,
-    zIndex(2)
-  )
-
   val siteRoot = style(
     padding(0 px)
   )

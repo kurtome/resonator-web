@@ -2,21 +2,17 @@ package kurtome.dote.web.components.widgets
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.DoteRoutes.{AddRoute, DoteRouterCtl, HomeRoute}
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.audio.AudioPlayer
-import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.constants.{MuiTheme, StringValues}
 import org.scalajs.dom
 
-import scala.scalajs.js
-import scala.scalajs.js.JSON
 import scalacss.internal.mutable.StyleSheet
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.utils.MuiInlineStyleSheet
+import wvlet.log.LogSupport
 
 /**
   * Pager wrapper includes header/footer and renders child content within a centered portion of the
@@ -30,11 +26,35 @@ object ContentFrame {
   private object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val siteTitleContainer = style(
-      margin.auto,
-      display.block,
-      textAlign.center,
-      paddingTop(30 px)
+    val siteTitleText = styleF.bool(
+      isXs =>
+        styleS(
+          fontFamily(SharedStyles.jaapokkiEnchanceFf),
+          fontSize(if (isXs) 1.5 rem else 3 rem),
+          textAlign.center,
+          color(Color(MuiTheme.theme.palette.text.primary.toString))
+      )
+    )
+
+    val siteTitleContainer = styleF.bool(
+      isXs =>
+        styleS(
+          margin.auto,
+          display.block,
+          textAlign.center,
+          paddingTop(if (isXs) 4 px else 30 px)
+      )
+    )
+
+    val underConstructionText = styleF.bool(
+      isXs =>
+        styleS(
+          transform := "rotate(-20deg)",
+          fontSize(if (isXs) 1 rem else 2 rem),
+          left(35 %%),
+          position.absolute,
+          color(Color(MuiTheme.theme.palette.text.secondary.toString))
+      )
     )
 
     val bottomNavRoot = style(
@@ -62,9 +82,12 @@ object ContentFrame {
     Math.round(dom.window.innerWidth * usableRatio).toInt - paddingPx
   }
 
-  class Backend(bs: BackendScope[Props, State]) {
+  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+    info(currentBreakpointString)
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
+      val isXs = currentBreakpointString == "xs"
+
       MuiThemeProvider(MuiTheme.theme)(
         <.div(
           Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
@@ -78,26 +101,19 @@ object ContentFrame {
                          md = 8,
                          lg = 6,
                          xl = 4,
-                         className = Styles.siteTitleContainer)(
+                         className = Styles.siteTitleContainer(isXs))(
+                      <.span(^.className := Styles.underConstructionText(isXs))(
+                        "under construction"),
                       p.routerCtl.link(HomeRoute)(
                         ^.className := SharedStyles.siteTitleAnchor,
-                        <.span(^.className := SharedStyles.siteTitleText)(StringValues.siteTitle)
-                      ),
-                      <.span(^.className := SharedStyles.underConstructionText)(
-                        "under construction")
+                        <.span(^.className := Styles.siteTitleText(isXs))(StringValues.siteTitle)
+                      )
                     )
                   )
                 ),
                 Grid(item = true, xs = 12)(
                   Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
                     Grid(item = true, xs = 10, md = 8, lg = 6, xl = 4)(Divider()())
-                  )
-                ),
-                Grid(item = true, xs = 12)(
-                  Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
-                    Grid(item = true, xs = 12, md = 8, lg = 6, xl = 4)(
-                      SearchBox(p.routerCtl)()
-                    )
                   )
                 ),
                 Grid(item = true, xs = 12)(
@@ -133,6 +149,9 @@ object ContentFrame {
                   BottomNavigationButton(icon = Icons.Add(),
                                          value = "add",
                                          onClick = p.routerCtl.set(AddRoute))(),
+                  BottomNavigationButton(icon = Icons.Search(),
+                                         value = "search",
+                                         onClick = p.routerCtl.set(SearchRoute))(),
                   BottomNavigationButton(icon = Icons.AccountCircle(), value = "account")()
                 ))
             )

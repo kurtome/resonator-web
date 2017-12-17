@@ -21,6 +21,7 @@ import kurtome.dote.web.components.lib.AutoSuggest._
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.{Debounce, MuiInlineStyleSheet}
+import wvlet.log.LogSupport
 
 import scala.collection.mutable
 import scala.scalajs.js
@@ -45,14 +46,32 @@ object SearchBox {
       right(0 px)
     )
 
+    val suggestItemRoot = styleF.bool(
+      isXs =>
+        styleS(
+          position.relative,
+          height(if (isXs) 50 px else 70 px)
+      )
+    )
+
+    val suggestItemContainer = style(
+      height(100 %%),
+      position.absolute
+    )
+
+    val suggestTitleContainer = style(
+      width(75 %%)
+    )
+
     val suggestTitleText = styleF.bool(
       isHighlighted =>
         styleS(
           marginLeft(SharedStyles.spacingUnit * 2),
           whiteSpace.nowrap,
           textOverflow := "ellipsis",
+          verticalAlign.middle,
           overflow.hidden,
-          maxWidth(500 px),
+          width(unset),
           color :=! (if (isHighlighted) {
                        MuiTheme.theme.palette.text.primary.asInstanceOf[String]
                      } else {
@@ -92,7 +111,7 @@ object SearchBox {
     )
   )
 
-  class Backend(bs: BackendScope[Props, State]) {
+  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
     val runSearch: (String) => Unit = Debounce.debounce1(waitMs = 300) { query =>
       DoteProtoServer.search(SearchRequest(query = query, maxResults = 5)) map { response =>
@@ -122,16 +141,12 @@ object SearchBox {
       val routerCtl = bs.props.runNow().routerCtl
       val route = PodcastRoute(suggestion.id, suggestion.slug)
 
-      val style = Styles.suggestTitleText(params.isHighlighted)
-
       val title = suggestion.getCommon.title
 
       var textRemaining: String = title
       var textNodes: VdomArray = VdomArray()
       while (textRemaining.nonEmpty && query.nonEmpty) {
         val i = textRemaining.toLowerCase.indexOf(query.toLowerCase)
-        println(textRemaining)
-        println(i)
         if (i < 0) {
           if (textRemaining.nonEmpty) {
             textNodes ++= Seq(<.i(textRemaining))
@@ -145,18 +160,31 @@ object SearchBox {
           textRemaining = textRemaining.substring(i + query.length)
         }
       }
-      println(textNodes)
 
-      Grid(container = true,
-           spacing = 0,
-           justify = Grid.Justify.FlexStart,
-           alignItems = Grid.AlignItems.Center)(
-        Grid(item = true)(
-          <.span(EntityTile(routerCtl, suggestion, elevation = 0, width = "70px")())),
-        Grid(item = true)(
-          Typography(style = style.inline, typographyType = Typography.Type.SubHeading)(
-            textNodes
-          ))
+      val breakpoint = currentBreakpointString
+
+      val tileWidthPx: Int = breakpoint match {
+        case "xs" => 50
+        case _ => 70
+      }
+
+      <.div(
+        ^.className := Styles.suggestItemRoot(breakpoint == "xs"),
+        Grid(container = true,
+             style = Styles.suggestItemContainer.inline,
+             spacing = 0,
+             justify = Grid.Justify.FlexStart,
+             alignItems = Grid.AlignItems.Center)(
+          Grid(item = true)(
+            <.span(
+              EntityTile(routerCtl, suggestion, elevation = 0, width = asPxStr(tileWidthPx))())),
+          Grid(item = true, style = Styles.suggestTitleContainer.inline)(
+            Typography(style = Styles.suggestTitleText(params.isHighlighted).inline,
+                       typographyType = Typography.Type.SubHeading)(
+              textNodes
+            )
+          )
+        )
       ).rawElement
     }
 
@@ -196,6 +224,7 @@ object SearchBox {
         placeholder = inputProps.placeholder,
         inputType = inputProps.inputType,
         fullWidth = true,
+        autoFocus = true,
         onChange = (e) => Callback(inputProps.onChange(e)),
         inputRef = inputProps.ref
       )().raw

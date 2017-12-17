@@ -2,15 +2,16 @@ package kurtome.dote.server.ingestion
 
 import com.google.inject._
 import dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
-import play.api.Logger
 import play.api.libs.ws.WSClient
+import wvlet.log.LogSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 @Singleton
 class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
-    implicit ec: ExecutionContext) { self =>
+    implicit ec: ExecutionContext)
+    extends LogSupport { self =>
 
   def fetch(itunesUrl: String,
             feedUrl: String,
@@ -35,17 +36,17 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
               parser.parsePodcastRss(itunesUrl, feedUrl, etag, extras, xmlString)
             filterInvalidPodcasts(fetchedPodasts)
           } else {
-            Logger.info(s"Response wasn't valid feed url: $feedUrl")
+            info(s"Response wasn't valid feed url: $feedUrl")
             Future(Seq())
           }
         } else {
-          Logger.info(s"Response status was ${response.status} for feed url: $feedUrl")
+          info(s"Response status was ${response.status} for feed url: $feedUrl")
           Future(Seq())
         }
       }
     } recover {
       case t: Throwable =>
-        Logger.error(s"Failed fetching and parsing '$feedUrl'", t)
+        error(s"Failed fetching and parsing '$feedUrl'", t)
         Future(Seq())
     } get
   }

@@ -7,13 +7,14 @@ import kurtome.dote.web.audio.Howler.Howl
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.shared.util.observer.Observable
 import kurtome.dote.web.shared.util.observer.SimpleObservable
+import wvlet.log.LogSupport
 
 import scala.scalajs.js
 
 /**
   * Global audio player.
   */
-object AudioPlayer {
+object AudioPlayer extends LogSupport {
 
   object PlayerStatuses extends Enumeration {
     type PlayerStatus = Value
@@ -33,12 +34,12 @@ object AudioPlayer {
   case class State(status: PlayerStatus, episode: Dotable)
 
   val handleLoadError: js.Function2[Int, String, Unit] = (soundId, message) => {
-    println(s"error loading audio: $message")
+    warn(s"error loading audio: $message")
   }
 
   def startPlayingEpisode(episode: Dotable): Unit = {
     if (episode.kind != Dotable.Kind.PODCAST_EPISODE) {
-      println("episode invalid for playing")
+      warn(s"${episode.kind} invalid for playing")
     }
 
     if (howl != null) {

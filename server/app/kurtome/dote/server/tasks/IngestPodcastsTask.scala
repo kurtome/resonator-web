@@ -12,20 +12,22 @@ import javax.inject._
 import dote.proto.api.action.add_podcast.AddPodcastResponse
 import kurtome.dote.server.db.DotableDbService
 import kurtome.dote.server.ingestion.PodcastFeedIngester
-import play.api.{Configuration, Logger}
+import play.api.Configuration
 import play.libs.Akka
+import wvlet.log.LogSupport
 
 import scala.util.Try
 
 class IngestPodcastsTask @Inject()(
     actorSystem: ActorSystem,
     config: Configuration,
-    @Named("ingest-podcasts") actor: ActorRef)(implicit executionContext: ExecutionContext) {
+    @Named("ingest-podcasts") actor: ActorRef)(implicit executionContext: ExecutionContext)
+    extends LogSupport {
 
   val runBackgroundIngestion = config.get[Boolean]("kurtome.dote.ingestion.background.run")
 
   if (runBackgroundIngestion) {
-    Logger.info("Running background ingestion.")
+    info("Running background ingestion.")
     actorSystem.scheduler.schedule(
       initialDelay = 10.seconds,
       interval = 1.minutes,
@@ -33,7 +35,7 @@ class IngestPodcastsTask @Inject()(
       message = IngestPodcasts
     )
   } else {
-    Logger.info("Not running background ingestion.")
+    info("Not running background ingestion.")
   }
 }
 
@@ -44,37 +46,38 @@ object IngestPodcastsActor {
 class IngestPodcastsActor @Inject()(actorSystem: ActorSystem,
                                     dotableDbService: DotableDbService,
                                     podcastFeedIngester: PodcastFeedIngester)
-    extends Actor {
+    extends Actor
+    with LogSupport {
 
   implicit val myExecutionContext: ExecutionContext =
     actorSystem.dispatchers.lookup("ingestion-context")
 
   override def receive = {
     case IngestPodcasts =>
-      Logger.debug("Starting podcast ingestion...")
+      debug("Starting podcast ingestion...")
 
       dotableDbService.getNextPodcastIngestionRows(100) map { ingestionRows =>
-        Logger.debug(s"Found ${ingestionRows.size} to ingest.")
+        debug(s"Found ${ingestionRows.size} to ingest.")
 
         ingestionRows foreach { row =>
           val response: AddPodcastResponse = Try {
-            Logger.debug(s"Ingesting $row")
+            debug(s"Ingesting $row")
             // use Await to only ingest one at a time to not hog all the DB connections and threads.
             Await.result(podcastFeedIngester.reingestPodcastByItunesId(row.itunesId) map {
               result =>
-                Logger.debug(s"Finished ingesting $row")
+                debug(s"Finished ingesting $row")
                 result
             }, atMost = 10.seconds)
           } recover {
             case t: Throwable =>
-              Logger.error(s"Exception ingesting $row", t)
+              error(s"Exception ingesting $row", t)
               AddPodcastResponse.defaultInstance
           } get
 
           if (response.podcasts.isEmpty) {
             // Something went wrong or there was no valid podcast in the feed, set the next ingestion
             // time so this doesn't get reprocessed over and over again.
-            Logger.info(s"Setting next ingestion time for error row $row")
+            info(s"Setting next ingestion time for error row $row")
             dotableDbService.updateNextIngestionTimeByItunesId(row.itunesId,
                                                                LocalDateTime.now().plusHours(6))
           }

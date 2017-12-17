@@ -54,4 +54,9 @@ object Icons {
   @js.native
   private object Replay10Raw extends js.Object {}
   val Replay10 = JsComponent[Null, Children.None, Null](Replay10Raw)
+
+  @JSImport("material-ui-icons/Search", JSImport.Default)
+  @js.native
+  private object SearchRaw extends js.Object {}
+  val Search = JsComponent[Null, Children.None, Null](SearchRaw)
 }

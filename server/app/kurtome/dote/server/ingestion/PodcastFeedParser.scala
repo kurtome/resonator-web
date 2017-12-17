@@ -10,13 +10,13 @@ import dote.proto.db.dotable.{DotableCommon, DotableDetails, ExternalUrls}
 import kurtome.dote.server.db.{MetadataFlag, Tag}
 import kurtome.dote.server.util.Slug
 import kurtome.dote.slick.db.TagKinds
-import play.Logger
+import wvlet.log.LogSupport
 
 import scala.util.{Failure, Try}
 import scala.xml._
 
 @Singleton
-class PodcastFeedParser @Inject()() {
+class PodcastFeedParser @Inject()() extends LogSupport {
 
   //val pubDateFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
   //val pubDateFormatter2 = DateTimeFormatter.RFC_1123_DATE_TIME.withResolverFields()
@@ -179,7 +179,7 @@ class PodcastFeedParser @Inject()() {
       )
 
       tryParse match {
-        case Failure(t) => Logger.warn(s"couldn't parse '$raw' as int")
+        case Failure(t) => warn(s"couldn't parse '$raw' as int")
         case _ =>
       }
 
