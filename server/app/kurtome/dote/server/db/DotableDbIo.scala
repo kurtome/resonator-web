@@ -183,13 +183,13 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     val parts = query.split("\\W")
     // join on '|' to logically or the words together
     // add ':*' to the last word, assuming it may be a partial word
-    val psqlQueryStr = if (query.nonEmpty) parts.mkString("|") + ":*" else ""
+    val psqlQueryStr = if (query.nonEmpty) parts.mkString("&") + ":*" else ""
     // Use full text search on the title column and order by the highest text ranking
     table
       .filter(row => {
-        toTsVector(row.title) @@ toTsQuery(psqlQueryStr) && row.kind === kind
+        toTsVector(row.title, Some("english")) @@ toTsQuery(psqlQueryStr) && row.kind === kind
       })
-      .map(row => (row, tsRank(toTsVector(row.title), toTsQuery(psqlQueryStr))))
+      .map(row => (row, tsRank(toTsVector(row.title, Some("english")), toTsQuery(psqlQueryStr))))
       .sortBy(_._2.desc)
       .take(limit)
       .map(_._1)

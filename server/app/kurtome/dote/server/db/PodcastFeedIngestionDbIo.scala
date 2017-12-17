@@ -77,15 +77,16 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
     table.filter(_.itunesId === itunesId).result.headOption
   }
 
-  private val readNextIngestionRowsRaw = Compiled { (limit: ConstColumn[Long]) =>
-    table
-      .sortBy(_.nextIngestionTime.asc)
-      .filter(_.nextIngestionTime < LocalDateTime.now())
-      .take(limit)
+  private val readNextIngestionRowsRaw = Compiled {
+    (limit: ConstColumn[Long], time: ConstColumn[LocalDateTime]) =>
+      table
+        .sortBy(_.nextIngestionTime.asc)
+        .filter(_.nextIngestionTime < time)
+        .take(limit)
   }
 
   def readNextIngestionRows(limit: Long) = {
-    readNextIngestionRowsRaw(limit).result
+    readNextIngestionRowsRaw(limit, LocalDateTime.now()).result
   }
 
 }

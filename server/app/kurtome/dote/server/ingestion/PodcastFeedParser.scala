@@ -81,7 +81,9 @@ class PodcastFeedParser @Inject()() {
     val author: String = podcast \ "author"
 
     val episodeNodes = podcast \ "item"
-    val episodes = episodeNodes map parseEpisode
+    val episodes = episodeNodes map parseEpisode sortBy { ep =>
+      ep.common.publishedEpochSec
+    }
 
     val tags: Seq[Tag] =
       Seq(Tag(TagKinds.PodcastCreator, Slug(author), author)) ++
