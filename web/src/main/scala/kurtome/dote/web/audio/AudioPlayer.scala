@@ -26,7 +26,9 @@ object AudioPlayer extends LogSupport {
   private var currentEpiode: Dotable = Dotable.defaultInstance
   private var howl: Howl = null
   val stateObservable: Observable[State] = SimpleObservable()
-  var state = State(PlayerStatuses.Off, Dotable.defaultInstance)
+  private var state = State(PlayerStatuses.Off, Dotable.defaultInstance)
+
+  def curState = state
 
   /**
     * State shared with subscribers.

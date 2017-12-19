@@ -7,9 +7,10 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes.{DotableRoute, DoteRouterCtl}
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.ContentFrame
+import kurtome.dote.web.components.widgets.{ContentFrame, NavBar}
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
+import kurtome.dote.web.utils.GlobalLoadingManager
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -36,16 +37,20 @@ object DotableDetailView {
         val cachedShallow: Option[Dotable] = LocalCache.get(includesDetails = false, id)
         bs.modState(_.copy(requestInFlight = true,
                            response = GetDotableDetailsResponse(cachedShallow))) flatMap { _ =>
-          CallbackTo(DoteProtoServer.getDotableDetails(request) flatMap { response =>
-            bs.modState(_.copy(response = response, requestInFlight = false)).toFuture
-          })
+          CallbackTo {
+            val f = DoteProtoServer.getDotableDetails(request) flatMap { response =>
+              bs.modState(_.copy(response = response, requestInFlight = false)).toFuture
+            }
+            GlobalLoadingManager.addLoadingFuture(f)
+            f
+          }
         }
       }
     }
 
     def render(p: Props, s: State): VdomElement = {
       val dotable = s.response.getDotable
-      ContentFrame(ContentFrame.Props(p.routerCtl))(
+      ContentFrame(p.routerCtl)(
         Fade(in = true, timeoutMs = 300)(
           Grid(container = true, spacing = 0)(
             Grid(item = true, xs = 12)(

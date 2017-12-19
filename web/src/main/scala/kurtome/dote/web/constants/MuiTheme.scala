@@ -47,6 +47,13 @@ object MuiTheme {
           "fontFamily" -> "aileronRegular",
           "textTransform" -> "uppercase"
         )
+      ),
+      "overrides" -> l$(
+        "MuiLinearProgress" -> l$(
+          "primaryColor" -> l$(
+            "backgroundColor" -> "transparent"
+          )
+        )
       )
     )
   )

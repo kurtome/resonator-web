@@ -212,7 +212,7 @@ object AudioControls extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State(playerState = AudioPlayer.state))
+    .initialState(State(playerState = AudioPlayer.curState))
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .componentWillUnmount(x => x.backend.onUnmount)

@@ -21,7 +21,7 @@ import wvlet.log.LogSupport
 object ContentFrame {
 
   case class Props(routerCtl: DoteRouterCtl)
-  case class State(navValue: String = "home")
+  case class State()
 
   private object Styles extends StyleSheet.Inline {
     import dsl._
@@ -83,7 +83,6 @@ object ContentFrame {
   }
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
-    info(currentBreakpointString)
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
       val isXs = currentBreakpointString == "xs"
@@ -135,46 +134,19 @@ object ContentFrame {
               AudioControls(p.routerCtl)()
             )
           ),
-          <.div(
-            ^.className := Styles.bottomNavRoot,
-            Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
-              Grid(item = true, xs = 12)(Divider()()),
-              Grid(item = true, xs = 12)(
-                BottomNavigation(value = s.navValue, onChange = (_, value) => {
-                  bs.modState(_.copy(navValue = value))
-                })(
-                  BottomNavigationButton(icon = Icons.Home(),
-                                         value = "home",
-                                         onClick = p.routerCtl.set(HomeRoute))(),
-                  BottomNavigationButton(icon = Icons.Add(),
-                                         value = "add",
-                                         onClick = p.routerCtl.set(AddRoute))(),
-                  BottomNavigationButton(icon = Icons.Search(),
-                                         value = "search",
-                                         onClick = p.routerCtl.set(SearchRoute))(),
-                  BottomNavigationButton(icon = Icons.AccountCircle(), value = "account")()
-                ))
-            )
-          )
+          NavBar(p.routerCtl)()
         )
       )
     }
   }
 
-  private def navValueFromUrl: String = {
-    if (dom.window.location.hash.startsWith("#/add")) {
-      "add"
-    } else {
-      "home"
-    }
-  }
-
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State(navValue = navValueFromUrl))
+    .initialState(State())
     .backend(new Backend(_))
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
     .build
 
-  def apply(p: Props)(c: CtorType.ChildArg*) = component.withChildren(c: _*)(p)
+  def apply(routerCtl: DoteRouterCtl)(c: CtorType.ChildArg*) =
+    component.withChildren(c: _*)(Props(routerCtl))
 }

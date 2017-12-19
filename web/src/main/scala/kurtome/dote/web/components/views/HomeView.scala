@@ -6,11 +6,12 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.rpc.DoteProtoServer
-import kurtome.dote.web.components.widgets.{ContentFrame}
+import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.DoteRoutes.{DoteRoute, DoteRouterCtl}
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.utils.GlobalLoadingManager
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -34,13 +35,15 @@ object HomeView {
 
     def fetchData(): Callback = Callback {
       bs.modState(_.copy(requestInFlight = true)).runNow
-      DoteProtoServer.getFeed(GetFeedRequest(maxItems = 20, maxItemSize = 10)) map { response =>
-        bs.modState(_.copy(response = response, requestInFlight = false)).runNow()
+      val f = DoteProtoServer.getFeed(GetFeedRequest(maxItems = 20, maxItemSize = 10)) map {
+        response =>
+          bs.modState(_.copy(response = response, requestInFlight = false)).runNow()
       }
+      GlobalLoadingManager.addLoadingFuture(f)
     }
 
     def render(routerCtl: DoteRouterCtl, s: State): VdomElement = {
-      ContentFrame(ContentFrame.Props(routerCtl))(
+      ContentFrame(routerCtl)(
         s.response.getFeed.items.zipWithIndex map {
           case (item, i) =>
             <.div(

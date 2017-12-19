@@ -21,7 +21,7 @@ object AddPodcastView {
 
   class Backend(bs: BackendScope[DoteRouterCtl, State]) {
     def render(routerCtl: DoteRouterCtl, s: State): VdomElement =
-      ContentFrame(ContentFrame.Props(routerCtl))(
+      ContentFrame(routerCtl)(
         Grid(container = true, justify = Grid.Justify.Center, spacing = 24)(
           Grid(item = true, xs = 12)(
             Typography(className = SharedStyles.titleText, typographyType = Typography.Type.Title)(

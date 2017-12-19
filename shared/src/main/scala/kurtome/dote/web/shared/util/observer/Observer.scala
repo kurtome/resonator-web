@@ -7,7 +7,7 @@ trait Observer[S] {
 }
 
 trait Observable[S] {
-  private var observers: ListBuffer[Observer[S]] = ListBuffer()
+  val observers: ListBuffer[Observer[S]] = ListBuffer()
   def addObserver(observer: Observer[S]) = observers += observer
   def removeObserver(observer: Observer[S]) = observers -= observer
   def notifyObservers(state: S) = observers.foreach(_.receiveUpdate(state))

@@ -3,13 +3,10 @@ package kurtome.dote.web.components.widgets
 import dote.proto.api.action.search.SearchRequest
 
 import scalacss.internal.mutable.StyleSheet
-import scala.scalajs.js
 import scala.scalajs.js._
 import scala.scalajs.js.JSConverters._
 import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.component.Generic.MountedSimple
-import japgolly.scalajs.react.raw.SyntheticEvent
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
@@ -20,12 +17,12 @@ import kurtome.dote.web.components.lib.AutoSuggest
 import kurtome.dote.web.components.lib.AutoSuggest._
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.DoteProtoServer
-import kurtome.dote.web.utils.{Debounce, MuiInlineStyleSheet}
+import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
-import scala.collection.mutable
 import scala.scalajs.js
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object SearchBox {
 
@@ -87,7 +84,9 @@ object SearchBox {
   import muiStyles._
 
   case class Props(routerCtl: DoteRouterCtl)
-  case class State(query: String = "", results: Seq[Dotable] = Nil)
+  case class State(query: String = "", results: Seq[Dotable] = Nil, inFlight: Seq[Future[_]] = Nil) {
+    def isLoading = inFlight.nonEmpty
+  }
 
   private val l$ = js.Dynamic.literal
   private val autoSuggestTheme: js.Dynamic = l$(
@@ -114,8 +113,21 @@ object SearchBox {
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
     val runSearch: (String) => Unit = Debounce.debounce1(waitMs = 300) { query =>
-      DoteProtoServer.search(SearchRequest(query = query, maxResults = 5)) map { response =>
-        bs.modState(_.copy(results = response.dotables)).runNow()
+      val f = DoteProtoServer.search(SearchRequest(query = query, maxResults = 5)) map {
+        response =>
+          // only use the results if the query hasn't changed
+          if (bs.state.runNow().query == query) {
+            bs.modState(s => s.copy(results = response.dotables)).runNow()
+          }
+      }
+
+      // Add future to those in flight
+      bs.modState(s => s.copy(inFlight = s.inFlight :+ f)).runNow()
+
+      // Regardless of the result, remove the future from those in flight
+      f andThen {
+        case _ =>
+          bs.modState(s => s.copy(inFlight = s.inFlight.filter(_ != f))).runNow()
       }
     }
 
@@ -218,16 +230,22 @@ object SearchBox {
       }
     }
 
-    val renderInput: js.Function1[InputProps, raw.ReactElement] = (inputProps) => {
-      TextField(
-        value = inputProps.value,
-        placeholder = inputProps.placeholder,
-        inputType = inputProps.inputType,
-        fullWidth = true,
-        autoFocus = true,
-        onChange = (e) => Callback(inputProps.onChange(e)),
-        inputRef = inputProps.ref
-      )().raw
+    def renderInput(s: State): js.Function1[InputProps, raw.ReactElement] = (inputProps) => {
+      <.div(
+        TextField(
+          value = inputProps.value,
+          placeholder = inputProps.placeholder,
+          inputType = inputProps.inputType,
+          fullWidth = true,
+          autoFocus = true,
+          onChange = (e) => Callback(inputProps.onChange(e)),
+          inputRef = inputProps.ref
+        )(),
+        <.div(
+          ^.visibility := (if (s.isLoading) "visible" else "hidden"),
+          Fade(in = s.isLoading, timeoutMs = 1000)(LinearProgress()())
+        )
+      ).rawElement
     }
 
     def render(p: Props, s: State): VdomElement = {
@@ -246,7 +264,7 @@ object SearchBox {
                                   onChange = handleChange,
                                   placeholder = "Search by podcast title."),
           theme = autoSuggestTheme,
-          renderInputComponent = renderInput,
+          renderInputComponent = renderInput(s),
           renderSuggestionsContainer = renderSuggestionsContainer,
           alwaysRenderSuggestions = true,
           highlightFirstSuggestion = true

@@ -16,7 +16,7 @@ object SearchView extends LogSupport {
   class Backend(bs: BackendScope[Props, State]) {
 
     def render(p: Props, s: State): VdomElement = {
-      ContentFrame(ContentFrame.Props(p.routerCtl))(
+      ContentFrame(p.routerCtl)(
         Grid(container = true, spacing = 0, justify = Grid.Justify.Center)(
           Grid(item = true, xs = 12, sm = 10, md = 8)(
             SearchBox(p.routerCtl)()

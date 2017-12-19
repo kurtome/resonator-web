@@ -47,7 +47,7 @@ object DoteProtoServer {
 
       override def parseResponse(r: Array[Byte]) = GetDotableDetailsResponse.parseFrom(r)
     })(request) map { response =>
-      response.dotable map { dotable =>
+      response.dotable foreach { dotable =>
         LocalCache.put(includesDetails = true, dotable = dotable)
       }
       response
