@@ -7,6 +7,7 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object GlobalLoadingManager extends LogSupport {
+
   case class State(inFlight: Seq[Future[_]] = Nil) {
     def isLoading = inFlight.nonEmpty
   }
@@ -20,7 +21,6 @@ object GlobalLoadingManager extends LogSupport {
     * Sets the current state to be loading until the [[Future]] input is finished.
     */
   def addLoadingFuture(f: Future[_]): Unit = {
-    debug("adding future")
     state = state.copy(inFlight = state.inFlight :+ f)
 
     f andThen {
@@ -29,7 +29,6 @@ object GlobalLoadingManager extends LogSupport {
         stateObservable.notifyObservers(state)
     }
 
-    debug(s"notifying ${stateObservable.observers.size} observers")
     stateObservable.notifyObservers(state)
   }
 }

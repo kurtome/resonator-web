@@ -14,6 +14,8 @@ import scalacss.internal.mutable.StyleSheet
 import kurtome.dote.web.CssSettings._
 import wvlet.log.LogSupport
 
+import scala.scalajs.js
+
 /**
   * Pager wrapper includes header/footer and renders child content within a centered portion of the
   * screen.
@@ -134,6 +136,7 @@ object ContentFrame {
               AudioControls(p.routerCtl)()
             )
           ),
+          NotificationSnackBar(p.routerCtl)(),
           NavBar(p.routerCtl)()
         )
       )

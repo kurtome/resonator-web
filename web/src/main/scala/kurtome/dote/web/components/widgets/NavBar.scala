@@ -34,14 +34,11 @@ object NavBar extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
     val stateObserver: Observer[GlobalLoadingManager.State] = (gs: GlobalLoadingManager.State) => {
-      debug(s"global state changed to: $gs")
       bs.modState(_.copy(isLoading = gs.isLoading)).runNow()
       bs.forceUpdate.runNow()
     }
-    debug("adding observer")
     GlobalLoadingManager.stateObservable.addObserver(stateObserver)
     val onUnmount: Callback = Callback {
-      debug("removing observer")
       GlobalLoadingManager.stateObservable.removeObserver(stateObserver)
     }
 

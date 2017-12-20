@@ -30,6 +30,11 @@ object AudioControls extends LogSupport {
       position.fixed
     )
 
+    val progressWrapper = style(
+      width(controlsWidth px),
+      marginLeft(16 px)
+    )
+
     val playerRoot = style(
       width(controlsWidth px),
       marginLeft(16 px),
@@ -106,6 +111,8 @@ object AudioControls extends LogSupport {
 
     def isPlaying: Boolean = bs.state.runNow().playerState.status == PlayerStatuses.Playing
 
+    def isLoading: Boolean = bs.state.runNow().playerState.status == PlayerStatuses.Loading
+
     val playPauseClicked = Callback {
       if (isPlaying) {
         AudioPlayer.pause()
@@ -139,6 +146,8 @@ object AudioControls extends LogSupport {
              style = Styles.playerWrapper.inline,
              justify = if (shouldCenter) Grid.Justify.Center else Grid.Justify.FlexStart)(
           Grid(item = true)(
+            Fade(in = isLoading, timeoutMs = 1000, style = Styles.progressWrapper.inline)(
+              LinearProgress()()),
             Paper(elevation = 8, style = Styles.playerRoot.inline)(
               <.div(
                 ^.className := Styles.contentWrapper,

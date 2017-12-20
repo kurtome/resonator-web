@@ -54,7 +54,7 @@ object Howler {
                  format: js.UndefOr[js.Array[String]] = js.undefined,
                  xhrWithCredentials: js.UndefOr[js.Array[String]] = js.undefined,
                  onload: js.UndefOr[js.Function0[Unit]] = js.undefined,
-                 onloaderror: js.UndefOr[js.Function2[Int, String, Unit]] = js.undefined,
+                 onloaderror: js.UndefOr[js.Function2[Int, Int, Unit]] = js.undefined,
                  onplayerror: js.UndefOr[js.Function2[Int, String, Unit]] = js.undefined,
                  onplay: js.UndefOr[js.Function1[Int, Unit]] = js.undefined,
                  onpause: js.UndefOr[js.Function1[Int, Unit]] = js.undefined,
@@ -174,7 +174,7 @@ object Howler {
       * Fires when the sound is unable to load. The first parameter is the ID of the sound (if it
       * exists) and the second is the error message/code.
       */
-    var onloaderror: js.UndefOr[js.Function2[Int, String, Unit]] = js.native
+    var onloaderror: js.UndefOr[js.Function2[Int, Int, Unit]] = js.native
 
     /**
       * Fires when the sound is unable to play. The first parameter is the ID of the sound and the

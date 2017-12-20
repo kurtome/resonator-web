@@ -7,6 +7,8 @@ import kurtome.dote.web.audio.Howler.Howl
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.shared.util.observer.Observable
 import kurtome.dote.web.shared.util.observer.SimpleObservable
+import kurtome.dote.web.utils.GlobalNotificationManager
+import org.scalajs.dom.raw.{HTMLMediaElement, MediaError}
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
@@ -20,6 +22,7 @@ object AudioPlayer extends LogSupport {
     type PlayerStatus = Value
     val Playing = Value
     val Paused = Value
+    val Loading = Value
     val Off = Value
   }
 
@@ -35,8 +38,18 @@ object AudioPlayer extends LogSupport {
     */
   case class State(status: PlayerStatus, episode: Dotable)
 
-  val handleLoadError: js.Function2[Int, String, Unit] = (soundId, message) => {
-    warn(s"error loading audio: $message")
+  private val handleLoadError: js.Function2[Int, Int, Unit] = (soundId, messageId) => {
+    warn(s"error loading audio: $messageId")
+    if (this.howl != null) {
+      this.howl.unload()
+      this.howl = null
+    }
+    GlobalNotificationManager.displayMessage("Unable to load audio, check internet connection.")
+    updateState(State(PlayerStatuses.Off, currentEpiode))
+  }
+
+  private val handleLoaded: js.Function0[Unit] = () => {
+    play()
   }
 
   def startPlayingEpisode(episode: Dotable): Unit = {
@@ -50,9 +63,11 @@ object AudioPlayer extends LogSupport {
 
     currentEpiode = episode
     val url: String = currentEpiode.getDetails.getPodcastEpisode.getAudio.url
-    howl =
-      Howler.createHowl(src = js.Array[String](url), html5 = true, onloaderror = handleLoadError)
-    play()
+    updateState(State(PlayerStatuses.Loading, currentEpiode))
+    howl = Howler.createHowl(src = js.Array[String](url),
+                             html5 = true,
+                             onloaderror = handleLoadError,
+                             onload = handleLoaded)
   }
 
   def play(): Unit = {
