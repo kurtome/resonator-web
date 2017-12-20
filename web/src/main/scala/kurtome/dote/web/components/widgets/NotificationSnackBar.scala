@@ -4,11 +4,8 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
-import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.constants.{MuiTheme, StringValues}
 import kurtome.dote.web.shared.util.observer.Observer
 import kurtome.dote.web.utils.GlobalNotificationManager
 import org.scalajs.dom
@@ -20,7 +17,9 @@ import scalacss.internal.mutable.StyleSheet
 object NotificationSnackBar {
 
   case class Props(routerCtl: DoteRouterCtl)
-  case class State(message: Option[String] = None)
+  case class State(message: Option[String] = None, doneDisplaying: Boolean = false) {
+    def isOpen = message.isDefined && !doneDisplaying
+  }
 
   private object Styles extends StyleSheet.Inline {
     import dsl._
@@ -30,14 +29,14 @@ object NotificationSnackBar {
 
     val stateObserver: Observer[GlobalNotificationManager.Notification] =
       (gs: GlobalNotificationManager.Notification) => {
-        bs.modState(_.copy(message = Some(gs.message))).runNow()
+        bs.modState(_.copy(message = Some(gs.message), doneDisplaying = false)).runNow()
         bs.forceUpdate.runNow()
       }
     GlobalNotificationManager.stateObservable.addObserver(stateObserver)
 
     def handleSnackbarClose(event: js.Dynamic, reason: String): Callback = Callback {
       debug("onClose called")
-      bs.modState(_.copy(message = None)).runNow()
+      bs.modState(_.copy(doneDisplaying = true)).runNow()
     }
 
     val handleSnackbarCloseClicked: Callback = Callback {
@@ -58,7 +57,7 @@ object NotificationSnackBar {
         dom.window.clearTimeout(timeoutId)
       }
       autoCloseTimerId = None
-      bs.modState(_.copy(message = None)).runNow()
+      bs.modState(_.copy(doneDisplaying = true)).runNow()
     }
 
     var autoCloseTimerId: Option[Int] = None
@@ -72,7 +71,7 @@ object NotificationSnackBar {
 
       val displayMessage = s.message.getOrElse("")
       Snackbar(
-        open = s.message.isDefined,
+        open = s.isOpen,
         // The onClose appears to be broken in the MUI component library, so implementing auto-close
         // timer inthis component
         //onClose = handleSnackbarClose,
