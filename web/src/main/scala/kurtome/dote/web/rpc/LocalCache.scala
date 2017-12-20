@@ -1,13 +1,16 @@
 package kurtome.dote.web.rpc
 
+import com.trueaccord.scalapb.GeneratedMessage
 import dote.proto.api.dotable.Dotable
+import kurtome.dote.web.rpc.LocalCache.ObjectKinds.ObjectKind
+import wvlet.log.LogSupport
 
 import scala.scalajs.js
 import scala.scalajs.js.JSON
 import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.annotation.{JSImport, JSName}
 
-object LocalCache {
+object LocalCache extends LogSupport {
 
   /**
     * http://pieroxy.net/blog/pages/lz-string/index.html
@@ -46,46 +49,62 @@ object LocalCache {
     def setBucket(bucket: String): Unit = js.native
   }
 
+  object ObjectKinds extends Enumeration {
+    type ObjectKind = Value
+    val DotableShallow = Value("dotable-details")
+    val DotableDetails = Value("dotable-shallow")
+    val Feed = Value("feed")
+  }
+
   def flushAll(): Unit = {
-    setBucket(true)
-    LsCache.flush()
-    setBucket(false)
-    LsCache.flush()
+    ObjectKinds.values foreach { kind =>
+      LsCache.setBucket(kind.toString)
+      LsCache.flush()
+    }
   }
 
-  def put(includesDetails: Boolean, dotable: Dotable): Unit = {
-    val bytes = dotable.toByteArray
-    val stringifiedBytes = JSON.stringify(bytes.toJSArray)
-    val compressed = LzString.compressToUTF16(stringifiedBytes)
-    val timeMinutes = 10
-
-    setBucket(includesDetails)
-    LsCache.set(dotable.id, compressed, timeMinutes)
-  }
-
-  def get(includesDetails: Boolean, dotableId: String): Option[Dotable] = {
-    setBucket(includesDetails)
-    Option(LsCache.get(dotableId)) map { compressedOut =>
+  def getObj[R](kind: ObjectKind, key: String, parser: (Array[Byte]) => R): Option[R] = {
+    LsCache.setBucket(kind.toString)
+    Option(LsCache.get(key)) map { compressedOut =>
       val stringifiedBytesOut = LzString.decompressFromUTF16(compressedOut)
       val jsArrayOut = JSON.parse(stringifiedBytesOut)
       val bytesOut = jsArrayOut.asInstanceOf[js.Array[Byte]].toArray
-      Dotable.parseFrom(bytesOut)
+      parser(bytesOut)
     }
   }
 
-  private def setBucket(includesDetails: Boolean) = {
-    if (includesDetails) {
-      LsCache.setBucket("dotable-details")
+  def putObj(kind: ObjectKind, key: String, obj: GeneratedMessage, cacheMinutes: Int = 10): Unit = {
+    val bytes = obj.toByteArray
+    val stringifiedBytes = JSON.stringify(bytes.toJSArray)
+    val compressed = LzString.compressToUTF16(stringifiedBytes)
+
+    LsCache.setBucket(kind.toString)
+    LsCache.set(key, compressed, cacheMinutes)
+  }
+
+  def put(includesDetails: Boolean, dotable: Dotable): Unit = {
+    val kind = if (includesDetails) {
+      ObjectKinds.DotableDetails
     } else {
-      LsCache.setBucket("dotable-shallow")
+      ObjectKinds.DotableShallow
     }
+    putObj(kind, dotable.id, dotable)
   }
 
-  def hex2bytes(hex: String): Array[Byte] = {
+  def get(includesDetails: Boolean, dotableId: String): Option[Dotable] = {
+    val kind = if (includesDetails) {
+      ObjectKinds.DotableDetails
+    } else {
+      ObjectKinds.DotableShallow
+    }
+    getObj(kind, dotableId, Dotable.parseFrom)
+  }
+
+  private def hex2bytes(hex: String): Array[Byte] = {
     hex.sliding(2, 2).toArray.map(Integer.parseInt(_, 16).toByte)
   }
 
-  def bytes2hex(bytes: Array[Byte]): String = {
+  private def bytes2hex(bytes: Array[Byte]): String = {
     bytes.map("%02x".format(_)).mkString
   }
 }

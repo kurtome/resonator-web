@@ -1,21 +1,23 @@
 package kurtome.dote.web.components.views
 
 import dote.proto.api.action.get_feed_controller.{GetFeedRequest, GetFeedResponse}
-import dote.proto.api.feed.FeedItem
+import dote.proto.api.feed.{Feed, FeedItem}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.DoteRoutes.{DoteRoute, DoteRouterCtl}
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils.GlobalLoadingManager
+import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object HomeView {
+object HomeView extends LogSupport {
 
   private object Styles extends StyleSheet.Inline {
     import dsl._
@@ -27,24 +29,27 @@ object HomeView {
   }
   Styles.addToDocument()
 
-  case class State(request: GetFeedRequest = GetFeedRequest.defaultInstance,
-                   response: GetFeedResponse = GetFeedResponse.defaultInstance,
-                   requestInFlight: Boolean = false)
+  case class State(feed: Feed = Feed.defaultInstance, requestInFlight: Boolean = false)
 
-  class Backend(bs: BackendScope[DoteRouterCtl, State]) {
+  class Backend(bs: BackendScope[DoteRouterCtl, State]) extends LogSupport {
 
     def fetchData(): Callback = Callback {
-      bs.modState(_.copy(requestInFlight = true)).runNow
-      val f = DoteProtoServer.getFeed(GetFeedRequest(maxItems = 20, maxItemSize = 10)) map {
-        response =>
-          bs.modState(_.copy(response = response, requestInFlight = false)).runNow()
+      val cachedFeed = LocalCache.getObj(ObjectKinds.Feed, "home", Feed.parseFrom)
+      if (cachedFeed.isDefined) {
+        bs.modState(_.copy(feed = cachedFeed.get, requestInFlight = false)).runNow()
+      } else {
+        bs.modState(_.copy(requestInFlight = true)).runNow
+        val f = DoteProtoServer.getFeed(GetFeedRequest(maxItems = 20, maxItemSize = 10)) map {
+          response =>
+            bs.modState(_.copy(feed = response.getFeed, requestInFlight = false)).runNow()
+        }
+        GlobalLoadingManager.addLoadingFuture(f)
       }
-      GlobalLoadingManager.addLoadingFuture(f)
     }
 
     def render(routerCtl: DoteRouterCtl, s: State): VdomElement = {
       ContentFrame(routerCtl)(
-        s.response.getFeed.items.zipWithIndex map {
+        s.feed.items.zipWithIndex map {
           case (item, i) =>
             <.div(
               ^.key := i,
