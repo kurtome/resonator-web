@@ -49,49 +49,57 @@ object EpisodeTable {
       val episodePage = episodesOnPage ++
         (1 to s.rowsPerPage - episodesOnPage.size).map(_ => Dotable.defaultInstance)
 
-      Paper(className = SharedStyles.episodeTableContainer)(
-        Table()(
-          TableHead()(
-            TableRow(key = Some(p.dotable.id + "header"))(
-              TableCell()("Episodes"),
-            )
-          ),
-          TableBody()(
-            (episodePage.zipWithIndex map {
-              case (episode, i) =>
-                val id = episode.id
-                val key: String = if (id.isEmpty) i.toString else id
-                val slug = episode.slug
-                val detailRoute = PodcastEpisodeRoute(id = id, slug = slug)
-                val durationInfo = durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
-                val releaseDate = epochSecToDate(episode.getCommon.publishedEpochSec)
-                val summaryInfo =
-                  if (durationInfo.nonEmpty && releaseDate.nonEmpty) {
-                   s"$durationInfo ($releaseDate)"
-                  } else if (durationInfo.nonEmpty) {
-                    durationInfo
-                  } else {
-                    releaseDate
-                  }
+      Grid(container = true, spacing = 0)(
+        Grid(item = true, xs = 12)(
+          Typography(typographyType = Typography.Type.SubHeading)("Episodes")),
+        Grid(item = true, xs = 12)(
+          Paper(className = SharedStyles.episodeTableContainer)(
+            Table()(
+//              TableHead()(
+//                TableRow(key = Some(p.dotable.id + "header"))(
+//                  TableCell()("Episodes")
+//                )
+//              ),
+              TableBody()(
+                (episodePage.zipWithIndex map {
+                  case (episode, i) =>
+                    val id = episode.id
+                    val key: String = if (id.isEmpty) i.toString else id
+                    val slug = episode.slug
+                    val detailRoute = PodcastEpisodeRoute(id = id, slug = slug)
+                    val durationInfo =
+                      durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
+                    val releaseDate = epochSecToDate(episode.getCommon.publishedEpochSec)
+                    val summaryInfo =
+                      if (durationInfo.nonEmpty && releaseDate.nonEmpty) {
+                        s"$durationInfo ($releaseDate)"
+                      } else if (durationInfo.nonEmpty) {
+                        durationInfo
+                      } else {
+                        releaseDate
+                      }
 
-                TableRow(key = Some(key))(
-                  TableCell()(
-                    Typography(typographyType = Typography.Type.Body1)(SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
-                    Typography(typographyType = Typography.Type.Body2)(summaryInfo)
-                  )
+                    TableRow(key = Some(key))(
+                      TableCell()(
+                        Typography(typographyType = Typography.Type.Body1)(
+                          SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
+                        Typography(typographyType = Typography.Type.Body2)(summaryInfo)
+                      )
+                    )
+                }).toVdomArray
+              ),
+              TableFooter()(
+                TableRow(key = Some(p.dotable.id + "footer"))(
+                  TablePagination(
+                    rowsPerPage = s.rowsPerPage,
+                    count = episodes.size,
+                    page = s.page,
+                    rowsPerPageOptions = rowsPerPageOptions,
+                    onChangePage = onPageChanged,
+                    onChangeRowsPerPage = onPageSizeChanged
+                  )()
                 )
-            }).toVdomArray
-          ),
-          TableFooter()(
-            TableRow(key = Some(p.dotable.id + "footer"))(
-              TablePagination(
-                rowsPerPage = s.rowsPerPage,
-                count = episodes.size,
-                page = s.page,
-                rowsPerPageOptions = rowsPerPageOptions,
-                onChangePage = onPageChanged,
-                onChangeRowsPerPage = onPageSizeChanged
-              )()
+              )
             )
           )
         )

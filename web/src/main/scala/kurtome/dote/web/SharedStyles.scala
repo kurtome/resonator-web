@@ -24,17 +24,6 @@ object SharedStyles extends StyleSheet.Inline {
     display.table
   )
 
-  val detailsTileContainer = style(
-    marginLeft.auto,
-    marginRight.auto,
-    display.table
-  )
-
-  val detailsHeaderContainer = style(
-    margin(spacingUnit * 2),
-    padding(spacingUnit * 2)
-  )
-
   val centerTextContainer = style(
     alignItems.center,
     display.flex
@@ -58,13 +47,6 @@ object SharedStyles extends StyleSheet.Inline {
     paddingTop(spacingUnit * 2),
     paddingLeft(spacingUnit * 2),
     paddingRight(spacingUnit * 2)
-  )
-
-  val titleFieldContainer = style(
-    textAlign.left,
-    display.grid,
-    alignContent.center,
-    alignItems.center
   )
 
   val plainAnchor = style(

@@ -53,13 +53,25 @@ object EpisodeDetails {
 
     val podcastTile = style(
       float.left,
-      marginRight(SharedStyles.spacingUnit * 2)
+      marginRight(SharedStyles.spacingUnit * 2),
+      marginBottom(SharedStyles.spacingUnit * 2)
     )
 
     val playButton = style(
-      margin(SharedStyles.spacingUnit * 2)
+      marginTop(SharedStyles.spacingUnit * 2),
+      marginBottom(SharedStyles.spacingUnit * 2)
     )
 
+    val detailsHeaderContainer = style(
+      marginBottom(SharedStyles.spacingUnit * 2),
+    )
+
+    val titleFieldContainer = style(
+      textAlign.left,
+      display.grid,
+      alignContent.center,
+      alignItems.center
+    )
   }
   Styles.addToDocument()
   val muiStyles = new MuiInlineStyleSheet(Styles)
@@ -89,36 +101,33 @@ object EpisodeDetails {
         duration
       }
 
-      Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.Center)(
+      Grid(container = true,
+           spacing = 0,
+           alignItems = Grid.AlignItems.FlexStart,
+           className = Styles.detailsHeaderContainer)(
         Grid(item = true, xs = 12)(
-          Grid(container = true,
-               spacing = 24,
-               alignItems = Grid.AlignItems.FlexStart,
-               className = SharedStyles.detailsHeaderContainer)(
-            Grid(item = true, xs = 12)(
+          <.div(
+            ^.className := Styles.headerContainer,
+            <.div(^.className := Styles.podcastTile,
+                  EntityTile(routerCtl = p.routerCtl,
+                             dotable = p.dotable.getRelatives.getParent,
+                             width = "125px")()),
+            <.div(
+              Typography(style = Styles.titleText.inline,
+                         typographyType = Typography.Type.Headline)(title),
+              Typography(style = Styles.subTitleText.inline,
+                         typographyType = Typography.Type.SubHeading)(subtitle),
               <.div(
-                ^.className := Styles.headerContainer,
-                <.div(^.className := Styles.podcastTile,
-                      EntityTile(routerCtl = p.routerCtl,
-                                 dotable = p.dotable.getRelatives.getParent,
-                                 width = "125px")()),
-                <.div(
-                  Typography(style = Styles.titleText.inline,
-                             typographyType = Typography.Type.Headline)(title),
-                  Typography(style = Styles.subTitleText.inline,
-                             typographyType = Typography.Type.SubHeading)(subtitle)
-                )
-              )
-            ),
-            Grid(item = true, xs = 12, lg = 8, className = SharedStyles.titleFieldContainer)(
-              <.div(
+                ^.display := (if (AudioPlayer.canPlay(p.dotable)) "block" else "none"),
                 Button(onClick = playAudio, raised = true, style = Styles.playButton.inline)(
-                  "Play")
-              ),
-              Typography(typographyType = Typography.Type.Body1,
-                         dangerouslySetInnerHTML = linkifyAndSanitize(description))()
+                  "Play", Icons.PlayArrow())
+              )
             )
           )
+        ),
+        Grid(item = true, xs = 12)(
+          Typography(typographyType = Typography.Type.Body1,
+                     dangerouslySetInnerHTML = linkifyAndSanitize(description))()
         )
       )
 

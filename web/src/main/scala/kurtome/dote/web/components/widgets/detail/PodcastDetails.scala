@@ -38,7 +38,30 @@ object PodcastDetails {
       marginBottom(SharedStyles.spacingUnit)
     )
 
+    val detailsHeaderContainer = style(
+      marginBottom(SharedStyles.spacingUnit * 2),
+    )
+
+    val centerTileContainer = style(
+      marginLeft.auto,
+      marginRight.auto,
+      marginBottom(SharedStyles.spacingUnit * 2),
+      display.table
+    )
+
+    val normalTileContainer = style(
+      marginBottom(SharedStyles.spacingUnit * 2),
+    )
+
+    val titleFieldContainer = style(
+      textAlign.left,
+      display.grid,
+      alignContent.center,
+      alignItems.center
+    )
+
   }
+  Styles.addToDocument()
   val muiStyles = new MuiInlineStyleSheet(Styles)
   import muiStyles._
 
@@ -106,19 +129,25 @@ object PodcastDetails {
           }
         }
 
-      Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.Center)(
+      val tileContainerStyle = currentBreakpointString match {
+        case "xs" => Styles.centerTileContainer
+        case "sm" => Styles.centerTileContainer
+        case _ => Styles.normalTileContainer
+      }
+
+      Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
         Grid(item = true, xs = 12)(
           Grid(container = true,
-               spacing = 24,
+               spacing = 0,
                alignItems = Grid.AlignItems.FlexStart,
-               className = SharedStyles.detailsHeaderContainer)(
-            Grid(item = true, xs = 12, lg = 4)(
-              <.div(^.className := SharedStyles.detailsTileContainer,
+               style = Styles.detailsHeaderContainer.inline)(
+            Grid(item = true, xs = 12, md = 4)(
+              <.div(^.className := tileContainerStyle,
                     EntityTile(routerCtl = p.routerCtl,
                                dotable = p.dotable,
                                width = "250px")())
             ),
-            Grid(item = true, xs = 12, lg = 8, className = SharedStyles.titleFieldContainer)(
+            Grid(item = true, xs = 12, md = 8, style = Styles.titleFieldContainer.inline)(
               Typography(style = Styles.titleText.inline,
                          typographyType = Typography.Type.Headline)(fields.title),
               Typography(style = Styles.subTitleText.inline,

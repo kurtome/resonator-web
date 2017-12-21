@@ -38,8 +38,8 @@ object AudioPlayer extends LogSupport {
     */
   case class State(status: PlayerStatus, episode: Dotable)
 
-  private val handleLoadError: js.Function2[Int, Int, Unit] = (soundId, messageId) => {
-    warn(s"error loading audio: $messageId")
+  private val handleLoadError: js.Function2[Int, js.Any, Unit] = (soundId, messageOrCode) => {
+    warn(s"error loading audio: $messageOrCode")
     if (this.howl != null) {
       this.howl.unload()
       this.howl = null
@@ -52,6 +52,23 @@ object AudioPlayer extends LogSupport {
     play()
   }
 
+  private val handleStop: js.Function1[Int, Unit] = (soundId) => {
+    debug("stopped")
+    updateState(State(PlayerStatuses.Paused, currentEpiode))
+  }
+
+  private def getUrl(episode: Dotable): String = {
+    if (episode.kind != Dotable.Kind.PODCAST_EPISODE) {
+      ""
+    } else {
+      episode.getDetails.getPodcastEpisode.getAudio.url.trim
+    }
+  }
+
+  def canPlay(episode: Dotable): Boolean = {
+    getUrl(episode).nonEmpty
+  }
+
   def startPlayingEpisode(episode: Dotable): Unit = {
     if (episode.kind != Dotable.Kind.PODCAST_EPISODE) {
       warn(s"${episode.kind} invalid for playing")
@@ -62,11 +79,12 @@ object AudioPlayer extends LogSupport {
     }
 
     currentEpiode = episode
-    val url: String = currentEpiode.getDetails.getPodcastEpisode.getAudio.url
+    val url: String = getUrl(currentEpiode)
     updateState(State(PlayerStatuses.Loading, currentEpiode))
     howl = Howler.createHowl(src = js.Array[String](url),
                              html5 = true,
                              onloaderror = handleLoadError,
+                             onstop = handleStop,
                              onload = handleLoaded)
   }
 
@@ -99,7 +117,7 @@ object AudioPlayer extends LogSupport {
 
   def forward(durationSec: Double): Unit = {
     if (howl != null) {
-      howl.setSeek(Math.min(howl.getSeek() + durationSec, howl.duration()))
+      howl.setSeek(Math.min(howl.getSeek() + durationSec, howl.duration() - 1))
     }
   }
 
