@@ -57,7 +57,7 @@ object FeedDotableList {
     }
     dom.window.addEventListener("resize", resizeListener)
 
-    val onUnmount: Callback = Callback {
+    val handleWillUnmount: Callback = Callback {
       dom.window.removeEventListener("resize", resizeListener)
     }
 
@@ -110,7 +110,7 @@ object FeedDotableList {
     .initialState(State(tileSizePx = currentTileSizePx))
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
-    .componentWillUnmount(x => x.backend.onUnmount)
+    .componentWillUnmount(x => x.backend.handleWillUnmount)
     .build
 
   def apply(routeCtl: DoteRouterCtl, list: ApiList, key: Option[String] = None) = {

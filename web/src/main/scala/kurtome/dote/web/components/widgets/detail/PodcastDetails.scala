@@ -15,9 +15,11 @@ import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
   LinkFieldValue,
   TextFieldValue
 }
-import kurtome.dote.web.components.widgets.EntityTile
-import kurtome.dote.web.utils.MuiInlineStyleSheet
+import kurtome.dote.web.components.widgets.{ContentFrame, EntityTile}
+import kurtome.dote.web.utils.{Debounce, MuiInlineStyleSheet}
+import org.scalajs.dom
 
+import scala.scalajs.js
 import scalacss.internal.mutable.StyleSheet
 
 object PodcastDetails {
@@ -39,25 +41,24 @@ object PodcastDetails {
     )
 
     val detailsHeaderContainer = style(
-      marginBottom(SharedStyles.spacingUnit * 2),
+      marginBottom(SharedStyles.spacingUnit * 2)
     )
 
     val centerTileContainer = style(
       marginLeft.auto,
       marginRight.auto,
-      marginBottom(SharedStyles.spacingUnit * 2),
+      marginBottom(SharedStyles.spacingUnit * 3),
       display.table
     )
 
     val normalTileContainer = style(
-      marginBottom(SharedStyles.spacingUnit * 2),
+      marginRight(SharedStyles.spacingUnit * 2),
+      marginBottom(SharedStyles.spacingUnit * 2)
     )
 
     val titleFieldContainer = style(
       textAlign.left,
-      display.grid,
-      alignContent.center,
-      alignItems.center
+      display.grid
     )
 
   }
@@ -66,6 +67,7 @@ object PodcastDetails {
   import muiStyles._
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
+  case class State(availableWidth: Int)
 
   private case class ExtractedFields(title: String = "",
                                      subtitle: String = "",
@@ -111,9 +113,22 @@ object PodcastDetails {
     }
   }
 
-  class Backend(bs: BackendScope[Props, _]) {
+  class Backend(bs: BackendScope[Props, State]) {
+    val updateTileSize: Callback = {
+      bs.modState(_.copy(availableWidth = ContentFrame.innerWidthPx))
+    }
 
-    def render(p: Props): VdomElement = {
+    val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
+      (e: js.Dynamic) =>
+        updateTileSize.runNow()
+    }
+    dom.window.addEventListener("resize", resizeListener)
+
+    val handleWillUnmount: Callback = Callback {
+      dom.window.removeEventListener("resize", resizeListener)
+    }
+
+    def render(p: Props, s: State): VdomElement = {
       val fields = extractFields(p.dotable)
       val podcastDetails = p.dotable.getDetails.getPodcast
       val detailFields =
@@ -129,10 +144,29 @@ object PodcastDetails {
           }
         }
 
-      val tileContainerStyle = currentBreakpointString match {
-        case "xs" => Styles.centerTileContainer
-        case "sm" => Styles.centerTileContainer
-        case _ => Styles.normalTileContainer
+      val shouldCenterTile = currentBreakpointString match {
+        case "xs" => true
+        case "sm" => true
+        case _    => false
+      }
+
+      val tileContainerStyle = if (shouldCenterTile) {
+        Styles.centerTileContainer
+      } else {
+        Styles.normalTileContainer
+      }
+
+      val tileWidth = 250
+      val detailsWidth = if (shouldCenterTile) {
+        s.availableWidth
+      } else {
+        s.availableWidth - (tileWidth + 16 + 1)
+      }
+
+      val tileContainerWidth = if (shouldCenterTile) {
+        s.availableWidth
+      } else {
+        tileWidth + 16
       }
 
       Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
@@ -141,21 +175,34 @@ object PodcastDetails {
                spacing = 0,
                alignItems = Grid.AlignItems.FlexStart,
                style = Styles.detailsHeaderContainer.inline)(
-            Grid(item = true, xs = 12, md = 4)(
-              <.div(^.className := tileContainerStyle,
-                    EntityTile(routerCtl = p.routerCtl,
-                               dotable = p.dotable,
-                               width = "250px")())
+            Grid(item = true)(
+              <.div(
+                ^.width := asPxStr(tileContainerWidth),
+                <.div(^.className := tileContainerStyle,
+                      EntityTile(routerCtl = p.routerCtl,
+                                 dotable = p.dotable,
+                                 width = asPxStr(tileWidth))())
+              )
             ),
-            Grid(item = true, xs = 12, md = 8, style = Styles.titleFieldContainer.inline)(
-              Typography(style = Styles.titleText.inline,
-                         typographyType = Typography.Type.Headline)(fields.title),
-              Typography(style = Styles.subTitleText.inline,
-                         typographyType = Typography.Type.SubHeading)(fields.subtitle),
-              Typography(typographyType = Typography.Type.Body1,
-                         dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))(),
-              Divider(style = Styles.textSectionDivider.inline)(),
-              DetailFieldList(detailFields)()
+            Grid(item = true, style = Styles.titleFieldContainer.inline)(
+              <.div(
+                ^.width := asPxStr(detailsWidth),
+                ^.maxWidth := asPxStr(detailsWidth),
+                Grid(container = true)(
+                  Grid(item = true, xs = 12)(
+                    Typography(style = Styles.titleText.inline,
+                               typographyType = Typography.Type.Headline)(fields.title),
+                    Typography(style = Styles.subTitleText.inline,
+                               typographyType = Typography.Type.SubHeading)(fields.subtitle),
+                    Typography(typographyType = Typography.Type.Body1,
+                               dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
+                  ),
+                  Grid(item = true, xs = 12)(Divider(style = Styles.textSectionDivider.inline)()),
+                  Grid(item = true, xs = 12)(
+                    DetailFieldList(detailFields)()
+                  )
+                )
+              )
             )
           )
         ),
@@ -169,8 +216,10 @@ object PodcastDetails {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
+    .initialState(State(availableWidth = ContentFrame.innerWidthPx))
     .backend(new Backend(_))
-    .renderP((builder, props) => builder.backend.render(props))
+    .renderPS((builder, props, state) => builder.backend.render(props, state))
+    .componentWillUnmount(x => x.backend.handleWillUnmount)
     .build
 
   def apply(p: Props) = component.withKey(p.dotable.id).withProps(p)
