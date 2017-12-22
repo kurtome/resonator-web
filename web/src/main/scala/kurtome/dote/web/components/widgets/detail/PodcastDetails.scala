@@ -52,7 +52,7 @@ object PodcastDetails {
     )
 
     val normalTileContainer = style(
-      marginRight(SharedStyles.spacingUnit * 2),
+      marginRight(SharedStyles.spacingUnit * 3),
       marginBottom(SharedStyles.spacingUnit * 2)
     )
 
@@ -160,13 +160,13 @@ object PodcastDetails {
       val detailsWidth = if (shouldCenterTile) {
         s.availableWidth
       } else {
-        s.availableWidth - (tileWidth + 16 + 1)
+        s.availableWidth - (tileWidth + 24 + 1)
       }
 
       val tileContainerWidth = if (shouldCenterTile) {
         s.availableWidth
       } else {
-        tileWidth + 16
+        tileWidth + 24
       }
 
       Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
