@@ -59,4 +59,14 @@ object Icons {
   @js.native
   private object SearchRaw extends js.Object {}
   val Search = JsComponent[Null, Children.None, Null](SearchRaw)
+
+  @JSImport("material-ui-icons/KeyboardArrowLeft", JSImport.Default)
+  @js.native
+  private object KeyboardArrowLeftRaw extends js.Object {}
+  val KeyboardArrowLeft = JsComponent[Null, Children.None, Null](KeyboardArrowLeftRaw)
+
+  @JSImport("material-ui-icons/KeyboardArrowRight", JSImport.Default)
+  @js.native
+  private object KeyboardArrowRightRaw extends js.Object {}
+  val KeyboardArrowRight = JsComponent[Null, Children.None, Null](KeyboardArrowRightRaw)
 }

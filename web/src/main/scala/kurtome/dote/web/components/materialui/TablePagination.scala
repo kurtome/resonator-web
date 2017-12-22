@@ -19,6 +19,7 @@ object TablePagination {
   trait Props extends js.Object {
     var count: js.UndefOr[Int] = js.native
     var page: js.UndefOr[Int] = js.native
+    var labelRowsPerPage: js.UndefOr[raw.ReactElement] = js.native
     var rowsPerPage: js.UndefOr[Int] = js.native
     var rowsPerPageOptions: js.UndefOr[js.Array[Int]] = js.native
     var onChangePage: js.Function2[js.Dynamic, Int, Unit] = js.native
@@ -30,6 +31,7 @@ object TablePagination {
 
   def apply(count: js.UndefOr[Int] = js.undefined,
             page: js.UndefOr[Int] = js.undefined,
+            labelRowsPerPage: js.UndefOr[raw.ReactElement] = js.undefined,
             rowsPerPage: js.UndefOr[Int] = js.undefined,
             rowsPerPageOptions: js.UndefOr[Array[Int]] = js.undefined,
             onChangePage: (js.Dynamic, Int) => Callback = (_, _) => Callback.empty,
@@ -38,6 +40,7 @@ object TablePagination {
     val p = (new js.Object).asInstanceOf[Props]
     p.count = count
     p.page = page
+    p.labelRowsPerPage = labelRowsPerPage
     p.rowsPerPage = rowsPerPage
     p.rowsPerPageOptions = rowsPerPageOptions.map(_.toJSArray)
     p.onChangePage = (e: js.Dynamic, v: Int) => onChangePage(e, v).runNow()
