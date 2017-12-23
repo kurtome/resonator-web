@@ -43,12 +43,6 @@ object SharedStyles extends StyleSheet.Inline {
     marginBottom(spacingUnit * 3)
   )
 
-  val episodeTableContainer = style(
-    paddingTop(spacingUnit * 2),
-    paddingLeft(spacingUnit * 2),
-    paddingRight(spacingUnit * 2)
-  )
-
   val plainAnchor = style(
     textDecorationLine.none
   )

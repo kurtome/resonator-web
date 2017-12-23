@@ -25,15 +25,18 @@ object TableCell {
   trait Props extends js.Object {
     var padding: js.UndefOr[String] = js.native
     var className: js.UndefOr[String] = js.native
+    var style: js.UndefOr[js.Dynamic] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
   def apply(padding: js.UndefOr[Padding.Value] = js.undefined,
-            className: js.UndefOr[String] = js.undefined) = {
+            className: js.UndefOr[String] = js.undefined,
+            style: js.UndefOr[js.Dynamic] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.padding = padding.map(_.toString)
     p.className = className
+    p.style = style
     component.withProps(p)
   }
 }

@@ -21,15 +21,34 @@ object EpisodeTable {
     import dsl._
 
     val episodesHeader = style(
+      marginTop(SharedStyles.spacingUnit * 2),
+      marginLeft(SharedStyles.spacingUnit * 2),
       marginBottom(SharedStyles.spacingUnit * 2)
     )
 
     val tableFooterContainer = style(
-      padding(SharedStyles.spacingUnit)
+      paddingTop(SharedStyles.spacingUnit),
+      paddingLeft(SharedStyles.spacingUnit * 2),
+      paddingRight(SharedStyles.spacingUnit * 2),
+      paddingBottom(SharedStyles.spacingUnit)
     )
 
     val pageNumbersLabel = style(
       marginRight(SharedStyles.spacingUnit * 2)
+    )
+
+    val episodeTableContainer = style(
+      padding(0 px)
+    )
+
+    val episodeTableCell = style(
+      padding(SharedStyles.spacingUnit * 2)
+    )
+
+    val truncateText = style(
+      whiteSpace.nowrap,
+      overflow.hidden,
+      textOverflow := "ellipsis"
     )
 
   }
@@ -90,16 +109,11 @@ object EpisodeTable {
 
       Grid(container = true, spacing = 0)(
         Grid(item = true, xs = 12)(
-          Paper(className = SharedStyles.episodeTableContainer)(
+          Paper(style = Styles.episodeTableContainer.inline)(
             Table()(
               Typography(typographyType = Typography.Type.SubHeading,
                          style = Styles.episodesHeader.inline)("Episodes"),
               Divider()(),
-//              TableHead()(
-//                TableRow(key = Some(p.dotable.id + "header"))(
-//                  TableCell()("Episodes")
-//                )
-//              ),
               TableBody()(
                 (episodePage.zipWithIndex map {
                   case (episode, i) =>
@@ -120,10 +134,20 @@ object EpisodeTable {
                       }
 
                     TableRow(key = Some(key))(
-                      TableCell()(
-                        Typography(typographyType = Typography.Type.Body1)(
-                          SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
-                        Typography(typographyType = Typography.Type.Body2)(summaryInfo)
+                      TableCell(style = Styles.episodeTableCell.inline)(
+                        <.div(
+                          ^.position := "relative",
+                          ^.height := "3em",
+                          <.div(
+                            ^.position := "absolute",
+                            ^.maxWidth := "100%",
+                            Typography(typographyType = Typography.Type.Body1,
+                                       style = Styles.truncateText.inline)(
+                              SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
+                            Typography(typographyType = Typography.Type.Body2,
+                                       style = Styles.truncateText.inline)(summaryInfo)
+                          )
+                        )
                       )
                     )
                 }).toVdomArray
