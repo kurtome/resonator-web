@@ -69,4 +69,14 @@ object Icons {
   @js.native
   private object KeyboardArrowRightRaw extends js.Object {}
   val KeyboardArrowRight = JsComponent[Null, Children.None, Null](KeyboardArrowRightRaw)
+
+  @JSImport("material-ui-icons/ExpandMore", JSImport.Default)
+  @js.native
+  private object ExpandMoreRaw extends js.Object {}
+  val ExpandMore = JsComponent[Null, Children.None, Null](ExpandMoreRaw)
+
+  @JSImport("material-ui-icons/ExpandLess", JSImport.Default)
+  @js.native
+  private object ExpandLessRaw extends js.Object {}
+  val ExpandLess = JsComponent[Null, Children.None, Null](ExpandLessRaw)
 }

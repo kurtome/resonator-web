@@ -10,7 +10,7 @@ import scala.scalajs.js.annotation._
   */
 object Collapse {
 
-  @JSImport("material-ui/Collapse/Collapse.js", JSImport.Default)
+  @JSImport("material-ui/transitions/Collapse", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
@@ -33,21 +33,27 @@ object Collapse {
   @js.native
   trait Props extends js.Object {
     var in: js.UndefOr[Boolean] = js.native
+    var component: js.UndefOr[String] = js.native
     var collapsedHeight: js.UndefOr[String] = js.native
     var transitionDuration: js.UndefOr[js.Any] = js.native
     var className: js.UndefOr[String] = js.native
+    var style: js.UndefOr[js.Dynamic] = js.native
   }
 
-  val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
+  val jsComponent = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
   def apply(in: js.UndefOr[Boolean] = js.undefined,
+            component: js.UndefOr[String] = js.undefined,
             collapsedHeight: js.UndefOr[String] = js.undefined,
-            className: js.UndefOr[String] = js.undefined) = {
+            className: js.UndefOr[String] = js.undefined,
+            style: js.UndefOr[js.Dynamic] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.in = in
+    p.component = component
     p.collapsedHeight = collapsedHeight
     p.className = className
+    p.style = style
 
-    component.withProps(p)
+    jsComponent.withProps(p)
   }
 }

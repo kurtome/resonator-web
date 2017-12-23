@@ -60,9 +60,9 @@ object EpisodeTable {
 
   case class State(page: Int = 0, rowsPerPage: Int = 10)
 
-  private def numPages(p: Props, s: State): Int = {
+  private def lastPage(p: Props, s: State): Int = {
     val numEpisodes = p.dotable.getRelatives.children.size
-    (numEpisodes / s.rowsPerPage) + 1
+    numEpisodes / s.rowsPerPage
   }
 
   private def episodesByRecency(dotable: Dotable) = {
@@ -92,13 +92,13 @@ object EpisodeTable {
       bs.modState(_.copy(page = Math.max(0, s.page - 1)))
 
     def handleNextPageClicked(p: Props, s: State)() =
-      bs.modState(_.copy(page = Math.min(numPages(p, s), s.page + 1)))
+      bs.modState(_.copy(page = Math.min(lastPage(p, s), s.page + 1)))
 
     def render(p: Props, s: State): VdomElement = {
       val episodes = episodesByRecency(p.dotable)
 
       val pageStartIndex = s.rowsPerPage * s.page
-      val pageEndIndex = pageStartIndex + s.rowsPerPage
+      val pageEndIndex = Math.min(pageStartIndex + s.rowsPerPage, episodes.size)
       val episodesOnPage = episodes.slice(pageStartIndex, pageEndIndex)
 
       // Fill the page with blank episodes if there is extra space
@@ -168,7 +168,7 @@ object EpisodeTable {
                   <.span(
                     IconButton(disabled = s.page <= 0, onClick = handlePrevPageClicked(s))(
                       Icons.KeyboardArrowLeft()),
-                    IconButton(disabled = s.page >= numPages(p, s),
+                    IconButton(disabled = s.page >= lastPage(p, s),
                                onClick = handleNextPageClicked(p, s))(Icons.KeyboardArrowRight())
                   )
                 )
