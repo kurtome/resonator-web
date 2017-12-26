@@ -18,6 +18,7 @@ import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
 import kurtome.dote.web.components.widgets.{ContentFrame, EntityTile}
 import kurtome.dote.web.utils.{Debounce, MuiInlineStyleSheet}
 import org.scalajs.dom
+import wvlet.log.LogSupport
 
 import scala.scalajs.js
 import scalacss.internal.mutable.StyleSheet
@@ -113,7 +114,7 @@ object PodcastDetails {
     }
   }
 
-  class Backend(bs: BackendScope[Props, State]) {
+  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
     val updateTileSize: Callback = {
       bs.modState(_.copy(availableWidth = ContentFrame.innerWidthPx))
     }

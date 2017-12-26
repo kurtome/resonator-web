@@ -16,6 +16,10 @@ object WebMain extends LogSupport {
       .render_P(name => <.div("Hello there ", name))
       .build
 
+  private var rootNode: dom.Element = null
+
+  def getRootNode = rootNode
+
   def main(args: Array[String]): Unit = {
     // Attach both style files to the head
     SharedStyles.addToDocument()
@@ -29,9 +33,9 @@ object WebMain extends LogSupport {
       debug("dev logging enabled.")
     }
 
-    val todoappNode = dom.document.body.querySelector("#reactroot")
+    rootNode = dom.document.body.querySelector("#reactroot")
 
-    DoteRoutes.router().renderIntoDOM(todoappNode)
+    DoteRoutes.router().renderIntoDOM(rootNode)
   }
 
   /**

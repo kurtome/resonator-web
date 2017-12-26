@@ -3,7 +3,7 @@ package kurtome.dote.web.components.widgets
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes._
-import kurtome.dote.web.SharedStyles
+import kurtome.dote.web.{SharedStyles, WebMain}
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
@@ -20,7 +20,7 @@ import scala.scalajs.js
   * Pager wrapper includes header/footer and renders child content within a centered portion of the
   * screen.
   */
-object ContentFrame {
+object ContentFrame extends LogSupport {
 
   case class Props(routerCtl: DoteRouterCtl)
   case class State()
@@ -81,7 +81,7 @@ object ContentFrame {
     }
 
     val paddingPx = 32
-    Math.round(dom.window.innerWidth * usableRatio).toInt - paddingPx
+    Math.round(WebMain.getRootNode.clientWidth * usableRatio).toInt - paddingPx
   }
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
