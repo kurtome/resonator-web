@@ -7,6 +7,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.{DoteRoute, PodcastEpisodeRoute}
 import kurtome.dote.web.SharedStyles
+import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.SiteLink
@@ -26,13 +27,6 @@ object EpisodeTable {
       marginBottom(SharedStyles.spacingUnit * 2)
     )
 
-    val tableFooterContainer = style(
-      paddingTop(SharedStyles.spacingUnit),
-      paddingLeft(SharedStyles.spacingUnit * 2),
-      paddingRight(SharedStyles.spacingUnit * 2),
-      paddingBottom(SharedStyles.spacingUnit)
-    )
-
     val pageNumbersLabel = style(
       marginRight(SharedStyles.spacingUnit * 2)
     )
@@ -41,7 +35,7 @@ object EpisodeTable {
       padding(0 px)
     )
 
-    val episodeTableCell = style(
+    val tableCell = style(
       padding(SharedStyles.spacingUnit * 2)
     )
 
@@ -105,15 +99,16 @@ object EpisodeTable {
       val episodePage = episodesOnPage ++
         (1 to s.rowsPerPage - episodesOnPage.size).map(_ => Dotable.defaultInstance)
 
-      val isXs = currentBreakpointString == "xs"
+      val isXs = isBreakpointXs
 
       Grid(container = true, spacing = 0)(
         Grid(item = true, xs = 12)(
           Paper(style = Styles.episodeTableContainer.inline)(
             Table()(
-              Typography(typographyType = Typography.Type.SubHeading,
-                         style = Styles.episodesHeader.inline)("Episodes"),
-              Divider()(),
+              TableHead()(
+                TableRow()(TableCell(style = Styles.tableCell.inline)(
+                  Typography(typographyType = Typography.Type.SubHeading)("Episodes")))
+              ),
               TableBody()(
                 (episodePage.zipWithIndex map {
                   case (episode, i) =>
@@ -134,17 +129,17 @@ object EpisodeTable {
                       }
 
                     TableRow(key = Some(key))(
-                      TableCell(style = Styles.episodeTableCell.inline)(
+                      TableCell(style = Styles.tableCell.inline)(
                         <.div(
                           ^.position := "relative",
-                          ^.height := "3em",
+                          ^.height := "2.5em",
                           <.div(
                             ^.position := "absolute",
                             ^.maxWidth := "100%",
                             Typography(typographyType = Typography.Type.Body1,
                                        style = Styles.truncateText.inline)(
                               SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
-                            Typography(typographyType = Typography.Type.Body2,
+                            Typography(typographyType = Typography.Type.Caption,
                                        style = Styles.truncateText.inline)(summaryInfo)
                           )
                         )
@@ -152,27 +147,31 @@ object EpisodeTable {
                     )
                 }).toVdomArray
               ),
-              Divider()(),
-              Grid(
-                container = true,
-                justify = if (isXs) Grid.Justify.SpaceBetween else Grid.Justify.FlexEnd,
-                alignItems = Grid.AlignItems.Center,
-                style = Styles.tableFooterContainer.inline
-              )(
-                Grid(item = true)(
-                  Typography(typographyType = Typography.Type.Caption,
-                             style = Styles.pageNumbersLabel.inline)(
-                    s"${pageStartIndex + 1}-$pageEndIndex of ${episodes.size}")
-                ),
-                Grid(item = true)(
-                  <.span(
-                    IconButton(disabled = s.page <= 0, onClick = handlePrevPageClicked(s))(
-                      Icons.KeyboardArrowLeft()),
-                    IconButton(disabled = s.page >= lastPage(p, s),
-                               onClick = handleNextPageClicked(p, s))(Icons.KeyboardArrowRight())
-                  )
-                )
-              )
+              TableFooter()(
+                TableRow()(
+                  TableCell(style = Styles.tableCell.inline)(
+                    Grid(
+                      container = true,
+                      spacing = 0,
+                      justify = if (isXs) Grid.Justify.SpaceBetween else Grid.Justify.FlexEnd,
+                      alignItems = Grid.AlignItems.Center
+                    )(
+                      Grid(item = true)(
+                        Typography(typographyType = Typography.Type.Caption,
+                                   style = Styles.pageNumbersLabel.inline)(
+                          s"${pageStartIndex + 1}-$pageEndIndex of ${episodes.size}")
+                      ),
+                      Grid(item = true)(
+                        <.span(
+                          IconButton(disabled = s.page <= 0, onClick = handlePrevPageClicked(s))(
+                            Icons.KeyboardArrowLeft()),
+                          IconButton(
+                            disabled = s.page >= lastPage(p, s),
+                            onClick = handleNextPageClicked(p, s))(Icons.KeyboardArrowRight())
+                        )
+                      )
+                    )
+                  )))
             )
           )
         )
@@ -183,7 +182,7 @@ object EpisodeTable {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State())
+    .initialState(State(rowsPerPage = if (ComponentHelpers.isBreakpointXs) 5 else 10))
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
     .build

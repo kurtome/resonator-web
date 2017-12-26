@@ -110,9 +110,16 @@ object ComponentHelpers {
 
   /**
     * snake-case-string to camelCaseString
+    *
+    * <p>Note that a leading - will produce a leading capital, for example:
+    *   -webkit-animation-delay  =>  WebkitAnimationDelay
     */
   def snakeToCamel(snake: String): String = {
-    snake.split("-").foldRight("")((s, word) => if (s.isEmpty) word else s + word.capitalize)
+    snake
+      .split("-")
+      .zipWithIndex
+      .foldRight("")((strAndIndex, word) =>
+        if (strAndIndex._2 == 0) strAndIndex._1 + word else strAndIndex._1.capitalize + word)
   }
 
   implicit val dynamicRenderer = new Renderer[Map[String, js.Dynamic]] {
@@ -125,7 +132,7 @@ object ComponentHelpers {
             val jsKey = snakeToCamel(kv.key)
             jsStyle.updateDynamic(jsKey)(kv.value)
           })
-          (style.sel.replace(".", "") -> jsStyle)
+          style.sel.replace(".", "") -> jsStyle
         case x => throw new IllegalArgumentException("unsupported " + x.toString)
       } toMap
     }
@@ -147,6 +154,8 @@ object ComponentHelpers {
     .asInstanceOf[js.Array[String]]
 
   val breakpoints = MuiTheme.theme.selectDynamic("breakpoints").selectDynamic("values")
+
+  def isBreakpointXs: Boolean = currentBreakpointString == "xs"
 
   def currentBreakpointString = {
     val width = dom.window.innerWidth

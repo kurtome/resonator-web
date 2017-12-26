@@ -187,7 +187,6 @@ object PodcastDetails {
             Grid(item = true, style = Styles.titleFieldContainer.inline)(
               <.div(
                 ^.width := asPxStr(detailsWidth),
-                ^.maxWidth := asPxStr(detailsWidth),
                 Grid(container = true)(
                   Grid(item = true, xs = 12)(
                     Typography(style = Styles.titleText.inline,
