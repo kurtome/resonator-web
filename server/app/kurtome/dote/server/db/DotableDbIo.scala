@@ -4,7 +4,7 @@ import java.time.{LocalDateTime, ZoneOffset}
 
 import com.trueaccord.scalapb.json.JsonFormat
 import dote.proto.api.dotable.Dotable
-import dote.proto.db.dotable.{DotableCommon, DotableDetails}
+import dote.proto.db.dotable._
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.server.util.{Slug, UrlIds}
 import kurtome.dote.slick.db.DotableKinds
@@ -122,27 +122,26 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
 
   def protoRowMapper(row: DotableRow): Dotable = {
     val kind = row.kind
-    val common = JsonFormat.fromJson[DotableCommon](row.common)
+    val data = JsonFormat.fromJson[DotableData](row.data)
     Dotable(
       id = UrlIds.encode(IdKinds.Dotable, row.id),
-      slug = Slug.slugify(common.title),
+      slug = Slug.slugify(data.getCommon.title),
       kind = row.kind match {
         case DotableKinds.Podcast => Dotable.Kind.PODCAST
         case DotableKinds.PodcastEpisode => Dotable.Kind.PODCAST_EPISODE
         case _ => throw new IllegalStateException("unexpected type " + kind)
       },
-      common = Some(common),
-      details =
-        Some(Dotable.Details(detailsFetched = true, details = parseDetails(kind, row.details)))
+      common = data.common,
+      details = data.details
     )
   }
 
-  private def parseDetails(kind: DotableKind, detailsJson: JValue): Dotable.Details.Details = {
+  private def parseDetails(kind: DotableKind, detailsJson: JValue): DotableDetails.Details = {
     kind match {
       case DotableKinds.Podcast =>
-        Dotable.Details.Details.Podcast(JsonFormat.fromJson[DotableDetails.Podcast](detailsJson))
+        DotableDetails.Details.Podcast(JsonFormat.fromJson[DotableDetails.Podcast](detailsJson))
       case DotableKinds.PodcastEpisode =>
-        Dotable.Details.Details
+        DotableDetails.Details
           .PodcastEpisode(JsonFormat.fromJson[DotableDetails.PodcastEpisode](detailsJson))
       case _ => throw new IllegalStateException("unexpected type " + kind)
     }
@@ -151,31 +150,28 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
   private def episodeToRow(id: Option[Long],
                            parentId: Long,
                            ep: RssFetchedEpisode): Tables.DotableRow = {
-    Tables.DotableRow(
+    val data = DotableData(
+      common = Some(ep.common),
+      details = Some(DotableDetails(DotableDetails.Details.PodcastEpisode(ep.details))))
+    DotableRow(
       id = id.getOrElse(0),
       kind = DotableKinds.PodcastEpisode,
       title = Some(ep.common.title),
-      description = Some(ep.common.description),
-      publishedTime = LocalDateTime.ofEpochSecond(ep.common.publishedEpochSec, 0, ZoneOffset.UTC),
-      editedTime = LocalDateTime.ofEpochSecond(ep.common.updatedEpochSec, 0, ZoneOffset.UTC),
       parentId = Some(parentId),
-      common = JsonFormat.toJson(ep.common),
-      details = JsonFormat.toJson(ep.details)
+      data = JsonFormat.toJson(data)
     )
   }
 
   private def podcastToRow(id: Option[Long], podcast: RssFetchedPodcast): Tables.DotableRow = {
-    Tables.DotableRow(
+    val data = DotableData(common = Some(podcast.common),
+                           details =
+                             Some(DotableDetails(DotableDetails.Details.Podcast(podcast.details))))
+    DotableRow(
       id = id.getOrElse(0),
       kind = DotableKinds.Podcast,
       title = Some(podcast.common.title),
-      description = Some(podcast.common.description),
-      publishedTime =
-        LocalDateTime.ofEpochSecond(podcast.common.publishedEpochSec, 0, ZoneOffset.UTC),
-      editedTime = LocalDateTime.ofEpochSecond(podcast.common.updatedEpochSec, 0, ZoneOffset.UTC),
-      parentId = None,
-      common = JsonFormat.toJson(podcast.common),
-      details = JsonFormat.toJson(podcast.details)
+      data = JsonFormat.toJson(data),
+      parentId = None
     )
   }
 

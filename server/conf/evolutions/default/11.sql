@@ -1,0 +1,21 @@
+
+-- LOTS OF COMPATIBILITY BREAKING CHANGES HERE!!!
+
+# --- !Ups
+
+ALTER TABLE dotable DROP COLUMN description;
+ALTER TABLE dotable DROP COLUMN published_time;
+ALTER TABLE dotable DROP COLUMN edited_time;
+ALTER TABLE dotable DROP COLUMN common;
+ALTER TABLE dotable DROP COLUMN details;
+ALTER TABLE dotable ADD COLUMN data JSONB NOT NULL DEFAULT '{}'::JSONB;
+
+# --- !Downs
+
+ALTER TABLE dotable DROP COLUMN data;
+ALTER TABLE dotable ADD COLUMN description TEXT;
+ALTER TABLE dotable ADD COLUMN published_time TIMESTAMP NOT NULL DEFAULT now();
+ALTER TABLE dotable ADD COLUMN edited_time TIMESTAMP NOT NULL DEFAULT now();
+ALTER TABLE dotable ADD COLUMN common JSONB;
+ALTER TABLE dotable ADD COLUMN details JSONB;
+

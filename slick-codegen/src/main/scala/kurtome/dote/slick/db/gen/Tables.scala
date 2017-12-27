@@ -27,66 +27,39 @@ trait Tables {
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
     *  @param kind Database column kind SqlType(dotablekind)
     *  @param title Database column title SqlType(text), Length(2147483647,true)
-    *  @param description Database column description SqlType(text), Length(2147483647,true)
-    *  @param publishedTime Database column published_time SqlType(timestamp)
-    *  @param editedTime Database column edited_time SqlType(timestamp)
     *  @param parentId Database column parent_id SqlType(int8)
-    *  @param common Database column common SqlType(jsonb)
-    *  @param details Database column details SqlType(jsonb) */
+    *  @param data Database column data SqlType(jsonb) */
   case class DotableRow(id: Long,
                         kind: kurtome.dote.slick.db.DotableKinds.Value,
                         title: Option[String],
-                        description: Option[String],
-                        publishedTime: java.time.LocalDateTime,
-                        editedTime: java.time.LocalDateTime,
                         parentId: Option[Long],
-                        common: org.json4s.JsonAST.JValue,
-                        details: org.json4s.JsonAST.JValue)
+                        data: org.json4s.JsonAST.JValue)
 
   /** GetResult implicit for fetching DotableRow objects using plain SQL queries */
   implicit def GetResultDotableRow(implicit e0: GR[Long],
                                    e1: GR[kurtome.dote.slick.db.DotableKinds.Value],
                                    e2: GR[Option[String]],
-                                   e3: GR[java.time.LocalDateTime],
-                                   e4: GR[Option[Long]],
-                                   e5: GR[org.json4s.JsonAST.JValue]): GR[DotableRow] = GR { prs =>
+                                   e3: GR[Option[Long]],
+                                   e4: GR[org.json4s.JsonAST.JValue]): GR[DotableRow] = GR { prs =>
     import prs._
     DotableRow.tupled(
       (<<[Long],
        <<[kurtome.dote.slick.db.DotableKinds.Value],
        <<?[String],
-       <<?[String],
-       <<[java.time.LocalDateTime],
-       <<[java.time.LocalDateTime],
        <<?[Long],
-       <<[org.json4s.JsonAST.JValue],
        <<[org.json4s.JsonAST.JValue]))
   }
 
   /** Table description of table dotable. Objects of this class serve as prototypes for rows in queries. */
   class Dotable(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[DotableRow](_tableTag, "dotable") {
-    def * =
-      (id, kind, title, description, publishedTime, editedTime, parentId, common, details) <> (DotableRow.tupled, DotableRow.unapply)
+    def * = (id, kind, title, parentId, data) <> (DotableRow.tupled, DotableRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(id),
-       Rep.Some(kind),
-       title,
-       description,
-       Rep.Some(publishedTime),
-       Rep.Some(editedTime),
-       parentId,
-       Rep.Some(common),
-       Rep.Some(details)).shaped.<>(
-        { r =>
-          import r._;
-          _1.map(_ =>
-            DotableRow.tupled((_1.get, _2.get, _3, _4, _5.get, _6.get, _7, _8.get, _9.get)))
-        },
-        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
-      )
+      (Rep.Some(id), Rep.Some(kind), title, parentId, Rep.Some(data)).shaped.<>({ r =>
+        import r._; _1.map(_ => DotableRow.tupled((_1.get, _2.get, _3, _4, _5.get)))
+      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -99,25 +72,11 @@ trait Tables {
     val title: Rep[Option[String]] =
       column[Option[String]]("title", O.Length(2147483647, varying = true))
 
-    /** Database column description SqlType(text), Length(2147483647,true) */
-    val description: Rep[Option[String]] =
-      column[Option[String]]("description", O.Length(2147483647, varying = true))
-
-    /** Database column published_time SqlType(timestamp) */
-    val publishedTime: Rep[java.time.LocalDateTime] =
-      column[java.time.LocalDateTime]("published_time")
-
-    /** Database column edited_time SqlType(timestamp) */
-    val editedTime: Rep[java.time.LocalDateTime] = column[java.time.LocalDateTime]("edited_time")
-
     /** Database column parent_id SqlType(int8) */
     val parentId: Rep[Option[Long]] = column[Option[Long]]("parent_id")
 
-    /** Database column common SqlType(jsonb) */
-    val common: Rep[org.json4s.JsonAST.JValue] = column[org.json4s.JsonAST.JValue]("common")
-
-    /** Database column details SqlType(jsonb) */
-    val details: Rep[org.json4s.JsonAST.JValue] = column[org.json4s.JsonAST.JValue]("details")
+    /** Database column data SqlType(jsonb) */
+    val data: Rep[org.json4s.JsonAST.JValue] = column[org.json4s.JsonAST.JValue]("data")
 
     /** Foreign key referencing Dotable (database name dotable_parent_id_fkey) */
     lazy val dotableFk = foreignKey("dotable_parent_id_fkey", parentId, Dotable)(

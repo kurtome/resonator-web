@@ -38,8 +38,8 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
       (for {
         t <- tagTable.filter(row => row.kind === kind && row.key === key)
         td <- table if td.tagId === t.id
-        d <- Tables.Dotable.sortBy(_.editedTime.desc) if d.id === td.dotableId
-      } yield (td.dotableId)).take(limit)
+        d <- Tables.Dotable if d.id === td.dotableId
+      } yield td.dotableId).take(limit)
   }
 
   private val tagKeyExistsRaw = Compiled {

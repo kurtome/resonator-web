@@ -2,6 +2,14 @@ syntax = "proto3";
 
 package dote.proto.db;
 
+// Warpper with both the common and the details, used to store in the database as one document blob.
+// Contents represent the entirety of the data of one entity (except ID and foreign keys).
+message DotableData {
+  DotableCommon common = 1;
+  DotableDetails details = 2;
+}
+
+// Wrapper for data common to all kinds
 message DotableCommon {
   string title = 1;
   string description = 2;
@@ -9,7 +17,13 @@ message DotableCommon {
   int64 updated_epoch_sec = 6;
 }
 
+// Wrapper for data specific to a kind
 message DotableDetails {
+  oneof details {
+    Podcast podcast = 1;
+    PodcastEpisode podcast_episode = 2;
+  }
+
   message Podcast {
     string imageUrl = 1;
     string author = 2;

@@ -9,23 +9,15 @@ message Dotable {
   string id = 1;
   db.DotableCommon common = 2;
   Relatives relatives = 3;
-  repeated EntityTag tags = 4;
+  repeated Tag tags = 4;
   Kind kind = 5;
-  Details details = 6;
+  db.DotableDetails details = 6;
   string slug = 7;
 
   enum Kind {
     UNKNOWN_KIND = 0;
     PODCAST = 1;
     PODCAST_EPISODE = 2;
-  }
-
-  message Details {
-    bool details_fetched = 1;
-    oneof details {
-      db.DotableDetails.Podcast podcast = 5;
-      db.DotableDetails.PodcastEpisode podcast_episode = 6;
-    }
   }
 
   message Relatives {
@@ -38,8 +30,8 @@ message Dotable {
   }
 }
 
-
-message EntityTag {
+// Tag applicable to any dotable for filtering/categorization.
+message Tag {
   enum Kind {
     UNKNNOWN_TYPE = 0;
     METADATA_FLAG = 1;
