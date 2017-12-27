@@ -38,7 +38,7 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
       (for {
         t <- tagTable.filter(row => row.kind === kind && row.key === key)
         td <- table if td.tagId === t.id
-        d <- Tables.Dotable if d.id === td.dotableId
+        d <- Tables.Dotable.sortBy(_.contentEditedTime.desc) if d.id === td.dotableId
       } yield td.dotableId).take(limit)
   }
 

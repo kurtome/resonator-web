@@ -157,6 +157,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
       id = id.getOrElse(0),
       kind = DotableKinds.PodcastEpisode,
       title = Some(ep.common.title),
+      contentEditedTime = LocalDateTime.ofEpochSecond(ep.common.updatedEpochSec, 0, ZoneOffset.UTC),
       parentId = Some(parentId),
       data = JsonFormat.toJson(data)
     )
@@ -170,6 +171,8 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
       id = id.getOrElse(0),
       kind = DotableKinds.Podcast,
       title = Some(podcast.common.title),
+      contentEditedTime =
+        LocalDateTime.ofEpochSecond(podcast.common.updatedEpochSec, 0, ZoneOffset.UTC),
       data = JsonFormat.toJson(data),
       parentId = None
     )

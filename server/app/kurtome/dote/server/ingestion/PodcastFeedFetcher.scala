@@ -39,6 +39,9 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
             info(s"Response wasn't valid feed url: $feedUrl")
             Future(Seq())
           }
+        } else if (response.status == 304) {
+          debug(s"Feed unchanged (status was 304) for feed url: $feedUrl")
+          Future(Seq())
         } else {
           info(s"Response status was ${response.status} for feed url: $feedUrl")
           Future(Seq())
