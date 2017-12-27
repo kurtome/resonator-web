@@ -24,16 +24,20 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
 
   private val table = Tables.Dotable
 
+  val filterRaw = Compiled { (id: Rep[Long]) =>
+    table.filter(row => row.id === id)
+  }
+
   def updateExisting(id: Long, podcast: RssFetchedPodcast) = {
     val row = podcastToRow(Some(id), podcast)
-    table.filter(row => row.id === id && row.kind === DotableKinds.Podcast).update(row)
+    filterRaw(id).update(row)
   }
 
   def insertAndGetId(podcast: RssFetchedPodcast) = {
     val row = podcastToRow(None, podcast)
     for {
       id <- (table returning table.map(_.id)) += row
-    } yield (id)
+    } yield id
   }
 
   def insertEpisodeBatch(podcastId: Long, episodes: Seq[RssFetchedEpisode]) = {
@@ -50,7 +54,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     DBIO.sequence(existingEpisodesWithId map {
       case (id, episode) =>
         val row = episodeToRow(Some(id), podcastId, episode)
-        table.filter(row => row.id === id && row.kind === DotableKinds.PodcastEpisode).update(row)
+        filterRaw(id).update(row)
     })
   }
 
@@ -58,28 +62,27 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     table.map(_.id).max.result
   }
 
-  def readLimited(kind: DotableKind, limit: Int, minId: Long = 0) = {
-    table
-      .filter(row => row.kind === kind && row.id >= minId)
-      .take(limit)
-      .result
-      .map(_.map(protoRowMapper(kind)))
+  val readLimitedRaw = Compiled {
+    (kind: Rep[DotableKind], limit: ConstColumn[Long], minId: ConstColumn[Long]) =>
+      table
+        .filter(row => row.kind === kind && row.id >= minId)
+        .take(limit)
   }
 
-  val readByIdRaw = Compiled { (id: Rep[Long]) =>
-    table.filter(_.id === id)
+  def readLimited(kind: DotableKind, limit: Int, minId: Long = 0) = {
+    readLimitedRaw(kind, limit, minId).result.map(_.map(protoRowMapper(kind)))
   }
 
   def readById(kind: DotableKind, id: Long) = {
-    readByIdRaw(id).result.map(_.map(protoRowMapper(kind)))
+    filterRaw(id).result.map(_.map(protoRowMapper(kind)))
   }
 
   def readHeadById(kind: DotableKind, id: Long) = {
-    readByIdRaw(id).result.headOption.map(_.map(protoRowMapper(kind)))
+    filterRaw(id).result.headOption.map(_.map(protoRowMapper(kind)))
   }
 
   def readHeadById(id: Long) = {
-    readByIdRaw(id).result.headOption.map(_.map(protoRowMapper))
+    filterRaw(id).result.headOption.map(_.map(protoRowMapper))
   }
 
   val readByParentIdRaw = Compiled { (parentId: Rep[Long]) =>
@@ -106,13 +109,6 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
 
   def readByParentId(parentId: Long) = {
     readByParentIdRaw(parentId).result.map(_.map(protoRowMapper))
-  }
-
-  def readByIdBatch(kind: DotableKind, ids: Set[Long]) = {
-    table
-      .filter(row => row.id.inSet(ids) && row.kind === kind)
-      .result
-      .map(_.map(protoRowMapper(kind)))
   }
 
   def protoRowMapper(kind: DotableKind)(row: DotableRow): Dotable = {
@@ -178,21 +174,33 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     )
   }
 
+  val searchRaw = Compiled {
+    (query: ConstColumn[String],
+     psqlQueryStr: ConstColumn[String],
+     kind: ConstColumn[DotableKind],
+     limit: ConstColumn[Long]) =>
+      // Use full text search on the title column and order by the highest text ranking
+      table
+        .filter(row => {
+          toTsVector(row.title, Some("english")) @@ toTsQuery(psqlQueryStr, Some("english")) && row.kind === kind
+        })
+        .map(
+          row =>
+            (row,
+             !(row.title ilike query), // sort by this first so that prefix exact matches are on top
+             tsRank(toTsVector(row.title, Some("english")),
+                    toTsQuery(psqlQueryStr, Some("english")))))
+        .sortBy(rowTup => (rowTup._2, rowTup._3.desc))
+        .take(limit)
+        .map(_._1)
+  }
+
   def search(query: String, kind: DotableKind, limit: Long) = {
     val parts = query.split("\\W")
     // join on '|' to logically or the words together
     // add ':*' to the last word, assuming it may be a partial word
     val psqlQueryStr = if (query.nonEmpty) parts.mkString("&") + ":*" else ""
-    // Use full text search on the title column and order by the highest text ranking
-    table
-      .filter(row => {
-        toTsVector(row.title, Some("english")) @@ toTsQuery(psqlQueryStr) && row.kind === kind
-      })
-      .map(row => (row, tsRank(toTsVector(row.title, Some("english")), toTsQuery(psqlQueryStr))))
-      .sortBy(_._2.desc)
-      .take(limit)
-      .map(_._1)
-      .result
-      .map(_.map(protoRowMapper(kind)))
+
+    searchRaw(query, psqlQueryStr, kind, limit).result.map(_.map(protoRowMapper(kind)))
   }
 }

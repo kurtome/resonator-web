@@ -2,7 +2,7 @@ name := """dote-web"""
 organization := "kurtome"
 version := "1.0-SNAPSHOT"
 
-val scalaV = "2.12.3"
+val scalaV = "2.12.4"
 val postgresJdbcDriver
   : ModuleID = "org.postgresql" % "postgresql" % "9.4-1200-jdbc41" exclude ("org.slf4j", "slf4j-simple")
 

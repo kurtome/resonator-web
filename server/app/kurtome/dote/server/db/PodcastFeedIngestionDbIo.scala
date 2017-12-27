@@ -52,29 +52,43 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
   def updateNextIngestionTimeByItunesId(itunesId: Long, nextIngestionTime: LocalDateTime) = {
     val q = for {
       row <- table.filter(_.itunesId === itunesId)
-    } yield (row.nextIngestionTime)
+    } yield row.nextIngestionTime
     q.update(nextIngestionTime)
   }
 
-  def updateFeedUrByItunesId(itunesId: Long, feedUrl: String) = {
-    table.filter(_.itunesId === itunesId).map(_.feedRssUrl).update(feedUrl)
+  val readRssFeedUrlByItunesIdRaw = Compiled { (itunesId: Rep[Long]) =>
+    table.filter(_.itunesId === itunesId).map(_.feedRssUrl)
   }
 
-  def readPodcastIdFromItunesId(itunesId: Long): DBIOAction[Option[Long], NoStream, Effect.Read] = {
+  def updateFeedUrByItunesId(itunesId: Long, feedUrl: String) = {
+    readRssFeedUrlByItunesIdRaw(itunesId).update(feedUrl)
+  }
+
+  val readPodcastIdFromItunesIdRaw = Compiled { (itunesId: Rep[Long]) =>
     table
       .filter(row => row.itunesId === itunesId && row.podcastDotableId.isDefined)
       .map(_.podcastDotableId.get)
-      .result
-      .headOption
+  }
+
+  def readPodcastIdFromItunesId(itunesId: Long): DBIOAction[Option[Long], NoStream, Effect.Read] = {
+    readPodcastIdFromItunesIdRaw(itunesId).result.headOption
+  }
+
+  val readEpisodesByPodcastIdRaw = Compiled { (podcastId: Rep[Long]) =>
+    episodeTable.filter(_.podcastDotableId === podcastId)
   }
 
   def readEpisodesByPodcastId(podcastId: Long)
     : DBIOAction[Seq[Tables.PodcastEpisodeIngestionRow], NoStream, Effect.Read] = {
-    episodeTable.filter(_.podcastDotableId === podcastId).result
+    readEpisodesByPodcastIdRaw(podcastId).result
+  }
+
+  val filterByItunesIdRaw = Compiled { (itunesId: Rep[Long]) =>
+    table.filter(_.itunesId === itunesId)
   }
 
   def readRowByItunesId(itunesId: Long) = {
-    table.filter(_.itunesId === itunesId).result.headOption
+    filterByItunesIdRaw(itunesId).result.headOption
   }
 
   private val readNextIngestionRowsRaw = Compiled {

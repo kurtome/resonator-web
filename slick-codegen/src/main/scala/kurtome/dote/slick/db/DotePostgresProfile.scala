@@ -5,7 +5,6 @@ import java.time._
 import com.github.tminglei.slickpg._
 import com.github.tminglei.slickpg.enums.PgEnumExtensions
 import org.json4s.{JValue, JsonMethods}
-import slick.ast.TypedType
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcModelBuilder
 import slick.jdbc.meta.{MColumn, MTable}
@@ -92,7 +91,8 @@ trait DotePostgresProfile
       with Json4sJsonImplicits
       with JsonImplicits
       with SearchImplicits
-      with SearchAssistants {
+      with SearchAssistants
+      with ILikeImplicits {
 
     implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
 
