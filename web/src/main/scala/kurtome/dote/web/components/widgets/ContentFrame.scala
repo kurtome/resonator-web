@@ -31,7 +31,7 @@ object ContentFrame extends LogSupport {
     val siteTitleText = styleF.bool(
       isXs =>
         styleS(
-          fontFamily(SharedStyles.jaapokkiEnchanceFf),
+          fontFamily(SharedStyles.jaapokkiSubtractFf),
           fontSize(if (isXs) 1.5 rem else 3 rem),
           textAlign.center,
           color(Color(MuiTheme.theme.palette.text.primary.toString))

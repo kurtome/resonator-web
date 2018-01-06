@@ -20,7 +20,8 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
 
   import Emojis._
 
-  val siteTitle = s"Pod ${cryingFace}${heartEyes}${unamusedFace}s"
+  //val siteTitle = s"Pod ${cryingFace}${heartEyes}${unamusedFace}s"
+  val siteTitle = s"Resonator"
 
   /**
     * Create an Action to render an HTML page.

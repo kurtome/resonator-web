@@ -10,6 +10,7 @@ object StringValues {
 
   import Emojis._
 
-  val siteTitle = s"Pod ${cryingFace}${heartEyes}${unamusedFace}s"
+  //val siteTitle = s"Pod ${cryingFace}${heartEyes}${unamusedFace}s"
+  val siteTitle = s"Resonator"
 
 }
