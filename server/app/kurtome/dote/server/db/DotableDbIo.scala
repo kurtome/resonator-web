@@ -184,12 +184,11 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
         .filter(row => {
           toTsVector(row.title, Some("english")) @@ toTsQuery(psqlQueryStr, Some("english")) && row.kind === kind
         })
-        .map(
-          row =>
-            (row,
-             !(row.title ilike query), // sort by this first so that prefix exact matches are on top
-             tsRank(toTsVector(row.title, Some("english")),
-                    toTsQuery(psqlQueryStr, Some("english")))))
+        .map(row =>
+          (row,
+           !(row.title ilike query), // sort by this first so that prefix exact matches are on top
+           tsRank(toTsVector(row.title, Some("english")),
+                  toTsQuery(psqlQueryStr, Some("english")))))
         .sortBy(rowTup => (rowTup._2, rowTup._3.desc))
         .take(limit)
         .map(_._1)
