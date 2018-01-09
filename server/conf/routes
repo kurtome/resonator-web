@@ -16,5 +16,9 @@ POST     /api/v1/get-dotable-details    kurtome.dote.server.controllers.api.GetD
 POST     /api/v1/get-dotable-list       kurtome.dote.server.controllers.api.GetDotableListController.protoAction
 POST     /api/v1/get-feed               kurtome.dote.server.controllers.api.GetFeedController.protoAction
 POST     /api/v1/search                 kurtome.dote.server.controllers.api.SearchController.protoAction
+POST     /api/v1/create-login-link      kurtome.dote.server.controllers.api.LoginLinkController.protoAction
+POST     /api/v1/get-logged-in-person   kurtome.dote.server.controllers.api.GetLoggedInPersonController.protoAction
+
+GET      /lc/:email/:code        kurtome.dote.server.controllers.LoginRedirectController.login(email: String, code: String)
 
 GET     /*route                         kurtome.dote.server.controllers.HomeController.redirectToRoot(route: String)

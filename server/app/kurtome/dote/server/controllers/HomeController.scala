@@ -37,7 +37,8 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
   }
 
   /**
-    * Route for ensuring random URLs go to the main client side app (which has not base route, uses # fragment routing)
+    * Route for ensuring random URLs go to the main client side app (which has no base route, uses
+    * # fragment routing)
     */
   def redirectToRoot(route: String) = Action { implicit request: Request[AnyContent] =>
     Redirect("/")

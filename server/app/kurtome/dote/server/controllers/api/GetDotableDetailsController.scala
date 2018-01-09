@@ -19,9 +19,9 @@ class GetDotableDetailsController @Inject()(
   override def parseRequest(bytes: Array[Byte]) =
     GetDotableDetailsRequest.parseFrom(bytes)
 
-  override def action(request: GetDotableDetailsRequest): Future[GetDotableDetailsResponse] = {
+  override def action(request: Request[GetDotableDetailsRequest]) = {
     podcastDbService
-      .readDotableWithParentAndChildren(UrlIds.decode(IdKinds.Dotable, request.id))
+      .readDotableWithParentAndChildren(UrlIds.decode(IdKinds.Dotable, request.body.id))
       .map(GetDotableDetailsResponse(_))
   }
 

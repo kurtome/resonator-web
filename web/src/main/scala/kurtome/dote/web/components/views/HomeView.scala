@@ -1,13 +1,12 @@
 package kurtome.dote.web.components.views
 
-import dote.proto.api.action.get_feed_controller.{GetFeedRequest, GetFeedResponse}
+import dote.proto.api.action.get_feed_controller._
 import dote.proto.api.feed.{Feed, FeedItem}
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 import kurtome.dote.web.components.widgets.ContentFrame
-import kurtome.dote.web.DoteRoutes.{DoteRoute, DoteRouterCtl}
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
@@ -29,11 +28,17 @@ object HomeView extends LogSupport {
   }
   Styles.addToDocument()
 
+  case class LoginData(email: String, code: String)
+  case class Props(routerCtl: DoteRouterCtl)
   case class State(feed: Feed = Feed.defaultInstance, requestInFlight: Boolean = false)
 
-  class Backend(bs: BackendScope[DoteRouterCtl, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
-    def fetchData(): Callback = Callback {
+    val handleDidMount = Callback {
+      fetchHomeData()
+    }
+
+    def fetchHomeData() = {
       val cachedFeed = LocalCache.getObj(ObjectKinds.Feed, "home", Feed.parseFrom)
       if (cachedFeed.isDefined) {
         bs.modState(_.copy(feed = cachedFeed.get, requestInFlight = false)).runNow()
@@ -47,8 +52,8 @@ object HomeView extends LogSupport {
       }
     }
 
-    def render(routerCtl: DoteRouterCtl, s: State): VdomElement = {
-      ContentFrame(routerCtl)(
+    def render(p: Props, s: State): VdomElement = {
+      ContentFrame(p.routerCtl)(
         s.feed.items.zipWithIndex map {
           case (item, i) =>
             <.div(
@@ -56,7 +61,7 @@ object HomeView extends LogSupport {
               ^.className := Styles.feedItemContainer,
               item.kind match {
                 case FeedItem.Kind.DOTABLE_LIST =>
-                  FeedDotableList(routerCtl, item.getDotableList, key = Some(i.toString))()
+                  FeedDotableList(p.routerCtl, item.getDotableList, key = Some(i.toString))()
                 case _ => <.div(^.key := i)
               }
             )
@@ -66,12 +71,12 @@ object HomeView extends LogSupport {
   }
 
   val component = ScalaComponent
-    .builder[DoteRouterCtl](this.getClass.getSimpleName)
+    .builder[Props](this.getClass.getSimpleName)
     .initialState(State())
     .backend(new Backend(_))
     .render(x => x.backend.render(x.props, x.state))
-    .componentDidMount(_.backend.fetchData())
+    .componentDidMount(x => x.backend.handleDidMount)
     .build
 
-  def apply(routerCtl: RouterCtl[DoteRoute]) = component.withProps(routerCtl)
+  def apply(routerCtl: DoteRouterCtl) = component.withProps(Props(routerCtl))
 }

@@ -1,8 +1,8 @@
 package kurtome.dote.web.components.materialui
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.component.Generic.UnmountedRaw
-import japgolly.scalajs.react.raw.ReactElement
+import japgolly.scalajs.react.component.Generic.{Unmounted, UnmountedSimple}
+import japgolly.scalajs.react.vdom._
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
@@ -26,7 +26,8 @@ object BottomNavigationButton {
     var focusRipple: js.UndefOr[Boolean] = js.native
     var centerRipple: js.UndefOr[Boolean] = js.native
     var onClick: js.UndefOr[js.Function0[Unit]] = js.native
-    var icon: js.UndefOr[ReactElement] = js.native
+    var icon: js.UndefOr[raw.ReactElement] = js.native
+    var label: js.UndefOr[raw.ReactElement] = js.native
     var value: js.UndefOr[String] = js.native
     var className: js.UndefOr[String] = js.native
   }
@@ -38,13 +39,15 @@ object BottomNavigationButton {
       onClick: Callback = Callback.empty,
       showLabel: js.UndefOr[Boolean] = js.undefined,
       className: js.UndefOr[String] = js.undefined,
-      icon: js.UndefOr[JsComponent.Unmounted[_, _]] = js.undefined
+      label: js.UndefOr[GenericComponent.Unmounted[_, _]] = js.undefined,
+      icon: js.UndefOr[GenericComponent.Unmounted[_, _]] = js.undefined
   ) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.onClick = onClick.toJsCallback
     p.showLabel = showLabel
     p.className = className
     p.value = value
+    p.label = label.map(_.raw)
     p.icon = icon.map(_.raw)
     component.withProps(p)
   }

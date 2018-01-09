@@ -23,38 +23,46 @@ abstract class ProtobufController[
 
   def parseRequest(bytes: Array[Byte]): TRequest
 
-  def action(request: TRequest): Future[TResponse]
+  def action(request: Request[TRequest]): Future[ProtoResponse[TResponse]]
 
   def parseJsonRequest(json: String): TRequest =
     JsonFormat.fromJsonString[TRequest](json)
 
+  implicit def response2Wrapper(response: TResponse): ProtoResponse[TResponse] = {
+    ProtoResponse(response, identity)
+  }
+
+  implicit def response2Wrapper(response: Future[TResponse]): Future[ProtoResponse[TResponse]] = {
+    response.map(ProtoResponse(_, identity))
+  }
+
   def protoAction() = Action.async(new ProtoParser) { implicit request: Request[TRequest] =>
-    debug(s"Request received.")
-
-    action(request.body) map { response =>
-      // See if request accepts gzip responses, web browsers will automatically inflate from gzip
-      // when the Content-Encoding header is set in the response below
-      val acceptsGzip = request.headers.get("Accept-Encoding").exists { header =>
-        header.split(Array(' ', ',', ';')).contains("gzip")
-      }
-
-      request.contentType map {
-        case "application/x-protobuf" => {
-          if (acceptsGzip) {
-            Ok(gzip(response.toByteArray)).withHeaders("Content-Encoding" -> "gzip")
-          } else {
-            Ok(response.toByteArray)
-          }
+    action(request) map {
+      case ProtoResponse(response, okFilter) =>
+        // See if request accepts gzip responses, web browsers will automatically inflate from gzip
+        // when the Content-Encoding header is set in the response below
+        val acceptsGzip = request.headers.get("Accept-Encoding").exists { header =>
+          header.split(Array(' ', ',', ';')).contains("gzip")
         }
-        case _ => {
-          if (acceptsGzip) {
-            Ok(gzip(JsonFormat.toJsonString(response).getBytes))
-              .withHeaders("Content-Encoding" -> "gzip")
-          } else {
-            Ok(JsonFormat.toJsonString(response))
+
+        request.contentType map {
+          case "application/x-protobuf" => {
+            if (acceptsGzip) {
+              okFilter(Ok(gzip(response.toByteArray)).withHeaders("Content-Encoding" -> "gzip"))
+            } else {
+              okFilter(Ok(response.toByteArray))
+            }
           }
-        }
-      } get
+          case _ => {
+            if (acceptsGzip) {
+              okFilter(
+                Ok(gzip(JsonFormat.toJsonString(response).getBytes))
+                  .withHeaders("Content-Encoding" -> "gzip"))
+            } else {
+              okFilter(Ok(JsonFormat.toJsonString(response)))
+            }
+          }
+        } get
     }
   }
 
@@ -101,3 +109,4 @@ abstract class ProtobufController[
     }
   }
 }
+case class ProtoResponse[TResponse](response: TResponse, okFilter: (Result) => Result = identity)

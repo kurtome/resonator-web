@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package dote.proto.api.action;
+
+import "api/person.proto";
+import "api/common.proto";
+
+message LoginLinkRequest {
+  string username = 1;
+  string email = 2;
+}
+
+message LoginLinkResponse {
+  // will be left unset if status.success == false
+  api.Person person = 1;
+  api.ResponseStatus status = 2;
+}

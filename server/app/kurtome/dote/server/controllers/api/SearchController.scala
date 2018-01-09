@@ -17,9 +17,9 @@ class SearchController @Inject()(cc: ControllerComponents, podcastDbService: Dot
   override def parseRequest(bytes: Array[Byte]) =
     SearchRequest.parseFrom(bytes)
 
-  override def action(request: SearchRequest): Future[SearchResponse] = {
+  override def action(request: Request[SearchRequest]) = {
     podcastDbService
-      .search(request.query, DotableKinds.Podcast, request.maxResults)
+      .search(request.body.query, DotableKinds.Podcast, request.body.maxResults)
       .map(list => SearchResponse(list))
   }
 

@@ -41,7 +41,7 @@ class PodcastFeedParser @Inject()() extends LogSupport {
     val itunesImagesWithHref =
       (podcast \ "image").filter(n => n.attribute("href").isDefined && n.namespace == "itunes")
     val imagesWithHref = (podcast \ "image").filter(n => n.attribute("href").isDefined)
-    val imageUrl = if (itunesImagesWithHref.size > 0) {
+    val imageUrl = if (itunesImagesWithHref.nonEmpty) {
       // Prefer the iTunes image as it is more often up to date
       itunesImagesWithHref \@ "href"
     } else {
@@ -53,7 +53,7 @@ class PodcastFeedParser @Inject()() extends LogSupport {
     val rawLanguage: String = podcast \ "language"
     // split "en-US" into "en" and "US"
     val languageParts = rawLanguage.split("-")
-    val languageCode: String = if (languageParts.size > 0) languageParts(0) else ""
+    val languageCode: String = if (languageParts.nonEmpty) languageParts(0) else ""
     val countryCode: String = if (languageParts.size > 1) languageParts(1) else ""
     val locale: Option[Locale] = languageCode match {
       case "" => None
@@ -160,21 +160,21 @@ class PodcastFeedParser @Inject()() extends LogSupport {
         if (raw.contains(':')) {
           // Assume it's either MM:SS or HH:MM:SS
           val parts = raw.split(':')
-          if (parts.size == 2) {
-            val minutes = Integer.parseInt(parts(0))
-            val seconds = Integer.parseInt(parts(1))
+          if (parts.length == 2) {
+            val minutes = parts(0).toDouble
+            val seconds = parts(1).toDouble
             (minutes * 60) + seconds
-          } else if (parts.size == 3) {
-            val hours = Integer.parseInt(parts(0))
-            val minutes = Integer.parseInt(parts(1))
-            val seconds = Integer.parseInt(parts(2))
+          } else if (parts.length == 3) {
+            val hours = parts(0).toDouble
+            val minutes = parts(1).toDouble
+            val seconds = parts(2).toDouble
             (hours * 3600) + (minutes * 60) + seconds
           } else {
             throw new IllegalStateException(s"Unable to parse $raw")
           }
         } else {
           // Assume its raw number of seconds
-          Integer.parseInt(raw)
+          raw.toDouble
         }
       )
 
@@ -183,7 +183,7 @@ class PodcastFeedParser @Inject()() extends LogSupport {
         case _ =>
       }
 
-      tryParse.toOption
+      tryParse.toOption.map(_.toInt)
     }
   }
 

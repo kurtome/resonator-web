@@ -30,15 +30,15 @@ class AddPodcastController @Inject()(
     }
   }
 
-  override def action(request: AddPodcastRequest): Future[AddPodcastResponse] = {
-    val itunesIdStr = request.itunesUrl.split('/').last.substring(2).replaceAll("\\?.*", "")
+  override def action(request: Request[AddPodcastRequest]) = {
+    val itunesIdStr = request.body.itunesUrl.split('/').last.substring(2).replaceAll("\\?.*", "")
     val itunesId = itunesIdStr.toLong
-    if (request.ingestLater) {
-      fetchFromItunesAndIngest(request, itunesId)
+    if (request.body.ingestLater) {
+      fetchFromItunesAndIngest(request.body, itunesId)
     } else {
       dotableDbService.getPodcastIngestionRowByItunesId(itunesId) flatMap { ingestRowOpt =>
         if (ingestRowOpt.isEmpty) {
-          fetchFromItunesAndIngest(request, itunesId)
+          fetchFromItunesAndIngest(request.body, itunesId)
         } else {
           podcastFeedIngester.reingestPodcastByItunesId(itunesId)
         }

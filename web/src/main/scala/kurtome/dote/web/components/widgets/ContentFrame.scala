@@ -114,7 +114,7 @@ object ContentFrame extends LogSupport {
                 ),
                 Grid(item = true, xs = 12)(
                   Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
-                    Grid(item = true, xs = 10, md = 8, lg = 6, xl = 4)(Divider()())
+                    Grid(item = true, xs = 8, md = 6, lg = 4, xl = 4)(Divider()())
                   )
                 ),
                 Grid(item = true, xs = 12)(

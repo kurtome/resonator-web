@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package dote.proto.api;
+
+message ResponseStatus {
+  bool success = 1;
+  string error_message = 2;
+}

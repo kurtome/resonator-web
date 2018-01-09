@@ -43,12 +43,12 @@ object NotificationSnackBar {
       close()
     }
 
-    val handleWillUnmount = Callback {
+    val handleWillUnmount: Callback = Callback {
       GlobalNotificationManager.stateObservable.removeObserver(stateObserver)
       close()
     }
 
-    val handleAutoCloseTimeout = () => {
+    val handleAutoCloseTimeout: () => Unit = () => {
       close()
     }
 
@@ -66,7 +66,7 @@ object NotificationSnackBar {
       val isXs = currentBreakpointString == "xs"
 
       if (s.message.isDefined && autoCloseTimerId.isEmpty) {
-        autoCloseTimerId = Some(dom.window.setTimeout(handleAutoCloseTimeout, 5000))
+        autoCloseTimerId = Some(dom.window.setTimeout(handleAutoCloseTimeout, 10000))
       }
 
       val displayMessage = s.message.getOrElse("")

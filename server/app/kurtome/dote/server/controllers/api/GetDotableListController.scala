@@ -18,9 +18,9 @@ class GetDotableListController @Inject()(
   override def parseRequest(bytes: Array[Byte]) =
     GetDotableListRequest.parseFrom(bytes)
 
-  override def action(request: GetDotableListRequest): Future[GetDotableListResponse] = {
+  override def action(request: Request[GetDotableListRequest]) = {
     podcastDbService
-      .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.maxResults)
+      .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.body.maxResults)
       .map(list => GetDotableListResponse(list.map(_.list).getOrElse(Nil)))
   }
 

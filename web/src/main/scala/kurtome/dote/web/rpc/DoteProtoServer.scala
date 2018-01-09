@@ -2,20 +2,20 @@ package kurtome.dote.web.rpc
 
 import dote.proto.api.action.add_podcast._
 import dote.proto.action.hello._
+import dote.proto.api.action.login_link._
+import dote.proto.api.action.get_logged_in_person._
 import dote.proto.api.action.get_dotable._
 import dote.proto.api.action.get_dotable_list._
 import dote.proto.api.action.get_feed_controller.{GetFeedRequest, GetFeedResponse}
-import dote.proto.api.action.search.{SearchRequest, SearchResponse}
-import dote.proto.api.dotable.Dotable
+import dote.proto.api.action.search._
 import kurtome.dote.web.rpc.AjaxRpc.ProtoAction
-import org.scalajs.dom
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object DoteProtoServer {
 
-  def requestAsJson = AjaxRpc.jsonRequest(_, _)
+  def requestAsJson = AjaxRpc.jsonRequest _
 
   def hello(request: HelloRequest): Future[HelloResponse] =
     AjaxRpc.protoRequest(new ProtoAction[HelloRequest, HelloResponse] {
@@ -94,8 +94,23 @@ object DoteProtoServer {
       response
     }
 
-  private def cache(dotable: Dotable) = {
-    val id = dotable.id
-    dom.window.localStorage.setItem(s"dotable-$id", "")
-  }
+  def loginLink(request: LoginLinkRequest) =
+    AjaxRpc.protoRequest(new ProtoAction[LoginLinkRequest, LoginLinkResponse] {
+      override val route = "create-login-link"
+
+      override def serializeRequest(r: LoginLinkRequest) =
+        LoginLinkRequest.toByteArray(r)
+
+      override def parseResponse(r: Array[Byte]) = LoginLinkResponse.parseFrom(r)
+    })(request)
+
+  def getLoggedInPerson(request: GetLoggedInPersonRequest) =
+    AjaxRpc.protoRequest(new ProtoAction[GetLoggedInPersonRequest, GetLoggedInPersonResponse] {
+      override val route = "get-logged-in-person"
+
+      override def serializeRequest(r: GetLoggedInPersonRequest) =
+        GetLoggedInPersonRequest.toByteArray(r)
+
+      override def parseResponse(r: Array[Byte]) = GetLoggedInPersonResponse.parseFrom(r)
+    })(request)
 }

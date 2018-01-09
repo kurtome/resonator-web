@@ -14,14 +14,92 @@ trait Tables {
   import slick.jdbc.{GetResult => GR}
 
   /** DDL for all tables. Call .create to execute. */
-  lazy val schema: profile.SchemaDescription = Array(Dotable.schema,
-                                                     DotableTag.schema,
-                                                     PlayEvolutions.schema,
-                                                     PodcastEpisodeIngestion.schema,
-                                                     PodcastFeedIngestion.schema,
-                                                     Tag.schema).reduceLeft(_ ++ _)
+  lazy val schema: profile.SchemaDescription = Array(
+    AuthToken.schema,
+    Dotable.schema,
+    DotableTag.schema,
+    Person.schema,
+    PlayEvolutions.schema,
+    PodcastEpisodeIngestion.schema,
+    PodcastFeedIngestion.schema,
+    Tag.schema
+  ).reduceLeft(_ ++ _)
   @deprecated("Use .schema instead of .ddl", "3.0")
   def ddl = schema
+
+  /** Entity class storing rows of table AuthToken
+    *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
+    *  @param selector Database column selector SqlType(text), Length(2147483647,true)
+    *  @param validator Database column validator SqlType(bytea)
+    *  @param expirationTime Database column expiration_time SqlType(timestamp)
+    *  @param personId Database column person_id SqlType(int8) */
+  case class AuthTokenRow(id: Long,
+                          selector: String,
+                          validator: Array[Byte],
+                          expirationTime: java.time.LocalDateTime,
+                          personId: Long)
+
+  /** GetResult implicit for fetching AuthTokenRow objects using plain SQL queries */
+  implicit def GetResultAuthTokenRow(implicit e0: GR[Long],
+                                     e1: GR[String],
+                                     e2: GR[Array[Byte]],
+                                     e3: GR[java.time.LocalDateTime]): GR[AuthTokenRow] = GR {
+    prs =>
+      import prs._
+      AuthTokenRow.tupled(
+        (<<[Long], <<[String], <<[Array[Byte]], <<[java.time.LocalDateTime], <<[Long]))
+  }
+
+  /** Table description of table auth_token. Objects of this class serve as prototypes for rows in queries. */
+  class AuthToken(_tableTag: slick.lifted.Tag)
+      extends profile.api.Table[AuthTokenRow](_tableTag, "auth_token") {
+    def * =
+      (id, selector, validator, expirationTime, personId) <> (AuthTokenRow.tupled, AuthTokenRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(id),
+       Rep.Some(selector),
+       Rep.Some(validator),
+       Rep.Some(expirationTime),
+       Rep.Some(personId)).shaped.<>(
+        { r =>
+          import r._; _1.map(_ => AuthTokenRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))
+        },
+        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+      )
+
+    /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
+    val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+
+    /** Database column selector SqlType(text), Length(2147483647,true) */
+    val selector: Rep[String] = column[String]("selector", O.Length(2147483647, varying = true))
+
+    /** Database column validator SqlType(bytea) */
+    val validator: Rep[Array[Byte]] = column[Array[Byte]]("validator")
+
+    /** Database column expiration_time SqlType(timestamp) */
+    val expirationTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("expiration_time")
+
+    /** Database column person_id SqlType(int8) */
+    val personId: Rep[Long] = column[Long]("person_id")
+
+    /** Foreign key referencing Person (database name auth_token_person_id_fkey) */
+    lazy val personFk = foreignKey("auth_token_person_id_fkey", personId, Person)(
+      r => r.id,
+      onUpdate = ForeignKeyAction.NoAction,
+      onDelete = ForeignKeyAction.NoAction)
+
+    /** Index over (selector) (database name auth_token_selector_index) */
+    val index1 = index("auth_token_selector_index", selector)
+
+    /** Uniqueness Index over (selector) (database name auth_token_selector_key) */
+    val index2 = index("auth_token_selector_key", selector, unique = true)
+  }
+
+  /** Collection-like TableQuery object for table AuthToken */
+  lazy val AuthToken = new TableQuery(tag => new AuthToken(tag))
 
   /** Entity class storing rows of table Dotable
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
@@ -153,6 +231,70 @@ trait Tables {
 
   /** Collection-like TableQuery object for table DotableTag */
   lazy val DotableTag = new TableQuery(tag => new DotableTag(tag))
+
+  /** Entity class storing rows of table Person
+    *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
+    *  @param username Database column username SqlType(text), Length(2147483647,true)
+    *  @param email Database column email SqlType(text), Length(2147483647,true)
+    *  @param loginCode Database column login_code SqlType(text), Length(2147483647,true)
+    *  @param loginCodeExpirationTime Database column login_code_expiration_time SqlType(timestamp) */
+  case class PersonRow(id: Long,
+                       username: String,
+                       email: String,
+                       loginCode: Option[String],
+                       loginCodeExpirationTime: java.time.LocalDateTime)
+
+  /** GetResult implicit for fetching PersonRow objects using plain SQL queries */
+  implicit def GetResultPersonRow(implicit e0: GR[Long],
+                                  e1: GR[String],
+                                  e2: GR[Option[String]],
+                                  e3: GR[java.time.LocalDateTime]): GR[PersonRow] = GR { prs =>
+    import prs._
+    PersonRow.tupled((<<[Long], <<[String], <<[String], <<?[String], <<[java.time.LocalDateTime]))
+  }
+
+  /** Table description of table person. Objects of this class serve as prototypes for rows in queries. */
+  class Person(_tableTag: slick.lifted.Tag)
+      extends profile.api.Table[PersonRow](_tableTag, "person") {
+    def * =
+      (id, username, email, loginCode, loginCodeExpirationTime) <> (PersonRow.tupled, PersonRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(id),
+       Rep.Some(username),
+       Rep.Some(email),
+       loginCode,
+       Rep.Some(loginCodeExpirationTime)).shaped.<>({ r =>
+        import r._; _1.map(_ => PersonRow.tupled((_1.get, _2.get, _3.get, _4, _5.get)))
+      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+
+    /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
+    val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+
+    /** Database column username SqlType(text), Length(2147483647,true) */
+    val username: Rep[String] = column[String]("username", O.Length(2147483647, varying = true))
+
+    /** Database column email SqlType(text), Length(2147483647,true) */
+    val email: Rep[String] = column[String]("email", O.Length(2147483647, varying = true))
+
+    /** Database column login_code SqlType(text), Length(2147483647,true) */
+    val loginCode: Rep[Option[String]] =
+      column[Option[String]]("login_code", O.Length(2147483647, varying = true))
+
+    /** Database column login_code_expiration_time SqlType(timestamp) */
+    val loginCodeExpirationTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("login_code_expiration_time")
+
+    /** Uniqueness Index over (email) (database name email_uniq) */
+    val index1 = index("email_uniq", email, unique = true)
+
+    /** Uniqueness Index over (username) (database name username_uniq) */
+    val index2 = index("username_uniq", username, unique = true)
+  }
+
+  /** Collection-like TableQuery object for table Person */
+  lazy val Person = new TableQuery(tag => new Person(tag))
 
   /** Entity class storing rows of table PlayEvolutions
     *  @param id Database column id SqlType(int4), PrimaryKey

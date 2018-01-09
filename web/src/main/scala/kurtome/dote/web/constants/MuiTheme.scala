@@ -14,7 +14,7 @@ object MuiTheme {
     l$(
       "palette" -> l$(
         "primary" -> Colors.grey,
-        "secondary" -> Colors.blueGrey,
+        "secondary" -> Colors.blue,
         "type" -> "light",
         "shades" -> l$(
           "light" -> l$(

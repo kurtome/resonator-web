@@ -20,72 +20,74 @@ class GetFeedController @Inject()(cc: ControllerComponents, podcastDbService: Do
   override def parseRequest(bytes: Array[Byte]) =
     GetFeedRequest.parseFrom(bytes)
 
-  override def action(request: GetFeedRequest): Future[GetFeedResponse] = {
+  override def action(request: Request[GetFeedRequest]) = {
     val popularList = podcastDbService
-      .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.maxItemSize)
+      .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.body.maxItemSize)
 
     val nprList = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastCreator, "npr"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val comedy = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastGenre, "comedy"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val crookedMediaList = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastCreator, "crooked-media"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val arts = podcastDbService
-      .readTagList(DotableKinds.Podcast, TagId(TagKinds.PodcastGenre, "arts"), request.maxItemSize)
+      .readTagList(DotableKinds.Podcast,
+                   TagId(TagKinds.PodcastGenre, "arts"),
+                   request.body.maxItemSize)
 
     val technology = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastGenre, "technology"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val music = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastGenre, "music"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val gimlet = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastCreator, "gimlet"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val newsAndPolitics = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastGenre, "news-politics"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val tvAndFilm = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastGenre, "tv-film"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val societyAndCulture = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastGenre, "society-culture"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val sportsAndRecreation = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastGenre, "sports-recreation"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val wnyc = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastCreator, "wnyc-studios"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val theRinger = podcastDbService
       .readTagList(DotableKinds.Podcast,
                    TagId(TagKinds.PodcastCreator, "the-ringer"),
-                   request.maxItemSize)
+                   request.body.maxItemSize)
 
     val lists = Future.sequence(
       Seq(

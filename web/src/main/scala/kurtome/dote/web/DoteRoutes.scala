@@ -3,6 +3,7 @@ package kurtome.dote.web
 import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.extra.router._
+import kurtome.dote.web.components.views.HomeView.LoginData
 import kurtome.dote.web.components.views._
 import kurtome.dote.web.views.HelloView
 import org.scalajs.dom
@@ -30,6 +31,8 @@ object DoteRoutes {
 
   case object ListsRoute extends DoteRoute
 
+  case object AccountRoute extends DoteRoute
+
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   type DoteRouterCtl = RouterCtl[DoteRoute]
@@ -42,6 +45,9 @@ object DoteRoutes {
       val slug = string("[a-z0-9][-a-z0-9]+[a-z0-9]")
 
       val id = string("[a-zA-Z0-9]+")
+
+      val code = string("[A-Z0-9]+")
+      val email = string(".+")
 
       (emptyRule
         | staticRedirect("") ~> redirectToPage(HomeRoute)(Redirect.Replace)
@@ -63,6 +69,8 @@ object DoteRoutes {
         | dynamicRouteCT("#/podcast-episode" ~ ("/" ~ id ~ "/" ~ slug)
           .caseClass[PodcastEpisodeRoute]) ~> dynRenderR(
           (page: PodcastEpisodeRoute, routerCtl) => DotableDetailView(routerCtl, page)())
+
+        | staticRoute("#/account", AccountRoute) ~> renderR(AccountView(_)())
 
         | staticRoute("#/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))

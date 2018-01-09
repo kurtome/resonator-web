@@ -18,6 +18,7 @@ object UrlIds {
     type IdKind = Value
     // Numeric values must never change, as it is used in the encoding.
     val Dotable = Value(1)
+    val Person = Value(2)
   }
 
   private val encoder = Hashids.reference(

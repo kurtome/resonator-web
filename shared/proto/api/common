@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package dote.proto.api;
+
+message Person {
+  string id = 1;
+  string slug = 2;
+  string username = 3;
+  // typically will be left unset in API responses, primarily used for account creation
+  string email = 4;
+}
