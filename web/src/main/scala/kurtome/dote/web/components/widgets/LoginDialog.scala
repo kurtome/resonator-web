@@ -1,11 +1,11 @@
 package kurtome.dote.web.components.widgets
 
 import dote.proto.api.action.login_link._
+import dote.proto.api.person.Person
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
-import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.shared.mapper.StatusMapper
@@ -14,6 +14,7 @@ import kurtome.dote.web.shared.util.result.StatusCodes.StatusCode
 import kurtome.dote.web.shared.util.result._
 import kurtome.dote.web.shared.validation.LoginFieldsValidation
 import kurtome.dote.web.utils._
+import org.scalajs.dom
 import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -21,7 +22,10 @@ import scalacss.internal.mutable.StyleSheet
 
 object LoginDialog extends LogSupport {
 
-  case class Props(routerCtl: DoteRouterCtl, open: Boolean, onClose: Callback)
+  case class Props(routerCtl: DoteRouterCtl,
+                   open: Boolean,
+                   onClose: Callback,
+                   loggedInPerson: Option[Person])
   case class State(isLoading: Boolean = false,
                    username: String = "",
                    email: String = "",
@@ -71,6 +75,10 @@ object LoginDialog extends LogSupport {
         }
     }
 
+    val handleLogout = Callback {
+      dom.document.location.assign("/logout")
+    }
+
     private def statusToErrorMessage(status: ActionStatus): String = {
       errorMessages.getOrElse(status.cause, Map()).getOrElse(status.code, "")
     }
@@ -91,18 +99,41 @@ object LoginDialog extends LogSupport {
       }
     }
 
-    private def sanitizeInput(raw: String): String = {
-      raw.toLowerCase.trim
-    }
-
-    def handleUsernameChanged(event: ReactEventFromInput) = {
+    def handleUsernameChanged(event: ReactEventFromInput) = Callback {
       val newUsername = event.target.value
-      bs.modState(_.copy(username = sanitizeInput(newUsername)))
+      bs.modState(_.copy(username = newUsername.toLowerCase)).runNow()
     }
 
-    def handleEmailChanged(event: ReactEventFromInput) = {
+    def handleEmailChanged(event: ReactEventFromInput) = Callback {
       val newEmail = event.target.value
-      bs.modState(_.copy(email = sanitizeInput(newEmail)))
+      bs.modState(_.copy(email = newEmail.toLowerCase)).runNow()
+    }
+
+    def renderActions(p: Props, s: State): VdomArray = {
+      val cancelButton =
+        Button(color = Button.Color.Primary, disabled = s.isLoading, onClick = p.onClose)("Cancel")
+      if (p.loggedInPerson.isEmpty) {
+        VdomArray(
+          cancelButton,
+          Button(color = Button.Color.Accent,
+                 disabled = s.isLoading,
+                 onClick = handleSubmit(p, s))("Send login link")
+        )
+      } else {
+        VdomArray(
+          cancelButton,
+          Button(color = Button.Color.Accent, disabled = s.isLoading, onClick = handleLogout)(
+            "Logout")
+        )
+      }
+    }
+
+    def title(p: Props): String = {
+      if (p.loggedInPerson.isEmpty) {
+        "Enter username and email"
+      } else {
+        "Logout?"
+      }
     }
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
@@ -112,14 +143,15 @@ object LoginDialog extends LogSupport {
              maxWidth = Dialog.MaxWidths.Sm,
              fullWidth = true)(
         DialogTitle(disableTypography = true)(
-          Typography(typographyType = Typography.Type.SubHeading)("Login")),
+          Typography(typographyType = Typography.Type.SubHeading)(title(p))),
         DialogContent()(
           Typography(typographyType = Typography.Type.Caption, color = Typography.Color.Error)(
             s.errorMessage),
           TextField(
             autoFocus = true,
             fullWidth = true,
-            disabled = s.isLoading,
+            disabled = s.isLoading || p.loggedInPerson.isDefined,
+            value = if (p.loggedInPerson.isDefined) p.loggedInPerson.get.username else s.username,
             error = s.usernameError.nonEmpty,
             onChange = handleUsernameChanged,
             helperText = Typography()(<.b(s.usernameError)),
@@ -129,7 +161,8 @@ object LoginDialog extends LogSupport {
           TextField(
             autoFocus = false,
             fullWidth = true,
-            disabled = s.isLoading,
+            disabled = s.isLoading || p.loggedInPerson.isDefined,
+            value = if (p.loggedInPerson.isDefined) p.loggedInPerson.get.email else s.email,
             error = s.emailError.nonEmpty,
             onChange = handleEmailChanged,
             helperText = Typography()(<.b(s.emailError)),
@@ -139,11 +172,7 @@ object LoginDialog extends LogSupport {
           )()
         ),
         DialogActions()(
-          Button(color = Button.Color.Primary, disabled = s.isLoading, onClick = p.onClose)(
-            "Cancel"),
-          Button(color = Button.Color.Accent,
-                 disabled = s.isLoading,
-                 onClick = handleSubmit(p, s))("Send login link")
+          renderActions(p, s)
         ),
         Fade(in = s.isLoading)(
           LinearProgress()()
@@ -159,7 +188,9 @@ object LoginDialog extends LogSupport {
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, open: Boolean, onClose: Callback = Callback.empty)(
-      c: CtorType.ChildArg*) =
-    component.withChildren(c: _*)(Props(routerCtl, open, onClose))
+  def apply(routerCtl: DoteRouterCtl,
+            open: Boolean,
+            onClose: Callback = Callback.empty,
+            loggedInPerson: Option[Person] = None)(c: CtorType.ChildArg*) =
+    component.withChildren(c: _*)(Props(routerCtl, open, onClose, loggedInPerson))
 }

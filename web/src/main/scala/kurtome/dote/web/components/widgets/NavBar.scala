@@ -99,6 +99,7 @@ object NavBar extends LogSupport {
         ),
         LoginDialog(routerCtl = p.routerCtl,
                     open = s.loginDialogOpen,
+                    loggedInPerson = s.loggedInPerson,
                     onClose = handleLoginDialogClosed)()
       )
     }

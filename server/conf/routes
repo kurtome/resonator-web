@@ -19,6 +19,7 @@ POST     /api/v1/search                 kurtome.dote.server.controllers.api.Sear
 POST     /api/v1/create-login-link      kurtome.dote.server.controllers.api.LoginLinkController.protoAction
 POST     /api/v1/get-logged-in-person   kurtome.dote.server.controllers.api.GetLoggedInPersonController.protoAction
 
-GET      /lc/:email/:code        kurtome.dote.server.controllers.LoginRedirectController.login(email: String, code: String)
+GET      /logout                        kurtome.dote.server.controllers.LogoutRedirectController.logout
+GET      /lc/:email/:code               kurtome.dote.server.controllers.LoginRedirectController.login(email: String, code: String)
 
 GET     /*route                         kurtome.dote.server.controllers.HomeController.redirectToRoot(route: String)
