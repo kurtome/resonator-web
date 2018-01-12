@@ -1,16 +1,17 @@
 package kurtome.dote.server.controllers.api
 
 import java.net.URLEncoder
+import java.time.{Duration, LocalDateTime}
 import javax.inject._
 
 import dote.proto.api.action.login_link._
-import dote.proto.api.common.ResponseStatus
-import dote.proto.api.person.Person
-import kurtome.dote.server.controllers.mappers.{PersonMapper, StatusMapper}
+import kurtome.dote.server.controllers.mappers.PersonMapper
 import kurtome.dote.server.email.{EmailClient, PendingMessage}
 import kurtome.dote.server.services.{LoginCodeService, PersonService}
-import kurtome.dote.server.util.{SideEffectResult, SuccessEffect}
 import kurtome.dote.slick.db.gen.Tables
+import kurtome.dote.web.shared.mapper.StatusMapper
+import kurtome.dote.web.shared.util.result._
+import kurtome.dote.web.shared.validation.LoginFieldsValidation
 import play.api.mvc._
 
 import scala.concurrent._
@@ -31,46 +32,46 @@ class LoginLinkController @Inject()(cc: ControllerComponents,
   override def action(request: Request[LoginLinkRequest]) = {
     val linkPrefix = (if (request.secure) "https://" else "http://") + request.host
 
-    personDbService.readByUsernameAndEmail(request.body.username, request.body.email) flatMap {
-      existingPerson =>
-        if (existingPerson.isEmpty) {
-          personDbService
-            .createPerson(request.body.username, request.body.email)
-            .flatMap { creationResponse =>
-              if (creationResponse.effectSuccess) {
-                createCodeAndSendLoginEmail(creationResponse.result.get, linkPrefix)
-                  .map(_ => toResponse(creationResponse))
-              } else {
-                Future(toResponse(creationResponse))
+    // TODO: move this into the service class
+    val usernameStatus = LoginFieldsValidation.username.firstError(request.body.username)
+    val emailStatus = LoginFieldsValidation.email.firstError(request.body.email)
+    if (!usernameStatus.isSuccess) {
+      Future(toResponse(FailedData(None, usernameStatus)))
+    } else if (!emailStatus.isSuccess) {
+      Future(toResponse(FailedData(None, emailStatus)))
+    } else {
+      personDbService.readByUsernameAndEmail(request.body.username, request.body.email) flatMap {
+        existingPerson =>
+          if (existingPerson.isEmpty) {
+            personDbService
+              .createPerson(request.body.username, request.body.email)
+              .flatMap { creationResponse =>
+                if (creationResponse.isSuccess) {
+                  loginCodeService
+                    .createCodeAndSendLoginEmail(creationResponse.data.get.email, linkPrefix)
+                    .map(_ => toResponse(creationResponse))
+                } else if (creationResponse.status == ErrorStatus(ErrorCauses.EmailAddress,
+                                                                  StatusCodes.NotUnique)) {
+                  // Email address is in use, already, send a new link to that address
+                  loginCodeService
+                    .createCodeAndSendLoginEmail(request.body.email, linkPrefix)
+                    .map(_ => toResponse(creationResponse))
+                } else {
+                  Future(toResponse(creationResponse))
+                }
               }
+          } else {
+            loginCodeService.createCodeAndSendLoginEmail(existingPerson.get.email, linkPrefix) map {
+              _ =>
+                toResponse(SuccessData(existingPerson))
             }
-        } else {
-          createCodeAndSendLoginEmail(existingPerson.get, linkPrefix) map { _ =>
-            toResponse(SuccessEffect(existingPerson))
           }
-        }
+      }
     }
   }
 
-  private def toResponse(result: SideEffectResult[Option[Tables.PersonRow]]): LoginLinkResponse = {
-    LoginLinkResponse(result.result.map(PersonMapper), Option(StatusMapper(result)))
+  private def toResponse(result: ProduceAction[Option[Tables.PersonRow]]): LoginLinkResponse = {
+    LoginLinkResponse(result.data.map(PersonMapper), Option(StatusMapper.toProto(result.status)))
   }
 
-  private def createCodeAndSendLoginEmail(person: Tables.PersonRow,
-                                          linkPrefix: String): Future[Unit] = {
-    loginCodeService.writeNewCode(person) flatMap { code =>
-      val emailEncoded = URLEncoder.encode(person.email, "UTF-8")
-      val loginLink = s"$linkPrefix/lc/$emailEncoded/$code"
-      emailClient
-        .send(PendingMessage(
-          person,
-          "Login to Resonator",
-          s"Welcome, your username is ${person.username}, please login with this link: $loginLink"))
-        .map(_ => Unit)
-    }
-  }
-
-  private def clearEmailField(response: LoginLinkResponse): LoginLinkResponse = {
-    response.copy(person = Some(response.getPerson.copy(email = "")))
-  }
 }

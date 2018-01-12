@@ -36,9 +36,9 @@ object AddPodcastView {
                   Grid(item = true, xs = 12)(
                     TextField(
                       value = s.request.itunesUrl,
-                      label = "iTunes Podcast URL",
+                      label = Typography()("iTunes Podcast URL"),
                       placeholder = "https://itunes.apple.com/us/podcast/foocast/id123456789",
-                      helperText = "Enter the iTunes URL for the podcast.",
+                      helperText = Typography()("Enter the iTunes URL for the podcast."),
                       onChange = newValue => {
                         bs.setState(
                           s.copy(request = s.request.copy(itunesUrl = newValue.target.value)))

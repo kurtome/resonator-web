@@ -3,12 +3,9 @@ package kurtome.dote.server.services
 import java.time.LocalDateTime
 import javax.inject._
 
-import dote.proto.api.action.login_link._
-import dote.proto.api.common.ResponseStatus
-import dote.proto.api.person.Person
 import kurtome.dote.server.db.PersonDbIo
-import kurtome.dote.server.util._
 import kurtome.dote.slick.db.gen.Tables
+import kurtome.dote.web.shared.util.result._
 import slick.basic.BasicBackend
 import wvlet.log.LogSupport
 
@@ -40,34 +37,35 @@ class PersonService @Inject()(db: BasicBackend#Database, personDbIo: PersonDbIo)
   }
 
   def createPerson(username: String,
-                   email: String): Future[SideEffectResult[Option[Tables.PersonRow]]] = {
+                   email: String): Future[ProduceAction[Option[Tables.PersonRow]]] = {
     db.run(personDbIo.filterByUsernameOrEmail(username, email)) flatMap { existingPeople =>
       val usernameExists: Boolean = existingPeople.exists(_.username == username)
       val emailExists: Boolean = existingPeople.exists(_.email == email)
       if (usernameExists || emailExists) {
-        val message = if (usernameExists && emailExists) {
-          s"Username $username and email address $email are already in use."
+        val error = if (usernameExists && emailExists) {
+          // Shouldn't happen since there is no reason to call createPerson for an existing person
+          UnknownError
         } else if (usernameExists) {
-          s"Username $username is already in use."
+          ErrorStatus(ErrorCauses.Username, StatusCodes.NotUnique)
         } else {
-          s"Email address $email is already in use."
+          ErrorStatus(ErrorCauses.EmailAddress, StatusCodes.NotUnique)
         }
-        Future(FailedEffect(None, message))
+        Future(FailedData(None, error))
       } else {
         Try {
           insertAndGet(username, email) map { insertedPerson =>
             if (insertedPerson.username != username || insertedPerson.email != email) {
               error(s"Read person didn't match inserted person. $username $email $insertedPerson")
-              FailedEffect(None, "Unexpected error occurred, try again.")
+              FailedData(None, UnknownError)
             } else {
-              SuccessEffect(Some(insertedPerson))
+              SuccessData(Some(insertedPerson))
             }
           }
         } recover {
           case t: Throwable =>
             // Most likely just a race confition between two parallel inserts for the same username
             info("Error while inserting person.", t)
-            Future(FailedEffect(None, "Unexpected error occurred, try again."))
+            Future(FailedData(None, UnknownError))
         } get
       }
     }

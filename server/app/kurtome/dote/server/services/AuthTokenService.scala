@@ -7,6 +7,7 @@ import javax.inject._
 import kurtome.dote.server.db.AuthTokenDbIo
 import kurtome.dote.server.util.RandomString
 import kurtome.dote.slick.db.gen.Tables
+import kurtome.dote.web.shared.util.result._
 import play.api.Configuration
 import slick.basic.BasicBackend
 import wvlet.log.LogSupport
@@ -26,7 +27,8 @@ class AuthTokenService @Inject()(db: BasicBackend#Database,
   private val salt = config.get[String]("kurtome.dote.auth.token.salt")
   private val sha256 = MessageDigest.getInstance("SHA-256")
 
-  def readPersonForCookieToken(cookieToken: String): Future[Option[Tables.PersonRow]] = {
+  def readPersonForCookieToken(
+      cookieToken: String): Future[ProduceAction[Option[Tables.PersonRow]]] = {
     if (cookieToken.length != (selectorLength + validatorLength)) {
       None
     }
@@ -39,13 +41,13 @@ class AuthTokenService @Inject()(db: BasicBackend#Database,
         val incomingDbValidator = calcDbValidator(validator, authToken.personId)
         val existingDbValidator = authToken.validator
         if (incomingDbValidator sameElements existingDbValidator) {
-          personService.readById(authToken.personId)
+          personService.readById(authToken.personId).map(SuccessData(_))
         } else {
-          Future(None)
+          Future(FailedData(None, StatusCodes.NotLoggedIn))
         }
       }
       case None => {
-        Future(None)
+        Future(FailedData(None, StatusCodes.NotLoggedIn))
       }
     }
   }

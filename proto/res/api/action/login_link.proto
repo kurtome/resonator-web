@@ -13,5 +13,5 @@ message LoginLinkRequest {
 message LoginLinkResponse {
   // will be left unset if status.success == false
   api.Person person = 1;
-  api.ResponseStatus status = 2;
+  api.ActionStatus status = 2;
 }

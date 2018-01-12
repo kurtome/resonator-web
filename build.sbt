@@ -40,6 +40,7 @@ lazy val server = (project in file("server"))
       case PathList("com", "google", "protobuf", xs @ _ *) => MergeStrategy.first
       case PathList("play", "api", "libs", xs @ _ *) => MergeStrategy.first
       case PathList("play", "reference-overrides.conf") => MergeStrategy.first
+      case PathList("org", "apache", "commons", "logging", xs @ _ *) => MergeStrategy.first
       case x => {
         // use the default for everything else
         val oldStrategy = (assemblyMergeStrategy in assembly).value
@@ -122,11 +123,23 @@ lazy val web = (project in webBaseDir)
 val sharedBaseDir = file("shared")
 lazy val shared = (crossProject.crossType(CrossType.Pure) in sharedBaseDir)
   .settings(
+    scalaVersion := scalaV
+  )
+  .dependsOn(proto)
+  .jvmSettings()
+  .jsSettings()
+
+lazy val sharedJvm = shared.jvm
+lazy val sharedJs = shared.js
+
+val protoBaseDir = file("proto")
+lazy val proto = (crossProject.crossType(CrossType.Pure) in protoBaseDir)
+  .settings(
     scalaVersion := scalaV,
     // Maark the proto directory as a resources root so it's picked up by the IDE as well
-    unmanagedResourceDirectories in Compile += sharedBaseDir / "proto",
+    unmanagedResourceDirectories in Compile += protoBaseDir / "res",
     // Define the location for proto source files.
-    PB.protoSources in Compile += sharedBaseDir / "proto",
+    PB.protoSources in Compile += protoBaseDir / "res",
     PB.protoSources in Compile += target.value / "protobuf_external",
     // Configure location for generated proto source code.
     PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value),
@@ -137,8 +150,8 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in sharedBaseDir)
   .jvmSettings()
   .jsSettings()
 
-lazy val sharedJvm = shared.jvm
-lazy val sharedJs = shared.js
+lazy val protoJvm = proto.jvm
+lazy val protoJs = proto.js
 
 // Auto format with scalafmt on compile
 scalafmtOnCompile in ThisBuild := true

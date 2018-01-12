@@ -11,5 +11,5 @@ message GetLoggedInPersonRequest {
 
 message GetLoggedInPersonResponse {
   api.Person person = 1;
-  api.ResponseStatus status = 2;
+  api.ActionStatus status = 2;
 }

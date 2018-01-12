@@ -4,9 +4,9 @@ import java.time.Duration
 import javax.inject._
 
 import dote.proto.api.action.get_logged_in_person._
-import dote.proto.api.common.ResponseStatus
 import kurtome.dote.server.controllers.mappers.PersonMapper
 import kurtome.dote.server.services._
+import kurtome.dote.web.shared.mapper.StatusMapper
 import play.api.mvc._
 
 import scala.concurrent._
@@ -24,13 +24,9 @@ class GetLoggedInPersonController @Inject()(
   override def action(request: Request[GetLoggedInPersonRequest]) = {
     Future(request.cookies.get("REMEMBER_ME")) flatMap {
       case Some(cookie) =>
-        authTokenService.readPersonForCookieToken(cookie.value) map { person =>
-          GetLoggedInPersonResponse(person = person.map(PersonMapper),
-                                    status = Some(
-                                      ResponseStatus(success = person.isDefined,
-                                                     errorMessage =
-                                                       if (person.isDefined) ""
-                                                       else "Not logged in.")))
+        authTokenService.readPersonForCookieToken(cookie.value) map { result =>
+          GetLoggedInPersonResponse(person = result.data.map(PersonMapper),
+                                    status = Some(StatusMapper.toProto(result.status)))
         }
       case None => Future(GetLoggedInPersonResponse())
     }

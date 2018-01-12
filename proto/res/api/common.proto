@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package dote.proto.api;
+
+// TODO: rename this to match scala class EffectResult
+message ActionStatus {
+  bool success = 1;
+  // Error code will be 0 for successful statuses and greater than 0 for errors
+  int32 status_code = 2;
+  // Required when success is false
+  int32 error_cause = 3;
+}
