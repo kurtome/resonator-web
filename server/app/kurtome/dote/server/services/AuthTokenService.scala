@@ -23,7 +23,6 @@ class AuthTokenService @Inject()(db: BasicBackend#Database,
 
   private val selectorLength = 32
   private val validatorLength = 32
-  private val tokenDuration = Duration.ofDays(60)
   private val salt = config.get[String]("kurtome.dote.auth.token.salt")
   private val sha256 = MessageDigest.getInstance("SHA-256")
 
@@ -54,7 +53,7 @@ class AuthTokenService @Inject()(db: BasicBackend#Database,
 
   def createTokenForRememberMeCookie(person: Tables.PersonRow): Future[String] = {
     val tokenParts = generateTokenParts(person.id)
-    val expiration = LocalDateTime.now().plus(tokenDuration)
+    val expiration = LocalDateTime.now().plus(AuthTokenService.tokenDuration)
     db.run(
       authTokenDbIo.insert(selector = tokenParts.selector,
                            validator = tokenParts.dbValidator,
@@ -81,6 +80,9 @@ class AuthTokenService @Inject()(db: BasicBackend#Database,
     sha256.digest(combinedValidator.getBytes)
   }
 
+}
+object AuthTokenService {
+  val tokenDuration = Duration.ofDays(60)
 }
 
 case class TokenParts(selector: String, dbValidator: Array[Byte], cookieToken: String)

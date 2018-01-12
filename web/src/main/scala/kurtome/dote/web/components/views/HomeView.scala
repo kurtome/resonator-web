@@ -11,7 +11,9 @@ import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
-import kurtome.dote.web.utils.GlobalLoadingManager
+import kurtome.dote.web.shared.util.observer.Observer
+import kurtome.dote.web.utils.LoggedInPersonManager.LoginState
+import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,15 +30,25 @@ object HomeView extends LogSupport {
   }
   Styles.addToDocument()
 
-  case class LoginData(email: String, code: String)
-  case class Props(routerCtl: DoteRouterCtl)
-  case class State(feed: Feed = Feed.defaultInstance, requestInFlight: Boolean = false)
+  case class Props(routerCtl: DoteRouterCtl, loginAttempted: Boolean = false)
+  case class State(feed: Feed = Feed.defaultInstance,
+                   requestInFlight: Boolean = false,
+                   displayedLoginSnack: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
     val handleDidMount = Callback {
       fetchHomeData()
     }
+
+    val loginObserver: Observer[LoginState] = (ls: LoginState) => {
+      val s: State = bs.state.runNow()
+      if (ls.person.isEmpty && ls.fetched && !s.displayedLoginSnack && LoggedInPersonManager.loginAttempted) {
+        GlobalNotificationManager.displayMessage("Login link was expired, please login again.")
+        bs.modState(_.copy(displayedLoginSnack = true))
+      }
+    }
+    LoggedInPersonManager.stateObservable.addObserver(loginObserver)
 
     def fetchHomeData() = {
       val cachedFeed = LocalCache.getObj(ObjectKinds.Feed, "home", Feed.parseFrom)

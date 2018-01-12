@@ -1,9 +1,7 @@
 package kurtome.dote.web
 
-import dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.extra.router._
-import kurtome.dote.web.components.views.HomeView.LoginData
 import kurtome.dote.web.components.views._
 import kurtome.dote.web.views.HelloView
 import org.scalajs.dom
