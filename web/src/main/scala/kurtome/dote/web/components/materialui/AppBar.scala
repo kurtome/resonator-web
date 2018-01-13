@@ -6,7 +6,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/app-bar/
+  * Wrapper for https://material-ui-next.com/api/app-bar/
   */
 object AppBar {
 

@@ -8,7 +8,7 @@ import scala.scalajs.js.annotation._
 import scalacss.internal.StyleA
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/paper/
+  * Wrapper for https://material-ui-next.com/api/paper/
   */
 object Paper {
 

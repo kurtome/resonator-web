@@ -8,7 +8,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/bottom-navigation-button/
+  * Wrapper for https://material-ui-next.com/api/bottom-navigation-button/
   */
 object BottomNavigationButton {
 

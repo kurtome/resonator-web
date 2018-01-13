@@ -6,7 +6,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/button/
+  * Wrapper for https://material-ui-next.com/api/button/
   */
 object IconButton {
 

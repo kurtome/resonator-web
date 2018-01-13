@@ -7,7 +7,7 @@ import scala.scalajs.js.annotation._
 import scalacss.internal.StyleA
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/text-field/
+  * Wrapper for https://material-ui-next.com/api/text-field/
   */
 object TextField {
 

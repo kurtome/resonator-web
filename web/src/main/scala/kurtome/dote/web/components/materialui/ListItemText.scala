@@ -6,7 +6,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/list-item-text/
+  * Wrapper for https://material-ui-next.com/api/list-item-text/
   */
 object ListItemText {
 

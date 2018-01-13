@@ -6,7 +6,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/linear-progress/
+  * Wrapper for https://material-ui-next.com/api/linear-progress/
   */
 object LinearProgress {
 

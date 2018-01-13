@@ -6,7 +6,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSImport, JSName}
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/mui-theme-provider/
+  * Wrapper for https://material-ui-next.com/api/mui-theme-provider/
   *
   * <p>See more details for usage at https://material-ui-next.com/customization/themes/
   */

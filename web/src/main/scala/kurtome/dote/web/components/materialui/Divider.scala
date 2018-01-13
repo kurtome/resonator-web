@@ -6,7 +6,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/divider/
+  * Wrapper for https://material-ui-next.com/api/divider/
   */
 object Divider {
 

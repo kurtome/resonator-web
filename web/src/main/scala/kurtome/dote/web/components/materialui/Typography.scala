@@ -7,7 +7,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-1dab0.firebaseapp.com/api/typography/
+  * Wrapper for https://material-ui-next.com/api/typography/
   */
 object Typography {
 
