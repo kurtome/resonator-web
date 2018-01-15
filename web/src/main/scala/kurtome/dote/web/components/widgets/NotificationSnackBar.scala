@@ -2,11 +2,11 @@ package kurtome.dote.web.components.widgets
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.shared.util.observer.Observer
 import kurtome.dote.web.utils.GlobalNotificationManager
 import org.scalajs.dom
 import wvlet.log.LogSupport

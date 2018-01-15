@@ -1,4 +1,4 @@
-package kurtome.dote.web.shared.util.result
+package kurtome.dote.shared.util.result
 
 /**
   * For simplicity, don't change the order of these values so server/client don't get out of sync.

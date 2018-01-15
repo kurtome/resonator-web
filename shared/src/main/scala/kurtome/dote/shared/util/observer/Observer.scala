@@ -1,4 +1,4 @@
-package kurtome.dote.web.shared.util.observer
+package kurtome.dote.shared.util.observer
 
 import scala.collection.mutable.ListBuffer
 

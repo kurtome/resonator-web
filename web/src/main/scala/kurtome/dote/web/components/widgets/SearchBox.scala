@@ -26,7 +26,7 @@ import scala.concurrent.Future
 
 object SearchBox {
 
-  private object Styles extends StyleSheet.Inline {
+  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
     import dsl._
 
     val contextWrapper = style(
@@ -80,8 +80,7 @@ object SearchBox {
       ))
   }
   Styles.addToDocument()
-  val muiStyles = new MuiInlineStyleSheet(Styles)
-  import muiStyles._
+  import Styles.richStyle
 
   case class Props(routerCtl: DoteRouterCtl)
   case class State(query: String = "", results: Seq[Dotable] = Nil, inFlight: Seq[Future[_]] = Nil) {

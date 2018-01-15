@@ -18,7 +18,7 @@ import scalacss.internal.mutable.StyleSheet
 
 object EpisodeTable {
 
-  private object Styles extends StyleSheet.Inline {
+  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
     import dsl._
 
     val episodesHeader = style(
@@ -47,8 +47,7 @@ object EpisodeTable {
 
   }
   Styles.addToDocument()
-  val muiStyles = new MuiInlineStyleSheet(Styles)
-  import muiStyles._
+  import Styles.richStyle
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
 

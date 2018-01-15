@@ -12,14 +12,6 @@ import views.html.helper.CSRF
 @Singleton
 class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
 
-  object Emojis {
-    val cryingFace = "\uD83D\uDE22"
-    val heartEyes = "\uD83D\uDE0D"
-    val unamusedFace = "\uD83D\uDE12"
-  }
-
-  import Emojis._
-
   //val siteTitle = s"Pod ${cryingFace}${heartEyes}${unamusedFace}s"
   val siteTitle = s"Resonator"
 

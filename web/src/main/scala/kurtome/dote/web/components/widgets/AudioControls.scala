@@ -2,6 +2,7 @@ package kurtome.dote.web.components.widgets
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.DoteRoutes.DoteRouterCtl
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
@@ -9,7 +10,6 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses
 import kurtome.dote.web.components.ComponentHelpers
-import kurtome.dote.web.shared.util.observer.Observer
 import kurtome.dote.web.utils.MuiInlineStyleSheet
 import wvlet.log.LogSupport
 
@@ -21,7 +21,7 @@ object AudioControls extends LogSupport {
   val controlsHeight = 80
   val controlsWidth = 300
 
-  private object Styles extends StyleSheet.Inline {
+  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
     import dsl._
 
     val playerWrapper = style(
@@ -92,8 +92,7 @@ object AudioControls extends LogSupport {
 
   }
   Styles.addToDocument()
-  val muiStyles = new MuiInlineStyleSheet(Styles)
-  import muiStyles._
+  import Styles.richStyle
 
   case class Props(routerCtl: DoteRouterCtl)
   case class State(playerState: AudioPlayer.State)

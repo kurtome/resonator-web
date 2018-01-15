@@ -2,12 +2,13 @@ package kurtome.dote.web.components.widgets
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.shared.constants.StringValues
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.{SharedStyles, WebMain}
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.constants.{MuiTheme, StringValues}
+import kurtome.dote.web.constants.MuiTheme
 import org.scalajs.dom
 
 import scalacss.internal.mutable.StyleSheet

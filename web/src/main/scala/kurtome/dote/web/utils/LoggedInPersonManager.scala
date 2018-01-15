@@ -2,8 +2,9 @@ package kurtome.dote.web.utils
 
 import dote.proto.api.action.get_logged_in_person.GetLoggedInPersonRequest
 import dote.proto.api.person.Person
+import kurtome.dote.shared.util.observer.{Observable, SimpleObservable}
 import kurtome.dote.web.rpc.DoteProtoServer
-import kurtome.dote.web.shared.util.observer.{Observable, SimpleObservable}
+import kurtome.dote.shared.util.observer.SimpleObservable
 import org.scalajs.dom
 import wvlet.log.LogSupport
 

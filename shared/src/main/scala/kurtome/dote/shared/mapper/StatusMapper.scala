@@ -1,7 +1,7 @@
-package kurtome.dote.web.shared.mapper
+package kurtome.dote.shared.mapper
 
 import dote.proto.api.common.{ActionStatus => ProtoStatus}
-import kurtome.dote.web.shared.util.result._
+import kurtome.dote.shared.util.result._
 
 object StatusMapper {
   def toProto(result: ActionStatus): ProtoStatus = {

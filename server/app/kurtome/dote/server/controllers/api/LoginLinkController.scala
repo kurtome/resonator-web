@@ -8,10 +8,10 @@ import dote.proto.api.action.login_link._
 import kurtome.dote.server.controllers.mappers.PersonMapper
 import kurtome.dote.server.email.{EmailClient, PendingMessage}
 import kurtome.dote.server.services.{LoginCodeService, PersonService}
+import kurtome.dote.shared.mapper.StatusMapper
+import kurtome.dote.shared.validation.LoginFieldsValidation
 import kurtome.dote.slick.db.gen.Tables
-import kurtome.dote.web.shared.mapper.StatusMapper
-import kurtome.dote.web.shared.util.result._
-import kurtome.dote.web.shared.validation.LoginFieldsValidation
+import kurtome.dote.shared.util.result._
 import play.api.mvc._
 
 import scala.concurrent._

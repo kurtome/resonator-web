@@ -20,7 +20,7 @@ import scalacss.internal.mutable.StyleSheet
 
 object EpisodeDetails {
 
-  private object Styles extends StyleSheet.Inline {
+  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
     import dsl._
 
     val titleText = style(
@@ -74,8 +74,7 @@ object EpisodeDetails {
     )
   }
   Styles.addToDocument()
-  val muiStyles = new MuiInlineStyleSheet(Styles)
-  import muiStyles._
+  import Styles.richStyle
 
   case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
   case class State()

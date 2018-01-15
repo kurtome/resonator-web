@@ -38,6 +38,13 @@ object Grid {
     val SpaceAround = Value("space-around")
   }
 
+  object Direction extends Enumeration {
+    val Row = Value("row")
+    val RowReverse = Value("row-reverse")
+    val Column = Value("column")
+    val ColumnReverse = Value("column-reverse")
+  }
+
   // NOTE: not all props exposed
   @js.native
   trait Props extends js.Object {
@@ -45,6 +52,7 @@ object Grid {
     var style: js.UndefOr[js.Dynamic] = js.native
     var alignItems: js.UndefOr[String] = js.native
     var justify: js.UndefOr[String] = js.native
+    var direction: js.UndefOr[String] = js.native
     var wrap: js.UndefOr[String] = js.native
     var container: js.UndefOr[Boolean] = js.native
     var item: js.UndefOr[Boolean] = js.native
@@ -64,6 +72,7 @@ object Grid {
             item: js.UndefOr[Boolean] = js.undefined,
             spacing: js.UndefOr[Int] = js.undefined,
             justify: js.UndefOr[Justify.Value] = js.undefined,
+            direction: js.UndefOr[Direction.Value] = js.undefined,
             wrap: js.UndefOr[Wrap.Value] = js.undefined,
             alignItems: js.UndefOr[AlignItems.Value] = js.undefined,
             xl: js.UndefOr[Int] = js.undefined,
@@ -83,6 +92,7 @@ object Grid {
     p.lg = lg
     p.alignItems = alignItems.map(_.toString)
     p.justify = justify.map(_.toString)
+    p.direction = direction.map(_.toString)
     p.wrap = wrap.map(_.toString)
 
     if (key.isDefined) {

@@ -4,8 +4,9 @@ import java.time.LocalDateTime
 import javax.inject._
 
 import kurtome.dote.server.db.PersonDbIo
+import kurtome.dote.shared.util.result
+import kurtome.dote.shared.util.result._
 import kurtome.dote.slick.db.gen.Tables
-import kurtome.dote.web.shared.util.result._
 import slick.basic.BasicBackend
 import wvlet.log.LogSupport
 
@@ -44,7 +45,7 @@ class PersonService @Inject()(db: BasicBackend#Database, personDbIo: PersonDbIo)
       if (usernameExists || emailExists) {
         val error = if (usernameExists && emailExists) {
           // Shouldn't happen since there is no reason to call createPerson for an existing person
-          UnknownError
+          result.UnknownError
         } else if (usernameExists) {
           ErrorStatus(ErrorCauses.Username, StatusCodes.NotUnique)
         } else {
@@ -56,7 +57,7 @@ class PersonService @Inject()(db: BasicBackend#Database, personDbIo: PersonDbIo)
           insertAndGet(username, email) map { insertedPerson =>
             if (insertedPerson.username != username || insertedPerson.email != email) {
               error(s"Read person didn't match inserted person. $username $email $insertedPerson")
-              FailedData(None, UnknownError)
+              FailedData(None, result.UnknownError)
             } else {
               SuccessData(Some(insertedPerson))
             }
@@ -65,7 +66,7 @@ class PersonService @Inject()(db: BasicBackend#Database, personDbIo: PersonDbIo)
           case t: Throwable =>
             // Most likely just a race confition between two parallel inserts for the same username
             info("Error while inserting person.", t)
-            Future(FailedData(None, UnknownError))
+            Future(FailedData(None, result.UnknownError))
         } get
       }
     }

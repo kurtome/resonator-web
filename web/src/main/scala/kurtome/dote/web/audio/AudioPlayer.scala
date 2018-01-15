@@ -2,11 +2,11 @@ package kurtome.dote.web.audio
 
 import com.google.protobuf.duration.Duration
 import dote.proto.api.dotable.Dotable
+import kurtome.dote.shared.util.observer.{Observable, SimpleObservable}
 import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses.PlayerStatus
 import kurtome.dote.web.audio.Howler.Howl
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.shared.util.observer.Observable
-import kurtome.dote.web.shared.util.observer.SimpleObservable
+import kurtome.dote.shared.util.observer.SimpleObservable
 import kurtome.dote.web.utils.GlobalNotificationManager
 import org.scalajs.dom.raw.{HTMLMediaElement, MediaError}
 import wvlet.log.LogSupport

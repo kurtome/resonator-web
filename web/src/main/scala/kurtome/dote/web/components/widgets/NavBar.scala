@@ -3,11 +3,11 @@ package kurtome.dote.web.components.widgets
 import dote.proto.api.person.Person
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.shared.util.observer._
 import kurtome.dote.web.utils.LoggedInPersonManager.LoginState
 import kurtome.dote.web.utils.{GlobalLoadingManager, LoggedInPersonManager}
 import org.scalajs.dom

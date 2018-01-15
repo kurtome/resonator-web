@@ -4,6 +4,7 @@ import dote.proto.api.action.get_feed_controller._
 import dote.proto.api.feed.{Feed, FeedItem}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.DoteRoutes._
@@ -11,7 +12,6 @@ import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
-import kurtome.dote.web.shared.util.observer.Observer
 import kurtome.dote.web.utils.LoggedInPersonManager.LoginState
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport

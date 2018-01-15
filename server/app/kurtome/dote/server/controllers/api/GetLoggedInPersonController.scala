@@ -6,7 +6,7 @@ import javax.inject._
 import dote.proto.api.action.get_logged_in_person._
 import kurtome.dote.server.controllers.mappers.PersonMapper
 import kurtome.dote.server.services._
-import kurtome.dote.web.shared.mapper.StatusMapper
+import kurtome.dote.shared.mapper.StatusMapper
 import play.api.mvc._
 
 import scala.concurrent._

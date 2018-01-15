@@ -1,6 +1,6 @@
-package kurtome.dote.web.shared.util.result
+package kurtome.dote.shared.util.result
 
-import kurtome.dote.web.shared.util.result.StatusCodes.StatusCode
+import StatusCodes.StatusCode
 
 /**
   * An effect result which also produces some data.

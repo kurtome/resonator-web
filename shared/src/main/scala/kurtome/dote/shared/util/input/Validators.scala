@@ -1,8 +1,8 @@
-package kurtome.dote.web.shared.util.input
+package kurtome.dote.shared.util.input
 
-import kurtome.dote.web.shared.util.result.ErrorCauses.ErrorCause
-import kurtome.dote.web.shared.util.result.StatusCodes.StatusCode
-import kurtome.dote.web.shared.util.result._
+import kurtome.dote.shared.util.result._
+import kurtome.dote.shared.util.result.ErrorCauses.ErrorCause
+import kurtome.dote.shared.util.result.StatusCodes.StatusCode
 
 abstract class InputValidator[TInput] extends ((TInput => StatusCode))
 

@@ -1,6 +1,6 @@
 package kurtome.dote.web.utils
 
-import kurtome.dote.web.shared.util.observer._
+import kurtome.dote.shared.util.observer._
 
 object GlobalNotificationManager {
 

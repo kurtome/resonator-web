@@ -1,7 +1,7 @@
-package kurtome.dote.web.shared.util.result
+package kurtome.dote.shared.util.result
 
-import kurtome.dote.web.shared.util.result.ErrorCauses.ErrorCause
-import kurtome.dote.web.shared.util.result.StatusCodes.StatusCode
+import kurtome.dote.shared.util.result.ErrorCauses.ErrorCause
+import kurtome.dote.shared.util.result.StatusCodes.StatusCode
 
 sealed abstract class ActionStatus {
   val cause: ErrorCause

@@ -6,8 +6,9 @@ import javax.inject._
 
 import kurtome.dote.server.db.AuthTokenDbIo
 import kurtome.dote.server.util.RandomString
+import kurtome.dote.shared.util.result.StatusCodes
 import kurtome.dote.slick.db.gen.Tables
-import kurtome.dote.web.shared.util.result._
+import kurtome.dote.shared.util.result._
 import play.api.Configuration
 import slick.basic.BasicBackend
 import wvlet.log.LogSupport

@@ -1,7 +1,7 @@
-package kurtome.dote.web.shared.validation
+package kurtome.dote.shared.validation
 
-import kurtome.dote.web.shared.util.input._
-import kurtome.dote.web.shared.util.result.ErrorCauses
+import kurtome.dote.shared.util.input._
+import kurtome.dote.shared.util.result.ErrorCauses
 
 object LoginFieldsValidation {
 

@@ -21,7 +21,7 @@ import scalacss.ScalaCssReact._
 
 object FeedDotableList {
 
-  private object Styles extends StyleSheet.Inline {
+  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
     import dsl._
 
     val tileContainer = style(
@@ -29,18 +29,17 @@ object FeedDotableList {
     )
   }
   Styles.addToDocument()
-  val muiStyles = new MuiInlineStyleSheet(Styles)
-  import muiStyles._
+  import Styles.richStyle
 
   case class Props(routerCtl: DoteRouterCtl, list: ApiList)
   case class State(tileSizePx: Int = 100)
 
   private val breakpointTileSizes = Map[String, Int](
-    "xs" -> 100,
-    "sm" -> 100,
-    "md" -> 125,
-    "lg" -> 150,
-    "xl" -> 175
+    "xs" -> 125,
+    "sm" -> 125,
+    "md" -> 150,
+    "lg" -> 175,
+    "xl" -> 200
   )
 
   private def currentTileSizePx: Int =
