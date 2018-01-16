@@ -1,7 +1,7 @@
 package kurtome.dote.web.components.widgets.detail
 
-import dote.proto.api.dotable.Dotable
-import dote.proto.db.dotable.ExternalUrls
+import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.db.dotable.ExternalUrls
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._

@@ -4,7 +4,7 @@ import java.net.URLEncoder
 import java.time.{Duration, LocalDateTime}
 import javax.inject._
 
-import dote.proto.api.action.login_link._
+import kurtome.dote.proto.api.action.login_link._
 import kurtome.dote.server.controllers.mappers.PersonMapper
 import kurtome.dote.server.email.{EmailClient, PendingMessage}
 import kurtome.dote.server.services.{LoginCodeService, PersonService}

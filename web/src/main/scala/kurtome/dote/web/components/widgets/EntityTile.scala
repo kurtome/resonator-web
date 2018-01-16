@@ -1,8 +1,10 @@
 package kurtome.dote.web.components.widgets
 
-import dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
+import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.shared.constants.StringValues
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
@@ -10,9 +12,13 @@ import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.widgets.button.emote._
-import kurtome.dote.web.utils.MuiInlineStyleSheet
+import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.utils._
+import wvlet.log.LogSupport
 
-object EntityTile {
+import scala.scalajs.js
+
+object EntityTile extends LogSupport {
 
   private object Animations extends StyleSheet.Inline {
     import dsl._
@@ -80,11 +86,50 @@ object EntityTile {
                    width: String = "175px")
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
-                   likeCount: Int = 0,
-                   sadCount: Int = 0,
-                   laughCount: Int = 0)
+                   smileCount: Int = 0,
+                   cryCount: Int = 0,
+                   laughCount: Int = 0,
+                   scowlCount: Int = 0)
 
-  class Backend(bs: BackendScope[Props, State]) {
+  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+
+    val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 2000) { () =>
+      val p: Props = bs.props.runNow()
+      val s: State = bs.state.runNow()
+      val f = DoteProtoServer.setDote(
+        SetDoteRequest(p.dotable.id,
+                       Some(
+                         Dote(smileCount = s.smileCount,
+                              laughCount = s.laughCount,
+                              cryCount = s.cryCount,
+                              scowlCount = s.scowlCount))))
+      GlobalLoadingManager.addLoadingFuture(f)
+    }
+
+    val handleLikeValueChanged = (value: Int) =>
+      Callback {
+        bs.modState(s => s.copy(smileCount = value)).runNow()
+        sendDoteToServer()
+    }
+
+    val handleSadValueChanged = (value: Int) =>
+      Callback {
+        bs.modState(s => s.copy(cryCount = value))
+        sendDoteToServer()
+    }
+
+    val handleLaughValueChanged = (value: Int) =>
+      Callback {
+        bs.modState(s => s.copy(laughCount = value))
+        sendDoteToServer()
+    }
+
+    val handleScowlValueChanged = (value: Int) =>
+      Callback {
+        bs.modState(s => s.copy(scowlCount = value))
+        sendDoteToServer()
+    }
+
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id
       val slug = p.dotable.slug
@@ -96,11 +141,7 @@ object EntityTile {
         p.dotable.getDetails.getPodcast.imageUrl
       }
 
-      val handleLikeValueChanged = (value: Int) => bs.modState(s => s.copy(likeCount = value))
-
-      val handleSadValueChanged = (value: Int) => bs.modState(s => s.copy(sadCount = value))
-
-      val handleLaughValueChanged = (value: Int) => bs.modState(s => s.copy(laughCount = value))
+      val showActions = s.hover && LoggedInPersonManager.isLoggedIn
 
       Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation,
             className = SharedStyles.inlineBlock)(
@@ -135,7 +176,7 @@ object EntityTile {
             ),
             <.div(
               ^.className := Styles.overlayContainer,
-              Fade(in = s.hover, timeoutMs = 500)(
+              Fade(in = showActions, timeoutMs = 500)(
                 <.div(
                   ^.className := Styles.overlayActionsContainer,
                   <.div(^.className := Styles.overlay),
@@ -146,13 +187,17 @@ object EntityTile {
                        style = Styles.overlayActionsContainer.inline)(
                     Grid(item = true)(
                       Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                        Grid(item = true)(SmileButton(onValueChanged = handleLikeValueChanged)()),
-                        Grid(item = true)(CryButton(onValueChanged = handleLikeValueChanged)())
+                        Grid(item = true)(
+                          SmileButton(s.smileCount, onValueChanged = handleLikeValueChanged)()),
+                        Grid(item = true)(
+                          CryButton(s.cryCount, onValueChanged = handleLikeValueChanged)())
                       )),
                     Grid(item = true)(
                       Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                        Grid(item = true)(LaughButton(onValueChanged = handleLaughValueChanged)()),
-                        Grid(item = true)(FrownButton(onValueChanged = handleLaughValueChanged)())
+                        Grid(item = true)(
+                          LaughButton(s.laughCount, onValueChanged = handleLaughValueChanged)()),
+                        Grid(item = true)(
+                          ScowlButton(s.scowlCount, onValueChanged = handleScowlValueChanged)())
                       ))
                   )
                 )
@@ -167,7 +212,13 @@ object EntityTile {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State())
+    .initialStateFromProps(p => {
+      val dote = p.dotable.getDote
+      State(smileCount = dote.smileCount,
+            cryCount = dote.cryCount,
+            laughCount = dote.laughCount,
+            scowlCount = dote.scowlCount)
+    })
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build

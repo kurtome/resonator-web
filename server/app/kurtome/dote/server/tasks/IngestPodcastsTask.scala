@@ -9,9 +9,9 @@ import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import javax.inject._
 
-import dote.proto.api.action.add_podcast.AddPodcastResponse
-import kurtome.dote.server.db.DotableDbService
+import kurtome.dote.proto.api.action.add_podcast.AddPodcastResponse
 import kurtome.dote.server.ingestion.PodcastFeedIngester
+import kurtome.dote.server.services.DotableService
 import play.api.Configuration
 import play.libs.Akka
 import wvlet.log.LogSupport
@@ -44,7 +44,7 @@ object IngestPodcastsActor {
 }
 @Singleton
 class IngestPodcastsActor @Inject()(actorSystem: ActorSystem,
-                                    dotableDbService: DotableDbService,
+                                    dotableDbService: DotableService,
                                     podcastFeedIngester: PodcastFeedIngester)
     extends Actor
     with LogSupport {

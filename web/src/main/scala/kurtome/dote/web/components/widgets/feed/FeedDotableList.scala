@@ -1,7 +1,7 @@
 package kurtome.dote.web.components.widgets.feed
 
-import dote.proto.api.dotable.Dotable
-import dote.proto.api.feed.{FeedDotableList => ApiList}
+import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.feed.{FeedDotableList => ApiList}
 import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._

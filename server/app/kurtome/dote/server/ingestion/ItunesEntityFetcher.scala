@@ -3,7 +3,7 @@ package kurtome.dote.server.ingestion
 import javax.inject._
 
 import com.trueaccord.scalapb.json.JsonFormat
-import dote.proto.external.itunes_entity.ItunesEntity
+import kurtome.dote.proto.external.itunes_entity.ItunesEntity
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.{ExecutionContext, Future}

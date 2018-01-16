@@ -4,10 +4,10 @@ import java.time.ZonedDateTime
 import java.util.Locale
 import javax.inject._
 
-import dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
-import dote.proto.db.dotable.DotableDetails.PodcastEpisode.Audio
-import dote.proto.db.dotable.{DotableCommon, DotableDetails, ExternalUrls}
-import kurtome.dote.server.db.{MetadataFlag, Tag}
+import kurtome.dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
+import kurtome.dote.proto.db.dotable.DotableDetails.PodcastEpisode.Audio
+import kurtome.dote.proto.db.dotable.{DotableCommon, DotableDetails, ExternalUrls}
+import kurtome.dote.server.model.{MetadataFlag, Tag}
 import kurtome.dote.server.util.Slug
 import kurtome.dote.slick.db.TagKinds
 import wvlet.log.LogSupport

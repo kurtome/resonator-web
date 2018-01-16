@@ -8,11 +8,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-next.com/api/bottom-navigation-button/
+  * Wrapper for https://material-ui-next.com/api/bottom-navigation-action/
   */
-object BottomNavigationButton {
+object BottomNavigationAction {
 
-  @JSImport("material-ui/BottomNavigation/BottomNavigationButton.js", JSImport.Default)
+  @JSImport("material-ui/BottomNavigation/BottomNavigationAction", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

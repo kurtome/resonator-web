@@ -3,7 +3,6 @@ package kurtome.dote.server.email
 import javax.inject._
 
 import com.sendgrid._
-import dote.proto.api.person.Person
 import kurtome.dote.slick.db.gen.Tables
 import play.api.Configuration
 import wvlet.log.LogSupport
@@ -17,7 +16,7 @@ class EmailClient @Inject()(configuration: Configuration)(implicit ec: Execution
   private val sg = new SendGrid(configuration.get[String]("kurtome.dote.email.sendgrid.apikey"))
 
   def send(message: PendingMessage): Future[Response] = {
-    val from = new Email("noreply@resonator.fm")
+    val from = new Email("noreply@resonator.fm", "Resonator")
     val subject = message.subject
     val to = new Email(message.person.email)
     val content = new Content("text/plain", message.content)

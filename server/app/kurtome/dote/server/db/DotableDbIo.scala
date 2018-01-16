@@ -3,8 +3,8 @@ package kurtome.dote.server.db
 import java.time.{LocalDateTime, ZoneOffset}
 
 import com.trueaccord.scalapb.json.JsonFormat
-import dote.proto.api.dotable.Dotable
-import dote.proto.db.dotable._
+import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.db.dotable._
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.server.util.{Slug, UrlIds}
 import kurtome.dote.slick.db.DotableKinds

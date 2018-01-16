@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api;
+
+message Dote {
+  int32 smile_count = 1;
+  int32 cry_count = 2;
+  int32 laugh_count = 3;
+  int32 scowl_count = 4;
+}

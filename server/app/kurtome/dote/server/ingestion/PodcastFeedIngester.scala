@@ -2,8 +2,8 @@ package kurtome.dote.server.ingestion
 
 import javax.inject._
 
-import dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
-import kurtome.dote.server.db.DotableDbService
+import kurtome.dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
+import kurtome.dote.server.services.DotableService
 import wvlet.log.LogSupport
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,7 +13,7 @@ import scala.util.Try
 class PodcastFeedIngester @Inject()(
     itunesEntityFetcher: ItunesEntityFetcher,
     podcastFetcher: PodcastFeedFetcher,
-    podcastDbService: DotableDbService)(implicit ec: ExecutionContext)
+    podcastDbService: DotableService)(implicit ec: ExecutionContext)
     extends LogSupport {
 
   def fetchFeedAndIngestRequest(request: AddPodcastRequest,

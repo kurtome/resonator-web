@@ -1,6 +1,6 @@
 package kurtome.dote.web.components.widgets
 
-import dote.proto.api.person.Person
+import kurtome.dote.proto.api.person.Person
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.shared.util.observer.Observer
@@ -76,18 +76,18 @@ object NavBar extends LogSupport {
             BottomNavigation(onChange = (_, value) => {
               bs.modState(_.copy(navValue = value))
             })(
-              BottomNavigationButton(icon = Icons.Home(),
+              BottomNavigationAction(icon = Icons.Home(),
                                      value = "home",
                                      onClick = p.routerCtl.set(HomeRoute))(),
-              BottomNavigationButton(icon = Icons.Add(),
+              BottomNavigationAction(icon = Icons.Add(),
                                      value = "add",
                                      onClick = p.routerCtl.set(AddRoute))(),
-              BottomNavigationButton(
+              BottomNavigationAction(
                 icon = Icons.Search(),
                 value = "search",
                 onClick = p.routerCtl.set(SearchRoute)
               )(),
-              BottomNavigationButton(
+              BottomNavigationAction(
                 icon = Icons.AccountCircle(),
                 label = Typography(typographyType = Typography.Type.Caption)(
                   if (s.loggedInPerson.isDefined) s.loggedInPerson.get.username else "Login"),

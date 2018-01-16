@@ -3,6 +3,8 @@ package kurtome.dote.server.db
 import java.sql.Types
 import javax.inject._
 
+import kurtome.dote.server.model
+import kurtome.dote.server.model.{Tag, TagId}
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.slick.db.TagKinds.TagKind
 import kurtome.dote.slick.db.gen.Tables
@@ -59,14 +61,14 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
     case (kind, params) => params.setObject(s"${kind.toString}", Types.OTHER)
   }
 
-  def upsertTag(tag: Tag) = {
+  def upsertTag(tag: model.Tag) = {
     sqlu"""INSERT INTO tag (kind, key, name)
          SELECT ${tag.id.kind}, ${tag.id.key}, ${tag.name}
          WHERE NOT EXISTS (
          SELECT 1 FROM tag t1 WHERE t1.kind = ${tag.id.kind} AND t1.key = ${tag.id.key})"""
   }
 
-  def upsertTagBatch(tags: Seq[Tag]) = {
+  def upsertTagBatch(tags: Seq[model.Tag]) = {
     // Upserts all and returns a sum of affected row count
     DBIO.sequence(tags.map(upsertTag)).map(_.sum)
   }

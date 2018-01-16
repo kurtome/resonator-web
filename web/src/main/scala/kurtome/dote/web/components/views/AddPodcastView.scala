@@ -1,6 +1,6 @@
 package kurtome.dote.web.components.views
 
-import dote.proto.api.action.add_podcast._
+import kurtome.dote.proto.api.action.add_podcast._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes.DoteRouterCtl

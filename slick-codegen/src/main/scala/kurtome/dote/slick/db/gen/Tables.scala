@@ -18,6 +18,7 @@ trait Tables {
     AuthToken.schema,
     Dotable.schema,
     DotableTag.schema,
+    Dote.schema,
     Person.schema,
     PlayEvolutions.schema,
     PodcastEpisodeIngestion.schema,
@@ -231,6 +232,106 @@ trait Tables {
 
   /** Collection-like TableQuery object for table DotableTag */
   lazy val DotableTag = new TableQuery(tag => new DotableTag(tag))
+
+  /** Entity class storing rows of table Dote
+    *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
+    *  @param dotableId Database column dotable_id SqlType(int8)
+    *  @param personId Database column person_id SqlType(int8)
+    *  @param smileCount Database column smile_count SqlType(int4), Default(0)
+    *  @param scowlCount Database column scowl_count SqlType(int4), Default(0)
+    *  @param cryCount Database column cry_count SqlType(int4), Default(0)
+    *  @param laughCount Database column laugh_count SqlType(int4), Default(0)
+    *  @param doteTime Database column dote_time SqlType(timestamp) */
+  case class DoteRow(id: Long,
+                     dotableId: Long,
+                     personId: Long,
+                     smileCount: Int = 0,
+                     scowlCount: Int = 0,
+                     cryCount: Int = 0,
+                     laughCount: Int = 0,
+                     doteTime: java.time.LocalDateTime)
+
+  /** GetResult implicit for fetching DoteRow objects using plain SQL queries */
+  implicit def GetResultDoteRow(implicit e0: GR[Long],
+                                e1: GR[Int],
+                                e2: GR[java.time.LocalDateTime]): GR[DoteRow] = GR { prs =>
+    import prs._
+    DoteRow.tupled(
+      (<<[Long],
+       <<[Long],
+       <<[Long],
+       <<[Int],
+       <<[Int],
+       <<[Int],
+       <<[Int],
+       <<[java.time.LocalDateTime]))
+  }
+
+  /** Table description of table dote. Objects of this class serve as prototypes for rows in queries. */
+  class Dote(_tableTag: slick.lifted.Tag) extends profile.api.Table[DoteRow](_tableTag, "dote") {
+    def * =
+      (id, dotableId, personId, smileCount, scowlCount, cryCount, laughCount, doteTime) <> (DoteRow.tupled, DoteRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(id),
+       Rep.Some(dotableId),
+       Rep.Some(personId),
+       Rep.Some(smileCount),
+       Rep.Some(scowlCount),
+       Rep.Some(cryCount),
+       Rep.Some(laughCount),
+       Rep.Some(doteTime)).shaped.<>(
+        { r =>
+          import r._;
+          _1.map(_ =>
+            DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get)))
+        },
+        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+      )
+
+    /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
+    val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+
+    /** Database column dotable_id SqlType(int8) */
+    val dotableId: Rep[Long] = column[Long]("dotable_id")
+
+    /** Database column person_id SqlType(int8) */
+    val personId: Rep[Long] = column[Long]("person_id")
+
+    /** Database column smile_count SqlType(int4), Default(0) */
+    val smileCount: Rep[Int] = column[Int]("smile_count", O.Default(0))
+
+    /** Database column scowl_count SqlType(int4), Default(0) */
+    val scowlCount: Rep[Int] = column[Int]("scowl_count", O.Default(0))
+
+    /** Database column cry_count SqlType(int4), Default(0) */
+    val cryCount: Rep[Int] = column[Int]("cry_count", O.Default(0))
+
+    /** Database column laugh_count SqlType(int4), Default(0) */
+    val laughCount: Rep[Int] = column[Int]("laugh_count", O.Default(0))
+
+    /** Database column dote_time SqlType(timestamp) */
+    val doteTime: Rep[java.time.LocalDateTime] = column[java.time.LocalDateTime]("dote_time")
+
+    /** Foreign key referencing Dotable (database name dote_dotable_id_fkey) */
+    lazy val dotableFk = foreignKey("dote_dotable_id_fkey", dotableId, Dotable)(
+      r => r.id,
+      onUpdate = ForeignKeyAction.NoAction,
+      onDelete = ForeignKeyAction.NoAction)
+
+    /** Foreign key referencing Person (database name dote_person_id_fkey) */
+    lazy val personFk = foreignKey("dote_person_id_fkey", personId, Person)(
+      r => r.id,
+      onUpdate = ForeignKeyAction.NoAction,
+      onDelete = ForeignKeyAction.NoAction)
+
+    /** Uniqueness Index over (dotableId,personId) (database name dote_dotable_person_index) */
+    val index1 = index("dote_dotable_person_index", (dotableId, personId), unique = true)
+  }
+
+  /** Collection-like TableQuery object for table Dote */
+  lazy val Dote = new TableQuery(tag => new Dote(tag))
 
   /** Entity class storing rows of table Person
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey

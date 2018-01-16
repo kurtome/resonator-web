@@ -28,7 +28,7 @@
   <logger name="application" level="DEBUG" />
 
   <!-- application logs are from the dote package -->
-  <logger name="kurtome.dote.server" level="INFO" />
+  <logger name="kurtome.dote.server" level="DEBUG" />
 
   <!-- Off these ones as they are annoying, and anyway we manage configuration ourselves -->
   <logger name="com.avaje.ebean.config.PropertyMapLoader" level="OFF" />

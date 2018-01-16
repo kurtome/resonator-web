@@ -8,7 +8,7 @@ import kurtome.dote.slick.db.gen.Tables.PersonRow
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import javax.inject._
 
-import dote.proto.api.person.Person
+import kurtome.dote.proto.api.person.Person
 import slick.lifted.Compiled
 
 import scala.concurrent.ExecutionContext

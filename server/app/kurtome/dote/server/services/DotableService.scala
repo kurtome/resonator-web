@@ -1,27 +1,34 @@
-package kurtome.dote.server.db
+package kurtome.dote.server.services
 
 import java.time.LocalDateTime
 import javax.inject._
 
-import dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dote.Dote
+import kurtome.dote.server.db._
+import kurtome.dote.server.db.DotableDbIo
+import kurtome.dote.server.db.mappers.{DotableMapper, DoteMapper}
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
+import kurtome.dote.server.model
 import kurtome.dote.slick.db.DotableKinds
 import kurtome.dote.slick.db.DotableKinds.DotableKind
-import slick.basic.BasicBackend
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.slick.db.gen.Tables
+import slick.basic.BasicBackend
+import wvlet.log.LogSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
 @Singleton
-class DotableDbService @Inject()(db: BasicBackend#Database,
-                                 dotableDbIo: DotableDbIo,
-                                 podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo,
-                                 tagDbIo: DotableTagDbIo)(implicit ec: ExecutionContext) {
+class DotableService @Inject()(db: BasicBackend#Database,
+                               dotableDbIo: DotableDbIo,
+                               podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo,
+                               tagDbIo: DotableTagDbIo)(implicit ec: ExecutionContext)
+    extends LogSupport {
 
   lazy val popularTagDbId: Future[Long] =
-    db.run(tagDbIo.readTagDbId(MetadataFlag.Ids.popular)).map(_.get)
+    db.run(tagDbIo.readTagDbId(model.MetadataFlag.Ids.popular)).map(_.get)
 
   def setPopularTag(dotableId: Long) = {
     popularTagDbId map { tagId =>
@@ -120,23 +127,35 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
     db.run(dotableDbIo.search(query, kind, limit))
   }
 
-  def readTagList(kind: DotableKinds.Value, tagId: TagId, limit: Long): Future[Option[TagList]] = {
+  def readTagList(kind: DotableKinds.Value,
+                  tagId: model.TagId,
+                  limit: Long,
+                  personId: Option[Long] = None): Future[Option[model.TagList]] = {
     val tagQuery = for {
       tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
     } yield tags
 
-    val query = (for {
+    val dotablesQuery = (for {
       tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
       dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
       dotables <- Tables.Dotable if dotables.id === dotableTags.dotableId
     } yield dotables).take(limit)
 
-    db.run(query.result.map(_.map(dotableDbIo.protoRowMapper))) flatMap { dotables =>
-      if (dotables.nonEmpty) {
-        db.run(tagQuery.result.headOption.map(_.map(t =>
-          TagList(Tag(t.kind, t.key, t.name), dotables))))
-      } else {
-        Future(None)
+    val dotesFuture: Future[Seq[Tables.DoteRow]] =
+      db.run(
+        Tables.Dote
+          .filter(row => row.dotableId.in(dotablesQuery.map(_.id)) && row.personId === personId)
+          .result)
+
+    db.run(dotablesQuery.result) flatMap { dotables =>
+      dotesFuture flatMap { dotes =>
+        val combined = setDotes(dotables, dotes)
+        if (dotables.nonEmpty) {
+          db.run(tagQuery.result.headOption.map(_.map(t =>
+            model.TagList(model.Tag(t.kind, t.key, t.name), combined))))
+        } else {
+          Future(None)
+        }
       }
     }
   }
@@ -189,10 +208,22 @@ class DotableDbService @Inject()(db: BasicBackend#Database,
     db.run(podcastFeedIngestionDbIo.readNextIngestionRows(limit))
   }
 
-  private def updateTagsForDotable(dotableId: Long, tags: Seq[Tag]) = {
+  private def updateTagsForDotable(dotableId: Long, tags: Seq[model.Tag]) = {
     val validatedTags = tags.filter(t => t.id.key.nonEmpty && t.name.nonEmpty)
     DBIO.seq(tagDbIo.upsertTagBatch(validatedTags),
              tagDbIo.upsertDotableTagBatch(dotableId, validatedTags.map(_.id)))
+  }
+
+  private def setDotes(dotables: Seq[Tables.DotableRow],
+                       dotes: Seq[Tables.DoteRow]): Seq[Dotable] = {
+    val dotablesById = dotables.map(d => (d.id, DotableMapper(d)))
+    val dotesByDoteableId = dotes.map(d => (d.dotableId, d)).toMap
+    dotablesById map {
+      case (dotableId, dotable) => {
+        val dote = dotesByDoteableId.get(dotableId).map(DoteMapper)
+        dotable.copy(dote = dote)
+      }
+    }
   }
 
   private def matchToExistingEpisodeId(episodes: Seq[RssFetchedEpisode],

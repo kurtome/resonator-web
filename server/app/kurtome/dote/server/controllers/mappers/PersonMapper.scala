@@ -1,6 +1,6 @@
 package kurtome.dote.server.controllers.mappers
 
-import dote.proto.api.person.Person
+import kurtome.dote.proto.api.person.Person
 import kurtome.dote.server.util.{Slug, UrlIds}
 import kurtome.dote.slick.db.gen
 import kurtome.dote.slick.db.gen.Tables

@@ -1,7 +1,7 @@
 package kurtome.dote.web.components.views
 
-import dote.proto.api.action.get_feed_controller._
-import dote.proto.api.feed.{Feed, FeedItem}
+import kurtome.dote.proto.api.action.get_feed_controller._
+import kurtome.dote.proto.api.feed.{Feed, FeedItem}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.shared.util.observer.Observer

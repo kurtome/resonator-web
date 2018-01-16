@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import javax.inject._
 import javax.sql.rowset.serial.SerialBlob
 
-import dote.proto.api.person.Person
+import kurtome.dote.proto.api.person.Person
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.slick.db.gen.Tables
 import slick.lifted.Compiled

@@ -1,8 +1,9 @@
 syntax = "proto3";
 
-package dote.proto.api;
+package kurtome.dote.proto.api;
 
 import "db/dotable.proto";
+import "api/dote.proto";
 
 // Base type for all dotables
 message Dotable {
@@ -13,6 +14,9 @@ message Dotable {
   Kind kind = 5;
   db.DotableDetails details = 6;
   string slug = 7;
+
+  // Dote for the currently logged in person
+  api.Dote dote = 8;
 
   enum Kind {
     UNKNOWN_KIND = 0;

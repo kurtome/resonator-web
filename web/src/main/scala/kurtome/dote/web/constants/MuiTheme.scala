@@ -13,8 +13,12 @@ object MuiTheme {
   val theme: js.Dynamic = MuiThemeProvider.CreateMuiTheme.createMuiTheme(
     l$(
       "palette" -> l$(
-        "primary" -> Colors.grey,
-        "secondary" -> Colors.blue,
+        "primary" -> l$(
+          "main" -> Colors.grey.`700`
+        ),
+        "secondary" -> l$(
+          "main" -> Colors.blue.`700`
+        ),
         "type" -> "light",
         "shades" -> l$(
           "light" -> l$(

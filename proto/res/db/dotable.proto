@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package dote.proto.db;
+package kurtome.dote.proto.db;
 
 // Warpper with both the common and the details, used to store in the database as one document blob.
 // Contents represent the entirety of the data of one entity (except ID and foreign keys).

@@ -41,12 +41,12 @@ object EmoteButton extends LogSupport {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(emojis: Seq[String], onValueChanged: (Int) => Callback)
+  case class Props(emojis: Seq[String], initialValue: Int, onValueChanged: (Int) => Callback)
   case class State(valueCount: Int = 0, hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
-    val handleLikeClick = (p: Props, s: State) =>
+    val handleClick = (p: Props, s: State) =>
       Callback {
         val maxValue = p.emojis.size + 1
         val newValue = (s.valueCount + 1) % maxValue
@@ -77,7 +77,7 @@ object EmoteButton extends LogSupport {
         ^.className := Styles.wrapper,
         ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
         ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
-        IconButton(onClick = handleLikeClick(p, s), style = pickStyle(s))(
+        IconButton(onClick = handleClick(p, s), style = pickStyle(s))(
           pickEmoji(p, s)
         )
       )
@@ -86,12 +86,12 @@ object EmoteButton extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State())
+    .initialStateFromProps(p => State(valueCount = p.initialValue))
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(emojis: Seq[String], onValueChanged: (Int) => Callback) =
-    component.withProps(Props(emojis, onValueChanged))
+  def apply(emojis: Seq[String], initialValue: Int, onValueChanged: (Int) => Callback) =
+    component.withProps(Props(emojis, initialValue, onValueChanged))
 
 }

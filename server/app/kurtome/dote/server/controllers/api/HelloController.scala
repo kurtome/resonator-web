@@ -2,7 +2,7 @@ package kurtome.dote.server.controllers.api
 
 import javax.inject._
 
-import dote.proto.action.hello._
+import kurtome.dote.proto.action.hello._
 import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}

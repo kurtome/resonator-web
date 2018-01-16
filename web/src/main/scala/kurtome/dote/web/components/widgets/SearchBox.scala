@@ -1,11 +1,11 @@
 package kurtome.dote.web.components.widgets
 
-import dote.proto.api.action.search.SearchRequest
+import kurtome.dote.proto.api.action.search.SearchRequest
 
 import scalacss.internal.mutable.StyleSheet
 import scala.scalajs.js._
 import scala.scalajs.js.JSConverters._
-import dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.SharedStyles

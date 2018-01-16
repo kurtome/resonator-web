@@ -1,8 +1,8 @@
 package kurtome.dote.web.components.views
 
-import dote.proto.api.action.get_dotable._
-import dote.proto.api.dotable.Dotable
-import dote.proto.api.dotable.Dotable.Kind
+import kurtome.dote.proto.api.action.get_dotable._
+import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dotable.Dotable.Kind
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes.{DotableRoute, DoteRouterCtl}

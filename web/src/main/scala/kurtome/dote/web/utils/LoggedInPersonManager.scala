@@ -1,7 +1,7 @@
 package kurtome.dote.web.utils
 
-import dote.proto.api.action.get_logged_in_person.GetLoggedInPersonRequest
-import dote.proto.api.person.Person
+import kurtome.dote.proto.api.action.get_logged_in_person.GetLoggedInPersonRequest
+import kurtome.dote.proto.api.person.Person
 import kurtome.dote.shared.util.observer.{Observable, SimpleObservable}
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.shared.util.observer.SimpleObservable
@@ -22,6 +22,8 @@ object LoggedInPersonManager extends LogSupport {
   private var state = LoginState(None, false)
 
   def curState = state
+
+  def isLoggedIn: Boolean = state.person.isDefined
 
   def stateChanged(person: Option[Person]): Unit = {
     state = LoginState(person = person, fetched = true)

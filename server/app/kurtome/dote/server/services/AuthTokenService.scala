@@ -10,6 +10,7 @@ import kurtome.dote.shared.util.result.StatusCodes
 import kurtome.dote.slick.db.gen.Tables
 import kurtome.dote.shared.util.result._
 import play.api.Configuration
+import play.api.mvc.Request
 import slick.basic.BasicBackend
 import wvlet.log.LogSupport
 
@@ -26,6 +27,18 @@ class AuthTokenService @Inject()(db: BasicBackend#Database,
   private val validatorLength = 32
   private val salt = config.get[String]("kurtome.dote.auth.token.salt")
   private val sha256 = MessageDigest.getInstance("SHA-256")
+
+  def simplifiedRead(request: Request[_]): Future[Option[Tables.PersonRow]] = {
+    readLoggedInPersonFromCookie(request).map(_.data)
+  }
+
+  def readLoggedInPersonFromCookie(
+      request: Request[_]): Future[ProduceAction[Option[Tables.PersonRow]]] = {
+    Future(request.cookies.get("REMEMBER_ME")) flatMap {
+      case Some(cookie) => readPersonForCookieToken(cookie.value)
+      case None => Future(FailedData(None, StatusCodes.NotLoggedIn))
+    }
+  }
 
   def readPersonForCookieToken(
       cookieToken: String): Future[ProduceAction[Option[Tables.PersonRow]]] = {

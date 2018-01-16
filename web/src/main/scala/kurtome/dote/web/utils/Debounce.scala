@@ -33,12 +33,20 @@ object Debounce {
     def apply[T](fn: js.Function1[T, Unit],
                  waitMs: Integer,
                  immediate: js.UndefOr[Boolean]): js.Function1[T, Unit] = js.native
+
+    def apply[T1, T2](fn: js.Function2[T1, T2, Unit],
+                      waitMs: Integer,
+                      immediate: js.UndefOr[Boolean]): js.Function2[T1, T2, Unit] = js.native
   }
 
   def debounce0(waitMs: Integer, immediate: Boolean = false)(fn: () => Unit): () => Unit =
     RawApi(fn, waitMs, immediate)
 
   def debounce1[T](waitMs: Integer, immediate: Boolean = false)(fn: (T) => Unit): (T) => Unit =
+    RawApi(fn, waitMs, immediate)
+
+  def debounce2[T1, T2](waitMs: Integer, immediate: Boolean = false)(
+      fn: (T1, T2) => Unit): (T1, T2) => Unit =
     RawApi(fn, waitMs, immediate)
 
 }

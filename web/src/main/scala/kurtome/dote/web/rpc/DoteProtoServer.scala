@@ -1,13 +1,14 @@
 package kurtome.dote.web.rpc
 
-import dote.proto.api.action.add_podcast._
-import dote.proto.action.hello._
-import dote.proto.api.action.login_link._
-import dote.proto.api.action.get_logged_in_person._
-import dote.proto.api.action.get_dotable._
-import dote.proto.api.action.get_dotable_list._
-import dote.proto.api.action.get_feed_controller.{GetFeedRequest, GetFeedResponse}
-import dote.proto.api.action.search._
+import kurtome.dote.proto.api.action.add_podcast._
+import kurtome.dote.proto.action.hello._
+import kurtome.dote.proto.api.action.login_link._
+import kurtome.dote.proto.api.action.get_logged_in_person._
+import kurtome.dote.proto.api.action.get_dotable._
+import kurtome.dote.proto.api.action.get_dotable_list._
+import kurtome.dote.proto.api.action.get_feed_controller.{GetFeedRequest, GetFeedResponse}
+import kurtome.dote.proto.api.action.search._
+import kurtome.dote.proto.api.action.set_dote._
 import kurtome.dote.web.rpc.AjaxRpc.ProtoAction
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -112,5 +113,15 @@ object DoteProtoServer {
         GetLoggedInPersonRequest.toByteArray(r)
 
       override def parseResponse(r: Array[Byte]) = GetLoggedInPersonResponse.parseFrom(r)
+    })(request)
+
+  def setDote(request: SetDoteRequest) =
+    AjaxRpc.protoRequest(new ProtoAction[SetDoteRequest, SetDoteResponse] {
+      override val route = "set-dote"
+
+      override def serializeRequest(r: SetDoteRequest) =
+        SetDoteRequest.toByteArray(r)
+
+      override def parseResponse(r: Array[Byte]) = SetDoteResponse.parseFrom(r)
     })(request)
 }

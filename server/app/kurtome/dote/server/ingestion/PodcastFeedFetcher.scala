@@ -1,7 +1,7 @@
 package kurtome.dote.server.ingestion
 
 import com.google.inject._
-import dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
+import kurtome.dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
 import play.api.libs.ws.WSClient
 import wvlet.log.LogSupport
 

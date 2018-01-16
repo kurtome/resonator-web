@@ -1,7 +1,7 @@
 package kurtome.dote.web.audio
 
 import com.google.protobuf.duration.Duration
-import dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.shared.util.observer.{Observable, SimpleObservable}
 import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses.PlayerStatus
 import kurtome.dote.web.audio.Howler.Howl
@@ -53,7 +53,6 @@ object AudioPlayer extends LogSupport {
   }
 
   private val handleStop: js.Function1[Int, Unit] = (soundId) => {
-    debug("stopped")
     updateState(State(PlayerStatuses.Paused, currentEpiode))
   }
 

@@ -2,9 +2,9 @@ package kurtome.dote.server.controllers.api
 
 import javax.inject._
 
-import dote.proto.api.action.add_podcast._
-import kurtome.dote.server.db.DotableDbService
+import kurtome.dote.proto.api.action.add_podcast._
 import kurtome.dote.server.ingestion.{ItunesEntityFetcher, PodcastFeedIngester}
+import kurtome.dote.server.services.DotableService
 import play.api.Configuration
 import play.api.mvc._
 
@@ -15,7 +15,7 @@ class AddPodcastController @Inject()(
     cc: ControllerComponents,
     config: Configuration,
     itunesEntityFetcher: ItunesEntityFetcher,
-    dotableDbService: DotableDbService,
+    dotableDbService: DotableService,
     podcastFeedIngester: PodcastFeedIngester)(implicit ec: ExecutionContext)
     extends ProtobufController[AddPodcastRequest, AddPodcastResponse](cc) {
 

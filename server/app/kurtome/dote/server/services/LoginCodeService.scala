@@ -4,7 +4,7 @@ import java.net.URLEncoder
 import java.time.{Duration, LocalDateTime}
 import javax.inject._
 
-import dote.proto.api.person.Person
+import kurtome.dote.proto.api.person.Person
 import kurtome.dote.server.email.{EmailClient, PendingMessage}
 import kurtome.dote.server.util.RandomString
 import kurtome.dote.slick.db.gen.Tables

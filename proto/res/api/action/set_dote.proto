@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api.action;
+
+import "api/dote.proto";
+import "api/common.proto";
+
+// Sets the dote on a specific dotable for the currently logged in person
+message SetDoteRequest {
+  string dotable_id = 1;
+  api.Dote dote = 2;
+}
+
+message SetDoteResponse {
+  api.ActionStatus status = 1;
+}

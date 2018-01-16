@@ -1,7 +1,7 @@
 package kurtome.dote.web.components.widgets
 
-import dote.proto.api.action.login_link._
-import dote.proto.api.person.Person
+import kurtome.dote.proto.api.action.login_link._
+import kurtome.dote.proto.api.person.Person
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.shared.mapper.StatusMapper
@@ -92,7 +92,6 @@ object LoginDialog extends LogSupport {
         p.onClose.runNow()
       } else {
         val serverStatus = StatusMapper.fromProto(response.getStatus)
-        debug(serverStatus)
         val serverErrorMsg = statusToErrorMessage(serverStatus)
         bs.modState(_.copy(isLoading = false, errorMessage = serverErrorMsg))
           .runNow()

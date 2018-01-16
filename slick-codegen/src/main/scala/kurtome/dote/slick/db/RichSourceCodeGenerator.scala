@@ -21,6 +21,10 @@ class RichSourceCodeGenerator(model: m.Model)
       .replace("val profile: slick.jdbc.JdbcProfile",
                "val profile: kurtome.dote.slick.db.DotePostgresProfile")
       .replace("_tableTag: Tag", "_tableTag: slick.lifted.Tag")
+      // TODO: make the postgres profile use produce a
+      // Array[Byte] type instead of Blob for a 'bytea'
+      // column type
+      .replace("java.sql.Blob", "Array[Byte]")
   }
 
   override def Table = new TableDef(_)

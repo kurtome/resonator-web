@@ -1,4 +1,4 @@
-package kurtome.dote.server.db
+package kurtome.dote.server.model
 
 import kurtome.dote.slick.db.TagKinds
 

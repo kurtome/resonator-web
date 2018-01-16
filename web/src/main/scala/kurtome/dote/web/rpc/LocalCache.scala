@@ -1,7 +1,7 @@
 package kurtome.dote.web.rpc
 
 import com.trueaccord.scalapb.GeneratedMessage
-import dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds.ObjectKind
 import wvlet.log.LogSupport
 

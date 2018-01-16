@@ -1,6 +1,6 @@
 package kurtome.dote.web
 
-import dote.proto.action.hello.HelloRequest
+import kurtome.dote.proto.action.hello.HelloRequest
 import kurtome.dote.web.rpc.DoteProtoServer
 import wvlet.log.LogSupport
 
