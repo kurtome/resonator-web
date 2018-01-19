@@ -108,23 +108,25 @@ object LoginDialog extends LogSupport {
       bs.modState(_.copy(email = newEmail.toLowerCase)).runNow()
     }
 
-    def renderActions(p: Props, s: State): VdomArray = {
+    def renderActions(p: Props, s: State) = {
       val cancelButton =
         Button(color = Button.Color.Primary, disabled = s.isLoading, onClick = p.onClose)("Cancel")
+
       if (p.loggedInPerson.isEmpty) {
-        VdomArray(
+        <.div(
           cancelButton,
           Button(color = Button.Color.Accent,
                  disabled = s.isLoading,
                  onClick = handleSubmit(p, s))("Send login link")
         )
       } else {
-        VdomArray(
+        <.div(
           cancelButton,
           Button(color = Button.Color.Accent, disabled = s.isLoading, onClick = handleLogout)(
             "Logout")
         )
       }
+
     }
 
     def title(p: Props): String = {
@@ -173,7 +175,7 @@ object LoginDialog extends LogSupport {
         DialogActions()(
           renderActions(p, s)
         ),
-        Fade(in = s.isLoading)(
+        Fader(in = s.isLoading)(
           LinearProgress()()
         )
       )

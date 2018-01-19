@@ -69,7 +69,7 @@ object NavBar extends LogSupport {
         ^.className := Styles.bottomNavRoot,
         Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
           Grid(item = true, xs = 12)(
-            Fade(in = s.isLoading, timeoutMs = 1000)(LinearProgress()())
+            Fader(in = s.isLoading)(LinearProgress()())
           ),
           Grid(item = true, xs = 12)(Divider()()),
           Grid(item = true, xs = 12)(

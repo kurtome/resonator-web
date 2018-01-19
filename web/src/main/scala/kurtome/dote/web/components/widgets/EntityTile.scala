@@ -37,16 +37,16 @@ object EntityTile extends LogSupport {
     )
 
     val container = style(
-      position.absolute
+      position.absolute,
+      pointerEvents := "auto"
     )
 
     val imageContainer = style(
-      pointerEvents := auto
-    )
+      )
 
     val overlayContainer = style(
       position.absolute,
-      pointerEvents := none,
+      pointerEvents := "none",
       width(100 %%),
       height(100 %%)
     )
@@ -86,6 +86,7 @@ object EntityTile extends LogSupport {
                    width: String = "175px")
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
+                   mounted: Boolean = false,
                    smileCount: Int = 0,
                    cryCount: Int = 0,
                    laughCount: Int = 0,
@@ -105,6 +106,8 @@ object EntityTile extends LogSupport {
                               scowlCount = s.scowlCount))))
       GlobalLoadingManager.addLoadingFuture(f)
     }
+
+    val handleMounted = bs.modState(s => s.copy(mounted = true))
 
     val handleLikeValueChanged = (value: Int) =>
       Callback {
@@ -155,51 +158,50 @@ object EntityTile extends LogSupport {
             ^.className := Styles.container,
             ^.width := p.width,
             ^.height := p.width,
+            ^.className := Styles.imageContainer,
             p.routerCtl.link(detailRoute)(
+              // placeholder div while loading, to fill the space
               <.div(
-                ^.className := Styles.imageContainer,
-                // placeholder div while loading, to fill the space
-                <.div(
-                  ^.className := Styles.placeholder
-                ),
-                if (url.nonEmpty) {
-                  <.img(
-                    ^.className := Styles.nestedImg,
-                    ^.visibility := (if (s.imgLoaded) "visible" else "hidden"),
-                    ^.onLoad --> bs.modState(_.copy(imgLoaded = true)),
-                    ^.src := url
-                  )
-                } else {
-                  <.div()
-                }
-              )
-            ),
-            <.div(
-              ^.className := Styles.overlayContainer,
-              Fade(in = showActions, timeoutMs = 500)(
-                <.div(
-                  ^.className := Styles.overlayActionsContainer,
-                  <.div(^.className := Styles.overlay),
-                  Grid(container = true,
-                       direction = Grid.Direction.Column,
-                       justify = Grid.Justify.SpaceBetween,
-                       spacing = 0,
-                       style = Styles.overlayActionsContainer.inline)(
-                    Grid(item = true)(
-                      Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                        Grid(item = true)(
-                          SmileButton(s.smileCount, onValueChanged = handleLikeValueChanged)()),
-                        Grid(item = true)(
-                          CryButton(s.cryCount, onValueChanged = handleLikeValueChanged)())
-                      )),
-                    Grid(item = true)(
-                      Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                        Grid(item = true)(
-                          LaughButton(s.laughCount, onValueChanged = handleLaughValueChanged)()),
-                        Grid(item = true)(
-                          ScowlButton(s.scowlCount, onValueChanged = handleScowlValueChanged)())
-                      ))
-                  )
+                ^.className := Styles.placeholder
+              ),
+              if (url.nonEmpty) {
+                <.img(
+                  ^.className := Styles.nestedImg,
+                  ^.visibility := (if (s.imgLoaded) "visible" else "hidden"),
+                  ^.onLoad --> bs.modState(_.copy(imgLoaded = true)),
+                  ^.src := url
+                )
+              } else {
+                <.div()
+              }
+            )
+          ),
+          <.div(
+            ^.className := Styles.overlayContainer,
+            Fader(in = showActions, width = "100%", height = "100%")(
+              <.div(
+                ^.className := Styles.overlayActionsContainer,
+                ^.className := SharedStyles.plainAnchor,
+                <.div(^.className := Styles.overlay),
+                Grid(container = true,
+                     direction = Grid.Direction.Column,
+                     justify = Grid.Justify.SpaceBetween,
+                     spacing = 0,
+                     style = Styles.overlayActionsContainer.inline)(
+                  Grid(item = true)(
+                    Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
+                      Grid(item = true)(
+                        SmileButton(s.smileCount, onValueChanged = handleLikeValueChanged)()),
+                      Grid(item = true)(
+                        CryButton(s.cryCount, onValueChanged = handleLikeValueChanged)())
+                    )),
+                  Grid(item = true)(
+                    Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
+                      Grid(item = true)(
+                        LaughButton(s.laughCount, onValueChanged = handleLaughValueChanged)()),
+                      Grid(item = true)(
+                        ScowlButton(s.scowlCount, onValueChanged = handleScowlValueChanged)())
+                    ))
                 )
               )
             )
@@ -221,6 +223,7 @@ object EntityTile extends LogSupport {
     })
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
+    .componentDidMount(x => x.backend.handleMounted)
     .build
 
   def apply(routerCtl: DoteRouterCtl,

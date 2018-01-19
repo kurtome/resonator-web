@@ -145,8 +145,7 @@ object AudioControls extends LogSupport {
              style = Styles.playerWrapper.inline,
              justify = if (shouldCenter) Grid.Justify.Center else Grid.Justify.FlexStart)(
           Grid(item = true)(
-            Fade(in = isLoading, timeoutMs = 1000, style = Styles.progressWrapper.inline)(
-              LinearProgress()()),
+            Fader(in = isLoading, width = asPxStr(controlsWidth))(LinearProgress()()),
             Paper(elevation = 8, style = Styles.playerRoot.inline)(
               <.div(
                 ^.className := Styles.contentWrapper,
