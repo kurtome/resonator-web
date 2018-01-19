@@ -35,6 +35,10 @@ object Fader extends LogSupport {
       animation := s"${Animations.fadeOut.name.value} 0.5s",
       opacity(0)
     )
+
+    val invisible = style(
+      opacity(0)
+    )
   }
   Styles.addToDocument()
 
@@ -43,12 +47,19 @@ object Fader extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
+    // this is a hack to make sure not to fade out when initially props.in == false
+    private var wasIn = false
+
     def render(p: Props, pc: PropsChildren, s: State): VdomElement = {
-      debug(p)
-      <.div(^.className := (if (p.in) Styles.fadeIn else Styles.fadeOut),
-            ^.width := p.width,
-            ^.height := p.height,
-            pc)
+      val style = if (p.in) {
+        Styles.fadeIn
+      } else if (wasIn) {
+        Styles.fadeOut
+      } else {
+        Styles.invisible
+      }
+      wasIn |= p.in
+      <.div(^.className := style, ^.width := p.width, ^.height := p.height, pc)
     }
   }
 
