@@ -10,9 +10,11 @@ import kurtome.dote.server.db.DotableDbIo
 import kurtome.dote.server.db.mappers.{DotableMapper, DoteMapper}
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.server.model
+import kurtome.dote.server.model.TagId
 import kurtome.dote.slick.db.DotableKinds
 import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotePostgresProfile.api._
+import kurtome.dote.slick.db.TagKinds.TagKind
 import kurtome.dote.slick.db.gen.Tables
 import slick.basic.BasicBackend
 import wvlet.log.LogSupport
@@ -26,6 +28,54 @@ class DotableService @Inject()(db: BasicBackend#Database,
                                podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo,
                                tagDbIo: DotableTagDbIo)(implicit ec: ExecutionContext)
     extends LogSupport {
+
+  object Queries {
+    val tagList = Compiled {
+      (kind: Rep[DotableKind],
+       tagKind: Rep[TagKind],
+       tagKey: Rep[String],
+       limit: ConstColumn[Long]) =>
+        (for {
+          tags <- Tables.Tag.filter(row => row.kind === tagKind && row.key === tagKey)
+          dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
+          dotables <- Tables.Dotable
+          if dotables.id === dotableTags.dotableId && dotables.kind === kind
+        } yield dotables).take(limit)
+    }
+
+    val personTagListDotes = Compiled {
+      (kind: Rep[DotableKind],
+       tagKind: Rep[TagKind],
+       tagKey: Rep[String],
+       listLimit: ConstColumn[Long],
+       personId: Rep[Long]) =>
+        val dotablesQuery = (for {
+          tags <- Tables.Tag.filter(row => row.kind === tagKind && row.key === tagKey)
+          dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
+          dotables <- Tables.Dotable
+          if dotables.id === dotableTags.dotableId && dotables.kind === kind
+        } yield dotables).take(listLimit)
+
+        for {
+          dotables <- dotablesQuery
+          dotes <- Tables.Dote if dotes.dotableId === dotables.id && dotes.personId === personId
+        } yield dotes
+    }
+
+    val recentEpisodesFromPodcastTagList = Compiled {
+      (tagKind: Rep[TagKind], tagKey: Rep[String], limit: ConstColumn[Long]) =>
+        (for {
+          tags <- Tables.Tag.filter(row => row.kind === tagKind && row.key === tagKey)
+          dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
+          podcasts <- Tables.Dotable
+          if podcasts.id === dotableTags.dotableId && podcasts.kind === DotableKinds.Podcast
+          episodes <- Tables.Dotable
+          if episodes.parentId === podcasts.id && episodes.kind === DotableKinds.PodcastEpisode
+        } yield episodes)
+          .sortBy(_.contentEditedTime.desc)
+          .take(limit)
+    }
+  }
 
   lazy val popularTagDbId: Future[Long] =
     db.run(tagDbIo.readTagDbId(model.MetadataFlag.Ids.popular)).map(_.get)
@@ -130,32 +180,24 @@ class DotableService @Inject()(db: BasicBackend#Database,
   def readTagList(kind: DotableKinds.Value,
                   tagId: model.TagId,
                   limit: Long,
-                  personId: Option[Long] = None): Future[Option[model.TagList]] = {
+                  personId: Option[Long] = None): Future[model.TagList] = {
     val tagQuery = for {
       tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
     } yield tags
 
-    val dotablesQuery = (for {
-      tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
-      dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
-      dotables <- Tables.Dotable if dotables.id === dotableTags.dotableId
-    } yield dotables).take(limit)
+    val dotablesQuery = Queries.tagList(kind, tagId.kind, tagId.key, limit)
 
-    val dotesFuture: Future[Seq[Tables.DoteRow]] =
-      db.run(
-        Tables.Dote
-          .filter(row => row.dotableId.in(dotablesQuery.map(_.id)) && row.personId === personId)
-          .result)
+    val dotesFuture: Future[Seq[Tables.DoteRow]] = if (personId.isDefined) {
+      db.run(Queries.personTagListDotes(kind, tagId.kind, tagId.key, limit, personId.get).result)
+    } else {
+      Future(Nil)
+    }
 
     db.run(dotablesQuery.result) flatMap { dotables =>
       dotesFuture flatMap { dotes =>
         val combined = setDotes(dotables, dotes)
-        if (dotables.nonEmpty) {
-          db.run(tagQuery.result.headOption.map(_.map(t =>
-            model.TagList(model.Tag(t.kind, t.key, t.name), combined))))
-        } else {
-          Future(None)
-        }
+        db.run(tagQuery.result.headOption.map(t =>
+          model.TagList(model.Tag(t.get.kind, t.get.key, t.get.name), combined)))
       }
     }
   }
@@ -206,6 +248,14 @@ class DotableService @Inject()(db: BasicBackend#Database,
 
   def getNextPodcastIngestionRows(limit: Int): Future[Seq[Tables.PodcastFeedIngestionRow]] = {
     db.run(podcastFeedIngestionDbIo.readNextIngestionRows(limit))
+  }
+
+  def readRecentEpisodes(tagId: TagId, limit: Int): Future[Seq[Dotable]] = {
+    val q = Queries
+      .recentEpisodesFromPodcastTagList(tagId.kind, tagId.key, limit)
+      .result
+      .map(_.map(DotableMapper))
+    db.run(q)
   }
 
   private def updateTagsForDotable(dotableId: Long, tags: Seq[model.Tag]) = {

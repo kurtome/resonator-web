@@ -1,24 +1,20 @@
 package kurtome.dote.web.components.widgets
 
-import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
+import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dote.Dote
-import kurtome.dote.shared.constants.StringValues
-import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
-import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.components.widgets.button.emote._
+import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
+import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
 
-object EntityTile extends LogSupport {
+object EntityImage extends LogSupport {
 
   private object Animations extends StyleSheet.Inline {
     import dsl._
@@ -80,10 +76,7 @@ object EntityTile extends LogSupport {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(routerCtl: DoteRouterCtl,
-                   dotable: Dotable,
-                   elevation: Int = 4,
-                   width: String = "175px")
+  case class Props(routerCtl: DoteRouterCtl, dotable: Dotable, width: String = "175px")
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
                    smileCount: Int = 0,
@@ -106,30 +99,6 @@ object EntityTile extends LogSupport {
       GlobalLoadingManager.addLoadingFuture(f)
     }
 
-    val handleLikeValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(smileCount = value)).runNow()
-        sendDoteToServer()
-    }
-
-    val handleSadValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(cryCount = value))
-        sendDoteToServer()
-    }
-
-    val handleLaughValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(laughCount = value))
-        sendDoteToServer()
-    }
-
-    val handleScowlValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(scowlCount = value))
-        sendDoteToServer()
-    }
-
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id
       val slug = p.dotable.slug
@@ -141,50 +110,29 @@ object EntityTile extends LogSupport {
         p.dotable.getDetails.getPodcast.imageUrl
       }
 
-      val showActions = s.hover && LoggedInPersonManager.isLoggedIn
-
-      Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation,
-            className = SharedStyles.inlineBlock)(
+      <.div(
+        ^.className := Styles.wrapper,
+        ^.width := p.width,
+        ^.height := p.width,
         <.div(
-          ^.className := Styles.wrapper,
+          ^.className := Styles.container,
           ^.width := p.width,
           ^.height := p.width,
-          ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
-          ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
-          p.routerCtl.link(detailRoute)(
-            ^.className := Styles.container,
-            EntityImage(routerCtl = p.routerCtl, dotable = p.dotable, width = p.width)()
-          ),
+          ^.className := Styles.imageContainer,
+          // placeholder div while loading, to fill the space
           <.div(
-            ^.className := Styles.overlayContainer,
-            Fader(in = showActions, width = "100%", height = "100%")(
-              <.div(
-                ^.className := Styles.overlayActionsContainer,
-                ^.className := SharedStyles.plainAnchor,
-                <.div(^.className := Styles.overlay),
-                Grid(container = true,
-                     direction = Grid.Direction.Column,
-                     justify = Grid.Justify.SpaceBetween,
-                     spacing = 0,
-                     style = Styles.overlayActionsContainer.inline)(
-                  Grid(item = true)(
-                    Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                      Grid(item = true)(
-                        SmileButton(s.smileCount, onValueChanged = handleLikeValueChanged)()),
-                      Grid(item = true)(
-                        CryButton(s.cryCount, onValueChanged = handleLikeValueChanged)())
-                    )),
-                  Grid(item = true)(
-                    Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                      Grid(item = true)(
-                        LaughButton(s.laughCount, onValueChanged = handleLaughValueChanged)()),
-                      Grid(item = true)(
-                        ScowlButton(s.scowlCount, onValueChanged = handleScowlValueChanged)())
-                    ))
-                )
-              )
+            ^.className := Styles.placeholder
+          ),
+          if (url.nonEmpty) {
+            <.img(
+              ^.className := Styles.nestedImg,
+              ^.visibility := (if (s.imgLoaded) "visible" else "hidden"),
+              ^.onLoad --> bs.modState(_.copy(imgLoaded = true)),
+              ^.src := url
             )
-          )
+          } else {
+            <.div()
+          }
         )
       )
 
@@ -204,9 +152,6 @@ object EntityTile extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(routerCtl: DoteRouterCtl,
-            dotable: Dotable,
-            elevation: Int = 8,
-            width: String = "175px") =
-    component.withProps(Props(routerCtl, dotable, elevation, width))
+  def apply(routerCtl: DoteRouterCtl, dotable: Dotable, width: String = "175px") =
+    component.withProps(Props(routerCtl, dotable, width))
 }

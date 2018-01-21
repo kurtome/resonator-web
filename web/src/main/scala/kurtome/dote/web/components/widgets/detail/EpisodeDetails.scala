@@ -7,15 +7,12 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.audio.{AudioPlayer, Howler}
-import kurtome.dote.web.audio.Howler.Howl
+import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.EntityTile
-import kurtome.dote.web.components.widgets.detail.DetailFieldList._
 import kurtome.dote.web.utils.MuiInlineStyleSheet
 
-import scala.scalajs.js
 import scalacss.internal.mutable.StyleSheet
 
 object EpisodeDetails {

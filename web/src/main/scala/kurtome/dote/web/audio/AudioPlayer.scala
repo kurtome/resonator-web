@@ -52,10 +52,6 @@ object AudioPlayer extends LogSupport {
     play()
   }
 
-  private val handleStop: js.Function1[Int, Unit] = (soundId) => {
-    updateState(State(PlayerStatuses.Paused, currentEpiode))
-  }
-
   private def getUrl(episode: Dotable): String = {
     if (episode.kind != Dotable.Kind.PODCAST_EPISODE) {
       ""
@@ -83,7 +79,6 @@ object AudioPlayer extends LogSupport {
     howl = Howler.createHowl(src = js.Array[String](url),
                              html5 = true,
                              onloaderror = handleLoadError,
-                             onstop = handleStop,
                              onload = handleLoaded)
   }
 
@@ -123,17 +118,5 @@ object AudioPlayer extends LogSupport {
   private def updateState(s: State): Unit = {
     state = s
     stateObservable.notifyObservers(state)
-  }
-
-  def status: PlayerStatus = {
-    if (howl == null) {
-      PlayerStatuses.Paused
-    } else {
-      if (howl.playing()) {
-        PlayerStatuses.Playing
-      } else {
-        PlayerStatuses.Paused
-      }
-    }
   }
 }

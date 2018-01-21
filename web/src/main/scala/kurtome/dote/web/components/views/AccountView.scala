@@ -1,6 +1,6 @@
 package kurtome.dote.web.components.views
 
-import kurtome.dote.proto.api.action.get_feed_controller.GetFeedRequest
+import kurtome.dote.proto.api.action.get_feed.GetFeedRequest
 import kurtome.dote.proto.api.feed.Feed
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl

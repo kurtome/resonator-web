@@ -101,7 +101,6 @@ object AudioControls extends LogSupport {
 
     val stateObserver: Observer[AudioPlayer.State] = (state: AudioPlayer.State) => {
       bs.modState(_.copy(playerState = state)).runNow()
-      bs.forceUpdate.runNow()
     }
     AudioPlayer.stateObservable.addObserver(stateObserver)
     val onUnmount: Callback = Callback {
@@ -145,16 +144,18 @@ object AudioControls extends LogSupport {
              style = Styles.playerWrapper.inline,
              justify = if (shouldCenter) Grid.Justify.Center else Grid.Justify.FlexStart)(
           Grid(item = true)(
-            Fader(in = isLoading, width = asPxStr(controlsWidth))(LinearProgress()()),
+            <.div(
+              ^.className := Styles.progressWrapper,
+              Fader(in = isLoading)(LinearProgress()())
+            ),
             Paper(elevation = 8, style = Styles.playerRoot.inline)(
               <.div(
                 ^.className := Styles.contentWrapper,
                 <.div(
                   ^.className := Styles.tileWrapper,
-                  EntityTile(routerCtl = p.routerCtl,
-                             dotable = s.playerState.episode,
-                             elevation = 0,
-                             width = asPxStr(controlsHeight))()
+                  EntityImage(routerCtl = p.routerCtl,
+                              dotable = s.playerState.episode,
+                              width = asPxStr(controlsHeight))()
                 ),
                 <.div(
                   ^.className := Styles.waveWrapper,

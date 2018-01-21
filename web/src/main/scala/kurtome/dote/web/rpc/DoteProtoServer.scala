@@ -6,7 +6,7 @@ import kurtome.dote.proto.api.action.login_link._
 import kurtome.dote.proto.api.action.get_logged_in_person._
 import kurtome.dote.proto.api.action.get_dotable._
 import kurtome.dote.proto.api.action.get_dotable_list._
-import kurtome.dote.proto.api.action.get_feed_controller.{GetFeedRequest, GetFeedResponse}
+import kurtome.dote.proto.api.action.get_feed._
 import kurtome.dote.proto.api.action.search._
 import kurtome.dote.proto.api.action.set_dote._
 import kurtome.dote.web.rpc.AjaxRpc.ProtoAction

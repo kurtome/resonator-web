@@ -1,24 +1,24 @@
 package kurtome.dote.web.components.widgets
 
-import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
+import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dote.Dote
-import kurtome.dote.shared.constants.StringValues
-import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
-import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
+import kurtome.dote.web.SharedStyles
+import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.button.emote._
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
+import scalacss.internal.Attr
 
-object EntityTile extends LogSupport {
+object EpisodeTile extends LogSupport {
 
   private object Animations extends StyleSheet.Inline {
     import dsl._
@@ -36,13 +36,20 @@ object EntityTile extends LogSupport {
       position.relative
     )
 
-    val container = style(
+    val image = style(
       position.absolute,
-      pointerEvents := "auto"
+      width(100 %%),
+      height(100 %%),
+      transform := "scale(1.1)",
+      filter := "contrast(50%) blur(10px)"
     )
 
-    val imageContainer = style(
-      )
+    val container = style(
+      position.absolute,
+      width(100 %%),
+      height(100 %%),
+      pointerEvents := "auto"
+    )
 
     val overlayContainer = style(
       position.absolute,
@@ -63,10 +70,37 @@ object EntityTile extends LogSupport {
       height(100 %%)
     )
 
-    val nestedImg = style(
-      position.absolute,
-      animation := s"${Animations.fadeInImage.name.value} 1s",
-      width(100 %%)
+    val imgWrapper = style(
+      display.inlineBlock
+    )
+
+    val mainTextWrapper = style(
+      marginTop(SharedStyles.spacingUnit / 2),
+      display.inlineBlock,
+      position.absolute
+    )
+
+    val webkitLineClamp = Attr.real("-webkit-line-clamp")
+    val webkitBoxOrient = Attr.real("-webkit-box-orient")
+
+    val titleLine = style(
+      marginLeft(SharedStyles.spacingUnit / 2),
+      marginRight(SharedStyles.spacingUnit / 2),
+      marginBottom(SharedStyles.spacingUnit / 2),
+      overflow.hidden,
+      display.block,
+      display :=! "-webkit-box",
+      webkitLineClamp := "2",
+      webkitBoxOrient := "vertical",
+      textOverflow := "ellipsis"
+    )
+
+    val textLine = style(
+      marginLeft(SharedStyles.spacingUnit / 2),
+      marginRight(SharedStyles.spacingUnit / 2),
+      whiteSpace.nowrap,
+      overflow.hidden,
+      textOverflow := "ellipsis"
     )
 
     val placeholder = style(
@@ -80,10 +114,7 @@ object EntityTile extends LogSupport {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(routerCtl: DoteRouterCtl,
-                   dotable: Dotable,
-                   elevation: Int = 4,
-                   width: String = "175px")
+  case class Props(routerCtl: DoteRouterCtl, dotable: Dotable, elevation: Int, width: Int)
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
                    smileCount: Int = 0,
@@ -143,17 +174,35 @@ object EntityTile extends LogSupport {
 
       val showActions = s.hover && LoggedInPersonManager.isLoggedIn
 
+      val height = p.width / 3
+      val imageSize = height
+      val titleWidth = p.width - imageSize
+
       Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation,
             className = SharedStyles.inlineBlock)(
         <.div(
           ^.className := Styles.wrapper,
-          ^.width := p.width,
-          ^.height := p.width,
+          ^.width := asPxStr(p.width),
+          ^.height := asPxStr(height),
           ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
           ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
           p.routerCtl.link(detailRoute)(
             ^.className := Styles.container,
-            EntityImage(routerCtl = p.routerCtl, dotable = p.dotable, width = p.width)()
+            <.div(^.className := Styles.imgWrapper,
+                  EntityImage(routerCtl = p.routerCtl,
+                              dotable = p.dotable.getRelatives.getParent,
+                              width = asPxStr(imageSize))()),
+            <.div(
+              ^.className := Styles.mainTextWrapper,
+              ^.width := asPxStr(titleWidth),
+              ^.height := asPxStr(imageSize),
+              Typography(typographyType = Typography.Type.Body1, style = Styles.titleLine.inline)(
+                p.dotable.getCommon.title),
+              Typography(typographyType = Typography.Type.Caption, style = Styles.textLine.inline)(
+                durationSecToMin(p.dotable.getDetails.getPodcastEpisode.durationSec)),
+              Typography(typographyType = Typography.Type.Caption, style = Styles.textLine.inline)(
+                epochSecToDate(p.dotable.getCommon.publishedEpochSec))
+            )
           ),
           <.div(
             ^.className := Styles.overlayContainer,
@@ -204,9 +253,6 @@ object EntityTile extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(routerCtl: DoteRouterCtl,
-            dotable: Dotable,
-            elevation: Int = 8,
-            width: String = "175px") =
+  def apply(routerCtl: DoteRouterCtl, dotable: Dotable, elevation: Int = 8, width: Int = 300) =
     component.withProps(Props(routerCtl, dotable, elevation, width))
 }

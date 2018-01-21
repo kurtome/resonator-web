@@ -8,7 +8,7 @@ import kurtome.dote.server.services.DotableService
 import kurtome.dote.slick.db.DotableKinds
 import play.api.mvc._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent._
 
 @Singleton
 class GetDotableListController @Inject()(
@@ -22,7 +22,7 @@ class GetDotableListController @Inject()(
   override def action(request: Request[GetDotableListRequest]) = {
     podcastDbService
       .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.body.maxResults)
-      .map(list => GetDotableListResponse(list.map(_.list).getOrElse(Nil)))
+      .map(list => GetDotableListResponse(list.list))
   }
 
 }

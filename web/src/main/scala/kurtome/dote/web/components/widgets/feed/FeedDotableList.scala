@@ -11,7 +11,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.DoteRouterCtl
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.{ContentFrame, EntityTile}
+import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.utils.MuiInlineStyleSheet
 import kurtome.dote.web.utils.Debounce
 import org.scalajs.dom
@@ -60,13 +60,23 @@ object FeedDotableList {
       dom.window.removeEventListener("resize", resizeListener)
     }
 
+    def calcRequestedWidth(p: Props, s: State): Int = {
+      p.list.getList.dotables.headOption.map(_.kind) match {
+        case Some(Dotable.Kind.PODCAST_EPISODE) => Math.round(s.tileSizePx * 1.4f)
+        case _ => s.tileSizePx
+      }
+    }
+
     def render(p: Props, s: State): VdomElement = {
+      val requestedWidth = calcRequestedWidth(p, s)
       val list = p.list.getList
       // the actual padding will be dynamic since the tiles are evenly spaced, so just make sure
       // the number of tiles has some extra space
-      val tilePaddingPx = s.tileSizePx / 5
+      val tilePaddingPx = requestedWidth / 5
       val availableWidthPx = ContentFrame.innerWidthPx
-      val numTilesPerRow: Int = availableWidthPx / (s.tileSizePx + tilePaddingPx)
+      // this calculation assumes all the tiles will be the same width (i.e. the same type of
+      // dotable)
+      val numTilesPerRow: Int = availableWidthPx / (requestedWidth + tilePaddingPx)
       val numRows = if (numTilesPerRow < 6) 2 else 1
       val numTiles = numTilesPerRow * numRows
       val dotables = list.dotables
@@ -77,8 +87,8 @@ object FeedDotableList {
         .take(numTiles)
 
       val minPaddingPx = 12
-      val leftoverWidthPx = availableWidthPx - (numTilesPerRow * (s.tileSizePx + minPaddingPx))
-      val tileWidthPx = s.tileSizePx + (leftoverWidthPx / numTilesPerRow)
+      val leftoverWidthPx = availableWidthPx - (numTilesPerRow * (requestedWidth + minPaddingPx))
+      val tileWidthPx = requestedWidth + (leftoverWidthPx / numTilesPerRow)
 
       Grid(container = true, spacing = 0)(
         Grid(item = true, xs = 12)(
@@ -90,8 +100,10 @@ object FeedDotableList {
             dotables.zipWithIndex map {
               case (dotable, i) =>
                 Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer.inline)(
-                  if (dotable != Dotable.defaultInstance) {
+                  if (dotable.kind == Dotable.Kind.PODCAST) {
                     EntityTile(p.routerCtl, dotable = dotable, width = asPxStr(tileWidthPx))()
+                  } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
+                    EpisodeTile(p.routerCtl, dotable = dotable, width = tileWidthPx)()
                   } else {
                     // Placeholder for correct spacing
                     <.div(^.width := asPxStr(tileWidthPx))
