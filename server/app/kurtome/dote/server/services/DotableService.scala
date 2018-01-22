@@ -38,9 +38,9 @@ class DotableService @Inject()(db: BasicBackend#Database,
         (for {
           tags <- Tables.Tag.filter(row => row.kind === tagKind && row.key === tagKey)
           dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
-          dotables <- Tables.Dotable
+          (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if dotables.id === dotableTags.dotableId && dotables.kind === kind
-        } yield dotables).take(limit)
+        } yield (dotables, parents)).take(limit)
     }
 
     val personTagListDotes = Compiled {
@@ -71,8 +71,8 @@ class DotableService @Inject()(db: BasicBackend#Database,
           if podcasts.id === dotableTags.dotableId && podcasts.kind === DotableKinds.Podcast
           episodes <- Tables.Dotable
           if episodes.parentId === podcasts.id && episodes.kind === DotableKinds.PodcastEpisode
-        } yield episodes)
-          .sortBy(_.contentEditedTime.desc)
+        } yield (episodes, podcasts))
+          .sortBy(_._1.contentEditedTime.desc)
           .take(limit)
     }
   }
@@ -254,7 +254,10 @@ class DotableService @Inject()(db: BasicBackend#Database,
     val q = Queries
       .recentEpisodesFromPodcastTagList(tagId.kind, tagId.key, limit)
       .result
-      .map(_.map(DotableMapper))
+      .map(list =>
+        list map {
+          case (d, parent) => DotableMapper(d, Some(parent))
+      })
     db.run(q)
   }
 
@@ -264,9 +267,11 @@ class DotableService @Inject()(db: BasicBackend#Database,
              tagDbIo.upsertDotableTagBatch(dotableId, validatedTags.map(_.id)))
   }
 
-  private def setDotes(dotables: Seq[Tables.DotableRow],
+  private def setDotes(dotables: Seq[(Tables.DotableRow, Option[Tables.DotableRow])],
                        dotes: Seq[Tables.DoteRow]): Seq[Dotable] = {
-    val dotablesById = dotables.map(d => (d.id, DotableMapper(d)))
+    val dotablesById = dotables map {
+      case (d, parent) => (d.id, DotableMapper(d, parent))
+    }
     val dotesByDoteableId = dotes.map(d => (d.dotableId, d)).toMap
     dotablesById map {
       case (dotableId, dotable) => {

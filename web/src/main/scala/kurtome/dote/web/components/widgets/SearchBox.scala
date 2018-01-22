@@ -188,7 +188,7 @@ object SearchBox {
              alignItems = Grid.AlignItems.Center)(
           Grid(item = true)(
             <.span(
-              EntityTile(routerCtl, suggestion, elevation = 0, width = asPxStr(tileWidthPx))())),
+              PodcastTile(routerCtl, suggestion, elevation = 0, width = asPxStr(tileWidthPx))())),
           Grid(item = true, style = Styles.suggestTitleContainer.inline)(
             Typography(style = Styles.suggestTitleText(params.isHighlighted).inline,
                        typographyType = Typography.Type.SubHeading)(

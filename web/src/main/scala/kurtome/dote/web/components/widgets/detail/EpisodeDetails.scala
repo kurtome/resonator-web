@@ -10,7 +10,7 @@ import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.EntityTile
+import kurtome.dote.web.components.widgets.PodcastTile
 import kurtome.dote.web.utils.MuiInlineStyleSheet
 
 import scalacss.internal.mutable.StyleSheet
@@ -105,7 +105,7 @@ object EpisodeDetails {
           <.div(
             ^.className := Styles.headerContainer,
             <.div(^.className := Styles.podcastTile,
-                  EntityTile(routerCtl = p.routerCtl,
+                  PodcastTile(routerCtl = p.routerCtl,
                              dotable = p.dotable.getRelatives.getParent,
                              width = "125px")()),
             <.div(

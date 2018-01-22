@@ -62,7 +62,7 @@ object FeedDotableList {
 
     def calcRequestedWidth(p: Props, s: State): Int = {
       p.list.getList.dotables.headOption.map(_.kind) match {
-        case Some(Dotable.Kind.PODCAST_EPISODE) => Math.round(s.tileSizePx * 1.4f)
+        case Some(Dotable.Kind.PODCAST_EPISODE) => 240
         case _ => s.tileSizePx
       }
     }
@@ -77,7 +77,14 @@ object FeedDotableList {
       // this calculation assumes all the tiles will be the same width (i.e. the same type of
       // dotable)
       val numTilesPerRow: Int = availableWidthPx / (requestedWidth + tilePaddingPx)
-      val numRows = if (numTilesPerRow < 6) 2 else 1
+      val numRows =
+        if (numTilesPerRow == 1) {
+          3
+        } else if (numTilesPerRow < 6) {
+          2
+        } else {
+          1
+        }
       val numTiles = numTilesPerRow * numRows
       val dotables = list.dotables
       // Pad with placeholders to make the list spacing balanced, rendering code below
@@ -101,7 +108,7 @@ object FeedDotableList {
               case (dotable, i) =>
                 Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer.inline)(
                   if (dotable.kind == Dotable.Kind.PODCAST) {
-                    EntityTile(p.routerCtl, dotable = dotable, width = asPxStr(tileWidthPx))()
+                    PodcastTile(p.routerCtl, dotable = dotable, width = asPxStr(tileWidthPx))()
                   } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
                     EpisodeTile(p.routerCtl, dotable = dotable, width = tileWidthPx)()
                   } else {

@@ -89,10 +89,8 @@ object EpisodeTile extends LogSupport {
       marginBottom(SharedStyles.spacingUnit / 2),
       overflow.hidden,
       display.block,
-      display :=! "-webkit-box",
-      webkitLineClamp := "2",
-      webkitBoxOrient := "vertical",
-      textOverflow := "ellipsis"
+      lineHeight(1.5 em),
+      maxHeight(3 em),
     )
 
     val textLine = style(
@@ -123,6 +121,9 @@ object EpisodeTile extends LogSupport {
                    scowlCount: Int = 0)
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+
+    // Hardcoded 'M' width to
+    private val titleEmWidth = 15.0f
 
     val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 2000) { () =>
       val p: Props = bs.props.runNow()
@@ -174,7 +175,7 @@ object EpisodeTile extends LogSupport {
 
       val showActions = s.hover && LoggedInPersonManager.isLoggedIn
 
-      val height = p.width / 3
+      val height = 100
       val imageSize = height
       val titleWidth = p.width - imageSize
 

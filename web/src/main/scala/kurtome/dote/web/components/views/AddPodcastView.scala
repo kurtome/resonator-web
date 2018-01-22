@@ -7,7 +7,7 @@ import kurtome.dote.web.DoteRoutes.DoteRouterCtl
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.{ContentFrame, EntityTile}
+import kurtome.dote.web.components.widgets.{ContentFrame, PodcastTile}
 import kurtome.dote.web.components.ComponentHelpers._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -91,7 +91,7 @@ object AddPodcastView {
                 s.response.podcasts map { dotable =>
                   Grid(item = true, xs = 12)(
                     <.div(^.className := SharedStyles.tileContainer.className.value,
-                          EntityTile(routerCtl, dotable = dotable)())
+                          PodcastTile(routerCtl, dotable = dotable)())
                   )
                 } toVdomArray
               ))

@@ -15,7 +15,7 @@ import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
   LinkFieldValue,
   TextFieldValue
 }
-import kurtome.dote.web.components.widgets.{ContentFrame, EntityTile}
+import kurtome.dote.web.components.widgets.{ContentFrame, PodcastTile}
 import kurtome.dote.web.utils.{Debounce, MuiInlineStyleSheet}
 import org.scalajs.dom
 import wvlet.log.LogSupport
@@ -179,7 +179,7 @@ object PodcastDetails {
               <.div(
                 ^.width := asPxStr(tileContainerWidth),
                 <.div(^.className := tileContainerStyle,
-                      EntityTile(routerCtl = p.routerCtl,
+                      PodcastTile(routerCtl = p.routerCtl,
                                  dotable = p.dotable,
                                  width = asPxStr(tileWidth))())
               )

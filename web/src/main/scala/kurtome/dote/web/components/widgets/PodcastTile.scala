@@ -18,7 +18,7 @@ import wvlet.log.LogSupport
 
 import scala.scalajs.js
 
-object EntityTile extends LogSupport {
+object PodcastTile extends LogSupport {
 
   private object Animations extends StyleSheet.Inline {
     import dsl._
