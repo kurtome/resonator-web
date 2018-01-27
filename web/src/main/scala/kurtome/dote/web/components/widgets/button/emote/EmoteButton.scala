@@ -53,6 +53,7 @@ object EmoteButton extends LogSupport {
         bs.modState(s => s.copy(valueCount = newValue))
           .runNow()
         p.onValueChanged(newValue).runNow()
+        debug(s"newValue $newValue = (${s.valueCount} + 1) % $maxValue")
     }
 
     def pickEmoji(p: Props, s: State): String = {

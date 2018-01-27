@@ -12,22 +12,20 @@ import javax.inject._
 import kurtome.dote.proto.api.action.add_podcast.AddPodcastResponse
 import kurtome.dote.server.ingestion.PodcastFeedIngester
 import kurtome.dote.server.services.DotableService
-import play.api.Configuration
-import play.libs.Akka
-import wvlet.log.LogSupport
+import wvlet.log._
 
 import scala.util.Try
 
 class IngestPodcastsTask @Inject()(
     actorSystem: ActorSystem,
-    config: Configuration,
+    taskConfig: TaskConfig,
     @Named("ingest-podcasts") actor: ActorRef)(implicit executionContext: ExecutionContext)
     extends LogSupport {
 
-  val runBackgroundIngestion = config.get[Boolean]("kurtome.dote.ingestion.background.run")
+  val run = taskConfig.isEnabled(this)
 
-  if (runBackgroundIngestion) {
-    info("Running background ingestion.")
+  if (run) {
+    info("Enabling task.")
     actorSystem.scheduler.schedule(
       initialDelay = 10.seconds,
       interval = 1.minutes,
@@ -35,7 +33,7 @@ class IngestPodcastsTask @Inject()(
       message = IngestPodcasts
     )
   } else {
-    info("Not running background ingestion.")
+    info("Not enabled.")
   }
 }
 
@@ -49,8 +47,7 @@ class IngestPodcastsActor @Inject()(actorSystem: ActorSystem,
     extends Actor
     with LogSupport {
 
-  implicit val myExecutionContext: ExecutionContext =
-    actorSystem.dispatchers.lookup("ingestion-context")
+  implicit val ec: ExecutionContext = actorSystem.dispatchers.lookup("tasks-context")
 
   override def receive = {
     case IngestPodcasts =>

@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 import javax.inject._
 
 import kurtome.dote.proto.api.dote.Dote
+import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.slick.db.gen.Tables
 import slick.lifted.Compiled
@@ -21,6 +22,15 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
       Tables.Dote.filter(row => row.personId === personId)
     }
 
+    val mostPopularDotables = Compiled {
+      (kind: Rep[DotableKind], maxDoteAge: Rep[LocalDateTime], limit: ConstColumn[Long]) =>
+        val dotesForKind = for {
+          dotables <- Tables.Dotable.filter(_.kind === kind)
+          dotes <- Tables.Dote if dotes.dotableId === dotables.id && dotes.doteTime >= maxDoteAge
+        } yield (dotes.scowlCount + dotes.laughCount + dotes.smileCount + dotes.cryCount, dotables)
+        dotesForKind.sortBy(_._1.desc).take(limit).map(_._2)
+    }
+
   }
 
   def readBatchForPerson(personId: Long, dotableIds: Seq[Long]) = {
@@ -28,6 +38,10 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
     val query =
       Tables.Dote.filter(row => row.personId === personId && row.dotableId.inSet(dotableIds))
     query.result
+  }
+
+  def mostPopularDotables(kind: DotableKind, maxDoteAge: LocalDateTime, limit: Long) = {
+    Queries.mostPopularDotables(kind, maxDoteAge, limit).result
   }
 
   def upsert(personId: Long, dotableId: Long, dote: Dote) = {

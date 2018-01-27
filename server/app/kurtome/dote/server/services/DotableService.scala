@@ -10,10 +10,11 @@ import kurtome.dote.server.db.DotableDbIo
 import kurtome.dote.server.db.mappers.{DotableMapper, DoteMapper}
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.server.model
-import kurtome.dote.server.model.TagId
+import kurtome.dote.server.model.{MetadataFlag, TagId}
 import kurtome.dote.slick.db.DotableKinds
 import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotePostgresProfile.api._
+import kurtome.dote.slick.db.TagKinds
 import kurtome.dote.slick.db.TagKinds.TagKind
 import kurtome.dote.slick.db.gen.Tables
 import slick.basic.BasicBackend
@@ -259,6 +260,26 @@ class DotableService @Inject()(db: BasicBackend#Database,
           case (d, parent) => DotableMapper(d, Some(parent))
       })
     db.run(q)
+  }
+
+  def replaceMetadataTagList(tag: MetadataFlag.Keys.Value, dotableIds: Seq[Long]) = {
+    db.run(
+      Tables.Tag
+        .filter(row => row.kind === TagKinds.MetadataFlag && row.key === tag.toString)
+        .result
+        .headOption) map {
+      case Some(tag) => {
+        val newTagRows = dotableIds map { dotableId =>
+          Tables.DotableTagRow(tagId = tag.id, dotableId = dotableId)
+        }
+        val replaceQuery = (for {
+          deleteCount <- Tables.DotableTag.filter(_.tagId === tag.id).delete
+          insertCount <- Tables.DotableTag ++= newTagRows
+        } yield deleteCount).transactionally
+        db.run(replaceQuery)
+      }
+      case None => throw new IllegalStateException(s"Couldn't find tag for '$tag'")
+    }
   }
 
   private def updateTagsForDotable(dotableId: Long, tags: Seq[model.Tag]) = {
