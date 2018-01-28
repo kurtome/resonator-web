@@ -99,7 +99,7 @@ object EpisodeDetails {
           EpisodeTile(
             routerCtl = p.routerCtl,
             dotable = p.dotable,
-            width = Math.min(400, ContentFrame.innerWidthPx),
+            width = Math.min(500, ContentFrame.innerWidthPx),
             elevation = 2
           )(),
           Typography(typographyType = Typography.Type.Body1)(

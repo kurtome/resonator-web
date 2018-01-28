@@ -5,7 +5,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.utils.MuiInlineStyleSheet
+import kurtome.dote.web.utils.{IsTouchDevice, MuiInlineStyleSheet}
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
@@ -45,7 +45,6 @@ object EmoteButton extends LogSupport {
   case class State(valueCount: Int = 0, hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
-
     val handleClick = (p: Props, s: State) =>
       Callback {
         val maxValue = p.emojis.size + 1

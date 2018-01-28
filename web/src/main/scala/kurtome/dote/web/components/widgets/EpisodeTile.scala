@@ -2,21 +2,14 @@ package kurtome.dote.web.components.widgets
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.dotable.Dotable
-import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, DetailsRoute}
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.button.emote._
-import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
-
-import scala.scalajs.js
-import scalacss.internal.Attr
 
 object EpisodeTile extends LogSupport {
 
@@ -51,25 +44,6 @@ object EpisodeTile extends LogSupport {
       pointerEvents := "auto"
     )
 
-    val overlayContainer = style(
-      position.absolute,
-      pointerEvents := "none",
-      width(100 %%),
-      height(100 %%)
-    )
-
-    val overlayActionsContainer = style(
-      width(100 %%),
-      height(100 %%)
-    )
-
-    val overlay = style(
-      position.absolute,
-      backgroundColor(rgba(255, 255, 255, 0.4)),
-      width(100 %%),
-      height(100 %%)
-    )
-
     val imgWrapper = style(
       display.inlineBlock
     )
@@ -79,9 +53,6 @@ object EpisodeTile extends LogSupport {
       display.inlineBlock,
       position.absolute
     )
-
-    val webkitLineClamp = Attr.real("-webkit-line-clamp")
-    val webkitBoxOrient = Attr.real("-webkit-box-orient")
 
     val titleLine = style(
       marginLeft(SharedStyles.spacingUnit),
@@ -102,14 +73,6 @@ object EpisodeTile extends LogSupport {
       textOverflow := "ellipsis"
     )
 
-    val placeholder = style(
-      position.absolute,
-      backgroundColor(rgb(200, 200, 200)),
-      width(100 %%),
-      // Use padding top to force the height of the div to match the width
-      paddingTop(100 %%)
-    )
-
     val paperContainer = style(
       backgroundColor.white,
       display.inlineBlock
@@ -128,46 +91,6 @@ object EpisodeTile extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
-    // Hardcoded 'M' width to
-    private val titleEmWidth = 15.0f
-
-    val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 2000) { () =>
-      val p: Props = bs.props.runNow()
-      val s: State = bs.state.runNow()
-      val f = DoteProtoServer.setDote(
-        SetDoteRequest(p.dotable.id,
-                       Some(
-                         Dote(smileCount = s.smileCount,
-                              laughCount = s.laughCount,
-                              cryCount = s.cryCount,
-                              scowlCount = s.scowlCount))))
-      GlobalLoadingManager.addLoadingFuture(f)
-    }
-
-    val handleLikeValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(smileCount = value)).runNow()
-        sendDoteToServer()
-    }
-
-    val handleSadValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(cryCount = value))
-        sendDoteToServer()
-    }
-
-    val handleLaughValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(laughCount = value))
-        sendDoteToServer()
-    }
-
-    val handleScowlValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(scowlCount = value))
-        sendDoteToServer()
-    }
-
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id
       val slug = p.dotable.slug
@@ -178,8 +101,6 @@ object EpisodeTile extends LogSupport {
       } else {
         p.dotable.getDetails.getPodcast.imageUrl
       }
-
-      val showActions = s.hover && LoggedInPersonManager.isLoggedIn
 
       val height = 100
       val imageSize = height
@@ -211,36 +132,7 @@ object EpisodeTile extends LogSupport {
                 epochSecToDate(p.dotable.getCommon.publishedEpochSec))
             )
           ),
-          <.div(
-            ^.className := Styles.overlayContainer,
-            Fader(in = showActions, width = "100%", height = "100%")(
-              <.div(
-                ^.className := Styles.overlayActionsContainer,
-                ^.className := SharedStyles.plainAnchor,
-                <.div(^.className := Styles.overlay),
-                Grid(container = true,
-                     direction = Grid.Direction.Column,
-                     justify = Grid.Justify.SpaceBetween,
-                     spacing = 0,
-                     style = Styles.overlayActionsContainer.inline)(
-                  Grid(item = true)(
-                    Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                      Grid(item = true)(
-                        SmileButton(s.smileCount, onValueChanged = handleLikeValueChanged)()),
-                      Grid(item = true)(
-                        CryButton(s.cryCount, onValueChanged = handleLikeValueChanged)())
-                    )),
-                  Grid(item = true)(
-                    Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                      Grid(item = true)(
-                        LaughButton(s.laughCount, onValueChanged = handleLaughValueChanged)()),
-                      Grid(item = true)(
-                        ScowlButton(s.scowlCount, onValueChanged = handleScowlValueChanged)())
-                    ))
-                )
-              )
-            )
-          )
+          TileActionShim(p.routerCtl, p.dotable, s.hover)()
         )
       )
 
