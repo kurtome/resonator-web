@@ -9,12 +9,9 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
-  DetailField,
-  LinkFieldValue,
-  TextFieldValue
-}
+import kurtome.dote.web.components.widgets.detail.DetailFieldList.{DetailField, LinkFieldValue, TextFieldValue}
 import kurtome.dote.web.components.widgets.{ContentFrame, PodcastTile}
 import kurtome.dote.web.utils.{Debounce, MuiInlineStyleSheet}
 import org.scalajs.dom
@@ -206,7 +203,9 @@ object PodcastDetails {
           )
         ),
         Grid(item = true, xs = 12)(
-          EpisodeTable(EpisodeTable.Props(p.routerCtl, p.dotable))()
+          LazyLoad(once = true, height = 500)(
+            EpisodeTable(EpisodeTable.Props(p.routerCtl, p.dotable))()
+          )
         )
       )
 

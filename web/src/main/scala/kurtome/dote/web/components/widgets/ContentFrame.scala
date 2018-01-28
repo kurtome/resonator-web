@@ -13,6 +13,7 @@ import org.scalajs.dom
 
 import scalacss.internal.mutable.StyleSheet
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.components.lib.LazyLoad
 import wvlet.log.LogSupport
 
 import scala.scalajs.js

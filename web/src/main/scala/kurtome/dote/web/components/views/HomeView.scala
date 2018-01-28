@@ -11,6 +11,7 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils.LoggedInPersonManager.LoginState
 import kurtome.dote.web.utils._
@@ -74,7 +75,9 @@ object HomeView extends LogSupport {
               ^.className := Styles.feedItemContainer,
               item.kind match {
                 case FeedItem.Kind.DOTABLE_LIST =>
-                  FeedDotableList(p.routerCtl, item.getDotableList, key = Some(i.toString))()
+                  LazyLoad(once = true, height = 200)(
+                    FeedDotableList(p.routerCtl, item.getDotableList, key = Some(i.toString))()
+                  )
                 case _ => <.div(^.key := i)
               }
             )
