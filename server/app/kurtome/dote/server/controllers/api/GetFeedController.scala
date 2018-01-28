@@ -27,92 +27,109 @@ class GetFeedController @Inject()(
 
   override def action(request: Request[GetFeedRequest]) =
     authTokenService.simplifiedRead(request) flatMap { loggedInPerson =>
+      // TODO: refactor this so it's easier to use the logged in person's ID
+      val personId = loggedInPerson.map(_.id)
+
+      val listLimit = request.body.maxItemSize
+
       val newEpisodes = podcastDbService
-        .readRecentEpisodes(MetadataFlag.Ids.popular, request.body.maxItemSize) map { episodes =>
+        .readRecentEpisodes(MetadataFlag.Ids.popular, listLimit) map { episodes =>
         toListFeedItem("New Episodes", episodes)
       }
 
       val popularList = podcastDbService
-        .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.body.maxItemSize)
+        .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, listLimit, personId)
         .map(toListFeedItem)
 
       val nprList = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastCreator, "npr"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val comedy = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastGenre, "comedy"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val crookedMediaList = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastCreator, "crooked-media"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val arts = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastGenre, "arts"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val technology = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastGenre, "technology"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val music = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastGenre, "music"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val gimlet = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastCreator, "gimlet"),
-                     request.body.maxItemSize,
+                     listLimit,
                      loggedInPerson.map(_.id))
         .map(toListFeedItem)
 
       val newsAndPolitics = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastGenre, "news-politics"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val tvAndFilm = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastGenre, "tv-film"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val societyAndCulture = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastGenre, "society-culture"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val sportsAndRecreation = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastGenre, "sports-recreation"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val wnyc = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastCreator, "wnyc-studios"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val theRinger = podcastDbService
         .readTagList(DotableKinds.Podcast,
                      TagId(TagKinds.PodcastCreator, "the-ringer"),
-                     request.body.maxItemSize)
+                     listLimit,
+                     personId)
         .map(toListFeedItem)
 
       val lists = Future.sequence(

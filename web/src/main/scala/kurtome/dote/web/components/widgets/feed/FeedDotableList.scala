@@ -42,12 +42,24 @@ object FeedDotableList {
     "xl" -> 200
   )
 
-  private def currentTileSizePx: Int =
-    breakpointTileSizes(currentBreakpointString)
+  private val episodeTileSizes = Map[String, Int](
+    "xs" -> 240,
+    "sm" -> 240,
+    "md" -> 240,
+    "lg" -> 300,
+    "xl" -> 350
+  )
+
+  private def currentTileSizePx(p: Props): Int = {
+    p.list.list.get.dotables.head.kind match {
+      case Dotable.Kind.PODCAST_EPISODE => episodeTileSizes(currentBreakpointString)
+      case _ => breakpointTileSizes(currentBreakpointString)
+    }
+  }
 
   class Backend(bs: BackendScope[Props, State]) {
     val updateTileSize: Callback = {
-      bs.modState(_.copy(tileSizePx = currentTileSizePx))
+      bs.modState(_.copy(tileSizePx = currentTileSizePx(bs.props.runNow())))
     }
 
     val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
@@ -60,15 +72,8 @@ object FeedDotableList {
       dom.window.removeEventListener("resize", resizeListener)
     }
 
-    def calcRequestedWidth(p: Props, s: State): Int = {
-      p.list.getList.dotables.headOption.map(_.kind) match {
-        case Some(Dotable.Kind.PODCAST_EPISODE) => 240
-        case _ => s.tileSizePx
-      }
-    }
-
     def render(p: Props, s: State): VdomElement = {
-      val requestedWidth = calcRequestedWidth(p, s)
+      val requestedWidth = s.tileSizePx
       val list = p.list.getList
       // the actual padding will be dynamic since the tiles are evenly spaced, so just make sure
       // the number of tiles has some extra space
@@ -125,7 +130,7 @@ object FeedDotableList {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State(tileSizePx = currentTileSizePx))
+    .initialStateFromProps(p => State(tileSizePx = currentTileSizePx(p)))
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
     .componentWillUnmount(x => x.backend.handleWillUnmount)

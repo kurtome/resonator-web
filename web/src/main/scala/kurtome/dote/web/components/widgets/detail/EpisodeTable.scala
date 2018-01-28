@@ -5,7 +5,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.{DoteRoute, PodcastEpisodeRoute}
+import kurtome.dote.web.DoteRoutes.{DoteRoute, DetailsRoute}
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.ComponentHelpers._
@@ -114,7 +114,7 @@ object EpisodeTable {
                     val id = episode.id
                     val key: String = if (id.isEmpty) i.toString else id
                     val slug = episode.slug
-                    val detailRoute = PodcastEpisodeRoute(id = id, slug = slug)
+                    val detailRoute = DetailsRoute(id = id, slug = slug)
                     val durationInfo =
                       durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
                     val releaseDate = epochSecToDate(episode.getCommon.publishedEpochSec)

@@ -6,7 +6,7 @@ import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
+import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, DetailsRoute}
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
@@ -102,7 +102,7 @@ object EntityImage extends LogSupport {
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id
       val slug = p.dotable.slug
-      val detailRoute = PodcastRoute(id = id, slug = slug)
+      val detailRoute = DetailsRoute(id = id, slug = slug)
 
       val url = if (p.dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
         p.dotable.getRelatives.getParent.getDetails.getPodcast.imageUrl

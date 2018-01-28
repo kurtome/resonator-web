@@ -2,7 +2,7 @@ package kurtome.dote.web.components.views
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.DoteRoutes.{DotableRoute, DoteRouterCtl}
+import kurtome.dote.web.DoteRoutes.DoteRouterCtl
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.{ContentFrame, SearchBox}
 import wvlet.log.LogSupport

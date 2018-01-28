@@ -55,8 +55,9 @@ class SetPopularPodcastsActor @Inject()(actorSystem: ActorSystem,
     case SetPopularPodcasts =>
       debug("Starting...")
       doteService.readPopular(DotableKinds.Podcast, popularLimit) map { dotables =>
-        dotableService.replaceMetadataTagList(MetadataFlag.Keys.popular, dotables.map(_.id)) map { _ =>
-          info(s"successfully set ${dotables.size} podcasts as popular")
+        dotableService.replaceMetadataTagList(MetadataFlag.Keys.popular, dotables.map(_.id)) map {
+          _ =>
+            info(s"successfully set ${dotables.size} podcasts as popular")
         }
       }
   }

@@ -5,12 +5,12 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.DoteRoute
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.PodcastTile
+import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.utils.MuiInlineStyleSheet
 
 import scalacss.internal.mutable.StyleSheet
@@ -24,13 +24,12 @@ object EpisodeDetails {
       lineHeight(1 em)
     )
 
-    val podcastTitleText = style(
-      color.rgba(0, 0, 0, 0.5),
-      verticalAlign.top,
-      display.inline
+    val byPodcastText = style(
+      marginTop(SharedStyles.spacingUnit)
     )
 
     val subTitleText = style(
+      marginTop(SharedStyles.spacingUnit),
       marginBottom(SharedStyles.spacingUnit * 2)
     )
 
@@ -41,11 +40,6 @@ object EpisodeDetails {
 
     val headerContainer = style(
       display.flex
-    )
-
-    val podcastTileContainer = style(
-      display.flex,
-      alignItems.flexEnd
     )
 
     val podcastTile = style(
@@ -60,7 +54,7 @@ object EpisodeDetails {
     )
 
     val detailsHeaderContainer = style(
-      marginBottom(SharedStyles.spacingUnit * 2),
+      marginBottom(SharedStyles.spacingUnit * 2)
     )
 
     val titleFieldContainer = style(
@@ -102,23 +96,23 @@ object EpisodeDetails {
            alignItems = Grid.AlignItems.FlexStart,
            className = Styles.detailsHeaderContainer)(
         Grid(item = true, xs = 12)(
+          EpisodeTile(
+            routerCtl = p.routerCtl,
+            dotable = p.dotable,
+            width = Math.min(400, ContentFrame.innerWidthPx),
+            elevation = 2
+          )(),
+          Typography(typographyType = Typography.Type.Body1)(
+            s"by ",
+            SiteLink(p.routerCtl, DetailsRoute(podcast.id, podcast.slug))(
+              s"${podcast.getCommon.title}"))
+        ),
+        Grid(item = true, xs = 12)(
           <.div(
-            ^.className := Styles.headerContainer,
-            <.div(^.className := Styles.podcastTile,
-                  PodcastTile(routerCtl = p.routerCtl,
-                             dotable = p.dotable.getRelatives.getParent,
-                             width = "125px")()),
-            <.div(
-              Typography(style = Styles.titleText.inline,
-                         typographyType = Typography.Type.Headline)(title),
-              Typography(style = Styles.subTitleText.inline,
-                         typographyType = Typography.Type.SubHeading)(subtitle),
-              <.div(
-                ^.display := (if (AudioPlayer.canPlay(p.dotable)) "block" else "none"),
-                Button(onClick = playAudio, raised = true, style = Styles.playButton.inline)(
-                  "Play", Icons.PlayArrow())
-              )
-            )
+            ^.display := (if (AudioPlayer.canPlay(p.dotable)) "block" else "none"),
+            Button(onClick = playAudio, raised = true, style = Styles.playButton.inline)(
+              "Play",
+              Icons.PlayArrow())
           )
         ),
         Grid(item = true, xs = 12)(

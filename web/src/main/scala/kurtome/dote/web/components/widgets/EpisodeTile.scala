@@ -6,7 +6,7 @@ import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
+import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, DetailsRoute}
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
@@ -84,18 +84,19 @@ object EpisodeTile extends LogSupport {
     val webkitBoxOrient = Attr.real("-webkit-box-orient")
 
     val titleLine = style(
-      marginLeft(SharedStyles.spacingUnit / 2),
+      marginLeft(SharedStyles.spacingUnit),
       marginRight(SharedStyles.spacingUnit / 2),
       marginBottom(SharedStyles.spacingUnit / 2),
       overflow.hidden,
       display.block,
       lineHeight(1.5 em),
-      maxHeight(3 em),
+      minHeight(3 em),
+      maxHeight(3 em)
     )
 
     val textLine = style(
-      marginLeft(SharedStyles.spacingUnit / 2),
-      marginRight(SharedStyles.spacingUnit / 2),
+      marginLeft(SharedStyles.spacingUnit),
+      marginRight(SharedStyles.spacingUnit),
       whiteSpace.nowrap,
       overflow.hidden,
       textOverflow := "ellipsis"
@@ -107,6 +108,11 @@ object EpisodeTile extends LogSupport {
       width(100 %%),
       // Use padding top to force the height of the div to match the width
       paddingTop(100 %%)
+    )
+
+    val paperContainer = style(
+      backgroundColor.white,
+      display.inlineBlock
     )
   }
   Styles.addToDocument()
@@ -165,7 +171,7 @@ object EpisodeTile extends LogSupport {
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id
       val slug = p.dotable.slug
-      val detailRoute = PodcastRoute(id = id, slug = slug)
+      val detailRoute = DetailsRoute(id = id, slug = slug)
 
       val url = if (p.dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
         p.dotable.getRelatives.getParent.getDetails.getPodcast.imageUrl
@@ -180,7 +186,7 @@ object EpisodeTile extends LogSupport {
       val titleWidth = p.width - imageSize
 
       Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation,
-            className = SharedStyles.inlineBlock)(
+            style = Styles.paperContainer.inline)(
         <.div(
           ^.className := Styles.wrapper,
           ^.width := asPxStr(p.width),
@@ -254,6 +260,6 @@ object EpisodeTile extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, dotable: Dotable, elevation: Int = 8, width: Int = 300) =
+  def apply(routerCtl: DoteRouterCtl, dotable: Dotable, elevation: Int = 6, width: Int = 300) =
     component.withProps(Props(routerCtl, dotable, elevation, width))
 }

@@ -5,7 +5,7 @@ import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dotable.Dotable.Kind
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.DoteRoutes.{DotableRoute, DoteRouterCtl}
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.{ContentFrame, NavBar}
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object DotableDetailView {
 
-  case class Props(routerCtl: DoteRouterCtl, route: DotableRoute)
+  case class Props(routerCtl: DoteRouterCtl, route: DetailsRoute)
 
   case class State(response: GetDotableDetailsResponse = GetDotableDetailsResponse.defaultInstance,
                    requestInFlight: Boolean = false)
@@ -30,20 +30,19 @@ object DotableDetailView {
 
       if (cachedDetails.isDefined) {
         // Use cached
-        bs.modState(
-          _.copy(response = GetDotableDetailsResponse(cachedDetails), requestInFlight = false))
-      } else {
-        // Request from server, and use shallow cached data if available
-        val cachedShallow: Option[Dotable] = LocalCache.get(includesDetails = false, id)
-        bs.modState(_.copy(requestInFlight = true,
-                           response = GetDotableDetailsResponse(cachedShallow))) flatMap { _ =>
-          CallbackTo {
-            val f = DoteProtoServer.getDotableDetails(request) flatMap { response =>
-              bs.modState(_.copy(response = response, requestInFlight = false)).toFuture
-            }
-            GlobalLoadingManager.addLoadingFuture(f)
-            f
+        bs.modState(_.copy(response = GetDotableDetailsResponse(cachedDetails)))
+      }
+
+      // Request from server regardless, to get latest
+      val cachedShallow: Option[Dotable] = LocalCache.get(includesDetails = false, id)
+      bs.modState(_.copy(requestInFlight = true,
+                         response = GetDotableDetailsResponse(cachedShallow))) flatMap { _ =>
+        CallbackTo {
+          val f = DoteProtoServer.getDotableDetails(request) flatMap { response =>
+            bs.modState(_.copy(response = response, requestInFlight = false)).toFuture
           }
+          GlobalLoadingManager.addLoadingFuture(f)
+          f
         }
       }
     }
@@ -75,7 +74,7 @@ object DotableDetailView {
     .componentWillMount((x) => x.backend.fetchDetails(x.props))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, route: DotableRoute) = {
+  def apply(routerCtl: DoteRouterCtl, route: DetailsRoute) = {
     component.withProps(Props(routerCtl, route))
   }
 }

@@ -3,7 +3,7 @@ package kurtome.dote.web.components.widgets
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.shared.util.observer.Observer
-import kurtome.dote.web.DoteRoutes.DoteRouterCtl
+import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, DetailsRoute}
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
@@ -153,9 +153,12 @@ object AudioControls extends LogSupport {
                 ^.className := Styles.contentWrapper,
                 <.div(
                   ^.className := Styles.tileWrapper,
-                  EntityImage(routerCtl = p.routerCtl,
-                              dotable = s.playerState.episode,
-                              width = asPxStr(controlsHeight))()
+                  p.routerCtl.link(
+                    DetailsRoute(s.playerState.episode.id, s.playerState.episode.slug))(
+                    EntityImage(routerCtl = p.routerCtl,
+                                dotable = s.playerState.episode,
+                                width = asPxStr(controlsHeight))()
+                  )
                 ),
                 <.div(
                   ^.className := Styles.waveWrapper,

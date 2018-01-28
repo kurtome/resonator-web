@@ -7,7 +7,7 @@ import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.shared.constants.StringValues
 import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
@@ -82,8 +82,9 @@ object PodcastTile extends LogSupport {
 
   case class Props(routerCtl: DoteRouterCtl,
                    dotable: Dotable,
-                   elevation: Int = 4,
-                   width: String = "175px")
+                   elevation: Int,
+                   width: String,
+                   disableActions: Boolean)
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
                    smileCount: Int = 0,
@@ -133,7 +134,7 @@ object PodcastTile extends LogSupport {
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id
       val slug = p.dotable.slug
-      val detailRoute = PodcastRoute(id = id, slug = slug)
+      val detailRoute = DetailsRoute(id = id, slug = slug)
 
       val url = if (p.dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
         p.dotable.getRelatives.getParent.getDetails.getPodcast.imageUrl
@@ -141,7 +142,7 @@ object PodcastTile extends LogSupport {
         p.dotable.getDetails.getPodcast.imageUrl
       }
 
-      val showActions = s.hover && LoggedInPersonManager.isLoggedIn
+      val showActions = !p.disableActions && s.hover && LoggedInPersonManager.isLoggedIn
 
       Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation,
             className = SharedStyles.inlineBlock)(
@@ -206,7 +207,8 @@ object PodcastTile extends LogSupport {
 
   def apply(routerCtl: DoteRouterCtl,
             dotable: Dotable,
-            elevation: Int = 8,
-            width: String = "175px") =
-    component.withProps(Props(routerCtl, dotable, elevation, width))
+            elevation: Int = 6,
+            width: String = "175px",
+            disableActions: Boolean = false) =
+    component.withProps(Props(routerCtl, dotable, elevation, width, disableActions))
 }

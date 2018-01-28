@@ -53,15 +53,16 @@ object HomeView extends LogSupport {
     def fetchHomeData() = {
       val cachedFeed = LocalCache.getObj(ObjectKinds.Feed, "home", Feed.parseFrom)
       if (cachedFeed.isDefined) {
-        bs.modState(_.copy(feed = cachedFeed.get, requestInFlight = false)).runNow()
-      } else {
-        bs.modState(_.copy(requestInFlight = true)).runNow
-        val f = DoteProtoServer.getFeed(GetFeedRequest(maxItems = 20, maxItemSize = 10)) map {
-          response =>
-            bs.modState(_.copy(feed = response.getFeed, requestInFlight = false)).runNow()
-        }
-        GlobalLoadingManager.addLoadingFuture(f)
+        bs.modState(_.copy(feed = cachedFeed.get)).runNow()
       }
+
+      // get the latest data as well, in case it has changed
+      bs.modState(_.copy(requestInFlight = true)).runNow
+      val f = DoteProtoServer.getFeed(GetFeedRequest(maxItems = 20, maxItemSize = 10)) map {
+        response =>
+          bs.modState(_.copy(feed = response.getFeed, requestInFlight = false)).runNow()
+      }
+      GlobalLoadingManager.addLoadingFuture(f)
     }
 
     def render(p: Props, s: State): VdomElement = {

@@ -16,12 +16,7 @@ object DoteRoutes {
 
   case object SearchRoute extends DoteRoute
 
-  sealed trait DotableRoute extends DoteRoute {
-    val id: String
-    val slug: String
-  }
-  case class PodcastRoute(id: String, slug: String) extends DotableRoute
-  case class PodcastEpisodeRoute(id: String, slug: String) extends DotableRoute
+  case class DetailsRoute(id: String, slug: String) extends DoteRoute
 
   case object PageNotFoundRoute extends DoteRoute
 
@@ -60,13 +55,9 @@ object DoteRoutes {
 
         | staticRoute("#/add", AddRoute) ~> renderR(AddPodcastView(_)())
 
-        | dynamicRouteCT("#/podcast" ~ ("/" ~ id ~ "/" ~ slug)
-          .caseClass[PodcastRoute]) ~> dynRenderR(
-          (page: PodcastRoute, routerCtl) => DotableDetailView(routerCtl, page)())
-
-        | dynamicRouteCT("#/podcast-episode" ~ ("/" ~ id ~ "/" ~ slug)
-          .caseClass[PodcastEpisodeRoute]) ~> dynRenderR(
-          (page: PodcastEpisodeRoute, routerCtl) => DotableDetailView(routerCtl, page)())
+        | dynamicRouteCT("#/details" ~ ("/" ~ id ~ "/" ~ slug)
+          .caseClass[DetailsRoute]) ~> dynRenderR(
+          (page: DetailsRoute, routerCtl) => DotableDetailView(routerCtl, page)())
 
         | staticRoute("#/account", AccountRoute) ~> renderR(AccountView(_)())
 

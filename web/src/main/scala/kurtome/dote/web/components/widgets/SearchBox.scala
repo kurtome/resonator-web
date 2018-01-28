@@ -9,7 +9,7 @@ import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, PodcastRoute}
+import kurtome.dote.web.DoteRoutes.{DetailsRoute, DoteRouterCtl}
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
@@ -150,7 +150,7 @@ object SearchBox {
       val query = params.query
 
       val routerCtl = bs.props.runNow().routerCtl
-      val route = PodcastRoute(suggestion.id, suggestion.slug)
+      val route = DetailsRoute(suggestion.id, suggestion.slug)
 
       val title = suggestion.getCommon.title
 
@@ -213,7 +213,7 @@ object SearchBox {
       : Function2[ReactEventFromInput, SuggestionSelectedParams[Dotable], Unit] =
       (e, params) => {
         val routerCtl = bs.props.runNow().routerCtl
-        val route = PodcastRoute(params.suggestion.id, params.suggestion.slug)
+        val route = DetailsRoute(params.suggestion.id, params.suggestion.slug)
         routerCtl.set(route).runNow()
       }
 
