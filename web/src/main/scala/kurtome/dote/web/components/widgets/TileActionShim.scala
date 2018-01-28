@@ -69,7 +69,7 @@ object TileActionShim extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
-    val shouldClickToShowActions = IsTouchDevice.value
+    val shouldClickToShowActions = IsMobile.value
 
     val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 2000) { () =>
       val p: Props = bs.props.runNow()

@@ -5,7 +5,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.utils.{IsTouchDevice, MuiInlineStyleSheet}
+import kurtome.dote.web.utils.{IsMobile, MuiInlineStyleSheet}
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
