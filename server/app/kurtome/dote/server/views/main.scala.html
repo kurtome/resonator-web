@@ -6,7 +6,7 @@
  *@
 @import play.filters.csrf.CSRF.Token
 
-@(token: Token, title: String, jsLibraryBundleUrl: String, jsAppBundleUrl: String)
+@(token: Token, personJson: String, title: String, jsLibraryBundleUrl: String, jsAppBundleUrl: String)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -34,6 +34,8 @@
             id="csrf-token-holder"
             x-csrf-name="@token.name"
             x-csrf-value="@token.value"></div>
+
+        <div id="logged-in-holder" style="display:none">@personJson</div>
 
         @* Root for the Rect rendered app *@
         <section id="reactroot"></section>

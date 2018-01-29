@@ -4,7 +4,6 @@ import kurtome.dote.proto.api.action.get_feed._
 import kurtome.dote.proto.api.feed.{Feed, FeedItem}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.DoteRoutes._
@@ -13,7 +12,6 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
-import kurtome.dote.web.utils.LoggedInPersonManager.LoginState
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
@@ -32,24 +30,24 @@ object HomeView extends LogSupport {
   Styles.addToDocument()
 
   case class Props(routerCtl: DoteRouterCtl, loginAttempted: Boolean = false)
-  case class State(feed: Feed = Feed.defaultInstance,
-                   requestInFlight: Boolean = false,
-                   displayedLoginSnack: Boolean = false)
+  case class State(feed: Feed = Feed.defaultInstance)
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
     val handleDidMount = Callback {
       fetchHomeData()
-    }
 
-    val loginObserver: Observer[LoginState] = (ls: LoginState) => {
-      val s: State = bs.state.runNow()
-      if (ls.person.isEmpty && ls.fetched && !s.displayedLoginSnack && LoggedInPersonManager.loginAttempted) {
-        GlobalNotificationManager.displayMessage("Login link was expired, please login again.")
-        bs.modState(_.copy(displayedLoginSnack = true))
+      if (LoggedInPersonManager.loginAttempted && !LoggedInPersonManager.displayedLoginSnack) {
+        val person = LoggedInPersonManager.person
+        LoggedInPersonManager.displayedLoginSnack = true
+        if (person.isEmpty) {
+          GlobalNotificationManager.displayMessage("Login link was expired, please login again.")
+        } else {
+          GlobalNotificationManager.displayMessage(s"Logged in as ${person.get.username}")
+        }
       }
+
     }
-    LoggedInPersonManager.stateObservable.addObserver(loginObserver)
 
     def fetchHomeData() = {
       val cachedFeed = LocalCache.getObj(ObjectKinds.Feed, "home", Feed.parseFrom)
@@ -58,10 +56,9 @@ object HomeView extends LogSupport {
       }
 
       // get the latest data as well, in case it has changed
-      bs.modState(_.copy(requestInFlight = true)).runNow
       val f = DoteProtoServer.getFeed(GetFeedRequest(maxItems = 20, maxItemSize = 10)) map {
         response =>
-          bs.modState(_.copy(feed = response.getFeed, requestInFlight = false)).runNow()
+          bs.modState(_.copy(feed = response.getFeed)).runNow()
       }
       GlobalLoadingManager.addLoadingFuture(f)
     }

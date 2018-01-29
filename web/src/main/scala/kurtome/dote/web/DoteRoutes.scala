@@ -24,7 +24,7 @@ object DoteRoutes {
 
   case object ListsRoute extends DoteRoute
 
-  case object AccountRoute extends DoteRoute
+  case object ProfileRoute extends DoteRoute
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,7 +59,7 @@ object DoteRoutes {
           .caseClass[DetailsRoute]) ~> dynRenderR(
           (page: DetailsRoute, routerCtl) => DotableDetailView(routerCtl, page)())
 
-        | staticRoute("#/account", AccountRoute) ~> renderR(AccountView(_)())
+        | staticRoute("#/profile", ProfileRoute) ~> renderR(ProfileView(_)())
 
         | staticRoute("#/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))

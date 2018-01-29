@@ -8,7 +8,6 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.utils.LoggedInPersonManager.LoginState
 import kurtome.dote.web.utils.{GlobalLoadingManager, LoggedInPersonManager}
 import org.scalajs.dom
 import wvlet.log.LogSupport
@@ -44,21 +43,18 @@ object NavBar extends LogSupport {
         bs.forceUpdate.runNow()
       }
 
-    val loginObserver: Observer[LoginState] = (ls: LoginState) => {
-      bs.modState(_.copy(loggedInPerson = ls.person)).runNow()
-      bs.forceUpdate.runNow()
-    }
-
     GlobalLoadingManager.stateObservable.addObserver(loadingObserver)
-    LoggedInPersonManager.stateObservable.addObserver(loginObserver)
 
     val onUnmount: Callback = Callback {
       GlobalLoadingManager.stateObservable.removeObserver(loadingObserver)
-      LoggedInPersonManager.stateObservable.removeObserver(loginObserver)
     }
 
-    val handleAccountButtonClicked: Callback =
-      bs.modState(_.copy(loginDialogOpen = true))
+    val handleProfileButtonClicked = (p: Props) =>
+      if (LoggedInPersonManager.isLoggedIn) {
+        p.routerCtl.set(ProfileRoute)
+      } else {
+        bs.modState(_.copy(loginDialogOpen = true))
+    }
 
     val handleLoginDialogClosed: Callback = Callback {
       bs.modState(_.copy(loginDialogOpen = false)).runNow()
@@ -91,9 +87,9 @@ object NavBar extends LogSupport {
                 icon = Icons.AccountCircle(),
                 label = Typography(typographyType = Typography.Type.Caption)(
                   if (s.loggedInPerson.isDefined) s.loggedInPerson.get.username else "Login"),
-                value = "account",
+                value = "profile",
                 showLabel = true,
-                onClick = handleAccountButtonClicked
+                onClick = handleProfileButtonClicked(p)
               )()
             ))
         ),
@@ -108,8 +104,8 @@ object NavBar extends LogSupport {
   private def navValueFromUrl: String = {
     if (dom.window.location.hash.startsWith("#/search")) {
       "search"
-    } else if (dom.window.location.hash.startsWith("#/account")) {
-      "account"
+    } else if (dom.window.location.hash.startsWith("#/profile")) {
+      "profile"
     } else if (dom.window.location.hash.startsWith("#/add")) {
       "add"
     } else {
@@ -122,7 +118,7 @@ object NavBar extends LogSupport {
     .initialState(
       State(navValue = navValueFromUrl,
             isLoading = GlobalLoadingManager.curState.isLoading,
-            loggedInPerson = LoggedInPersonManager.curState.person))
+            loggedInPerson = LoggedInPersonManager.person))
     .backend(new Backend(_))
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
     .componentWillUnmount(x => x.backend.onUnmount)

@@ -1,42 +1,40 @@
 package kurtome.dote.web.utils
 
-import kurtome.dote.proto.api.action.get_logged_in_person.GetLoggedInPersonRequest
 import kurtome.dote.proto.api.person.Person
-import kurtome.dote.shared.util.observer.{Observable, SimpleObservable}
-import kurtome.dote.web.rpc.DoteProtoServer
-import kurtome.dote.shared.util.observer.SimpleObservable
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.scalajs.js.JSON
 
 object LoggedInPersonManager extends LogSupport {
 
-  case class LoginState(person: Option[Person], fetched: Boolean = false)
+  private def loadInitialState(): Option[Person] = {
+    val personElement = dom.document.body.querySelector("#logged-in-holder")
+    val personString = personElement.innerHTML
 
-  val stateObservable: Observable[LoginState] = SimpleObservable()
+    if (personString.nonEmpty) {
+      // can't figure out how to get the ScalaPB JsonFormat class to compile for scala.js, so just
+      // do the mapping by hand
+      val personJson = JSON.parse(personString)
+      val person = Person(
+        id = personJson.id.asInstanceOf[String],
+        username = personJson.username.asInstanceOf[String],
+        email = personJson.email.asInstanceOf[String],
+        slug = personJson.slug.asInstanceOf[String]
+      )
+      Some(person)
+    } else {
+      None
+    }
+  }
+
+  val person = loadInitialState()
+
+  val isLoggedIn: Boolean = person.isDefined
 
   private val cookieValues = dom.document.cookie.split("; ")
   // check for the cookie written by the redirect controller
   val loginAttempted = cookieValues.contains("LOGIN_REDIRECT=")
-  private var state = LoginState(None, false)
 
-  def curState = state
-
-  def isLoggedIn: Boolean = state.person.isDefined
-
-  def stateChanged(person: Option[Person]): Unit = {
-    state = LoginState(person = person, fetched = true)
-    stateObservable.notifyObservers(state)
-  }
-
-  private def getInitialData(): Unit = {
-    val f = DoteProtoServer.getLoggedInPerson(GetLoggedInPersonRequest(true))
-    GlobalLoadingManager.addLoadingFuture(f)
-
-    f map { response =>
-      stateChanged(response.person)
-    }
-  }
-  getInitialData()
+  var displayedLoginSnack: Boolean = false
 }

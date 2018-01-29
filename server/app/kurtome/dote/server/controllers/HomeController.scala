@@ -2,15 +2,22 @@ package kurtome.dote.server.controllers
 
 import javax.inject._
 
+import com.trueaccord.scalapb.json.JsonFormat
+import kurtome.dote.server.controllers.mappers.PersonMapper
+import kurtome.dote.server.services.AuthTokenService
 import play.api.mvc._
 import views.html.helper.CSRF
+
+import scala.concurrent.ExecutionContext
 
 /**
   * This controller creates an `Action` to handle HTTP requests to the
   * application's home page.
   */
 @Singleton
-class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+class HomeController @Inject()(cc: ControllerComponents, authTokenService: AuthTokenService)(
+    implicit ec: ExecutionContext)
+    extends AbstractController(cc) {
 
   //val siteTitle = s"Pod ${cryingFace}${heartEyes}${unamusedFace}s"
   val siteTitle = s"Resonator"
@@ -22,10 +29,17 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     * will be called when the application receives a `GET` request with
     * a path of `/`.
     */
-  def index() = Action { implicit request: Request[AnyContent] =>
-    Ok(
-      kurtome.dote.server.views.html
-        .main(CSRF.getToken, siteTitle, findJsLibraryBundleUrl("web"), findJsAppBundleUrl("web")))
+  def index() = Action.async { implicit request: Request[AnyContent] =>
+    authTokenService.simplifiedRead(request) map { person =>
+      val personJson = person.map(PersonMapper).map(JsonFormat.toJsonString(_)).getOrElse("")
+      Ok(
+        kurtome.dote.server.views.html
+          .main(CSRF.getToken,
+                personJson,
+                siteTitle,
+                findJsLibraryBundleUrl("web"),
+                findJsAppBundleUrl("web")))
+    }
   }
 
   /**

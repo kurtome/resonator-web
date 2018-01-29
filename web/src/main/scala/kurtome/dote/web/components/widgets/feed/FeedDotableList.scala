@@ -45,7 +45,7 @@ object FeedDotableList {
   private val episodeTileSizes = Map[String, Int](
     "xs" -> 240,
     "sm" -> 240,
-    "md" -> 240,
+    "md" -> 260,
     "lg" -> 300,
     "xl" -> 350
   )
