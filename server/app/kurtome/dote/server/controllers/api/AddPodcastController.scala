@@ -50,6 +50,7 @@ class AddPodcastController @Inject()(
                                        itunesId: Long): Future[AddPodcastResponse] = {
     itunesEntityFetcher.fetch(itunesId, "podcast") flatMap { itunesEntity =>
       assert(itunesEntity.resultCount == 1, "must have exactly 1 result")
+      debug(s"fetched ${itunesEntity.results.head.trackName} for ingestion")
       val entity = itunesEntity.results.head
       podcastFeedIngester.fetchFeedAndIngestRequest(request,
                                                     itunesId,

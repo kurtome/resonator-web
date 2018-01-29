@@ -39,13 +39,15 @@ class PodcastFeedParser @Inject()() extends LogSupport {
     val description: String = podcast \ "description"
 
     val itunesImagesWithHref =
-      (podcast \ "image").filter(n => n.attribute("href").isDefined && n.namespace == "itunes")
-    val imagesWithHref = (podcast \ "image").filter(n => n.attribute("href").isDefined)
-    val imageUrl = if (itunesImagesWithHref.nonEmpty) {
+      firstDefinedAttributeValue((podcast \ "image").filter(_.prefix == "itunes"), "href")
+    val imageUrl = if (itunesImagesWithHref.isDefined) {
+      debug("using itunes ns image")
       // Prefer the iTunes image as it is more often up to date
-      itunesImagesWithHref \@ "href"
+      itunesImagesWithHref.get
     } else {
-      imagesWithHref \@ "href"
+      debug("using other image")
+      val imagesWithHref = firstDefinedAttributeValue(podcast \ "image", "href")
+      imagesWithHref.getOrElse("")
     }
 
     val websiteUrl: String = podcast \ "link"
@@ -200,6 +202,13 @@ class PodcastFeedParser @Inject()() extends LogSupport {
     }
   }
 
+  private def firstDefinedAttributeValue(nodes: NodeSeq, attribute: String): Option[String] = {
+    // jump through hoops to find the first node with a non-empty value for the attribute
+    nodes.toStream
+      .find(n => n.attribute(attribute).map(_.text).getOrElse("").nonEmpty)
+      .map(_.attribute(attribute).get.text)
+  }
+
   /**
     * Automatically convert a node seq into the text content of the *first* element in the seq.
     * This is useful when selecting a node which should be a singleton with text.
@@ -207,9 +216,8 @@ class PodcastFeedParser @Inject()() extends LogSupport {
   private implicit def nodeseq2text(nodes: NodeSeq): String = {
     nodes
     // ignore empty elements in case there are duplicates
-      .filter(!_.text.isEmpty)
-      // Use the first element, in case there are duplicates
-      .headOption
+    // Use the first element, in case there are duplicates
+      .find(!_.text.isEmpty)
       .map(_.text)
       // If there are no elements matching, use empty string
       .getOrElse("")

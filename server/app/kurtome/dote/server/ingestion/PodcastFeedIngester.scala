@@ -22,6 +22,7 @@ class PodcastFeedIngester @Inject()(
                                 feedUrl: String): Future[AddPodcastResponse] = {
     if (request.ingestLater) {
       podcastDbService.addFeedForLaterIngestion(itunesId, feedUrl) map { _ =>
+        debug(s"added for later ${feedUrl}")
         AddPodcastResponse()
       }
     } else {

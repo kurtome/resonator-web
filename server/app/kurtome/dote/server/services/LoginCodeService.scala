@@ -45,7 +45,8 @@ class LoginCodeService @Inject()(
               .send(PendingMessage(
                 person,
                 "Login to Resonator",
-                s"Welcome, your username is ${person.username}, please login with this link: $loginLink"))
+                s"Welcome, your username is ${person.username}, please login with this link: $loginLink\n\nThis link will expire in one hour."
+              ))
               .map(_ => Unit)
           }
         }

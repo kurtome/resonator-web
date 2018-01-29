@@ -24,6 +24,7 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
         Nil
       }
 
+    debug(s"Fetching $feedUrl")
     ws.url(feedUrl).withHttpHeaders(headers: _*).get() flatMap { response =>
       if (response.status == 200) {
         val etag: Option[String] = response.header("ETag")
@@ -59,16 +60,23 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
     val hasAudio = podcast.episodes.exists(_.details.audio.isDefined)
 
     if (hasAudio) {
+      val imageUrl = podcast.details.imageUrl
       Try {
-        ws.url(podcast.details.imageUrl).head() map { response =>
+        ws.url(imageUrl).head() map { response =>
           if (response.status == 200) {
             Some(podcast)
           } else {
+            debug(s"no image at $imageUrl for ${podcast.feedUrl}, ${response}")
             None
           }
         }
-      }.getOrElse(Future(None))
+      } recover {
+        case t =>
+          debug(s"Error getting image at url $imageUrl", t)
+          Future(None)
+      } get
     } else {
+      debug(s"no audio for ${podcast.feedUrl}")
       Future(None)
     }
   }

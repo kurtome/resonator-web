@@ -22,8 +22,7 @@ class SetPopularPodcastsTask @Inject()(
   val run = taskConfig.isEnabled(this)
 
   if (run) {
-    info("Enabling task2.")
-    debug("dddd Enabling task.")
+    info("Enabling task.")
     actorSystem.scheduler.schedule(
       initialDelay = 10.seconds,
       interval = 1.hour,
