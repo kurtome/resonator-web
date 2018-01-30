@@ -15,11 +15,12 @@ import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.utils.MuiInlineStyleSheet
 import kurtome.dote.web.utils.Debounce
 import org.scalajs.dom
+import wvlet.log.LogSupport
 
 import scala.scalajs.js
 import scalacss.ScalaCssReact._
 
-object FeedDotableList {
+object FeedDotableList extends LogSupport {
 
   private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
     import dsl._
@@ -32,7 +33,7 @@ object FeedDotableList {
   import Styles.richStyle
 
   case class Props(routerCtl: DoteRouterCtl, list: ApiList)
-  case class State(tileSizePx: Int = 100)
+  case class State(tileSizePx: Int, availableWidthPx: Int)
 
   private val breakpointTileSizes = Map[String, Int](
     "xs" -> 125,
@@ -57,9 +58,12 @@ object FeedDotableList {
     }
   }
 
-  class Backend(bs: BackendScope[Props, State]) {
+  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
     val updateTileSize: Callback = {
-      bs.modState(_.copy(tileSizePx = currentTileSizePx(bs.props.runNow())))
+      val p = bs.props.runNow()
+      debug(s"updating tile size ${p.list.getList.title}")
+      bs.modState(
+        _.copy(tileSizePx = currentTileSizePx(p), availableWidthPx = ContentFrame.innerWidthPx))
     }
 
     val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
@@ -73,15 +77,15 @@ object FeedDotableList {
     }
 
     def render(p: Props, s: State): VdomElement = {
+
       val requestedWidth = s.tileSizePx
       val list = p.list.getList
       // the actual padding will be dynamic since the tiles are evenly spaced, so just make sure
       // the number of tiles has some extra space
       val tilePaddingPx = requestedWidth / 5
-      val availableWidthPx = ContentFrame.innerWidthPx
       // this calculation assumes all the tiles will be the same width (i.e. the same type of
       // dotable)
-      val numTilesPerRow: Int = availableWidthPx / (requestedWidth + tilePaddingPx)
+      val numTilesPerRow: Int = s.availableWidthPx / (requestedWidth + tilePaddingPx)
       val numRows =
         if (numTilesPerRow == 1) {
           3
@@ -99,7 +103,7 @@ object FeedDotableList {
         .take(numTiles)
 
       val minPaddingPx = 12
-      val leftoverWidthPx = availableWidthPx - (numTilesPerRow * (requestedWidth + minPaddingPx))
+      val leftoverWidthPx = s.availableWidthPx - (numTilesPerRow * (requestedWidth + minPaddingPx))
       val tileWidthPx = requestedWidth + (leftoverWidthPx / numTilesPerRow)
 
       Grid(container = true, spacing = 0)(
@@ -130,7 +134,8 @@ object FeedDotableList {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => State(tileSizePx = currentTileSizePx(p)))
+    .initialStateFromProps(p =>
+      State(tileSizePx = currentTileSizePx(p), availableWidthPx = ContentFrame.innerWidthPx))
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
     .componentWillUnmount(x => x.backend.handleWillUnmount)

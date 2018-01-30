@@ -71,7 +71,7 @@ object HomeView extends LogSupport {
         s.feed.items.zipWithIndex map {
           case (item, i) =>
             <.div(
-              ^.key := i,
+              ^.key := s"$i${item.getDotableList.getList.title}",
               ^.className := Styles.feedItemContainer,
               item.kind match {
                 case FeedItem.Kind.DOTABLE_LIST =>
