@@ -4,7 +4,6 @@ import java.time.LocalDateTime
 import javax.inject._
 
 import kurtome.dote.proto.api.dotable.Dotable
-import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.server.db._
 import kurtome.dote.server.db.DotableDbIo
 import kurtome.dote.server.db.mappers.{DotableMapper, DoteMapper}
@@ -17,6 +16,8 @@ import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.slick.db.TagKinds
 import kurtome.dote.slick.db.TagKinds.TagKind
 import kurtome.dote.slick.db.gen.Tables
+import kurtome.dote.slick.db.gen.Tables.DotableRow
+import kurtome.dote.slick.db.gen.Tables.DoteRow
 import slick.basic.BasicBackend
 import wvlet.log.LogSupport
 
@@ -75,6 +76,42 @@ class DotableService @Inject()(db: BasicBackend#Database,
         } yield (episodes, podcasts))
           .sortBy(_._1.contentEditedTime.desc)
           .take(limit)
+    }
+
+    val smileList = Compiled {
+      (personId: Rep[Long], kind: Rep[DotableKind], listLimit: ConstColumn[Long]) =>
+        (for {
+          dotes <- Tables.Dote.filter(row => row.personId === personId && row.smileCount > 0)
+          (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
+          if dotables.id === dotes.dotableId && dotables.kind === kind
+        } yield (dotables, parents, dotes)).sortBy(_._3.smileCount.desc).take(listLimit)
+    }
+
+    val laughList = Compiled {
+      (personId: Rep[Long], kind: Rep[DotableKind], listLimit: ConstColumn[Long]) =>
+        (for {
+          dotes <- Tables.Dote.filter(row => row.personId === personId && row.laughCount > 0)
+          (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
+          if dotables.id === dotes.dotableId && dotables.kind === kind
+        } yield (dotables, parents, dotes)).sortBy(_._3.laughCount.desc).take(listLimit)
+    }
+
+    val cryList = Compiled {
+      (personId: Rep[Long], kind: Rep[DotableKind], listLimit: ConstColumn[Long]) =>
+        (for {
+          dotes <- Tables.Dote.filter(row => row.personId === personId && row.cryCount > 0)
+          (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
+          if dotables.id === dotes.dotableId && dotables.kind === kind
+        } yield (dotables, parents, dotes)).sortBy(_._3.cryCount.desc).take(listLimit)
+    }
+
+    val scowlList = Compiled {
+      (personId: Rep[Long], kind: Rep[DotableKind], listLimit: ConstColumn[Long]) =>
+        (for {
+          dotes <- Tables.Dote.filter(row => row.personId === personId && row.scowlCount > 0)
+          (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
+          if dotables.id === dotes.dotableId && dotables.kind === kind
+        } yield (dotables, parents, dotes)).sortBy(_._3.scowlCount.desc).take(listLimit)
     }
   }
 
@@ -141,6 +178,37 @@ class DotableService @Inject()(db: BasicBackend#Database,
       _ <- updateTagsForDotable(podcastId, podcast.tags)
     } yield podcastId).transactionally
     db.run(insertPodcastRowOp)
+  }
+
+  def readPersonSmileList(personId: Long,
+                          kind: DotableKinds.Value,
+                          maxItemSize: Int): Future[Seq[Dotable]] = {
+    db.run(Queries.smileList(personId, kind, maxItemSize).result).map(combineListResults)
+  }
+
+  def readPersonLaughList(personId: Long,
+                          kind: DotableKinds.Value,
+                          maxItemSize: Int): Future[Seq[Dotable]] = {
+    db.run(Queries.laughList(personId, kind, maxItemSize).result).map(combineListResults)
+  }
+
+  def readPersonCryList(personId: Long,
+                        kind: DotableKinds.Value,
+                        maxItemSize: Int): Future[Seq[Dotable]] = {
+    db.run(Queries.cryList(personId, kind, maxItemSize).result).map(combineListResults)
+  }
+
+  def readPersonScowlList(personId: Long,
+                          kind: DotableKinds.Value,
+                          maxItemSize: Int): Future[Seq[Dotable]] = {
+    db.run(Queries.scowlList(personId, kind, maxItemSize).result).map(combineListResults)
+  }
+
+  private def combineListResults(
+      list: Seq[(DotableRow, Option[DotableRow], DoteRow)]): Seq[Dotable] = {
+    val dotables = list.map(tup => tup._1 -> tup._2)
+    val dotes = list.map(_._3)
+    setDotes(dotables, dotes)
   }
 
   private def ingestExistingPodcast(itunesId: Long,

@@ -51,7 +51,7 @@ object NavBar extends LogSupport {
 
     val handleProfileButtonClicked = (p: Props) =>
       if (LoggedInPersonManager.isLoggedIn) {
-        p.routerCtl.set(ProfileRoute)
+        p.routerCtl.set(ProfileRoute(LoggedInPersonManager.person.get.username))
       } else {
         bs.modState(_.copy(loginDialogOpen = true))
     }

@@ -6,6 +6,8 @@ import kurtome.dote.proto.api.action.set_dote._
 import kurtome.dote.server.services._
 import kurtome.dote.server.util.UrlIds
 import kurtome.dote.shared.mapper.StatusMapper
+import kurtome.dote.shared.util.result.FailedData
+import kurtome.dote.shared.util.result.SuccessData
 import kurtome.dote.shared.util.result.{ActionStatus, SuccessStatus}
 import play.api.mvc._
 
@@ -22,16 +24,14 @@ class SetDoteController @Inject()(
     SetDoteRequest.parseFrom(bytes)
 
   override def action(request: Request[SetDoteRequest]) = {
-    authTokenService.readLoggedInPersonFromCookie(request) flatMap { result =>
-      if (result.isSuccess) {
-        doteService.writeDote(result.data.get.id,
+    authTokenService.readLoggedInPersonFromCookie(request) flatMap {
+      case SuccessData(Some(person)) =>
+        doteService.writeDote(person.id,
                               UrlIds.decode(UrlIds.IdKinds.Dotable, request.body.dotableId),
                               request.body.getDote) map { _ =>
           response(SuccessStatus)
         }
-      } else {
-        Future(response(result.status))
-      }
+      case FailedData(_, error) => Future(response(error))
     }
   }
 

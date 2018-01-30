@@ -1,9 +1,10 @@
 package kurtome.dote.web.components.views
 
 import kurtome.dote.proto.api.action.get_feed._
-import kurtome.dote.proto.api.feed.{Feed, FeedItem}
+import kurtome.dote.proto.api.feed._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.feed.FeedId.HomeId
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.DoteRoutes._
@@ -56,9 +57,11 @@ object HomeView extends LogSupport {
       }
 
       // get the latest data as well, in case it has changed
-      val f = DoteProtoServer.getFeed(GetFeedRequest(maxItems = 20, maxItemSize = 10)) map {
-        response =>
-          bs.modState(_.copy(feed = response.getFeed)).runNow()
+      val f = DoteProtoServer.getFeed(GetFeedRequest(
+        maxItems = 20,
+        maxItemSize = 10,
+        id = Some(FeedId().withHomeId(HomeId())))) map { response =>
+        bs.modState(_.copy(feed = response.getFeed)).runNow()
       }
       GlobalLoadingManager.addLoadingFuture(f)
     }

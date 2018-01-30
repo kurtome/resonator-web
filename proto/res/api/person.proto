@@ -4,8 +4,7 @@ package kurtome.dote.proto.api;
 
 message Person {
   string id = 1;
-  string slug = 2;
-  string username = 3;
+  string username = 2;
   // typically will be left unset in API responses, primarily used for account creation
-  string email = 4;
+  string email = 3;
 }

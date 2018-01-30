@@ -24,7 +24,7 @@ object DoteRoutes {
 
   case object ListsRoute extends DoteRoute
 
-  case object ProfileRoute extends DoteRoute
+  case class ProfileRoute(username: String) extends DoteRoute
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,7 +59,9 @@ object DoteRoutes {
           .caseClass[DetailsRoute]) ~> dynRenderR(
           (page: DetailsRoute, routerCtl) => DotableDetailView(routerCtl, page)())
 
-        | staticRoute("#/profile", ProfileRoute) ~> renderR(ProfileView(_)())
+        | dynamicRouteCT("#/profile" ~ ("/" ~ slug)
+          .caseClass[ProfileRoute]) ~> dynRenderR(
+          (page: ProfileRoute, routerCtl) => ProfileView(routerCtl, page)())
 
         | staticRoute("#/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))

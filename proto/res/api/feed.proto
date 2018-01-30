@@ -5,7 +5,20 @@ package kurtome.dote.proto.api;
 import "api/dotable_list.proto";
 
 message Feed {
-  repeated FeedItem items = 1;
+  FeedId id = 1;
+  repeated FeedItem items = 2;
+}
+
+message FeedId {
+  oneof id {
+    HomeId home_id = 1;
+    ProfileId profile_id = 2;
+  }
+  message HomeId {}
+  message ProfileId {
+    // if this is not set, this ID represents the currently logged in user
+    string username = 1;
+  }
 }
 
 
@@ -19,7 +32,6 @@ message FeedItem {
   oneof content {
     FeedDotableList dotable_list = 2;
   }
-
 }
 
 message FeedDotableList {

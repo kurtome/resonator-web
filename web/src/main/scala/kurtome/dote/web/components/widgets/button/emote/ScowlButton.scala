@@ -2,7 +2,7 @@ package kurtome.dote.web.components.widgets.button.emote
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.shared.constants.StringValues
+import kurtome.dote.shared.constants.Emojis
 
 object ScowlButton {
 
@@ -10,8 +10,8 @@ object ScowlButton {
 
   class Backend(bs: BackendScope[Props, Unit]) {
     def render(p: Props): VdomElement = {
-      import StringValues.Emojis._
-      EmoteButton(emojis = Seq(angryFace, poutingFace, faceWithSymbolsOnMouth),
+      import Emojis._
+      EmoteButton(emojis = scowlEmojis,
                   initialValue = p.initialValue,
                   onValueChanged = p.onValueChanged)()
     }

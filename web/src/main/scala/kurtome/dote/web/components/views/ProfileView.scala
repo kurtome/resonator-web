@@ -1,16 +1,24 @@
 package kurtome.dote.web.components.views
 
 import kurtome.dote.proto.api.feed.Feed
+import kurtome.dote.proto.api.feed.FeedItem
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.action.get_feed.GetFeedRequest
+import kurtome.dote.proto.api.feed.FeedId
+import kurtome.dote.proto.api.feed.FeedId.ProfileId
 import kurtome.dote.proto.api.person.Person
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.widgets.ContentFrame
+import kurtome.dote.web.components.widgets.feed.FeedDotableList
+import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.utils.GlobalLoadingManager
 import kurtome.dote.web.utils.LoggedInPersonManager
 import org.scalajs.dom
 import wvlet.log.LogSupport
@@ -26,26 +34,43 @@ object ProfileView extends LogSupport {
       marginLeft(SharedStyles.spacingUnit),
       marginRight(SharedStyles.spacingUnit)
     )
+
+    val feedItemContainer = style(
+      marginTop(24 px)
+    )
   }
   Styles.addToDocument()
 
+  case class Props(routerCtl: DoteRouterCtl, username: String)
   case class State(feed: Feed = Feed.defaultInstance, requestInFlight: Boolean = false)
 
-  class Backend(bs: BackendScope[DoteRouterCtl, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+
+    val handleDidMount = (p: Props) =>
+      Callback {
+        val f = DoteProtoServer.getFeed(
+          GetFeedRequest(
+            maxItems = 20,
+            maxItemSize = 10,
+            id = Some(FeedId().withProfileId(ProfileId(username = p.username))))) map { response =>
+          bs.modState(_.copy(feed = response.getFeed)).runNow()
+        }
+        GlobalLoadingManager.addLoadingFuture(f)
+    }
 
     val handleLogout = Callback {
       dom.document.location.assign("/logout")
     }
 
-    def render(routerCtl: DoteRouterCtl, s: State): VdomElement = {
+    def render(p: Props, s: State): VdomElement = {
       val loggedInPerson = if (LoggedInPersonManager.isLoggedIn) {
         LoggedInPersonManager.person.get
       } else {
-        routerCtl.set(HomeRoute).runNow()
+        p.routerCtl.set(HomeRoute).runNow()
         Person.defaultInstance
       }
 
-      ContentFrame(routerCtl)(
+      ContentFrame(p.routerCtl)(
         Grid(container = true, justify = Grid.Justify.Center)(
           Grid(item = true, xs = 12)(
             Grid(container = true, justify = Grid.Justify.Center)(
@@ -86,6 +111,22 @@ object ProfileView extends LogSupport {
                 )
               )
             )
+          ),
+          Grid(item = true, xs = 12)(
+            s.feed.items.zipWithIndex map {
+              case (item, i) =>
+                <.div(
+                  ^.key := i,
+                  ^.className := Styles.feedItemContainer,
+                  item.kind match {
+                    case FeedItem.Kind.DOTABLE_LIST =>
+                      LazyLoad(once = true, height = 200)(
+                        FeedDotableList(p.routerCtl, item.getDotableList, key = Some(i.toString))()
+                      )
+                    case _ => <.div(^.key := i)
+                  }
+                )
+            } toVdomArray
           )
         )
       )
@@ -93,11 +134,13 @@ object ProfileView extends LogSupport {
   }
 
   val component = ScalaComponent
-    .builder[DoteRouterCtl](this.getClass.getSimpleName)
+    .builder[Props](this.getClass.getSimpleName)
     .initialState(State())
     .backend(new Backend(_))
     .render(x => x.backend.render(x.props, x.state))
+    .componentDidMount(x => x.backend.handleDidMount(x.props))
     .build
 
-  def apply(routerCtl: RouterCtl[DoteRoute]) = component.withProps(routerCtl)
+  def apply(routerCtl: DoteRouterCtl, route: ProfileRoute) =
+    component.withProps(Props(routerCtl, route.username))
 }

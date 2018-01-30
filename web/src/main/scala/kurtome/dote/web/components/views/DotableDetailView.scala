@@ -37,12 +37,11 @@ object DotableDetailView {
       val cachedShallow: Option[Dotable] = LocalCache.get(includesDetails = false, id)
       bs.modState(_.copy(requestInFlight = true,
                          response = GetDotableDetailsResponse(cachedShallow))) flatMap { _ =>
-        CallbackTo {
+        Callback {
           val f = DoteProtoServer.getDotableDetails(request) flatMap { response =>
             bs.modState(_.copy(response = response, requestInFlight = false)).toFuture
           }
           GlobalLoadingManager.addLoadingFuture(f)
-          f
         }
       }
     }

@@ -19,8 +19,7 @@ object LoggedInPersonManager extends LogSupport {
       val person = Person(
         id = personJson.id.asInstanceOf[String],
         username = personJson.username.asInstanceOf[String],
-        email = personJson.email.asInstanceOf[String],
-        slug = personJson.slug.asInstanceOf[String]
+        email = personJson.email.asInstanceOf[String]
       )
       Some(person)
     } else {

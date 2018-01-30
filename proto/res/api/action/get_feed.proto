@@ -5,8 +5,10 @@ package kurtome.dote.proto.api.action;
 import "api/feed.proto";
 
 message GetFeedRequest {
-  int32 max_items = 1;
-  int32 max_item_size = 2;
+  api.FeedId id = 1;
+
+  int32 max_items = 2;
+  int32 max_item_size = 3;
 }
 
 message GetFeedResponse {

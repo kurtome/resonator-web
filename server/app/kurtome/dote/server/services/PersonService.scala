@@ -33,6 +33,10 @@ class PersonService @Inject()(db: BasicBackend#Database, personDbIo: PersonDbIo)
     db.run(personDbIo.readByUsernameAndEmail(username, email))
   }
 
+  def readByUsername(username: String): Future[Option[Tables.PersonRow]] = {
+    db.run(personDbIo.readByUsername(username))
+  }
+
   def readByEmail(email: String): Future[Option[Tables.PersonRow]] = {
     db.run(personDbIo.readByEmail(email))
   }

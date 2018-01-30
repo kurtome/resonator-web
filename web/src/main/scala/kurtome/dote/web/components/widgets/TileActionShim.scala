@@ -74,6 +74,9 @@ object TileActionShim extends LogSupport {
     val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 2000) { () =>
       val p: Props = bs.props.runNow()
       val s: State = bs.state.runNow()
+
+      debug(s"sending $s")
+
       val f = DoteProtoServer.setDote(
         SetDoteRequest(p.dotable.id,
                        Some(
@@ -90,21 +93,21 @@ object TileActionShim extends LogSupport {
         sendDoteToServer()
     }
 
-    val handleSadValueChanged = (value: Int) =>
+    val handleCryValueChanged = (value: Int) =>
       Callback {
-        bs.modState(s => s.copy(cryCount = value))
+        bs.modState(s => s.copy(cryCount = value)).runNow()
         sendDoteToServer()
     }
 
     val handleLaughValueChanged = (value: Int) =>
       Callback {
-        bs.modState(s => s.copy(laughCount = value))
+        bs.modState(s => s.copy(laughCount = value)).runNow()
         sendDoteToServer()
     }
 
     val handleScowlValueChanged = (value: Int) =>
       Callback {
-        bs.modState(s => s.copy(scowlCount = value))
+        bs.modState(s => s.copy(scowlCount = value)).runNow()
         sendDoteToServer()
     }
 
@@ -135,7 +138,7 @@ object TileActionShim extends LogSupport {
                   Grid(item = true)(
                     SmileButton(s.smileCount, onValueChanged = handleLikeValueChanged)()),
                   Grid(item = true)(
-                    CryButton(s.cryCount, onValueChanged = handleLikeValueChanged)())
+                    CryButton(s.cryCount, onValueChanged = handleCryValueChanged)())
                 )),
               Grid(item = true)(
                 Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
