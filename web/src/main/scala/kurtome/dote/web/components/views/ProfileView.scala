@@ -62,55 +62,63 @@ object ProfileView extends LogSupport {
       dom.document.location.assign("/logout")
     }
 
-    def render(p: Props, s: State): VdomElement = {
+    def renderAccountInfo(p: Props, s: State): VdomElement = {
       val loggedInPerson = if (LoggedInPersonManager.isLoggedIn) {
         LoggedInPersonManager.person.get
       } else {
-        p.routerCtl.set(HomeRoute).runNow()
         Person.defaultInstance
       }
+
+      if (LoggedInPersonManager.isLoggedIn && p.username == LoggedInPersonManager.person.get.username) {
+        Grid(container = true, justify = Grid.Justify.Center)(
+          Grid(item = true, xs = 12, sm = 8, lg = 6)(
+            Paper()(
+              <.div(
+                ^.className := Styles.fieldsContainer,
+                TextField(
+                  autoFocus = false,
+                  fullWidth = true,
+                  disabled = true,
+                  value = loggedInPerson.username,
+                  name = "username",
+                  label = Typography()("username")
+                )(),
+                TextField(
+                  autoFocus = false,
+                  fullWidth = true,
+                  disabled = true,
+                  value = loggedInPerson.email,
+                  inputType = "email",
+                  name = "email",
+                  label = Typography()("email address")
+                )()
+              ),
+              Grid(container = true, justify = Grid.Justify.FlexEnd)(
+                Grid(item = true)(
+                  Button(color = Button.Color.Accent, onClick = handleLogout)("Logoout")
+                )
+              )
+            )
+          )
+        )
+      } else {
+        <.div()
+      }
+    }
+
+    def render(p: Props, s: State): VdomElement = {
 
       ContentFrame(p.routerCtl)(
         Grid(container = true, justify = Grid.Justify.Center)(
           Grid(item = true, xs = 12)(
             Grid(container = true, justify = Grid.Justify.Center)(
               Grid(item = true)(
-                Typography(typographyType = Typography.Type.Headline)("Profile")
+                Typography(typographyType = Typography.Type.Headline)(p.username)
               )
             )
           ),
           Grid(item = true, xs = 12)(
-            Grid(container = true, justify = Grid.Justify.Center)(
-              Grid(item = true, xs = 12, sm = 8, lg = 6)(
-                Paper()(
-                  <.div(
-                    ^.className := Styles.fieldsContainer,
-                    TextField(
-                      autoFocus = false,
-                      fullWidth = true,
-                      disabled = true,
-                      value = loggedInPerson.username,
-                      name = "username",
-                      label = Typography()("username")
-                    )(),
-                    TextField(
-                      autoFocus = false,
-                      fullWidth = true,
-                      disabled = true,
-                      value = loggedInPerson.email,
-                      inputType = "email",
-                      name = "email",
-                      label = Typography()("email address")
-                    )()
-                  ),
-                  Grid(container = true, justify = Grid.Justify.FlexEnd)(
-                    Grid(item = true)(
-                      Button(color = Button.Color.Accent, onClick = handleLogout)("Logoout")
-                    )
-                  )
-                )
-              )
-            )
+            renderAccountInfo(p, s)
           ),
           Grid(item = true, xs = 12)(
             s.feed.items.zipWithIndex map {

@@ -84,7 +84,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
           dotes <- Tables.Dote.filter(row => row.personId === personId && row.smileCount > 0)
           (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if dotables.id === dotes.dotableId && dotables.kind === kind
-        } yield (dotables, parents, dotes)).sortBy(_._3.smileCount.desc).take(listLimit)
+        } yield (dotables, parents, dotes)).sortBy(_._3.doteTime.desc).take(listLimit)
     }
 
     val laughList = Compiled {
@@ -93,7 +93,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
           dotes <- Tables.Dote.filter(row => row.personId === personId && row.laughCount > 0)
           (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if dotables.id === dotes.dotableId && dotables.kind === kind
-        } yield (dotables, parents, dotes)).sortBy(_._3.laughCount.desc).take(listLimit)
+        } yield (dotables, parents, dotes)).sortBy(_._3.doteTime.desc).take(listLimit)
     }
 
     val cryList = Compiled {
@@ -102,7 +102,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
           dotes <- Tables.Dote.filter(row => row.personId === personId && row.cryCount > 0)
           (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if dotables.id === dotes.dotableId && dotables.kind === kind
-        } yield (dotables, parents, dotes)).sortBy(_._3.cryCount.desc).take(listLimit)
+        } yield (dotables, parents, dotes)).sortBy(_._3.doteTime.desc).take(listLimit)
     }
 
     val scowlList = Compiled {
@@ -111,7 +111,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
           dotes <- Tables.Dote.filter(row => row.personId === personId && row.scowlCount > 0)
           (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if dotables.id === dotes.dotableId && dotables.kind === kind
-        } yield (dotables, parents, dotes)).sortBy(_._3.scowlCount.desc).take(listLimit)
+        } yield (dotables, parents, dotes)).sortBy(_._3.doteTime.desc).take(listLimit)
     }
   }
 
