@@ -85,6 +85,16 @@ object AudioControls extends LogSupport {
     )
 
     val titleText = style(
+      fontSize(0.9 rem),
+      lineHeight(1 rem),
+      whiteSpace.nowrap,
+      textOverflow := "ellipsis",
+      overflow.hidden
+    )
+
+    val timeText = style(
+      fontSize(0.75 rem),
+      lineHeight(0.9 rem),
       whiteSpace.nowrap,
       textOverflow := "ellipsis",
       overflow.hidden
@@ -203,8 +213,10 @@ object AudioControls extends LogSupport {
                        style = Styles.buttonGrid.inline)(
                     Grid(item = true, style = Styles.titleTextWrapper.inline)(
                       Typography(
-                        typographyType = Typography.Type.Caption,
-                        style = Styles.titleText.inline)(s.playerState.episode.getCommon.title)
+                        typographyType = Typography.Type.Body2,
+                        style = Styles.titleText.inline)(s.playerState.episode.getCommon.title),
+                      Typography(typographyType = Typography.Type.Caption,
+                                 style = Styles.timeText.inline)(AudioPlayerTime()())
                     ),
                     Grid(item = true)(
                       IconButton(style = Styles.closeButton.inline, onClick = offClicked)(

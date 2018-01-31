@@ -46,8 +46,9 @@ object ProfileView extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
 
-    val handleDidMount = (p: Props) =>
+    val handleNewProps = (p: Props) =>
       Callback {
+        debug(s"new props $p")
         val f = DoteProtoServer.getFeed(
           GetFeedRequest(
             maxItems = 20,
@@ -146,7 +147,8 @@ object ProfileView extends LogSupport {
     .initialState(State())
     .backend(new Backend(_))
     .render(x => x.backend.render(x.props, x.state))
-    .componentDidMount(x => x.backend.handleDidMount(x.props))
+    .componentDidMount(x => x.backend.handleNewProps(x.props))
+    .componentWillReceiveProps(x => x.backend.handleNewProps(x.nextProps))
     .build
 
   def apply(routerCtl: DoteRouterCtl, route: ProfileRoute) =

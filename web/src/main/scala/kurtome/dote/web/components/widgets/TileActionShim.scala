@@ -71,7 +71,7 @@ object TileActionShim extends LogSupport {
 
     val shouldClickToShowActions = IsMobile.value
 
-    val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 2000) { () =>
+    val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 500) { () =>
       val p: Props = bs.props.runNow()
       val s: State = bs.state.runNow()
 

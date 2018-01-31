@@ -9,14 +9,10 @@ import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.constants.MuiTheme
-import org.scalajs.dom
 
 import scalacss.internal.mutable.StyleSheet
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.components.lib.LazyLoad
 import wvlet.log.LogSupport
-
-import scala.scalajs.js
 
 /**
   * Pager wrapper includes header/footer and renders child content within a centered portion of the

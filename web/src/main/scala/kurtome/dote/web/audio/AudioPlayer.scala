@@ -17,7 +17,6 @@ import scala.scalajs.js
   * Global audio player.
   */
 object AudioPlayer extends LogSupport {
-
   object PlayerStatuses extends Enumeration {
     type PlayerStatus = Value
     val Playing = Value
@@ -52,6 +51,14 @@ object AudioPlayer extends LogSupport {
     play()
   }
 
+  private val handleStop: js.Function1[Int, Unit] = (id: Int) => {
+    if (state.status == PlayerStatuses.Playing) {
+      // played through to the end, so reset
+      howl.setSeek(0)
+      updateState(State(PlayerStatuses.Paused, currentEpiode))
+    }
+  }
+
   private def getUrl(episode: Dotable): String = {
     if (episode.kind != Dotable.Kind.PODCAST_EPISODE) {
       ""
@@ -78,6 +85,7 @@ object AudioPlayer extends LogSupport {
     updateState(State(PlayerStatuses.Loading, currentEpiode))
     howl = Howler.createHowl(src = js.Array[String](url),
                              html5 = true,
+                             onstop = handleStop,
                              onloaderror = handleLoadError,
                              onload = handleLoaded)
   }
@@ -98,7 +106,7 @@ object AudioPlayer extends LogSupport {
 
   def pause(): Unit = {
     if (howl != null) {
-      howl.stop()
+      howl.pause()
       updateState(State(PlayerStatuses.Paused, currentEpiode))
     }
   }
@@ -112,6 +120,14 @@ object AudioPlayer extends LogSupport {
   def forward(durationSec: Double): Unit = {
     if (howl != null) {
       howl.setSeek(Math.min(howl.getSeek() + durationSec, howl.duration() - 1))
+    }
+  }
+
+  def secondsRemaining: Double = {
+    if (howl != null && (state.status == PlayerStatuses.Playing || state.status == PlayerStatuses.Paused)) {
+      Math.max(0, howl.duration() - howl.getSeek())
+    } else {
+      0
     }
   }
 

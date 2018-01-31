@@ -61,7 +61,6 @@ object FeedDotableList extends LogSupport {
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
     val updateTileSize: Callback = {
       val p = bs.props.runNow()
-      debug(s"updating tile size ${p.list.getList.title}")
       bs.modState(
         _.copy(tileSizePx = currentTileSizePx(p), availableWidthPx = ContentFrame.innerWidthPx))
     }
