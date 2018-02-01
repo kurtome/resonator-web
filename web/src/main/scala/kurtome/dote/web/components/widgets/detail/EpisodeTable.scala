@@ -49,7 +49,7 @@ object EpisodeTable {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
+  case class Props(dotable: Dotable)
 
   case class State(page: Int = 0, rowsPerPage: Int = 10)
 
@@ -137,7 +137,7 @@ object EpisodeTable {
                             ^.maxWidth := "100%",
                             Typography(typographyType = Typography.Type.Body1,
                                        style = Styles.truncateText.inline)(
-                              SiteLink(p.routerCtl, detailRoute)(episode.getCommon.title)),
+                              SiteLink(detailRoute)(episode.getCommon.title)),
                             Typography(typographyType = Typography.Type.Caption,
                                        style = Styles.truncateText.inline)(summaryInfo)
                           )

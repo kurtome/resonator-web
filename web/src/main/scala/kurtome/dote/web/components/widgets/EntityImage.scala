@@ -6,7 +6,7 @@ import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, DetailsRoute}
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
@@ -74,9 +74,8 @@ object EntityImage extends LogSupport {
     )
   }
   Styles.addToDocument()
-  import Styles.richStyle
 
-  case class Props(routerCtl: DoteRouterCtl, dotable: Dotable, width: String = "175px")
+  case class Props(dotable: Dotable, width: String = "175px")
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
                    smileCount: Int = 0,
@@ -152,6 +151,6 @@ object EntityImage extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, dotable: Dotable, width: String = "175px") =
-    component.withProps(Props(routerCtl, dotable, width))
+  def apply(dotable: Dotable, width: String = "175px") =
+    component.withProps(Props(dotable, width))
 }

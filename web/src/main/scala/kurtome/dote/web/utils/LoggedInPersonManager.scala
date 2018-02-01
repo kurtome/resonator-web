@@ -33,7 +33,7 @@ object LoggedInPersonManager extends LogSupport {
 
   private val cookieValues = dom.document.cookie.split("; ")
   // check for the cookie written by the redirect controller
-  val loginAttempted = cookieValues.contains("LOGIN_REDIRECT=")
+  val loginAttempted: Boolean = cookieValues.contains("LOGIN_REDIRECT=")
 
   var displayedLoginSnack: Boolean = false
 }

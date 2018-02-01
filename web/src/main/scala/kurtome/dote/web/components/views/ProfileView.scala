@@ -41,7 +41,7 @@ object ProfileView extends LogSupport {
   }
   Styles.addToDocument()
 
-  case class Props(routerCtl: DoteRouterCtl, username: String)
+  case class Props(username: String)
   case class State(feed: Feed = Feed.defaultInstance, requestInFlight: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
@@ -109,34 +109,32 @@ object ProfileView extends LogSupport {
 
     def render(p: Props, s: State): VdomElement = {
 
-      ContentFrame(p.routerCtl)(
-        Grid(container = true, justify = Grid.Justify.Center)(
-          Grid(item = true, xs = 12)(
-            Grid(container = true, justify = Grid.Justify.Center)(
-              Grid(item = true)(
-                Typography(typographyType = Typography.Type.Headline)(p.username)
-              )
+      Grid(container = true, justify = Grid.Justify.Center)(
+        Grid(item = true, xs = 12)(
+          Grid(container = true, justify = Grid.Justify.Center)(
+            Grid(item = true)(
+              Typography(typographyType = Typography.Type.Headline)(p.username)
             )
-          ),
-          Grid(item = true, xs = 12)(
-            renderAccountInfo(p, s)
-          ),
-          Grid(item = true, xs = 12)(
-            s.feed.items.zipWithIndex map {
-              case (item, i) =>
-                <.div(
-                  ^.key := s"$i${item.getDotableList.getList.title}",
-                  ^.className := Styles.feedItemContainer,
-                  item.kind match {
-                    case FeedItem.Kind.DOTABLE_LIST =>
-                      LazyLoad(once = true, height = 200)(
-                        FeedDotableList(p.routerCtl, item.getDotableList, key = Some(i.toString))()
-                      )
-                    case _ => <.div(^.key := i)
-                  }
-                )
-            } toVdomArray
           )
+        ),
+        Grid(item = true, xs = 12)(
+          renderAccountInfo(p, s)
+        ),
+        Grid(item = true, xs = 12)(
+          s.feed.items.zipWithIndex map {
+            case (item, i) =>
+              <.div(
+                ^.key := s"$i${item.getDotableList.getList.title}",
+                ^.className := Styles.feedItemContainer,
+                item.kind match {
+                  case FeedItem.Kind.DOTABLE_LIST =>
+                    LazyLoad(once = true, height = 200)(
+                      FeedDotableList(item.getDotableList, key = Some(i.toString))()
+                    )
+                  case _ => <.div(^.key := i)
+                }
+              )
+          } toVdomArray
         )
       )
     }
@@ -151,6 +149,6 @@ object ProfileView extends LogSupport {
     .componentWillReceiveProps(x => x.backend.handleNewProps(x.nextProps))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, route: ProfileRoute) =
-    component.withProps(Props(routerCtl, route.username))
+  def apply(route: ProfileRoute) =
+    component.withProps(Props(route.username))
 }

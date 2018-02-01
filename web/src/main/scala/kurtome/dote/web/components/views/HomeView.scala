@@ -10,8 +10,12 @@ import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.lib.LazyLoad
+import kurtome.dote.web.components.materialui.Typography
+import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.materialui.Grid
+import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -20,17 +24,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object HomeView extends LogSupport {
 
-  private object Styles extends StyleSheet.Inline {
+  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
     import dsl._
 
     val feedItemContainer = style(
       marginTop(24 px)
     )
 
+    val announcementText = style(
+      fontSize(1.5 rem)
+    )
+
   }
   Styles.addToDocument()
+  import Styles._
 
-  case class Props(routerCtl: DoteRouterCtl, loginAttempted: Boolean = false)
+  case class Props()
   case class State(feed: Feed = Feed.defaultInstance)
 
   class Backend(bs: BackendScope[Props, State]) extends LogSupport {
@@ -67,21 +76,35 @@ object HomeView extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
-      ContentFrame(p.routerCtl)(
-        s.feed.items.zipWithIndex map {
-          case (item, i) =>
-            <.div(
-              ^.key := s"$i${item.getDotableList.getList.title}",
-              ^.className := Styles.feedItemContainer,
-              item.kind match {
-                case FeedItem.Kind.DOTABLE_LIST =>
-                  LazyLoad(once = true, height = 200)(
-                    FeedDotableList(p.routerCtl, item.getDotableList, key = Some(i.toString))()
-                  )
-                case _ => <.div(^.key := i)
-              }
+      Grid(container = true, spacing = 0, justify = Grid.Justify.Center)(
+        Grid(item = true, xs = 12, sm = 10, md = 8)(
+          if (!LoggedInPersonManager.isLoggedIn) {
+            Typography(typographyType = Typography.Type.Body1,
+                       style = Styles.announcementText.inline)(
+              "Keep track of your favorite podcasts, and see what you friends are listening to. ",
+              doteRouterCtl.link(LoginRoute)(^.className := SharedStyles.siteLink,
+                                             "Login to get started.")
             )
-        } toVdomArray
+          } else {
+            <.div()
+          }
+        ),
+        Grid(item = true, xs = 12)(
+          s.feed.items.zipWithIndex map {
+            case (item, i) =>
+              <.div(
+                ^.key := s"$i${item.getDotableList.getList.title}",
+                ^.className := Styles.feedItemContainer,
+                item.kind match {
+                  case FeedItem.Kind.DOTABLE_LIST =>
+                    LazyLoad(once = true, height = 200)(
+                      FeedDotableList(item.getDotableList, key = Some(i.toString))()
+                    )
+                  case _ => <.div(^.key := i)
+                }
+              )
+          } toVdomArray
+        )
       )
     }
   }
@@ -94,5 +117,5 @@ object HomeView extends LogSupport {
     .componentDidMount(x => x.backend.handleDidMount)
     .build
 
-  def apply(routerCtl: DoteRouterCtl) = component.withProps(Props(routerCtl))
+  def apply() = component.withProps(Props())
 }

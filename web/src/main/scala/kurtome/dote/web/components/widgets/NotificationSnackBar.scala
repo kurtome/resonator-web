@@ -4,7 +4,6 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.utils.GlobalNotificationManager
@@ -16,7 +15,7 @@ import scalacss.internal.mutable.StyleSheet
 
 object NotificationSnackBar {
 
-  case class Props(routerCtl: DoteRouterCtl)
+  case class Props()
   case class State(message: Option[String] = None, doneDisplaying: Boolean = false) {
     def isOpen = message.isDefined && !doneDisplaying
   }
@@ -35,7 +34,6 @@ object NotificationSnackBar {
     GlobalNotificationManager.stateObservable.addObserver(stateObserver)
 
     def handleSnackbarClose(event: js.Dynamic, reason: String): Callback = Callback {
-      debug("onClose called")
       bs.modState(_.copy(doneDisplaying = true)).runNow()
     }
 
@@ -91,6 +89,6 @@ object NotificationSnackBar {
     .componentWillUnmount(x => x.backend.handleWillUnmount)
     .build
 
-  def apply(routerCtl: DoteRouterCtl)(c: CtorType.ChildArg*) =
-    component.withChildren(c: _*)(Props(routerCtl))
+  def apply()(c: CtorType.ChildArg*) =
+    component.withChildren(c: _*)(Props())
 }

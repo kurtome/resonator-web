@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object DotableDetailView {
 
-  case class Props(routerCtl: DoteRouterCtl, route: DetailsRoute)
+  case class Props(route: DetailsRoute)
 
   case class State(response: GetDotableDetailsResponse = GetDotableDetailsResponse.defaultInstance,
                    requestInFlight: Boolean = false)
@@ -48,18 +48,17 @@ object DotableDetailView {
 
     def render(p: Props, s: State): VdomElement = {
       val dotable = s.response.getDotable
-      ContentFrame(p.routerCtl)(
-        Fade(in = true, timeoutMs = 300)(
-          Grid(container = true, spacing = 0)(
-            Grid(item = true, xs = 12)(
-              dotable.kind match {
-                case Kind.PODCAST => PodcastDetails(PodcastDetails.Props(p.routerCtl, dotable))()
-                case Kind.PODCAST_EPISODE =>
-                  EpisodeDetails(EpisodeDetails.Props(p.routerCtl, dotable))()
-                case _ => <.div()
-              }
-            )
-          ))
+      Fade(in = true, timeoutMs = 300)(
+        Grid(container = true, spacing = 0)(
+          Grid(item = true, xs = 12)(
+            dotable.kind match {
+              case Kind.PODCAST => PodcastDetails(PodcastDetails.Props(dotable))()
+              case Kind.PODCAST_EPISODE =>
+                EpisodeDetails(EpisodeDetails.Props(dotable))()
+              case _ => <.div()
+            }
+          )
+        )
       )
     }
   }
@@ -73,7 +72,7 @@ object DotableDetailView {
     .componentWillMount((x) => x.backend.fetchDetails(x.props))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, route: DetailsRoute) = {
-    component.withProps(Props(routerCtl, route))
+  def apply(route: DetailsRoute) = {
+    component.withProps(Props(route))
   }
 }

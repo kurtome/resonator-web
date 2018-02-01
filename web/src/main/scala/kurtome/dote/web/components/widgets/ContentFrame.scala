@@ -12,6 +12,7 @@ import kurtome.dote.web.constants.MuiTheme
 
 import scalacss.internal.mutable.StyleSheet
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.DoteRoutes._
 import wvlet.log.LogSupport
 
 /**
@@ -20,7 +21,7 @@ import wvlet.log.LogSupport
   */
 object ContentFrame extends LogSupport {
 
-  case class Props(routerCtl: DoteRouterCtl)
+  case class Props(currentRoute: DoteRoute)
   case class State()
 
   private object Styles extends StyleSheet.Inline {
@@ -103,7 +104,7 @@ object ContentFrame extends LogSupport {
                          className = Styles.siteTitleContainer(isXs))(
                       <.span(^.className := Styles.underConstructionText(isXs))(
                         "under construction"),
-                      p.routerCtl.link(HomeRoute)(
+                      doteRouterCtl.link(HomeRoute)(
                         ^.className := SharedStyles.siteTitleAnchor,
                         <.span(^.className := Styles.siteTitleText(isXs))(StringValues.siteTitle)
                       )
@@ -131,11 +132,11 @@ object ContentFrame extends LogSupport {
                 // content above never gets stuck under the bottom nav, which is fixed width
                 Grid(item = true, xs = 12)(<.div(^.minHeight := "80px"))
               ),
-              AudioControls(p.routerCtl)()
+              AudioControls()()
             )
           ),
-          NotificationSnackBar(p.routerCtl)(),
-          NavBar(p.routerCtl)()
+          NotificationSnackBar()(),
+          NavBar(p.currentRoute)()
         )
       )
     }
@@ -148,6 +149,6 @@ object ContentFrame extends LogSupport {
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
     .build
 
-  def apply(routerCtl: DoteRouterCtl)(c: CtorType.ChildArg*) =
-    component.withChildren(c: _*)(Props(routerCtl))
+  def apply(currentRoute: DoteRoute)(c: CtorType.ChildArg*) =
+    component.withChildren(c: _*)(Props(currentRoute))
 }

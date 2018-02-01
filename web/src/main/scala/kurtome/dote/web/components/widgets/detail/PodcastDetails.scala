@@ -63,7 +63,7 @@ object PodcastDetails {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
+  case class Props(dotable: Dotable)
   case class State(availableWidth: Int)
 
   private case class ExtractedFields(title: String = "",
@@ -176,8 +176,7 @@ object PodcastDetails {
               <.div(
                 ^.width := asPxStr(tileContainerWidth),
                 <.div(^.className := tileContainerStyle,
-                      PodcastTile(routerCtl = p.routerCtl,
-                                 dotable = p.dotable,
+                      PodcastTile(dotable = p.dotable,
                                  width = asPxStr(tileWidth))())
               )
             ),
@@ -204,7 +203,7 @@ object PodcastDetails {
         ),
         Grid(item = true, xs = 12)(
           LazyLoad(once = true, height = 500)(
-            EpisodeTable(EpisodeTable.Props(p.routerCtl, p.dotable))()
+            EpisodeTable(EpisodeTable.Props(p.dotable))()
           )
         )
       )

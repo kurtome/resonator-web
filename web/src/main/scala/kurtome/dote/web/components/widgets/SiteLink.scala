@@ -2,7 +2,7 @@ package kurtome.dote.web.components.widgets
 
 import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react.vdom.VdomElement
-import kurtome.dote.web.DoteRoutes.{DoteRoute, DoteRouterCtl}
+import kurtome.dote.web.DoteRoutes._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.SharedStyles
@@ -12,11 +12,11 @@ import scala.scalajs.js
 
 object SiteLink {
 
-  case class Props(routerCtl: DoteRouterCtl, route: DoteRoute)
+  case class Props(route: DoteRoute)
 
   class Backend(bs: BackendScope[Props, Unit]) {
     def render(p: Props, pc: PropsChildren): VdomElement = {
-      p.routerCtl.link(p.route)(^.className := SharedStyles.siteLink, pc)
+      doteRouterCtl.link(p.route)(^.className := SharedStyles.siteLink, pc)
     }
   }
 
@@ -26,6 +26,6 @@ object SiteLink {
     .renderPC((builder, props, pc) => builder.backend.render(props, pc))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, route: DoteRoute)(c: CtorType.ChildArg*) =
-    component.withChildren(c: _*).withProps(Props(routerCtl, route))()
+  def apply(route: DoteRoute)(c: CtorType.ChildArg*) =
+    component.withChildren(c: _*).withProps(Props(route))()
 }

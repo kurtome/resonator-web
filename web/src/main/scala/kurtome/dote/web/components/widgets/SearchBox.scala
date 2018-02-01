@@ -9,7 +9,7 @@ import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.DoteRoutes.{DetailsRoute, DoteRouterCtl}
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
@@ -82,7 +82,7 @@ object SearchBox {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(routerCtl: DoteRouterCtl)
+  case class Props()
   case class State(query: String = "", results: Seq[Dotable] = Nil, inFlight: Seq[Future[_]] = Nil) {
     def isLoading = inFlight.nonEmpty
   }
@@ -149,7 +149,6 @@ object SearchBox {
     def renderSuggestion(suggestion: Dotable, params: SuggestionRenderParams): raw.ReactElement = {
       val query = params.query
 
-      val routerCtl = bs.props.runNow().routerCtl
       val route = DetailsRoute(suggestion.id, suggestion.slug)
 
       val title = suggestion.getCommon.title
@@ -187,8 +186,7 @@ object SearchBox {
              justify = Grid.Justify.FlexStart,
              alignItems = Grid.AlignItems.Center)(
           Grid(item = true)(
-            <.span(
-              PodcastTile(routerCtl, suggestion, elevation = 0, width = asPxStr(tileWidthPx))())),
+            <.span(PodcastTile(suggestion, elevation = 0, width = asPxStr(tileWidthPx))())),
           Grid(item = true, style = Styles.suggestTitleContainer.inline)(
             Typography(style = Styles.suggestTitleText(params.isHighlighted).inline,
                        typographyType = Typography.Type.SubHeading)(
@@ -212,9 +210,8 @@ object SearchBox {
     val onSuggestionSelected
       : Function2[ReactEventFromInput, SuggestionSelectedParams[Dotable], Unit] =
       (e, params) => {
-        val routerCtl = bs.props.runNow().routerCtl
         val route = DetailsRoute(params.suggestion.id, params.suggestion.slug)
-        routerCtl.set(route).runNow()
+        doteRouterCtl.set(route).runNow()
       }
 
     val suggestionClearRequested: Callback = Callback {}
@@ -279,6 +276,5 @@ object SearchBox {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(routerCtl: DoteRouterCtl) =
-    component.withProps(Props(routerCtl))
+  def apply() = component.withProps(Props())
 }

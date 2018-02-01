@@ -32,7 +32,7 @@ object FeedDotableList extends LogSupport {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(routerCtl: DoteRouterCtl, list: ApiList)
+  case class Props(list: ApiList)
   case class State(tileSizePx: Int, availableWidthPx: Int)
 
   private val breakpointTileSizes = Map[String, Int](
@@ -116,9 +116,9 @@ object FeedDotableList extends LogSupport {
               case (dotable, i) =>
                 Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer.inline)(
                   if (dotable.kind == Dotable.Kind.PODCAST) {
-                    PodcastTile(p.routerCtl, dotable = dotable, width = asPxStr(tileWidthPx))()
+                    PodcastTile(dotable = dotable, width = asPxStr(tileWidthPx))()
                   } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-                    EpisodeTile(p.routerCtl, dotable = dotable, width = tileWidthPx)()
+                    EpisodeTile(dotable = dotable, width = tileWidthPx)()
                   } else {
                     // Placeholder for correct spacing
                     <.div(^.width := asPxStr(tileWidthPx))
@@ -140,11 +140,11 @@ object FeedDotableList extends LogSupport {
     .componentWillUnmount(x => x.backend.handleWillUnmount)
     .build
 
-  def apply(routeCtl: DoteRouterCtl, list: ApiList, key: Option[String] = None) = {
+  def apply(list: ApiList, key: Option[String] = None) = {
     if (key.isDefined) {
-      component.withKey(key.get).withProps(Props(routeCtl, list))
+      component.withKey(key.get).withProps(Props(list))
     } else {
-      component.withProps(Props(routeCtl, list))
+      component.withProps(Props(list))
     }
   }
 

@@ -35,7 +35,7 @@ object WebMain extends LogSupport {
 
     rootNode = dom.document.body.querySelector("#reactroot")
 
-    DoteRoutes.router().renderIntoDOM(rootNode)
+    DoteRoutes.doteRouter().renderIntoDOM(rootNode)
   }
 
   /**

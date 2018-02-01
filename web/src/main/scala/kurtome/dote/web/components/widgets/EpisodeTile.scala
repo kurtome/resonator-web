@@ -4,7 +4,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.{DoteRouterCtl, DetailsRoute}
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
@@ -81,7 +81,7 @@ object EpisodeTile extends LogSupport {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(routerCtl: DoteRouterCtl, dotable: Dotable, elevation: Int, width: Int)
+  case class Props(dotable: Dotable, elevation: Int, width: Int)
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
                    smileCount: Int = 0,
@@ -114,11 +114,10 @@ object EpisodeTile extends LogSupport {
           ^.height := asPxStr(height),
           ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
           ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
-          p.routerCtl.link(detailRoute)(
+          doteRouterCtl.link(detailRoute)(
             ^.className := Styles.container,
             <.div(^.className := Styles.imgWrapper,
-                  EntityImage(routerCtl = p.routerCtl,
-                              dotable = p.dotable.getRelatives.getParent,
+                  EntityImage(dotable = p.dotable.getRelatives.getParent,
                               width = asPxStr(imageSize))()),
             <.div(
               ^.className := Styles.mainTextWrapper,
@@ -132,7 +131,7 @@ object EpisodeTile extends LogSupport {
                 epochSecToDate(p.dotable.getCommon.publishedEpochSec))
             )
           ),
-          TileActionShim(p.routerCtl, p.dotable, s.hover)()
+          TileActionShim(p.dotable, s.hover)()
         )
       )
 
@@ -152,6 +151,6 @@ object EpisodeTile extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, dotable: Dotable, elevation: Int = 6, width: Int = 300) =
-    component.withProps(Props(routerCtl, dotable, elevation, width))
+  def apply(dotable: Dotable, elevation: Int = 6, width: Int = 300) =
+    component.withProps(Props(dotable, elevation, width))
 }

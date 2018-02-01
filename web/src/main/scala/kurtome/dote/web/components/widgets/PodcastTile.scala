@@ -73,11 +73,7 @@ object PodcastTile extends LogSupport {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(routerCtl: DoteRouterCtl,
-                   dotable: Dotable,
-                   elevation: Int,
-                   width: String,
-                   disableActions: Boolean)
+  case class Props(dotable: Dotable, elevation: Int, width: String, disableActions: Boolean)
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
                    smileCount: Int = 0,
@@ -106,11 +102,11 @@ object PodcastTile extends LogSupport {
           ^.height := p.width,
           ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
           ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
-          p.routerCtl.link(detailRoute)(
+          doteRouterCtl.link(detailRoute)(
             ^.className := Styles.container,
-            EntityImage(routerCtl = p.routerCtl, dotable = p.dotable, width = p.width)()
+            EntityImage(dotable = p.dotable, width = p.width)()
           ),
-          TileActionShim(p.routerCtl, p.dotable, s.hover)()
+          TileActionShim(p.dotable, s.hover)()
         )
       )
 
@@ -130,10 +126,9 @@ object PodcastTile extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(routerCtl: DoteRouterCtl,
-            dotable: Dotable,
+  def apply(dotable: Dotable,
             elevation: Int = 6,
             width: String = "175px",
             disableActions: Boolean = false) =
-    component.withProps(Props(routerCtl, dotable, elevation, width, disableActions))
+    component.withProps(Props(dotable, elevation, width, disableActions))
 }

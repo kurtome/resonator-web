@@ -5,11 +5,11 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.DoteRoutes
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.utils.{GlobalLoadingManager, LoggedInPersonManager}
-import org.scalajs.dom
 import wvlet.log.LogSupport
 
 import scalacss.internal.mutable.StyleSheet
@@ -19,10 +19,10 @@ import scalacss.internal.mutable.StyleSheet
   */
 object NavBar extends LogSupport {
 
-  case class Props(routerCtl: DoteRouterCtl)
+  case class Props(currentRoute: DoteRoute)
   case class State(navValue: String = "home",
                    isLoading: Boolean = false,
-                   loginDialogOpen: Boolean = false,
+                   loginOpenClicked: Boolean = false,
                    loggedInPerson: Option[Person] = None)
 
   private object Styles extends StyleSheet.Inline {
@@ -51,16 +51,23 @@ object NavBar extends LogSupport {
 
     val handleProfileButtonClicked = (p: Props) =>
       if (LoggedInPersonManager.isLoggedIn) {
-        p.routerCtl.set(ProfileRoute(LoggedInPersonManager.person.get.username))
+        doteRouterCtl.set(ProfileRoute(LoggedInPersonManager.person.get.username))
       } else {
-        bs.modState(_.copy(loginDialogOpen = true))
+        bs.modState(_.copy(loginOpenClicked = true))
     }
 
-    val handleLoginDialogClosed: Callback = Callback {
-      bs.modState(_.copy(loginDialogOpen = false)).runNow()
+    val handleLoginDialogClosed = (p: Props) =>
+      Callback {
+        debug(s"closing dialog $p")
+        if (p.currentRoute == LoginRoute) {
+          doteRouterCtl.set(HomeRoute).runNow()
+        }
+        bs.modState(_.copy(loginOpenClicked = false)).runNow()
     }
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
+      val loginDialogOpen = s.loginOpenClicked || p.currentRoute == LoginRoute
+
       <.div(
         ^.className := Styles.bottomNavRoot,
         Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
@@ -74,14 +81,14 @@ object NavBar extends LogSupport {
             })(
               BottomNavigationAction(icon = Icons.Home(),
                                      value = "home",
-                                     onClick = p.routerCtl.set(HomeRoute))(),
+                                     onClick = doteRouterCtl.set(HomeRoute))(),
               BottomNavigationAction(icon = Icons.Add(),
                                      value = "add",
-                                     onClick = p.routerCtl.set(AddRoute))(),
+                                     onClick = doteRouterCtl.set(AddRoute))(),
               BottomNavigationAction(
                 icon = Icons.Search(),
                 value = "search",
-                onClick = p.routerCtl.set(SearchRoute)
+                onClick = doteRouterCtl.set(SearchRoute)
               )(),
               BottomNavigationAction(
                 icon = Icons.AccountCircle(),
@@ -93,37 +100,35 @@ object NavBar extends LogSupport {
               )()
             ))
         ),
-        LoginDialog(routerCtl = p.routerCtl,
-                    open = s.loginDialogOpen,
+        LoginDialog(routerCtl = doteRouterCtl,
+                    open = loginDialogOpen,
                     loggedInPerson = s.loggedInPerson,
-                    onClose = handleLoginDialogClosed)()
+                    onClose = handleLoginDialogClosed(p))()
       )
     }
   }
 
-  private def navValueFromUrl: String = {
-    if (dom.window.location.hash.startsWith("#/search")) {
-      "search"
-    } else if (dom.window.location.hash.startsWith("#/profile")) {
-      "profile"
-    } else if (dom.window.location.hash.startsWith("#/add")) {
-      "add"
-    } else {
-      "home"
+  private def navValueFromUrl(p: Props): String = {
+    p.currentRoute match {
+      case SearchRoute => "search"
+      case ProfileRoute(_) => "profile"
+      case AddRoute => "add"
+      case _ => "home"
     }
   }
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(
-      State(navValue = navValueFromUrl,
-            isLoading = GlobalLoadingManager.curState.isLoading,
-            loggedInPerson = LoggedInPersonManager.person))
+    .initialStateFromProps(
+      p =>
+        State(navValue = navValueFromUrl(p),
+              isLoading = GlobalLoadingManager.curState.isLoading,
+              loggedInPerson = LoggedInPersonManager.person))
     .backend(new Backend(_))
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
     .componentWillUnmount(x => x.backend.onUnmount)
     .build
 
-  def apply(routerCtl: DoteRouterCtl, loginCode: Option[String] = None)(c: CtorType.ChildArg*) =
-    component.withChildren(c: _*)(Props(routerCtl))
+  def apply(currentRoute: DoteRoute)(c: CtorType.ChildArg*) =
+    component.withChildren(c: _*)(Props(currentRoute))
 }

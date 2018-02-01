@@ -67,7 +67,7 @@ object EpisodeDetails {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(routerCtl: RouterCtl[DoteRoute], dotable: Dotable)
+  case class Props(dotable: Dotable)
   case class State()
 
   class Backend(bs: BackendScope[Props, State]) {
@@ -97,15 +97,13 @@ object EpisodeDetails {
            className = Styles.detailsHeaderContainer)(
         Grid(item = true, xs = 12)(
           EpisodeTile(
-            routerCtl = p.routerCtl,
             dotable = p.dotable,
             width = Math.min(500, ContentFrame.innerWidthPx),
             elevation = 2
           )(),
           Typography(typographyType = Typography.Type.Body1)(
             s"by ",
-            SiteLink(p.routerCtl, DetailsRoute(podcast.id, podcast.slug))(
-              s"${podcast.getCommon.title}"))
+            SiteLink(DetailsRoute(podcast.id, podcast.slug))(s"${podcast.getCommon.title}"))
         ),
         Grid(item = true, xs = 12)(
           <.div(

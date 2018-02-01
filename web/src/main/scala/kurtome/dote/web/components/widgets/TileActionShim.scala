@@ -60,7 +60,7 @@ object TileActionShim extends LogSupport {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props(routerCtl: DoteRouterCtl, dotable: Dotable, hover: Boolean = false)
+  case class Props(dotable: Dotable, hover: Boolean = false)
   case class State(clicked: Boolean = false,
                    smileCount: Int = 0,
                    cryCount: Int = 0,
@@ -175,6 +175,6 @@ object TileActionShim extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(routerCtl: DoteRouterCtl, dotable: Dotable, hover: Boolean) =
-    component.withProps(Props(routerCtl, dotable, hover))
+  def apply(dotable: Dotable, hover: Boolean) =
+    component.withProps(Props(dotable, hover))
 }

@@ -1,8 +1,10 @@
 package kurtome.dote.web
 
+import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.extra.router._
 import kurtome.dote.web.components.views._
+import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.views.HelloView
 import org.scalajs.dom
 
@@ -21,6 +23,8 @@ object DoteRoutes {
   case object PageNotFoundRoute extends DoteRoute
 
   case object AddRoute extends DoteRoute
+
+  case object LoginRoute extends DoteRoute
 
   case object ListsRoute extends DoteRoute
 
@@ -49,19 +53,22 @@ object DoteRoutes {
 
         | staticRedirect("#/") ~> redirectToPage(HomeRoute)(Redirect.Replace)
 
-        | staticRoute("#/home", HomeRoute) ~> renderR(HomeView(_)())
+        | staticRoute("#/home", HomeRoute) ~> renderR(_ => HomeView()())
 
-        | staticRoute("#/search", SearchRoute) ~> renderR(SearchView(_)())
+      // the NavBar will ensure the login dialog is shown over the home page
+        | staticRoute("#/login", LoginRoute) ~> renderR(_ => HomeView()())
 
-        | staticRoute("#/add", AddRoute) ~> renderR(AddPodcastView(_)())
+        | staticRoute("#/search", SearchRoute) ~> renderR(_ => SearchView()())
+
+        | staticRoute("#/add", AddRoute) ~> renderR(_ => AddPodcastView()())
 
         | dynamicRouteCT("#/details" ~ ("/" ~ id ~ "/" ~ slug)
           .caseClass[DetailsRoute]) ~> dynRenderR(
-          (page: DetailsRoute, routerCtl) => DotableDetailView(routerCtl, page)())
+          (page: DetailsRoute, routerCtl) => DotableDetailView(page)())
 
         | dynamicRouteCT("#/profile" ~ ("/" ~ slug)
           .caseClass[ProfileRoute]) ~> dynRenderR(
-          (page: ProfileRoute, routerCtl) => ProfileView(routerCtl, page)())
+          (page: ProfileRoute, routerCtl) => ProfileView(page)())
 
         | staticRoute("#/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))
@@ -69,10 +76,24 @@ object DoteRoutes {
 
         // Verify the Home route is used
         .verify(HomeRoute)
+        .renderWith((routerCtl, resolution) => {
+          doteRouterCtl = routerCtl
+          ContentFrame(resolution.page)(
+            resolution.render()
+          )
+        })
+        .setPostRender((prev, cur) =>
+          Callback {
+            currentRoute = cur
+        })
     }
 
   private val baseUrl: BaseUrl =
     BaseUrl(dom.window.location.href.takeWhile(_ != '#'))
 
-  val router = Router(baseUrl, routerConfig)
+  val doteRouter = Router(baseUrl, routerConfig)
+
+  var doteRouterCtl: DoteRouterCtl = null
+
+  private var currentRoute: DoteRoute = HomeRoute
 }
