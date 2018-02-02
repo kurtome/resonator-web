@@ -86,7 +86,14 @@ object HomeView extends LogSupport {
                                              "Login to get started.")
             )
           } else {
-            <.div()
+            Typography(typographyType = Typography.Type.Body1,
+                       style = Styles.announcementText.inline)(
+              "Share your ",
+              doteRouterCtl.link(ProfileRoute(LoggedInPersonManager.person.get.username))(
+                ^.className := SharedStyles.siteLink,
+                "profile page"),
+              " to show off your favorite podcasts."
+            )
           }
         ),
         Grid(item = true, xs = 12)(

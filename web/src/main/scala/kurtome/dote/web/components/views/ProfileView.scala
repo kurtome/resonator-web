@@ -18,8 +18,12 @@ import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.utils.CopyToClipboard
 import kurtome.dote.web.utils.GlobalLoadingManager
+import kurtome.dote.web.utils.GlobalNotificationManager
+import kurtome.dote.web.utils.GlobalNotificationManager.Notification
 import kurtome.dote.web.utils.LoggedInPersonManager
+import kurtome.dote.web.utils.MuiInlineStyleSheet
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
@@ -27,7 +31,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ProfileView extends LogSupport {
 
-  private object Styles extends StyleSheet.Inline {
+  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
     import dsl._
 
     val fieldsContainer = style(
@@ -38,8 +42,30 @@ object ProfileView extends LogSupport {
     val feedItemContainer = style(
       marginTop(24 px)
     )
+
+    val accountInfoContainer = style(
+      padding(SharedStyles.spacingUnit),
+      marginBottom(SharedStyles.spacingUnit * 2)
+    )
+
+    val accountInfoHeaderContainer = style(
+      marginBottom(-SharedStyles.spacingUnit * 3)
+    )
+
+    val logoutButton = style(
+      float.right
+    )
+
+    val profileHeader = style(
+      display.inline,
+    )
+
+    val profileHeaderContainer = style(
+      marginBottom(-SharedStyles.spacingUnit * 3)
+    )
   }
   Styles.addToDocument()
+  import Styles.richStyle
 
   case class Props(username: String)
   case class State(feed: Feed = Feed.defaultInstance, requestInFlight: Boolean = false)
@@ -63,6 +89,12 @@ object ProfileView extends LogSupport {
       dom.document.location.assign("/logout")
     }
 
+    val handleShare = Callback {
+      val url = dom.document.location.href
+      CopyToClipboard.copyTextToClipboard(url)
+      GlobalNotificationManager.displayMessage("Link copied: " + url)
+    }
+
     def renderAccountInfo(p: Props, s: State): VdomElement = {
       val loggedInPerson = if (LoggedInPersonManager.isLoggedIn) {
         LoggedInPersonManager.person.get
@@ -71,34 +103,39 @@ object ProfileView extends LogSupport {
       }
 
       if (LoggedInPersonManager.isLoggedIn && p.username == LoggedInPersonManager.person.get.username) {
-        Grid(container = true, justify = Grid.Justify.Center)(
-          Grid(item = true, xs = 12, sm = 8, lg = 6)(
-            Paper()(
-              <.div(
-                ^.className := Styles.fieldsContainer,
-                TextField(
-                  autoFocus = false,
-                  fullWidth = true,
-                  disabled = true,
-                  value = loggedInPerson.username,
-                  name = "username",
-                  label = Typography()("username")
-                )(),
-                TextField(
-                  autoFocus = false,
-                  fullWidth = true,
-                  disabled = true,
-                  value = loggedInPerson.email,
-                  inputType = "email",
-                  name = "email",
-                  label = Typography()("email address")
-                )()
-              ),
-              Grid(container = true, justify = Grid.Justify.FlexEnd)(
+        Paper(elevation = 2, style = Styles.accountInfoContainer.inline)(
+          Grid(container = true,
+               justify = Grid.Justify.FlexStart,
+               alignItems = Grid.AlignItems.Center)(
+            Grid(item = true, xs = 12, style = Styles.accountInfoHeaderContainer.inline)(
+              Grid(container = true,
+                   justify = Grid.Justify.SpaceBetween,
+                   alignItems = Grid.AlignItems.Baseline)(
                 Grid(item = true)(
-                  Button(color = Button.Color.Accent, onClick = handleLogout)("Logoout")
+                  Typography(typographyType = Typography.Type.SubHeading)("Your info")
+                ),
+                Grid(item = true)(
+                  Button(onClick = handleLogout)("Logout")
                 )
               )
+            ),
+            Grid(item = true)(
+              TextField(
+                autoFocus = false,
+                disabled = true,
+                value = loggedInPerson.username,
+                name = "username",
+                label = Typography()("username")
+              )()),
+            Grid(item = true)(
+              TextField(
+                autoFocus = false,
+                disabled = true,
+                value = loggedInPerson.email,
+                inputType = "email",
+                name = "email",
+                label = Typography()("email address")
+              )()
             )
           )
         )
@@ -111,14 +148,16 @@ object ProfileView extends LogSupport {
 
       Grid(container = true, justify = Grid.Justify.Center)(
         Grid(item = true, xs = 12)(
-          Grid(container = true, justify = Grid.Justify.Center)(
-            Grid(item = true)(
-              Typography(typographyType = Typography.Type.Headline)(p.username)
-            )
-          )
+          renderAccountInfo(p, s)
         ),
         Grid(item = true, xs = 12)(
-          renderAccountInfo(p, s)
+          Grid(container = true, justify = Grid.Justify.FlexStart)(
+            Grid(item = true, xs = 12, style = Styles.profileHeaderContainer.inline)(
+              Typography(typographyType = Typography.Type.Headline,
+                         style = Styles.profileHeader.inline)(s"${p.username}'s profile"),
+              Button(color = Button.Color.Accent, onClick = handleShare)("Share")
+            )
+          )
         ),
         Grid(item = true, xs = 12)(
           s.feed.items.zipWithIndex map {
