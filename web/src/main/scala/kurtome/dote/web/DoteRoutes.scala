@@ -82,7 +82,7 @@ object DoteRoutes {
             resolution.render()
           )
         })
-        .setPostRender((prev, cur) =>
+        .onPostRender((prev, cur) =>
           Callback {
             currentRoute = cur
         })
