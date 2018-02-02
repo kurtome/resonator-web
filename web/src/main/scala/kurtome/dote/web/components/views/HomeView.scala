@@ -6,7 +6,6 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.feed.FeedId.HomeId
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
-import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.CssSettings._
@@ -15,7 +14,6 @@ import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.materialui.Typography
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui.Grid
-import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -28,7 +26,7 @@ object HomeView extends LogSupport {
     import dsl._
 
     val feedItemContainer = style(
-      marginTop(24 px)
+      marginBottom(24 px)
     )
 
     val announcementText = style(
@@ -111,6 +109,15 @@ object HomeView extends LogSupport {
                 }
               )
           } toVdomArray
+        ),
+        Grid(item = true, xs = 12, sm = 10, md = 8)(
+          Typography(typographyType = Typography.Type.Body1,
+                     style = Styles.announcementText.inline)(
+            "Can't find what you're looking for? Try ",
+            doteRouterCtl.link(SearchRoute)(^.className := SharedStyles.siteLink,
+                                            "searching for a podcast"),
+            "."
+          )
         )
       )
     }

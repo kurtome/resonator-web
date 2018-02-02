@@ -40,7 +40,7 @@ object ProfileView extends LogSupport {
     )
 
     val feedItemContainer = style(
-      marginTop(24 px)
+      marginBottom(SharedStyles.spacingUnit * 3)
     )
 
     val accountInfoContainer = style(
@@ -60,8 +60,8 @@ object ProfileView extends LogSupport {
       display.inline,
     )
 
-    val profileHeaderContainer = style(
-      marginBottom(-SharedStyles.spacingUnit * 3)
+    val announcementText = style(
+      fontSize(1.5 rem)
     )
   }
   Styles.addToDocument()
@@ -76,11 +76,11 @@ object ProfileView extends LogSupport {
       Callback {
         debug(s"new props $p")
         val f = DoteProtoServer.getFeed(
-          GetFeedRequest(
-            maxItems = 20,
-            maxItemSize = 10,
-            id = Some(FeedId().withProfileId(ProfileId(username = p.username))))) map { response =>
-          bs.modState(_.copy(feed = response.getFeed)).runNow()
+          GetFeedRequest(maxItems = 20,
+                         maxItemSize = 10,
+                         id = Some(FeedId().withProfileId(ProfileId(username = p.username))))) map {
+          response =>
+            bs.modState(_.copy(feed = response.getFeed)).runNow()
         }
         GlobalLoadingManager.addLoadingFuture(f)
     }
@@ -152,7 +152,7 @@ object ProfileView extends LogSupport {
         ),
         Grid(item = true, xs = 12)(
           Grid(container = true, justify = Grid.Justify.FlexStart)(
-            Grid(item = true, xs = 12, style = Styles.profileHeaderContainer.inline)(
+            Grid(item = true, xs = 12)(
               Typography(typographyType = Typography.Type.Headline,
                          style = Styles.profileHeader.inline)(s"${p.username}'s profile"),
               Button(color = Button.Color.Accent, onClick = handleShare)("Share")
@@ -174,6 +174,17 @@ object ProfileView extends LogSupport {
                 }
               )
           } toVdomArray
+        ),
+        Grid(item = true, xs = 12, sm = 10, md = 8)(
+          Typography(typographyType = Typography.Type.Body1,
+                     style = Styles.announcementText.inline)(
+            "Your recent activity will show up on your profile. Find something new from the ",
+            doteRouterCtl.link(HomeRoute)(^.className := SharedStyles.siteLink, "popular podcasts"),
+            " or try ",
+            doteRouterCtl.link(SearchRoute)(^.className := SharedStyles.siteLink,
+                                            "searching for a podcast"),
+            " you already love."
+          )
         )
       )
     }
