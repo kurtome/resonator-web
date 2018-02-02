@@ -102,7 +102,7 @@ object ProfileView extends LogSupport {
         Person.defaultInstance
       }
 
-      if (LoggedInPersonManager.isLoggedIn && p.username == LoggedInPersonManager.person.get.username) {
+      if (isProfileForLoggedInPerson(p)) {
         Paper(elevation = 2, style = Styles.accountInfoContainer.inline)(
           Grid(container = true,
                justify = Grid.Justify.FlexStart,
@@ -144,6 +144,10 @@ object ProfileView extends LogSupport {
       }
     }
 
+    private def isProfileForLoggedInPerson(p: Props) = {
+      LoggedInPersonManager.isLoggedIn && p.username == LoggedInPersonManager.person.get.username
+    }
+
     def render(p: Props, s: State): VdomElement = {
 
       Grid(container = true, justify = Grid.Justify.Center)(
@@ -176,15 +180,33 @@ object ProfileView extends LogSupport {
           } toVdomArray
         ),
         Grid(item = true, xs = 12, sm = 10, md = 8)(
-          Typography(typographyType = Typography.Type.Body1,
-                     style = Styles.announcementText.inline)(
-            "Your recent activity will show up on your profile. Find something new from the ",
-            doteRouterCtl.link(HomeRoute)(^.className := SharedStyles.siteLink, "popular podcasts"),
-            " or try ",
-            doteRouterCtl.link(SearchRoute)(^.className := SharedStyles.siteLink,
-                                            "searching for a podcast"),
-            " you already love."
-          )
+          if (isProfileForLoggedInPerson(p)) {
+            Typography(typographyType = Typography.Type.Body1,
+                       style = Styles.announcementText.inline)(
+              "Your recent activity will show up on your profile. Find something new from the ",
+              doteRouterCtl.link(HomeRoute)(^.className := SharedStyles.siteLink,
+                                            "popular podcasts"),
+              " or try ",
+              doteRouterCtl.link(SearchRoute)(^.className := SharedStyles.siteLink,
+                                              "searching for a podcast"),
+              " you already love."
+            )
+          } else if (LoggedInPersonManager.isLoggedIn) {
+            Typography(typographyType = Typography.Type.Body1,
+                       style = Styles.announcementText.inline)(
+              "Checkout your own ",
+              doteRouterCtl.link(ProfileRoute(LoggedInPersonManager.person.get.username))(
+                ^.className := SharedStyles.siteLink,
+                "profile page"),
+              "."
+            )
+          } else { // not logged in
+            Typography(typographyType = Typography.Type.Body1,
+                       style = Styles.announcementText.inline)(
+              doteRouterCtl.link(LoginRoute)(^.className := SharedStyles.siteLink, "Login"),
+              " to start your own profile."
+            )
+          }
         )
       )
     }
