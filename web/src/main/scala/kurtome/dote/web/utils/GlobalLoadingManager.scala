@@ -29,6 +29,12 @@ object GlobalLoadingManager extends LogSupport {
         stateObservable.notifyObservers(state)
     }
 
+    f recover {
+      case t =>
+        debug("async future, something went wrong", t)
+        GlobalNotificationManager.displayMessage("Network request failed.")
+    }
+
     stateObservable.notifyObservers(state)
   }
 }

@@ -82,7 +82,7 @@ object SearchBox {
   Styles.addToDocument()
   import Styles.richStyle
 
-  case class Props()
+  case class Props(onResultsUpdated: (String, Seq[Dotable]) => Callback)
   case class State(query: String = "", results: Seq[Dotable] = Nil, inFlight: Seq[Future[_]] = Nil) {
     def isLoading = inFlight.nonEmpty
   }
@@ -91,7 +91,6 @@ object SearchBox {
   private val autoSuggestTheme: js.Dynamic = l$(
     "container" -> l$(
       "flexGrow" -> 1,
-      "position" -> "absolute",
       "width" -> "100%"
     ),
     "suggestion" -> l$(
@@ -117,6 +116,8 @@ object SearchBox {
           // only use the results if the query hasn't changed
           if (bs.state.runNow().query == query) {
             bs.modState(s => s.copy(results = response.dotables)).runNow()
+            // invoke the results callback
+            bs.props.runNow().onResultsUpdated(query, response.dotables).runNow()
           }
       }
 
@@ -185,8 +186,7 @@ object SearchBox {
              spacing = 0,
              justify = Grid.Justify.FlexStart,
              alignItems = Grid.AlignItems.Center)(
-          Grid(item = true)(
-            <.span(PodcastTile(suggestion, elevation = 0, width = asPxStr(tileWidthPx))())),
+          Grid(item = true)(<.span(EntityImage(suggestion, width = asPxStr(tileWidthPx))())),
           Grid(item = true, style = Styles.suggestTitleContainer.inline)(
             Typography(style = Styles.suggestTitleText(params.isHighlighted).inline,
                        typographyType = Typography.Type.SubHeading)(
@@ -246,26 +246,27 @@ object SearchBox {
 
     def render(p: Props, s: State): VdomElement = {
       val suggestions: js.Array[Dotable] = s.results.toJSArray
-      <.div(
-        ^.className := Styles.contextWrapper,
-        AutoSuggest[Dotable](
-          suggestions = suggestions,
-          onSuggestionsFetchRequested = suggestionsFetchRequested,
-          onSuggestionsClearRequested = suggestionClearRequested,
-          onSuggestionSelected = onSuggestionSelected,
-          getSuggestionValue = getSuggestionValue,
-          renderSuggestion = renderSuggestion,
-          inputProps = InputProps(value = s.query,
-                                  inputType = "search",
-                                  onChange = handleChange,
-                                  placeholder = "Search by podcast title."),
-          theme = autoSuggestTheme,
-          renderInputComponent = renderInput(s),
-          renderSuggestionsContainer = renderSuggestionsContainer,
-          alwaysRenderSuggestions = true,
-          highlightFirstSuggestion = true
-        )()
-      )
+      <.div( // wrap the absolutely positioned element, so that this component is still in the flow
+        <.div(
+          ^.className := Styles.contextWrapper,
+          AutoSuggest[Dotable](
+            suggestions = suggestions,
+            onSuggestionsFetchRequested = suggestionsFetchRequested,
+            onSuggestionsClearRequested = suggestionClearRequested,
+            onSuggestionSelected = onSuggestionSelected,
+            getSuggestionValue = getSuggestionValue,
+            renderSuggestion = renderSuggestion,
+            inputProps = InputProps(value = s.query,
+                                    inputType = "search",
+                                    onChange = handleChange,
+                                    placeholder = "Search by podcast title."),
+            theme = autoSuggestTheme,
+            renderInputComponent = renderInput(s),
+            renderSuggestionsContainer = renderSuggestionsContainer,
+            alwaysRenderSuggestions = true,
+            highlightFirstSuggestion = true
+          )()
+        ))
     }
   }
 
@@ -276,5 +277,6 @@ object SearchBox {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply() = component.withProps(Props())
+  def apply(onResultsUpdated: (String, Seq[Dotable]) => Callback) =
+    component.withProps(Props(onResultsUpdated))
 }

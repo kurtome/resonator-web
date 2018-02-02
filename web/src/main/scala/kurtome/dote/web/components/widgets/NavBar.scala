@@ -58,7 +58,6 @@ object NavBar extends LogSupport {
 
     val handleLoginDialogClosed = (p: Props) =>
       Callback {
-        debug(s"closing dialog $p")
         if (p.currentRoute == LoginRoute) {
           doteRouterCtl.set(HomeRoute).runNow()
         }
@@ -82,9 +81,6 @@ object NavBar extends LogSupport {
               BottomNavigationAction(icon = Icons.Home(),
                                      value = "home",
                                      onClick = doteRouterCtl.set(HomeRoute))(),
-              BottomNavigationAction(icon = Icons.Add(),
-                                     value = "add",
-                                     onClick = doteRouterCtl.set(AddRoute))(),
               BottomNavigationAction(
                 icon = Icons.Search(),
                 value = "search",
@@ -100,8 +96,7 @@ object NavBar extends LogSupport {
               )()
             ))
         ),
-        LoginDialog(routerCtl = doteRouterCtl,
-                    open = loginDialogOpen,
+        LoginDialog(open = loginDialogOpen,
                     loggedInPerson = s.loggedInPerson,
                     onClose = handleLoginDialogClosed(p))()
       )
@@ -112,7 +107,6 @@ object NavBar extends LogSupport {
     p.currentRoute match {
       case SearchRoute => "search"
       case ProfileRoute(_) => "profile"
-      case AddRoute => "add"
       case _ => "home"
     }
   }

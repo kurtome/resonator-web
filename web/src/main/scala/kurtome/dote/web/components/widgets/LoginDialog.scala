@@ -22,10 +22,7 @@ import scalacss.internal.mutable.StyleSheet
 
 object LoginDialog extends LogSupport {
 
-  case class Props(routerCtl: DoteRouterCtl,
-                   open: Boolean,
-                   onClose: Callback,
-                   loggedInPerson: Option[Person])
+  case class Props(open: Boolean, onClose: Callback, loggedInPerson: Option[Person])
   case class State(isLoading: Boolean = false,
                    username: String = "",
                    email: String = "",
@@ -80,7 +77,11 @@ object LoginDialog extends LogSupport {
     }
 
     private def statusToErrorMessage(status: ActionStatus): String = {
-      errorMessages.getOrElse(status.cause, Map()).getOrElse(status.code, "")
+      if (status.isSuccess) {
+        ""
+      } else {
+        errorMessages.getOrElse(status.cause, Map()).getOrElse(status.code, "Unexpected error.")
+      }
     }
 
     def handleCreateResponse(p: Props, s: State)(response: LoginLinkResponse) = {
@@ -189,9 +190,8 @@ object LoginDialog extends LogSupport {
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
     .build
 
-  def apply(routerCtl: DoteRouterCtl,
-            open: Boolean,
+  def apply(open: Boolean,
             onClose: Callback = Callback.empty,
             loggedInPerson: Option[Person] = None)(c: CtorType.ChildArg*) =
-    component.withChildren(c: _*)(Props(routerCtl, open, onClose, loggedInPerson))
+    component.withChildren(c: _*)(Props(open, onClose, loggedInPerson))
 }

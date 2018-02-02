@@ -59,3 +59,10 @@ final object ValidUsername extends SimpleValidator[String] {
   val errorCode = StatusCodes.InvalidUsername
   def test(input: String) = regex.findFirstIn(input).isDefined
 }
+
+final object ValidItunesPodcastUrl extends SimpleValidator[String] {
+  private val urlRegex =
+    """https:\/\/(?:www\.|(?!www))itunes.apple.com.*\/podcast[\/a-zA-Z0-9-]+""".r
+  val errorCode = StatusCodes.InvalidItunesPodcastUrl
+  def test(input: String) = urlRegex.findFirstIn(input).isDefined
+}

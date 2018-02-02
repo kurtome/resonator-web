@@ -15,6 +15,7 @@ object StatusCodes extends Enumeration {
   val UnderMin = Value
   val OverMax = Value
   val InvalidEmail = Value
+  val InvalidItunesPodcastUrl = Value
   val InvalidUsername = Value
   val NotUnique = Value
   val NotLoggedIn = Value
@@ -36,5 +37,6 @@ object ErrorCauses extends Enumeration {
 
   val EmailAddress = Value
   val Username = Value
+  val Url = Value
 }
 

@@ -58,9 +58,9 @@ object DoteRoutes {
       // the NavBar will ensure the login dialog is shown over the home page
         | staticRoute("#/login", LoginRoute) ~> renderR(_ => HomeView()())
 
-        | staticRoute("#/search", SearchRoute) ~> renderR(_ => SearchView()())
+        | staticRoute("#/search", SearchRoute) ~> renderR(_ => SearchView(SearchRoute)())
 
-        | staticRoute("#/add", AddRoute) ~> renderR(_ => AddPodcastView()())
+        | staticRoute("#/add", AddRoute) ~> renderR(_ => SearchView(AddRoute)())
 
         | dynamicRouteCT("#/details" ~ ("/" ~ id ~ "/" ~ slug)
           .caseClass[DetailsRoute]) ~> dynRenderR(
