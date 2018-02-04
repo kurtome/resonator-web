@@ -82,7 +82,7 @@ object AddPodcastDialog extends LogSupport {
       Dialog(open = p.open,
              onEscapeKeyDown = p.onClose,
              onBackdropClick = p.onClose,
-             maxWidth = Dialog.MaxWidths.Sm,
+             maxWidth = Dialog.MaxWidths.Md,
              fullWidth = true)(
         DialogTitle(disableTypography = true)(
           Typography(typographyType = Typography.Type.SubHeading)("Add Podcast")),
