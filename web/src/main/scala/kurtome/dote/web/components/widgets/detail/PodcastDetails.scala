@@ -11,9 +11,13 @@ import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.detail.DetailFieldList.{DetailField, LinkFieldValue, TextFieldValue}
+import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
+  DetailField,
+  LinkFieldValue,
+  TextFieldValue
+}
 import kurtome.dote.web.components.widgets.{ContentFrame, PodcastTile}
-import kurtome.dote.web.utils.{Debounce, MuiInlineStyleSheet}
+import kurtome.dote.web.utils.{Debounce, BaseBackend}
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
@@ -22,7 +26,7 @@ import scalacss.internal.mutable.StyleSheet
 
 object PodcastDetails {
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val titleText = style(
@@ -60,8 +64,6 @@ object PodcastDetails {
     )
 
   }
-  Styles.addToDocument()
-  import Styles.richStyle
 
   case class Props(dotable: Dotable)
   case class State(availableWidth: Int)
@@ -96,7 +98,7 @@ object PodcastDetails {
           title = common.title,
           subtitle = subtitle,
           summary = common.description,
-          externalUrls = podcastDetails.getExternalUrls,
+          externalUrls = podcastDetails.getExternalUrls
         )
       case Dotable.Kind.PODCAST_EPISODE =>
         val episodeDetails = dotable.getDetails.getPodcastEpisode
@@ -110,7 +112,8 @@ object PodcastDetails {
     }
   }
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
+
     val updateTileSize: Callback = {
       bs.modState(_.copy(availableWidth = ContentFrame.innerWidthPx))
     }
@@ -136,7 +139,7 @@ object PodcastDetails {
           DetailField("Listen", LinkFieldValue("iTunes", podcastDetails.getExternalUrls.itunes))
         ) filter { field =>
           field.values exists {
-            case TextFieldValue(text)      => text.nonEmpty
+            case TextFieldValue(text) => text.nonEmpty
             case LinkFieldValue(text, url) => text.nonEmpty && url.nonEmpty
           }
         }
@@ -144,7 +147,7 @@ object PodcastDetails {
       val shouldCenterTile = currentBreakpointString match {
         case "xs" => true
         case "sm" => true
-        case _    => false
+        case _ => false
       }
 
       val tileContainerStyle = if (shouldCenterTile) {
@@ -171,28 +174,27 @@ object PodcastDetails {
           Grid(container = true,
                spacing = 0,
                alignItems = Grid.AlignItems.FlexStart,
-               style = Styles.detailsHeaderContainer.inline)(
+               style = Styles.detailsHeaderContainer)(
             Grid(item = true)(
               <.div(
                 ^.width := asPxStr(tileContainerWidth),
                 <.div(^.className := tileContainerStyle,
-                      PodcastTile(dotable = p.dotable,
-                                 width = asPxStr(tileWidth))())
+                      PodcastTile(dotable = p.dotable, width = asPxStr(tileWidth))())
               )
             ),
-            Grid(item = true, style = Styles.titleFieldContainer.inline)(
+            Grid(item = true, style = Styles.titleFieldContainer)(
               <.div(
                 ^.width := asPxStr(detailsWidth),
                 Grid(container = true)(
                   Grid(item = true, xs = 12)(
-                    Typography(style = Styles.titleText.inline,
-                               typographyType = Typography.Type.Headline)(fields.title),
-                    Typography(style = Styles.subTitleText.inline,
-                               typographyType = Typography.Type.SubHeading)(fields.subtitle),
-                    Typography(typographyType = Typography.Type.Body1,
+                    Typography(style = Styles.titleText, variant = Typography.Variants.Headline)(
+                      fields.title),
+                    Typography(style = Styles.subTitleText,
+                               variant = Typography.Variants.SubHeading)(fields.subtitle),
+                    Typography(variant = Typography.Variants.Body1,
                                dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
                   ),
-                  Grid(item = true, xs = 12)(Divider(style = Styles.textSectionDivider.inline)()),
+                  Grid(item = true, xs = 12)(Divider(style = Styles.textSectionDivider)()),
                   Grid(item = true, xs = 12)(
                     DetailFieldList(detailFields)()
                   )

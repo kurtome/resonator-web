@@ -7,7 +7,6 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.{ContentFrame, NavBar}
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 import kurtome.dote.web.utils.GlobalLoadingManager

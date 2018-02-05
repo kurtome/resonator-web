@@ -13,6 +13,7 @@ import kurtome.dote.web.constants.MuiTheme
 import scalacss.internal.mutable.StyleSheet
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
+import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
 
 /**
@@ -21,10 +22,7 @@ import wvlet.log.LogSupport
   */
 object ContentFrame extends LogSupport {
 
-  case class Props(currentRoute: DoteRoute)
-  case class State()
-
-  private object Styles extends StyleSheet.Inline {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val siteTitleText = styleF.bool(
@@ -63,8 +61,17 @@ object ContentFrame extends LogSupport {
       width(100 %%),
       bottom(0 px)
     )
+
+    val contentRoot = style(
+      paddingTop(SharedStyles.spacingUnit * 4),
+      paddingLeft(SharedStyles.spacingUnit * 2),
+      paddingRight(SharedStyles.spacingUnit * 2)
+    )
+
   }
-  Styles.addToDocument()
+
+  case class Props(currentRoute: DoteRoute)
+  case class State()
 
   /**
     * Width of the main content area (based on the current viewport size).
@@ -83,7 +90,7 @@ object ContentFrame extends LogSupport {
     Math.round(WebMain.getRootNode.clientWidth * usableRatio).toInt - paddingPx
   }
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
       val isXs = currentBreakpointString == "xs"
@@ -101,7 +108,7 @@ object ContentFrame extends LogSupport {
                          md = 8,
                          lg = 6,
                          xl = 4,
-                         className = Styles.siteTitleContainer(isXs))(
+                         style = Styles.siteTitleContainer(isXs))(
                       <.span(^.className := Styles.underConstructionText(isXs))(
                         "under construction"),
                       doteRouterCtl.link(HomeRoute)(
@@ -124,7 +131,7 @@ object ContentFrame extends LogSupport {
                          md = 10,
                          lg = 8,
                          xl = 6,
-                         className = SharedStyles.contentRoot)(mainContent)
+                         style = Styles.contentRoot)(mainContent)
                   )
                 ),
                 Grid(item = true, xs = 12)(<.div(^.minHeight := "80px", AudioWave())),

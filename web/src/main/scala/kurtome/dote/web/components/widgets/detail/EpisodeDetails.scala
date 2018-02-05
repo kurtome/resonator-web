@@ -11,13 +11,13 @@ import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
-import kurtome.dote.web.utils.MuiInlineStyleSheet
+import kurtome.dote.web.utils.BaseBackend
 
 import scalacss.internal.mutable.StyleSheet
 
 object EpisodeDetails {
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val titleText = style(
@@ -64,13 +64,11 @@ object EpisodeDetails {
       alignItems.center
     )
   }
-  Styles.addToDocument()
-  import Styles.richStyle
 
   case class Props(dotable: Dotable)
   case class State()
 
-  class Backend(bs: BackendScope[Props, State]) {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val playAudio = bs.props map { p =>
       AudioPlayer.startPlayingEpisode(p.dotable)
@@ -94,27 +92,27 @@ object EpisodeDetails {
       Grid(container = true,
            spacing = 0,
            alignItems = Grid.AlignItems.FlexStart,
-           className = Styles.detailsHeaderContainer)(
+           style = Styles.detailsHeaderContainer)(
         Grid(item = true, xs = 12)(
           EpisodeTile(
             dotable = p.dotable,
             width = Math.min(500, ContentFrame.innerWidthPx),
             elevation = 2
           )(),
-          Typography(typographyType = Typography.Type.Body1)(
+          Typography(variant = Typography.Variants.Body1)(
             s"by ",
             SiteLink(DetailsRoute(podcast.id, podcast.slug))(s"${podcast.getCommon.title}"))
         ),
         Grid(item = true, xs = 12)(
           <.div(
             ^.display := (if (AudioPlayer.canPlay(p.dotable)) "block" else "none"),
-            Button(onClick = playAudio, raised = true, style = Styles.playButton.inline)(
-              "Play",
-              Icons.PlayArrow())
+            Button(onClick = playAudio,
+                   variant = Button.Variants.Raised,
+                   style = Styles.playButton)("Play", Icons.PlayArrow())
           )
         ),
         Grid(item = true, xs = 12)(
-          Typography(typographyType = Typography.Type.Body1,
+          Typography(variant = Typography.Variants.Body1,
                      dangerouslySetInnerHTML = linkifyAndSanitize(description))()
         )
       )

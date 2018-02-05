@@ -34,6 +34,7 @@ object UrlIds {
     encoder.decode(urlId) match {
       // Only match for a list of length one since this isn't meant for arrays of IDs
       case kindId :: id :: Nil => id
+      case _ => throw new IllegalStateException("Malformed ID.")
     }
   }
 

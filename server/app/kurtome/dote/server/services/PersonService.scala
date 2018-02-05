@@ -49,7 +49,7 @@ class PersonService @Inject()(db: BasicBackend#Database, personDbIo: PersonDbIo)
       if (usernameExists || emailExists) {
         val error = if (usernameExists && emailExists) {
           // Shouldn't happen since there is no reason to call createPerson for an existing person
-          result.UnknownError
+          result.UnknownErrorStatus
         } else if (usernameExists) {
           ErrorStatus(ErrorCauses.Username, StatusCodes.NotUnique)
         } else {
@@ -61,7 +61,7 @@ class PersonService @Inject()(db: BasicBackend#Database, personDbIo: PersonDbIo)
           insertAndGet(username, email) map { insertedPerson =>
             if (insertedPerson.username != username || insertedPerson.email != email) {
               error(s"Read person didn't match inserted person. $username $email $insertedPerson")
-              FailedData(None, result.UnknownError)
+              FailedData(None, result.UnknownErrorStatus)
             } else {
               SuccessData(Some(insertedPerson))
             }
@@ -70,7 +70,7 @@ class PersonService @Inject()(db: BasicBackend#Database, personDbIo: PersonDbIo)
           case t: Throwable =>
             // Most likely just a race confition between two parallel inserts for the same username
             info("Error while inserting person.", t)
-            Future(FailedData(None, result.UnknownError))
+            Future(FailedData(None, result.UnknownErrorStatus))
         } get
       }
     }

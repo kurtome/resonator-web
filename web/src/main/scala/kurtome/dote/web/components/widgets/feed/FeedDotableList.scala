@@ -12,7 +12,7 @@ import kurtome.dote.web.DoteRoutes.DoteRouterCtl
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
-import kurtome.dote.web.utils.MuiInlineStyleSheet
+import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.Debounce
 import org.scalajs.dom
 import wvlet.log.LogSupport
@@ -22,7 +22,7 @@ import scalacss.ScalaCssReact._
 
 object FeedDotableList extends LogSupport {
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val tileContainer = style(
@@ -30,7 +30,6 @@ object FeedDotableList extends LogSupport {
     )
   }
   Styles.addToDocument()
-  import Styles.richStyle
 
   case class Props(list: ApiList)
   case class State(tileSizePx: Int, availableWidthPx: Int)
@@ -58,7 +57,8 @@ object FeedDotableList extends LogSupport {
     }
   }
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
+
     val updateTileSize: Callback = {
       val p = bs.props.runNow()
       bs.modState(
@@ -107,14 +107,14 @@ object FeedDotableList extends LogSupport {
 
       Grid(container = true, spacing = 0)(
         Grid(item = true, xs = 12)(
-          Typography(typographyType = Typography.Type.SubHeading)(list.title),
+          Typography(variant = Typography.Variants.SubHeading)(list.title),
           Grid(container = true,
                spacing = 0,
                alignItems = Grid.AlignItems.FlexStart,
                justify = Grid.Justify.SpaceBetween)(
             dotables.zipWithIndex map {
               case (dotable, i) =>
-                Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer.inline)(
+                Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer)(
                   if (dotable.kind == Dotable.Kind.PODCAST) {
                     PodcastTile(dotable = dotable, width = asPxStr(tileWidthPx))()
                   } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {

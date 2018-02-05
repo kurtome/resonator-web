@@ -9,6 +9,7 @@ import kurtome.dote.web.DoteRoutes
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.{GlobalLoadingManager, LoggedInPersonManager}
 import wvlet.log.LogSupport
 
@@ -19,13 +20,7 @@ import scalacss.internal.mutable.StyleSheet
   */
 object NavBar extends LogSupport {
 
-  case class Props(currentRoute: DoteRoute)
-  case class State(navValue: String = "home",
-                   isLoading: Boolean = false,
-                   loginOpenClicked: Boolean = false,
-                   loggedInPerson: Option[Person] = None)
-
-  private object Styles extends StyleSheet.Inline {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val bottomNavRoot = style(
@@ -34,9 +29,15 @@ object NavBar extends LogSupport {
       bottom(0 px)
     )
   }
-  Styles.addToDocument()
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  case class Props(currentRoute: DoteRoute)
+  case class State(navValue: String = "home",
+                   isLoading: Boolean = false,
+                   loginOpenClicked: Boolean = false,
+                   loggedInPerson: Option[Person] = None)
+
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
+
     val loadingObserver: Observer[GlobalLoadingManager.State] =
       (gs: GlobalLoadingManager.State) => {
         bs.modState(_.copy(isLoading = gs.isLoading)).runNow()
@@ -88,7 +89,7 @@ object NavBar extends LogSupport {
               )(),
               BottomNavigationAction(
                 icon = Icons.AccountCircle(),
-                label = Typography(typographyType = Typography.Type.Caption)(
+                label = Typography(variant = Typography.Variants.Caption)(
                   if (s.loggedInPerson.isDefined) s.loggedInPerson.get.username else "Login"),
                 value = "profile",
                 showLabel = true,

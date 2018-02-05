@@ -11,6 +11,7 @@ import scala.scalajs.js.annotation.JSImport
 
 object AudioWave {
 
+  @js.native
   trait SiriWaveOptions extends js.Object {
     var container: dom.Element = js.native
     var style: js.UndefOr[String] = js.native

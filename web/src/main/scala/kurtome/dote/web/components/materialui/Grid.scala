@@ -2,6 +2,12 @@ package kurtome.dote.web.components.materialui
 
 import japgolly.scalajs.react
 import japgolly.scalajs.react._
+import japgolly.scalajs.react.component.Js.RawMounted
+import japgolly.scalajs.react.component.Js.UnmountedWithRawType
+import kurtome.dote.web.components.materialui.Grid.AlignItems
+import kurtome.dote.web.components.materialui.Grid.Direction
+import kurtome.dote.web.components.materialui.Grid.Justify
+import kurtome.dote.web.components.materialui.Grid.Wrap
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
@@ -48,7 +54,6 @@ object Grid {
   // NOTE: not all props exposed
   @js.native
   trait Props extends js.Object {
-    var className: js.UndefOr[String] = js.native
     var style: js.UndefOr[js.Dynamic] = js.native
     var alignItems: js.UndefOr[String] = js.native
     var justify: js.UndefOr[String] = js.native
@@ -66,7 +71,6 @@ object Grid {
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
   def apply(key: Option[react.Key] = None,
-            className: js.UndefOr[String] = js.undefined,
             style: js.UndefOr[js.Dynamic] = js.undefined,
             container: js.UndefOr[Boolean] = js.undefined,
             item: js.UndefOr[Boolean] = js.undefined,
@@ -79,9 +83,9 @@ object Grid {
             lg: js.UndefOr[Int] = js.undefined,
             md: js.UndefOr[Int] = js.undefined,
             sm: js.UndefOr[Int] = js.undefined,
-            xs: js.UndefOr[Int] = js.undefined) = {
+            xs: js.UndefOr[Int] = js.undefined)
+    : CtorType.Children[Props, UnmountedWithRawType[Props, Null, RawMounted]] = {
     val p = (new js.Object).asInstanceOf[Props]
-    p.className = className
     p.style = style
     p.container = container
     p.item = item
@@ -100,5 +104,38 @@ object Grid {
     } else {
       component.withProps(p)
     }
+  }
+}
+
+object GridContainer {
+  def apply(
+      style: js.UndefOr[js.Dynamic] = js.undefined,
+      spacing: js.UndefOr[Int] = js.undefined,
+      justify: js.UndefOr[Justify.Value] = js.undefined,
+      direction: js.UndefOr[Direction.Value] = js.undefined,
+      wrap: js.UndefOr[Wrap.Value] = js.undefined,
+      alignItems: js.UndefOr[AlignItems.Value] = js.undefined
+  ): CtorType.Children[Grid.Props, UnmountedWithRawType[Grid.Props, Null, RawMounted]] = {
+    Grid(container = true,
+         style = style,
+         spacing = spacing,
+         justify = justify,
+         direction = direction,
+         wrap = wrap,
+         alignItems = alignItems)
+  }
+}
+
+object GridItem {
+  def apply(
+      key: Option[react.Key] = None,
+      style: js.UndefOr[js.Dynamic] = js.undefined,
+      xl: js.UndefOr[Int] = js.undefined,
+      lg: js.UndefOr[Int] = js.undefined,
+      md: js.UndefOr[Int] = js.undefined,
+      sm: js.UndefOr[Int] = js.undefined,
+      xs: js.UndefOr[Int] = js.undefined
+  ): CtorType.Children[Grid.Props, UnmountedWithRawType[Grid.Props, Null, RawMounted]] = {
+    Grid(item = true, key = key, style = style, xl = xl, lg = lg, md = md, sm = sm, xs = xs)
   }
 }

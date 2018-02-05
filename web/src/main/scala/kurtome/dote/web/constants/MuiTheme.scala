@@ -24,7 +24,7 @@ object MuiTheme {
           "light" -> l$(
             "background" -> l$(
               "default" -> "#616161",
-              "paper" -> "#eeeeee",
+              "paper" -> "#eeeeee"
             )
           )
         ),

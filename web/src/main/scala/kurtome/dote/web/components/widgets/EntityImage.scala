@@ -16,16 +16,7 @@ import scala.scalajs.js
 
 object EntityImage extends LogSupport {
 
-  private object Animations extends StyleSheet.Inline {
-    import dsl._
-    val fadeInImage = keyframes(
-      (0 %%) -> keyframe(opacity(0)),
-      (100 %%) -> keyframe(opacity(1))
-    )
-  }
-  Animations.addToDocument()
-
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val wrapper = style(
@@ -73,7 +64,15 @@ object EntityImage extends LogSupport {
       paddingTop(100 %%)
     )
   }
-  Styles.addToDocument()
+
+  private object Animations extends StyleSheet.Inline {
+    import dsl._
+    val fadeInImage = keyframes(
+      (0 %%) -> keyframe(opacity(0)),
+      (100 %%) -> keyframe(opacity(1))
+    )
+  }
+  Animations.addToDocument()
 
   case class Props(dotable: Dotable, width: String = "175px")
   case class State(imgLoaded: Boolean = false,
@@ -83,7 +82,7 @@ object EntityImage extends LogSupport {
                    laughCount: Int = 0,
                    scowlCount: Int = 0)
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 2000) { () =>
       val p: Props = bs.props.runNow()

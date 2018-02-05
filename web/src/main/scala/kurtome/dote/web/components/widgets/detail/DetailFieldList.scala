@@ -10,12 +10,13 @@ import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.utils.BaseBackend
 
 import scalacss.ScalaCssReact._
 
 object DetailFieldList {
 
-  private object Styles extends StyleSheet.Inline {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val detailLabel = style(
@@ -32,7 +33,7 @@ object DetailFieldList {
   case class TextFieldValue(text: String) extends DetailFieldValue
   case class LinkFieldValue(text: String, url: String) extends DetailFieldValue
 
-  class Backend(bs: BackendScope[Props, Unit]) {
+  class Backend(bs: BackendScope[Props, Unit]) extends BaseBackend(Styles) {
 
     def render(p: Props): VdomElement = {
       Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
@@ -48,13 +49,13 @@ object DetailFieldList {
               val elem: VdomElement = Grid(
                 key = Some(detailField.label + "value"),
                 item = true,
-                xs = 10)(Typography(typographyType = Typography.Type.Caption)(valueContent))
+                xs = 10)(Typography(variant = Typography.Variants.Caption)(valueContent))
               elem
             }
 
           Seq[VdomElement](
             Grid(key = Some(detailField.label + "label"), item = true, xs = 2)(
-              Typography(typographyType = Typography.Type.Caption)(label))) ++ contents
+              Typography(variant = Typography.Variants.Caption)(label))) ++ contents
         } toVdomArray
       )
     }

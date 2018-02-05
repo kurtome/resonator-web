@@ -11,14 +11,14 @@ import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.SiteLink
-import kurtome.dote.web.utils.MuiInlineStyleSheet
+import kurtome.dote.web.utils.BaseBackend
 
 import scala.scalajs.js
 import scalacss.internal.mutable.StyleSheet
 
 object EpisodeTable {
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val episodesHeader = style(
@@ -46,8 +46,6 @@ object EpisodeTable {
     )
 
   }
-  Styles.addToDocument()
-  import Styles.richStyle
 
   case class Props(dotable: Dotable)
 
@@ -66,7 +64,7 @@ object EpisodeTable {
     }
   }
 
-  class Backend(bs: BackendScope[Props, State]) {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val onPageChanged: (js.Dynamic, Int) => Callback = (event, page) => {
       bs.modState(_.copy(page = page))
@@ -102,11 +100,11 @@ object EpisodeTable {
 
       Grid(container = true, spacing = 0)(
         Grid(item = true, xs = 12)(
-          Paper(style = Styles.episodeTableContainer.inline)(
+          Paper(style = Styles.episodeTableContainer)(
             Table()(
               TableHead()(
-                TableRow()(TableCell(style = Styles.tableCell.inline)(
-                  Typography(typographyType = Typography.Type.SubHeading)("Episodes")))
+                TableRow()(TableCell(style = Styles.tableCell)(
+                  Typography(variant = Typography.Variants.SubHeading)("Episodes")))
               ),
               TableBody()(
                 (episodePage.zipWithIndex map {
@@ -128,18 +126,18 @@ object EpisodeTable {
                       }
 
                     TableRow(key = Some(key))(
-                      TableCell(style = Styles.tableCell.inline)(
+                      TableCell(style = Styles.tableCell)(
                         <.div(
                           ^.position := "relative",
                           ^.height := "2.5em",
                           <.div(
                             ^.position := "absolute",
                             ^.maxWidth := "100%",
-                            Typography(typographyType = Typography.Type.Body1,
-                                       style = Styles.truncateText.inline)(
+                            Typography(variant = Typography.Variants.Body1,
+                                       style = Styles.truncateText)(
                               SiteLink(detailRoute)(episode.getCommon.title)),
-                            Typography(typographyType = Typography.Type.Caption,
-                                       style = Styles.truncateText.inline)(summaryInfo)
+                            Typography(variant = Typography.Variants.Caption,
+                                       style = Styles.truncateText)(summaryInfo)
                           )
                         )
                       )
@@ -148,7 +146,7 @@ object EpisodeTable {
               ),
               TableFooter()(
                 TableRow()(
-                  TableCell(style = Styles.tableCell.inline)(
+                  TableCell(style = Styles.tableCell)(
                     Grid(
                       container = true,
                       spacing = 0,
@@ -156,8 +154,8 @@ object EpisodeTable {
                       alignItems = Grid.AlignItems.Center
                     )(
                       Grid(item = true)(
-                        Typography(typographyType = Typography.Type.Caption,
-                                   style = Styles.pageNumbersLabel.inline)(
+                        Typography(variant = Typography.Variants.Caption,
+                                   style = Styles.pageNumbersLabel)(
                           s"${pageStartIndex + 1}-$pageEndIndex of ${episodes.size}")
                       ),
                       Grid(item = true)(

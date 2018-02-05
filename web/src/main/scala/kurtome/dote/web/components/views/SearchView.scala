@@ -12,34 +12,32 @@ import kurtome.dote.web.components.AddPodcastDialog
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.Fader
 import kurtome.dote.web.components.widgets.SearchBox
-import kurtome.dote.web.utils.MuiInlineStyleSheet
+import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
 
 import scalacss.internal.mutable.StyleSheet
 
 object SearchView extends LogSupport {
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val announcementText = style(
       fontSize(1.2 rem)
     )
   }
-  Styles.addToDocument()
-  import Styles.richStyle
+
+  val handleLoginDialogClosed = (p: Props) =>
+    Callback {
+      if (p.currentRoute == AddRoute) {
+        doteRouterCtl.set(SearchRoute).runNow()
+      }
+  }
 
   case class Props(currentRoute: DoteRoute)
   case class State(showAddText: Boolean = false)
 
-  class Backend(bs: BackendScope[Props, State]) {
-
-    val handleLoginDialogClosed = (p: Props) =>
-      Callback {
-        if (p.currentRoute == AddRoute) {
-          doteRouterCtl.set(SearchRoute).runNow()
-        }
-    }
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val handleSearchResultsUpdated = (query: String, results: Seq[Dotable]) =>
       bs.modState(_.copy(showAddText = query.nonEmpty && results.isEmpty))
@@ -52,8 +50,7 @@ object SearchView extends LogSupport {
           ),
           Grid(item = true, xs = 12, sm = 10, md = 8)(
             Fader(in = s.showAddText)(
-              Typography(typographyType = Typography.Type.Body1,
-                         style = Styles.announcementText.inline)(
+              Typography(variant = Typography.Variants.Body1, style = Styles.announcementText)(
                 "Not the podcasts you're looking for? Add a podcast to the site ",
                 doteRouterCtl.link(AddRoute)(^.className := SharedStyles.siteLink, "here"),
                 "."

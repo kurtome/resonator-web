@@ -32,7 +32,7 @@ object AddPodcastDialog extends LogSupport {
   private val errorMessages = Map[ErrorCause, Map[StatusCode, String]](
     ErrorCauses.Url -> Map(
       StatusCodes.Required -> "Username cannot be empty.",
-      StatusCodes.InvalidItunesPodcastUrl -> "URL must be an iTunes podcast.",
+      StatusCodes.InvalidItunesPodcastUrl -> "URL must be an iTunes podcast."
     )
   )
 
@@ -85,9 +85,9 @@ object AddPodcastDialog extends LogSupport {
              maxWidth = Dialog.MaxWidths.Md,
              fullWidth = true)(
         DialogTitle(disableTypography = true)(
-          Typography(typographyType = Typography.Type.SubHeading)("Add Podcast")),
+          Typography(variant = Typography.Variants.SubHeading)("Add Podcast")),
         DialogContent()(
-          Typography(typographyType = Typography.Type.Caption, color = Typography.Color.Error)(
+          Typography(variant = Typography.Variants.Caption, color = Typography.Colors.Error)(
             s.errorMessage),
           TextField(
             autoFocus = true,
@@ -103,7 +103,7 @@ object AddPodcastDialog extends LogSupport {
           )(),
         ),
         DialogActions()(
-          Button(color = Button.Color.Accent, onClick = handleSubmit(s))("Submit")
+          Button(color = Button.Colors.Secondary, onClick = handleSubmit(s))("Submit")
         ),
         Fader(in = s.isLoading)(
           LinearProgress()()

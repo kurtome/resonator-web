@@ -10,18 +10,12 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses
 import kurtome.dote.web.components.ComponentHelpers
-import kurtome.dote.web.utils.MuiInlineStyleSheet
+import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
-
-import scalacss.internal.mutable.StyleSheet
 
 object AudioControls extends LogSupport {
 
-  val bottomNavHeight = 56
-  val controlsHeight = 80
-  val controlsWidth = 300
-
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val playerWrapper = style(
@@ -101,13 +95,15 @@ object AudioControls extends LogSupport {
     )
 
   }
-  Styles.addToDocument()
-  import Styles.richStyle
+
+  val bottomNavHeight = 56
+  val controlsHeight = 80
+  val controlsWidth = 300
 
   case class Props()
   case class State(playerState: AudioPlayer.State)
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val stateObserver: Observer[AudioPlayer.State] = (state: AudioPlayer.State) => {
       bs.modState(_.copy(playerState = state)).runNow()
@@ -151,14 +147,14 @@ object AudioControls extends LogSupport {
         <.div()
       } else {
         Grid(container = true,
-             style = Styles.playerWrapper.inline,
+             style = Styles.playerWrapper,
              justify = if (shouldCenter) Grid.Justify.Center else Grid.Justify.FlexStart)(
           Grid(item = true)(
             <.div(
               ^.className := Styles.progressWrapper,
               Fader(in = isLoading)(LinearProgress()())
             ),
-            Paper(elevation = 8, style = Styles.playerRoot.inline)(
+            Paper(elevation = 8, style = Styles.playerRoot)(
               <.div(
                 ^.className := Styles.contentWrapper,
                 <.div(
@@ -182,19 +178,19 @@ object AudioControls extends LogSupport {
                        spacing = 0,
                        justify = Grid.Justify.Center,
                        alignItems = Grid.AlignItems.FlexEnd,
-                       style = Styles.buttonGrid.inline)(
+                       style = Styles.buttonGrid)(
                     Grid(item = true)(
-                      IconButton(style = Styles.bottomButton.inline, onClick = rewind10Clicked)(
+                      IconButton(style = Styles.bottomButton, onClick = rewind10Clicked)(
                         Icons.Replay10()
                       ),
-                      IconButton(style = Styles.bottomButton.inline, onClick = playPauseClicked)(
+                      IconButton(style = Styles.bottomButton, onClick = playPauseClicked)(
                         if (isPlaying) {
                           Icons.Pause()
                         } else {
                           Icons.PlayArrow()
                         }
                       ),
-                      IconButton(style = Styles.bottomButton.inline, onClick = forward30Clicked)(
+                      IconButton(style = Styles.bottomButton, onClick = forward30Clicked)(
                         Icons.Forward30()
                       )
                     )
@@ -208,16 +204,15 @@ object AudioControls extends LogSupport {
                        spacing = 0,
                        justify = Grid.Justify.SpaceBetween,
                        alignItems = Grid.AlignItems.FlexStart,
-                       style = Styles.buttonGrid.inline)(
-                    Grid(item = true, style = Styles.titleTextWrapper.inline)(
-                      Typography(
-                        typographyType = Typography.Type.Body2,
-                        style = Styles.titleText.inline)(s.playerState.episode.getCommon.title),
-                      Typography(typographyType = Typography.Type.Caption,
-                                 style = Styles.timeText.inline)(AudioPlayerTime()())
+                       style = Styles.buttonGrid)(
+                    Grid(item = true, style = Styles.titleTextWrapper)(
+                      Typography(variant = Typography.Variants.Body2, style = Styles.titleText)(
+                        s.playerState.episode.getCommon.title),
+                      Typography(variant = Typography.Variants.Caption, style = Styles.timeText)(
+                        AudioPlayerTime()())
                     ),
                     Grid(item = true)(
-                      IconButton(style = Styles.closeButton.inline, onClick = offClicked)(
+                      IconButton(style = Styles.closeButton, onClick = offClicked)(
                         Icons.Close()
                       )
                     )

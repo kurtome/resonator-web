@@ -11,18 +11,11 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
+import scala.scalajs.js
+
 object PodcastTile extends LogSupport {
 
-  private object Animations extends StyleSheet.Inline {
-    import dsl._
-    val fadeInImage = keyframes(
-      (0 %%) -> keyframe(opacity(0)),
-      (100 %%) -> keyframe(opacity(1))
-    )
-  }
-  Animations.addToDocument()
-
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val wrapper = style(
@@ -70,8 +63,15 @@ object PodcastTile extends LogSupport {
       paddingTop(100 %%)
     )
   }
-  Styles.addToDocument()
-  import Styles.richStyle
+
+  private object Animations extends StyleSheet.Inline {
+    import dsl._
+    val fadeInImage = keyframes(
+      (0 %%) -> keyframe(opacity(0)),
+      (100 %%) -> keyframe(opacity(1))
+    )
+  }
+  Animations.addToDocument()
 
   case class Props(dotable: Dotable, elevation: Int, width: String, disableActions: Boolean)
   case class State(imgLoaded: Boolean = false,
@@ -81,7 +81,7 @@ object PodcastTile extends LogSupport {
                    laughCount: Int = 0,
                    scowlCount: Int = 0)
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id

@@ -8,6 +8,7 @@ import kurtome.dote.server.util.UrlIds
 import kurtome.dote.shared.mapper.StatusMapper
 import kurtome.dote.shared.util.result.FailedData
 import kurtome.dote.shared.util.result.SuccessData
+import kurtome.dote.shared.util.result.UnknownErrorStatus
 import kurtome.dote.shared.util.result.{ActionStatus, SuccessStatus}
 import play.api.mvc._
 
@@ -32,6 +33,7 @@ class SetDoteController @Inject()(
           response(SuccessStatus)
         }
       case FailedData(_, error) => Future(response(error))
+      case _ => Future(response(UnknownErrorStatus))
     }
   }
 

@@ -22,7 +22,7 @@ object EpisodeTile extends LogSupport {
   }
   Animations.addToDocument()
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val wrapper = style(
@@ -78,8 +78,6 @@ object EpisodeTile extends LogSupport {
       display.inlineBlock
     )
   }
-  Styles.addToDocument()
-  import Styles.richStyle
 
   case class Props(dotable: Dotable, elevation: Int, width: Int)
   case class State(imgLoaded: Boolean = false,
@@ -89,7 +87,7 @@ object EpisodeTile extends LogSupport {
                    laughCount: Int = 0,
                    scowlCount: Int = 0)
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id
@@ -107,7 +105,7 @@ object EpisodeTile extends LogSupport {
       val titleWidth = p.width - imageSize
 
       Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation,
-            style = Styles.paperContainer.inline)(
+            style = Styles.paperContainer)(
         <.div(
           ^.className := Styles.wrapper,
           ^.width := asPxStr(p.width),
@@ -123,11 +121,11 @@ object EpisodeTile extends LogSupport {
               ^.className := Styles.mainTextWrapper,
               ^.width := asPxStr(titleWidth),
               ^.height := asPxStr(imageSize),
-              Typography(typographyType = Typography.Type.Body1, style = Styles.titleLine.inline)(
+              Typography(variant = Typography.Variants.Body1, style = Styles.titleLine)(
                 p.dotable.getCommon.title),
-              Typography(typographyType = Typography.Type.Caption, style = Styles.textLine.inline)(
+              Typography(variant = Typography.Variants.Caption, style = Styles.textLine)(
                 durationSecToMin(p.dotable.getDetails.getPodcastEpisode.durationSec)),
-              Typography(typographyType = Typography.Type.Caption, style = Styles.textLine.inline)(
+              Typography(variant = Typography.Variants.Caption, style = Styles.textLine)(
                 epochSecToDate(p.dotable.getCommon.publishedEpochSec))
             )
           ),

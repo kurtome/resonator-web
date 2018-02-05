@@ -30,10 +30,6 @@ object LoginDialog extends LogSupport {
                    usernameError: String = "",
                    emailError: String = "")
 
-  private object Styles extends StyleSheet.Inline {
-    import dsl._
-  }
-
   private val errorMessages = Map[ErrorCause, Map[StatusCode, String]](
     ErrorCauses.Username -> Map(
       StatusCodes.Required -> "Username cannot be empty.",
@@ -111,19 +107,20 @@ object LoginDialog extends LogSupport {
 
     def renderActions(p: Props, s: State) = {
       val cancelButton =
-        Button(color = Button.Color.Primary, disabled = s.isLoading, onClick = p.onClose)("Cancel")
+        Button(color = Button.Colors.Primary, disabled = s.isLoading, onClick = p.onClose)(
+          "Cancel")
 
       if (p.loggedInPerson.isEmpty) {
         <.div(
           cancelButton,
-          Button(color = Button.Color.Accent,
+          Button(color = Button.Colors.Secondary,
                  disabled = s.isLoading,
                  onClick = handleSubmit(p, s))("Send login link")
         )
       } else {
         <.div(
           cancelButton,
-          Button(color = Button.Color.Accent, disabled = s.isLoading, onClick = handleLogout)(
+          Button(color = Button.Colors.Secondary, disabled = s.isLoading, onClick = handleLogout)(
             "Logout")
         )
       }
@@ -145,9 +142,9 @@ object LoginDialog extends LogSupport {
              maxWidth = Dialog.MaxWidths.Sm,
              fullWidth = true)(
         DialogTitle(disableTypography = true)(
-          Typography(typographyType = Typography.Type.SubHeading)(title(p))),
+          Typography(variant = Typography.Variants.SubHeading)(title(p))),
         DialogContent()(
-          Typography(typographyType = Typography.Type.Caption, color = Typography.Color.Error)(
+          Typography(variant = Typography.Variants.Caption, color = Typography.Colors.Error)(
             s.errorMessage),
           TextField(
             autoFocus = true,

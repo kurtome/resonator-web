@@ -9,21 +9,7 @@ import wvlet.log.LogSupport
 
 object Fader extends LogSupport {
 
-  private object Animations extends StyleSheet.Inline {
-    import dsl._
-    val fadeIn = keyframes(
-      (0 %%) -> keyframe(opacity(0)),
-      (100 %%) -> keyframe(opacity(1))
-    )
-
-    val fadeOut = keyframes(
-      (0 %%) -> keyframe(opacity(1)),
-      (100 %%) -> keyframe(opacity(0))
-    )
-  }
-  Animations.addToDocument()
-
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val fadeIn = style(
@@ -40,12 +26,25 @@ object Fader extends LogSupport {
       opacity(0)
     )
   }
-  Styles.addToDocument()
+
+  private object Animations extends StyleSheet.Inline {
+    import dsl._
+    val fadeIn = keyframes(
+      (0 %%) -> keyframe(opacity(0)),
+      (100 %%) -> keyframe(opacity(1))
+    )
+
+    val fadeOut = keyframes(
+      (0 %%) -> keyframe(opacity(1)),
+      (100 %%) -> keyframe(opacity(0))
+    )
+  }
+  Animations.addToDocument()
 
   case class Props(in: Boolean, width: String, height: String)
   case class State()
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     // this is a hack to make sure not to fade out when initially props.in == false
     private var wasIn = false

@@ -14,13 +14,13 @@ object IconButton {
   @js.native
   object RawComponent extends js.Object
 
-  object Color extends Enumeration {
+  object Colors extends Enumeration {
     val Default = Value("default")
     val Primary = Value("primary")
     val Inherit = Value("inherit")
-    val Accent = Value("accent")
-    val Contrast = Value("contrast")
+    val Secondary = Value("secondary")
   }
+  type Color = Colors.Value
 
   // NOTE: not all props exposed
   @js.native
@@ -35,7 +35,7 @@ object IconButton {
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(color: js.UndefOr[Color.Value] = js.undefined,
+  def apply(color: js.UndefOr[Color] = js.undefined,
             className: js.UndefOr[String] = js.undefined,
             style: js.UndefOr[js.Dynamic] = js.undefined,
             disabled: js.UndefOr[Boolean] = js.undefined,

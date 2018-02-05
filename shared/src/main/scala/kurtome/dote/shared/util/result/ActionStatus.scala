@@ -21,4 +21,4 @@ final object ErrorStatus {
   def  apply(code: StatusCode): ErrorStatus = ErrorStatus(ErrorCauses.NoCause, code)
 }
 
-final object UnknownError extends ErrorStatus(ErrorCauses.UnknownCause, StatusCodes.UnknownError)
+final object UnknownErrorStatus extends ErrorStatus(ErrorCauses.UnknownCause, StatusCodes.UnknownError)

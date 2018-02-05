@@ -116,12 +116,6 @@ object SharedStyles extends StyleSheet.Inline {
     padding(0 px)
   )
 
-  val contentRoot = style(
-    paddingTop(spacingUnit * 4),
-    paddingLeft(spacingUnit * 2),
-    paddingRight(spacingUnit * 2)
-  )
-
   val titleText = style(
     textAlign.center,
     paddingTop(spacingUnit * 2)

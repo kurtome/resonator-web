@@ -5,14 +5,14 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.utils.{IsMobile, MuiInlineStyleSheet}
+import kurtome.dote.web.utils.{IsMobile, BaseBackend}
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
 
 object EmoteButton extends LogSupport {
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val wrapper = style(
@@ -23,7 +23,7 @@ object EmoteButton extends LogSupport {
     val inactiveIcon = style(
       color.black,
       fontSize(1.7 rem),
-      opacity(0.6),
+      opacity(0.6)
     )
 
     val inactiveHoverIcon = style(
@@ -38,13 +38,12 @@ object EmoteButton extends LogSupport {
       opacity(1)
     )
   }
-  Styles.addToDocument()
-  import Styles.richStyle
 
   case class Props(emojis: Seq[String], initialValue: Int, onValueChanged: (Int) => Callback)
   case class State(valueCount: Int = 0, hover: Boolean = false)
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
+
     val handleClick = (p: Props, s: State) =>
       Callback {
         val maxValue = p.emojis.size + 1
@@ -62,12 +61,12 @@ object EmoteButton extends LogSupport {
     def pickStyle(s: State): js.Dynamic = {
       if (s.valueCount == 0) {
         if (s.hover) {
-          Styles.inactiveHoverIcon.inline
+          Styles.inactiveHoverIcon
         } else {
-          Styles.inactiveIcon.inline
+          Styles.inactiveIcon
         }
       } else {
-        Styles.activeIcon.inline
+        Styles.activeIcon
       }
     }
 

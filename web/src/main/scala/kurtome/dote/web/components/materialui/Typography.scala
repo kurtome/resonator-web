@@ -15,15 +15,16 @@ object Typography {
   @js.native
   object RawComponent extends js.Object
 
-  object Align extends Enumeration {
+  object Aligns extends Enumeration {
     val Inherit = Value("inherit")
     val Center = Value("center")
     val Left = Value("left")
     val Right = Value("right")
     val Justify = Value("justify")
   }
+  type Align = Aligns.Value
 
-  object Color extends Enumeration {
+  object Colors extends Enumeration {
     val Inherit = Value("inherit")
     val Default = Value("default")
     val Primary = Value("primary")
@@ -31,8 +32,9 @@ object Typography {
     val Accent = Value("accent")
     val Error = Value("error")
   }
+  type Color = Colors.Value
 
-  object Type extends Enumeration {
+  object Variants extends Enumeration {
     val Display1 = Value("display1")
     val Display2 = Value("display2")
     val Display3 = Value("display3")
@@ -45,6 +47,7 @@ object Typography {
     val Caption = Value("caption")
     val Button = Value("button")
   }
+  type Variant = Variants.Value
 
   // NOTE: not all props exposed
   @js.native
@@ -54,7 +57,7 @@ object Typography {
     var gutterBottom: js.UndefOr[Boolean] = js.native
     var noWrap: js.UndefOr[Boolean] = js.native
     var paragraph: js.UndefOr[Boolean] = js.native
-    var `type`: js.UndefOr[String] = js.native
+    var variant: js.UndefOr[String] = js.native
     var className: js.UndefOr[String] = js.native
     var component: js.UndefOr[String] = js.native
     var style: js.UndefOr[js.Dynamic] = js.native
@@ -63,20 +66,20 @@ object Typography {
 
   val reactComponent = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(align: js.UndefOr[Align.Value] = js.undefined,
-            color: js.UndefOr[Color.Value] = js.undefined,
+  def apply(align: js.UndefOr[Align] = js.undefined,
+            color: js.UndefOr[Color] = js.undefined,
             gutterBottom: js.UndefOr[Boolean] = js.undefined,
             noWrap: js.UndefOr[Boolean] = js.undefined,
             paragraph: js.UndefOr[Boolean] = js.undefined,
             className: js.UndefOr[String] = js.undefined,
             component: js.UndefOr[String] = js.undefined,
             style: js.UndefOr[js.Dynamic] = js.undefined,
-            typographyType: js.UndefOr[Type.Value] = js.undefined,
+            variant: js.UndefOr[Variant] = js.undefined,
             dangerouslySetInnerHTML: js.UndefOr[DangerousInnerHtml] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
-    p.align = align map { _.toString }
-    p.color = color map { _.toString }
-    p.`type` = typographyType map { _.toString }
+    p.align = align.map(_.toString)
+    p.color = color.map(_.toString)
+    p.variant = variant.map(_.toString)
     p.gutterBottom = gutterBottom
     p.noWrap = noWrap
     p.paragraph = paragraph

@@ -14,6 +14,7 @@ import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.materialui.Typography
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui.Grid
+import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -22,25 +23,23 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object HomeView extends LogSupport {
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val feedItemContainer = style(
       marginBottom(24 px)
     )
 
-    val announcementText = style(
-      fontSize(1.5 rem)
+    val announcementWrapper = style(
+      marginTop(24 px),
+      marginBottom(24 px)
     )
-
   }
-  Styles.addToDocument()
-  import Styles._
 
   case class Props()
   case class State(feed: Feed = Feed.defaultInstance)
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val handleDidMount = Callback {
       fetchHomeData()
@@ -75,24 +74,26 @@ object HomeView extends LogSupport {
 
     def render(p: Props, s: State): VdomElement = {
       Grid(container = true, spacing = 0, justify = Grid.Justify.Center)(
-        Grid(item = true, xs = 12, sm = 10, md = 8)(
-          if (!LoggedInPersonManager.isLoggedIn) {
-            Typography(typographyType = Typography.Type.Body1,
-                       style = Styles.announcementText.inline)(
-              "Keep track of your favorite podcasts, and see what you friends are listening to. ",
-              doteRouterCtl.link(LoginRoute)(^.className := SharedStyles.siteLink,
-                                             "Login to get started.")
+        Grid(item = true, xs = 12)(
+          Grid(container = true, spacing = 0, justify = Grid.Justify.Center)(
+            Grid(item = true, style = Styles.announcementWrapper)(
+              if (!LoggedInPersonManager.isLoggedIn) {
+                Announcement()(
+                  "Keep track of your favorite podcasts, and see what you friends are listening to. ",
+                  doteRouterCtl.link(LoginRoute)(^.className := SharedStyles.siteLink,
+                                                 "Login to get started.")
+                )
+              } else {
+                Announcement()(
+                  "Share your ",
+                  doteRouterCtl.link(ProfileRoute(LoggedInPersonManager.person.get.username))(
+                    ^.className := SharedStyles.siteLink,
+                    "profile page"),
+                  " to show off your favorite podcasts."
+                )
+              }
             )
-          } else {
-            Typography(typographyType = Typography.Type.Body1,
-                       style = Styles.announcementText.inline)(
-              "Share your ",
-              doteRouterCtl.link(ProfileRoute(LoggedInPersonManager.person.get.username))(
-                ^.className := SharedStyles.siteLink,
-                "profile page"),
-              " to show off your favorite podcasts."
-            )
-          }
+          )
         ),
         Grid(item = true, xs = 12)(
           s.feed.items.zipWithIndex map {
@@ -110,13 +111,16 @@ object HomeView extends LogSupport {
               )
           } toVdomArray
         ),
-        Grid(item = true, xs = 12, sm = 10, md = 8)(
-          Typography(typographyType = Typography.Type.Body1,
-                     style = Styles.announcementText.inline)(
-            "Can't find what you're looking for? Try ",
-            doteRouterCtl.link(SearchRoute)(^.className := SharedStyles.siteLink,
-                                            "searching for a podcast"),
-            "."
+        Grid(item = true, xs = 12)(
+          Grid(container = true, justify = Grid.Justify.Center)(
+            Grid(item = true, style = Styles.announcementWrapper)(
+              Announcement()(
+                "Can't find what you're looking for? Try ",
+                doteRouterCtl.link(SearchRoute)(^.className := SharedStyles.siteLink,
+                                                "searching for a podcast"),
+                "."
+              )
+            )
           )
         )
       )

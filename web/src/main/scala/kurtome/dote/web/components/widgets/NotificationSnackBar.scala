@@ -20,7 +20,7 @@ object NotificationSnackBar {
     def isOpen = message.isDefined && !doneDisplaying
   }
 
-  private object Styles extends StyleSheet.Inline {
+  object Styles extends StyleSheet.Inline {
     import dsl._
   }
 
@@ -74,8 +74,8 @@ object NotificationSnackBar {
         // timer inthis component
         //onClose = handleSnackbarClose,
         message = <.span(displayMessage).rawElement,
-        action = IconButton(color = IconButton.Color.Accent, onClick = handleSnackbarCloseClicked)(
-          Icons.Close()).rawElement,
+        action = IconButton(color = IconButton.Colors.Secondary,
+                            onClick = handleSnackbarCloseClicked)(Icons.Close()).rawElement,
         anchorOrigin = Snackbar.Shape("top", "right")
       )()
     }

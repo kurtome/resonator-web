@@ -26,7 +26,7 @@ import scala.concurrent.Future
 
 object SearchBox {
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val contextWrapper = style(
@@ -79,8 +79,6 @@ object SearchBox {
           textDecoration := "none"
       ))
   }
-  Styles.addToDocument()
-  import Styles.richStyle
 
   case class Props(onResultsUpdated: (String, Seq[Dotable]) => Callback)
   case class State(query: String = "", results: Seq[Dotable] = Nil, inFlight: Seq[Future[_]] = Nil) {
@@ -108,7 +106,7 @@ object SearchBox {
     )
   )
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val runSearch: (String) => Unit = Debounce.debounce1(waitMs = 300) { query =>
       val f = DoteProtoServer.search(SearchRequest(query = query, maxResults = 5)) map {
@@ -182,14 +180,14 @@ object SearchBox {
       <.div(
         ^.className := Styles.suggestItemRoot(breakpoint == "xs"),
         Grid(container = true,
-             style = Styles.suggestItemContainer.inline,
+             style = Styles.suggestItemContainer,
              spacing = 0,
              justify = Grid.Justify.FlexStart,
              alignItems = Grid.AlignItems.Center)(
           Grid(item = true)(<.span(EntityImage(suggestion, width = asPxStr(tileWidthPx))())),
-          Grid(item = true, style = Styles.suggestTitleContainer.inline)(
-            Typography(style = Styles.suggestTitleText(params.isHighlighted).inline,
-                       typographyType = Typography.Type.SubHeading)(
+          Grid(item = true, style = Styles.suggestTitleContainer)(
+            Typography(style = Styles.suggestTitleText(params.isHighlighted),
+                       variant = Typography.Variants.SubHeading)(
               textNodes
             )
           )
@@ -199,7 +197,7 @@ object SearchBox {
 
     val renderSuggestionsContainer: Function1[SuggestionContainerRenderParams, raw.ReactElement] =
       (params) => {
-        val style = Styles.suggestDropdownSheet.inline
+        val style = Styles.suggestDropdownSheet
         if (params.children.isDefined) {
           Paper(baseProps = params.containerProps, style = style)(VdomNode(params.children.get)).raw
         } else {

@@ -19,7 +19,7 @@ import scala.scalajs.js
 
 object TileActionShim extends LogSupport {
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val overlayContainer = style(
@@ -57,8 +57,6 @@ object TileActionShim extends LogSupport {
     )
 
   }
-  Styles.addToDocument()
-  import Styles.richStyle
 
   case class Props(dotable: Dotable, hover: Boolean = false)
   case class State(clicked: Boolean = false,
@@ -67,7 +65,7 @@ object TileActionShim extends LogSupport {
                    laughCount: Int = 0,
                    scowlCount: Int = 0)
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val shouldClickToShowActions = IsMobile.value
 
@@ -132,7 +130,7 @@ object TileActionShim extends LogSupport {
                  direction = Grid.Direction.Column,
                  justify = Grid.Justify.SpaceBetween,
                  spacing = 0,
-                 style = Styles.overlayActionsContainer.inline)(
+                 style = Styles.overlayActionsContainer)(
               Grid(item = true)(
                 Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
                   Grid(item = true)(

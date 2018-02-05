@@ -15,6 +15,7 @@ import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.lib.LazyLoad
+import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.rpc.DoteProtoServer
@@ -23,7 +24,7 @@ import kurtome.dote.web.utils.GlobalLoadingManager
 import kurtome.dote.web.utils.GlobalNotificationManager
 import kurtome.dote.web.utils.GlobalNotificationManager.Notification
 import kurtome.dote.web.utils.LoggedInPersonManager
-import kurtome.dote.web.utils.MuiInlineStyleSheet
+import kurtome.dote.web.utils.BaseBackend
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
@@ -31,7 +32,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ProfileView extends LogSupport {
 
-  private object Styles extends StyleSheet.Inline with MuiInlineStyleSheet {
+  object Styles extends StyleSheet.Inline {
     import dsl._
 
     val fieldsContainer = style(
@@ -57,30 +58,28 @@ object ProfileView extends LogSupport {
     )
 
     val profileHeader = style(
-      display.inline,
+      display.inline
     )
 
     val announcementText = style(
       fontSize(1.5 rem)
     )
   }
-  Styles.addToDocument()
-  import Styles.richStyle
 
   case class Props(username: String)
   case class State(feed: Feed = Feed.defaultInstance, requestInFlight: Boolean = false)
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val handleNewProps = (p: Props) =>
       Callback {
         debug(s"new props $p")
         val f = DoteProtoServer.getFeed(
-          GetFeedRequest(maxItems = 20,
-                         maxItemSize = 10,
-                         id = Some(FeedId().withProfileId(ProfileId(username = p.username))))) map {
-          response =>
-            bs.modState(_.copy(feed = response.getFeed)).runNow()
+          GetFeedRequest(
+            maxItems = 20,
+            maxItemSize = 10,
+            id = Some(FeedId().withProfileId(ProfileId(username = p.username))))) map { response =>
+          bs.modState(_.copy(feed = response.getFeed)).runNow()
         }
         GlobalLoadingManager.addLoadingFuture(f)
     }
@@ -92,7 +91,7 @@ object ProfileView extends LogSupport {
     val handleShare = Callback {
       val url = dom.document.location.href
       CopyToClipboard.copyTextToClipboard(url)
-      GlobalNotificationManager.displayMessage("Link copied: " + url)
+      GlobalNotificationManager.displayMessage("Profile link copied to your clipboard.")
     }
 
     def renderAccountInfo(p: Props, s: State): VdomElement = {
@@ -103,16 +102,16 @@ object ProfileView extends LogSupport {
       }
 
       if (isProfileForLoggedInPerson(p)) {
-        Paper(elevation = 2, style = Styles.accountInfoContainer.inline)(
+        Paper(elevation = 1, style = Styles.accountInfoContainer)(
           Grid(container = true,
                justify = Grid.Justify.FlexStart,
                alignItems = Grid.AlignItems.Center)(
-            Grid(item = true, xs = 12, style = Styles.accountInfoHeaderContainer.inline)(
+            Grid(item = true, xs = 12, style = Styles.accountInfoHeaderContainer)(
               Grid(container = true,
                    justify = Grid.Justify.SpaceBetween,
                    alignItems = Grid.AlignItems.Baseline)(
                 Grid(item = true)(
-                  Typography(typographyType = Typography.Type.SubHeading)("Your info")
+                  Typography(variant = Typography.Variants.SubHeading)("Your info")
                 ),
                 Grid(item = true)(
                   Button(onClick = handleLogout)("Logout")
@@ -136,7 +135,10 @@ object ProfileView extends LogSupport {
                 name = "email",
                 label = Typography()("email address")
               )()
-            )
+            ),
+            Grid(item = true, xs = 12)(
+              Typography(variant = Typography.Variants.Caption)(
+                "Only you can see this section, it will not show up on your profile for others."))
           )
         )
       } else {
@@ -155,11 +157,19 @@ object ProfileView extends LogSupport {
           renderAccountInfo(p, s)
         ),
         Grid(item = true, xs = 12)(
-          Grid(container = true, justify = Grid.Justify.FlexStart)(
+          Grid(container = true, justify = Grid.Justify.FlexStart, spacing = 8)(
             Grid(item = true, xs = 12)(
-              Typography(typographyType = Typography.Type.Headline,
-                         style = Styles.profileHeader.inline)(s"${p.username}'s profile"),
-              Button(color = Button.Color.Accent, onClick = handleShare)("Share")
+              Typography(variant = Typography.Variants.Headline, style = Styles.profileHeader)(
+                s"${p.username}'s profile")
+            ),
+            Grid(item = true, xs = 12)(
+              Announcement(size = Announcement.Sizes.Sm)(
+                "Profile pages are shareable, text it to a friend or share online.")
+            ),
+            Grid(item = true, xs = 12)(
+              Button(variant = Button.Variants.Raised,
+                     color = Button.Colors.Secondary,
+                     onClick = handleShare)("Copy Link")
             )
           )
         ),
@@ -179,34 +189,35 @@ object ProfileView extends LogSupport {
               )
           } toVdomArray
         ),
-        Grid(item = true, xs = 12, sm = 10, md = 8)(
-          if (isProfileForLoggedInPerson(p)) {
-            Typography(typographyType = Typography.Type.Body1,
-                       style = Styles.announcementText.inline)(
-              "Your recent activity will show up on your profile. Find something new from the ",
-              doteRouterCtl.link(HomeRoute)(^.className := SharedStyles.siteLink,
-                                            "popular podcasts"),
-              " or try ",
-              doteRouterCtl.link(SearchRoute)(^.className := SharedStyles.siteLink,
-                                              "searching for a podcast"),
-              " you already love."
+        GridItem(xs = 12)(
+          GridContainer(justify = Grid.Justify.Center)(
+            GridItem()(
+              if (isProfileForLoggedInPerson(p)) {
+                Announcement(size = Announcement.Sizes.Sm)(
+                  "Your recent activity will show up on your profile. Find something new from the ",
+                  doteRouterCtl.link(HomeRoute)(^.className := SharedStyles.siteLink,
+                                                "popular podcasts"),
+                  " or try ",
+                  doteRouterCtl.link(SearchRoute)(^.className := SharedStyles.siteLink,
+                                                  "searching for a podcast"),
+                  " you already love."
+                )
+              } else if (LoggedInPersonManager.isLoggedIn) {
+                Announcement(size = Announcement.Sizes.Sm)(
+                  "Checkout your own ",
+                  doteRouterCtl.link(ProfileRoute(LoggedInPersonManager.person.get.username))(
+                    ^.className := SharedStyles.siteLink,
+                    "profile page"),
+                  "."
+                )
+              } else { // not logged in
+                Announcement(size = Announcement.Sizes.Lg)(
+                  doteRouterCtl.link(LoginRoute)(^.className := SharedStyles.siteLink, "Login"),
+                  " to start your own profile."
+                )
+              }
             )
-          } else if (LoggedInPersonManager.isLoggedIn) {
-            Typography(typographyType = Typography.Type.Body1,
-                       style = Styles.announcementText.inline)(
-              "Checkout your own ",
-              doteRouterCtl.link(ProfileRoute(LoggedInPersonManager.person.get.username))(
-                ^.className := SharedStyles.siteLink,
-                "profile page"),
-              "."
-            )
-          } else { // not logged in
-            Typography(typographyType = Typography.Type.Body1,
-                       style = Styles.announcementText.inline)(
-              doteRouterCtl.link(LoginRoute)(^.className := SharedStyles.siteLink, "Login"),
-              " to start your own profile."
-            )
-          }
+          )
         )
       )
     }
