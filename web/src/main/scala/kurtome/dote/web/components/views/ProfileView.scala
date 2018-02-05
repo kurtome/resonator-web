@@ -184,7 +184,7 @@ object ProfileView extends LogSupport {
         ),
         GridItem(xs = 12)(
           GridContainer(justify = Grid.Justify.Center)(
-            GridItem()(
+            GridItem(xs = 12)(
               if (isProfileForLoggedInPerson(p)) {
                 Announcement(size = Announcement.Sizes.Sm)(
                   "Your recent activity will show up on your profile. Find something new from the ",

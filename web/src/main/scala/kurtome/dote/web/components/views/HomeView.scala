@@ -77,7 +77,7 @@ object HomeView extends LogSupport {
       Grid(container = true, spacing = 0, justify = Grid.Justify.Center)(
         Grid(item = true, xs = 12)(
           Grid(container = true, spacing = 0, justify = Grid.Justify.Center)(
-            Grid(item = true, style = Styles.announcementWrapper)(
+            Grid(item = true, xs = 12, style = Styles.announcementWrapper)(
               if (!LoggedInPersonManager.isLoggedIn) {
                 Announcement()(
                   "Keep track of your favorite podcasts, and see what you friends are listening to. ",
@@ -112,7 +112,7 @@ object HomeView extends LogSupport {
         ),
         Grid(item = true, xs = 12)(
           Grid(container = true, justify = Grid.Justify.Center)(
-            Grid(item = true, style = Styles.announcementWrapper)(
+            Grid(item = true, xs = 12, style = Styles.announcementWrapper)(
               Announcement()(
                 "Can't find what you're looking for? Try ",
                 SiteLink(SearchRoute)("searching for a podcast"),
