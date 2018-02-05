@@ -3,6 +3,7 @@ package kurtome.dote.web.components.widgets
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.shared.constants.StringValues
+import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.{SharedStyles, WebMain}
 import kurtome.dote.web.components.ComponentHelpers
@@ -15,6 +16,8 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
+
+import scala.scalajs.js
 
 /**
   * Pager wrapper includes header/footer and renders child content within a centered portion of the
@@ -30,8 +33,7 @@ object ContentFrame extends LogSupport {
         styleS(
           fontFamily(SharedStyles.jaapokkiSubtractFf),
           fontSize(if (isXs) 1.5 rem else 3 rem),
-          textAlign.center,
-          color(Color(MuiTheme.theme.palette.text.primary.toString))
+          textAlign.center
       )
     )
 
@@ -51,8 +53,7 @@ object ContentFrame extends LogSupport {
           transform := "rotate(-20deg)",
           fontSize(if (isXs) 1 rem else 2 rem),
           left(35 %%),
-          position.absolute,
-          color(Color(MuiTheme.theme.palette.text.secondary.toString))
+          position.absolute
       )
     )
 
@@ -71,7 +72,7 @@ object ContentFrame extends LogSupport {
   }
 
   case class Props(currentRoute: DoteRoute)
-  case class State()
+  case class State(theme: js.Dynamic)
 
   /**
     * Width of the main content area (based on the current viewport size).
@@ -92,10 +93,18 @@ object ContentFrame extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
+    val stateObserver: Observer[js.Dynamic] = (theme: js.Dynamic) => {
+      bs.modState(_.copy(theme = theme)).runNow()
+    }
+    MuiTheme.stateObservable.addObserver(stateObserver)
+    val handleUnmount: Callback = Callback {
+      MuiTheme.stateObservable.removeObserver(stateObserver)
+    }
+
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
       val isXs = currentBreakpointString == "xs"
 
-      MuiThemeProvider(MuiTheme.theme)(
+      MuiThemeProvider(s.theme)(
         <.div(
           Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
             Grid(item = true, xs = 12)(
@@ -109,10 +118,12 @@ object ContentFrame extends LogSupport {
                          lg = 6,
                          xl = 4,
                          style = Styles.siteTitleContainer(isXs))(
-                      <.span(^.className := Styles.underConstructionText(isXs))(
-                        "under construction"),
+                      <.span(^.className := Styles.underConstructionText(isXs),
+                             ^.color := MuiTheme.primaryTextColor,
+                             "under construction"),
                       doteRouterCtl.link(HomeRoute)(
                         ^.className := SharedStyles.siteTitleAnchor,
+                        ^.color := MuiTheme.primaryTextColor,
                         <.span(^.className := Styles.siteTitleText(isXs))(StringValues.siteTitle)
                       )
                     )
@@ -151,9 +162,10 @@ object ContentFrame extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State())
+    .initialState(State(MuiTheme.theme))
     .backend(new Backend(_))
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
+    .componentWillUnmount(x => x.backend.handleUnmount)
     .build
 
   def apply(currentRoute: DoteRoute)(c: CtorType.ChildArg*) =

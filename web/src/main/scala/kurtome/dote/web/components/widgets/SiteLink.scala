@@ -5,10 +5,7 @@ import japgolly.scalajs.react.vdom.VdomElement
 import kurtome.dote.web.DoteRoutes._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.components.ComponentHelpers._
-
-import scala.scalajs.js
+import kurtome.dote.web.constants.MuiTheme
 
 object SiteLink {
 
@@ -16,7 +13,8 @@ object SiteLink {
 
   class Backend(bs: BackendScope[Props, Unit]) {
     def render(p: Props, pc: PropsChildren): VdomElement = {
-      doteRouterCtl.link(p.route)(^.className := SharedStyles.siteLink, pc)
+      val color = MuiTheme.theme.palette.text.primary.asInstanceOf[String]
+      doteRouterCtl.link(p.route)(^.color := color, pc)
     }
   }
 

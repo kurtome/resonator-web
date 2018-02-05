@@ -74,7 +74,6 @@ object EpisodeTile extends LogSupport {
     )
 
     val paperContainer = style(
-      backgroundColor.white,
       display.inlineBlock
     )
   }

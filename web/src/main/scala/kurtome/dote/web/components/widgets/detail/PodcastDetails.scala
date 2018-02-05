@@ -11,13 +11,14 @@ import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.button.CopyLinkButton
 import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
   DetailField,
   LinkFieldValue,
   TextFieldValue
 }
 import kurtome.dote.web.components.widgets.{ContentFrame, PodcastTile}
-import kurtome.dote.web.utils.{Debounce, BaseBackend}
+import kurtome.dote.web.utils.{BaseBackend, Debounce}
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
@@ -31,10 +32,6 @@ object PodcastDetails {
 
     val titleText = style(
       lineHeight(1 em)
-    )
-
-    val subTitleText = style(
-      marginBottom(SharedStyles.spacingUnit * 2)
     )
 
     val textSectionDivider = style(
@@ -189,8 +186,14 @@ object PodcastDetails {
                   Grid(item = true, xs = 12)(
                     Typography(style = Styles.titleText, variant = Typography.Variants.Headline)(
                       fields.title),
-                    Typography(style = Styles.subTitleText,
-                               variant = Typography.Variants.SubHeading)(fields.subtitle),
+                    Typography(variant = Typography.Variants.SubHeading)(fields.subtitle)
+                  ),
+                  GridItem(xs = 12)(
+                    GridContainer()(
+                      GridItem()(CopyLinkButton()())
+                    )
+                  ),
+                  GridItem(xs = 12)(
                     Typography(variant = Typography.Variants.Body1,
                                dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
                   ),

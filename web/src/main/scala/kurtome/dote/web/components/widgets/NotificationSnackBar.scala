@@ -74,7 +74,7 @@ object NotificationSnackBar {
         // timer inthis component
         //onClose = handleSnackbarClose,
         message = <.span(displayMessage).rawElement,
-        action = IconButton(color = IconButton.Colors.Secondary,
+        action = IconButton(color = IconButton.Colors.Primary,
                             onClick = handleSnackbarCloseClicked)(Icons.Close()).rawElement,
         anchorOrigin = Snackbar.Shape("top", "right")
       )()

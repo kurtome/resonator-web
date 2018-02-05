@@ -12,6 +12,7 @@ import kurtome.dote.web.components.AddPodcastDialog
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.Fader
 import kurtome.dote.web.components.widgets.SearchBox
+import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
 
@@ -52,7 +53,7 @@ object SearchView extends LogSupport {
             Fader(in = s.showAddText)(
               Typography(variant = Typography.Variants.Body1, style = Styles.announcementText)(
                 "Not the podcasts you're looking for? Add a podcast to the site ",
-                doteRouterCtl.link(AddRoute)(^.className := SharedStyles.siteLink, "here"),
+                SiteLink(AddRoute)("here"),
                 "."
               )
             )

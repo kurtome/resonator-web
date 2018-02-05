@@ -28,6 +28,8 @@ object DoteRoutes {
 
   case object ListsRoute extends DoteRoute
 
+  case object ThemeRoute extends DoteRoute
+
   case class ProfileRoute(username: String) extends DoteRoute
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,6 +63,8 @@ object DoteRoutes {
         | staticRoute("#/search", SearchRoute) ~> renderR(_ => SearchView(SearchRoute)())
 
         | staticRoute("#/add", AddRoute) ~> renderR(_ => SearchView(AddRoute)())
+
+        | staticRoute("#/theme", ThemeRoute) ~> renderR(_ => ThemeView()())
 
         | dynamicRouteCT("#/details" ~ ("/" ~ id ~ "/" ~ slug)
           .caseClass[DetailsRoute]) ~> dynRenderR(

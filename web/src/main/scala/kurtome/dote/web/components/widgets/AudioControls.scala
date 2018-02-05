@@ -98,7 +98,7 @@ object AudioControls extends LogSupport {
 
   val bottomNavHeight = 56
   val controlsHeight = 80
-  val controlsWidth = 300
+  val controlsWidth = Math.min(400, ContentFrame.innerWidthPx)
 
   case class Props()
   case class State(playerState: AudioPlayer.State)

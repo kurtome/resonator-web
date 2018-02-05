@@ -15,6 +15,7 @@ import kurtome.dote.web.components.materialui.Typography
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.widgets.Announcement
+import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -80,14 +81,12 @@ object HomeView extends LogSupport {
               if (!LoggedInPersonManager.isLoggedIn) {
                 Announcement()(
                   "Keep track of your favorite podcasts, and see what you friends are listening to. ",
-                  doteRouterCtl.link(LoginRoute)(^.className := SharedStyles.siteLink,
-                                                 "Login to get started.")
+                  SiteLink(LoginRoute)("Login to get started.")
                 )
               } else {
                 Announcement()(
                   "Share your ",
-                  doteRouterCtl.link(ProfileRoute(LoggedInPersonManager.person.get.username))(
-                    ^.className := SharedStyles.siteLink,
+                  SiteLink(ProfileRoute(LoggedInPersonManager.person.get.username))(
                     "profile page"),
                   " to show off your favorite podcasts."
                 )
@@ -116,8 +115,7 @@ object HomeView extends LogSupport {
             Grid(item = true, style = Styles.announcementWrapper)(
               Announcement()(
                 "Can't find what you're looking for? Try ",
-                doteRouterCtl.link(SearchRoute)(^.className := SharedStyles.siteLink,
-                                                "searching for a podcast"),
+                SiteLink(SearchRoute)("searching for a podcast"),
                 "."
               )
             )

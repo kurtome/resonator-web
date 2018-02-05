@@ -17,6 +17,8 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.ContentFrame
+import kurtome.dote.web.components.widgets.SiteLink
+import kurtome.dote.web.components.widgets.button.CopyLinkButton
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.CopyToClipboard
@@ -73,7 +75,6 @@ object ProfileView extends LogSupport {
 
     val handleNewProps = (p: Props) =>
       Callback {
-        debug(s"new props $p")
         val f = DoteProtoServer.getFeed(
           GetFeedRequest(
             maxItems = 20,
@@ -86,12 +87,6 @@ object ProfileView extends LogSupport {
 
     val handleLogout = Callback {
       dom.document.location.assign("/logout")
-    }
-
-    val handleShare = Callback {
-      val url = dom.document.location.href
-      CopyToClipboard.copyTextToClipboard(url)
-      GlobalNotificationManager.displayMessage("Profile link copied to your clipboard.")
     }
 
     def renderAccountInfo(p: Props, s: State): VdomElement = {
@@ -167,9 +162,7 @@ object ProfileView extends LogSupport {
                 "Profile pages are shareable, text it to a friend or share online.")
             ),
             Grid(item = true, xs = 12)(
-              Button(variant = Button.Variants.Raised,
-                     color = Button.Colors.Secondary,
-                     onClick = handleShare)("Copy Link")
+              CopyLinkButton()()
             )
           )
         ),
@@ -195,24 +188,21 @@ object ProfileView extends LogSupport {
               if (isProfileForLoggedInPerson(p)) {
                 Announcement(size = Announcement.Sizes.Sm)(
                   "Your recent activity will show up on your profile. Find something new from the ",
-                  doteRouterCtl.link(HomeRoute)(^.className := SharedStyles.siteLink,
-                                                "popular podcasts"),
+                  SiteLink(HomeRoute)("popular podcasts"),
                   " or try ",
-                  doteRouterCtl.link(SearchRoute)(^.className := SharedStyles.siteLink,
-                                                  "searching for a podcast"),
+                  SiteLink(SearchRoute)("searching for a podcast"),
                   " you already love."
                 )
               } else if (LoggedInPersonManager.isLoggedIn) {
                 Announcement(size = Announcement.Sizes.Sm)(
                   "Checkout your own ",
-                  doteRouterCtl.link(ProfileRoute(LoggedInPersonManager.person.get.username))(
-                    ^.className := SharedStyles.siteLink,
+                  SiteLink(ProfileRoute(LoggedInPersonManager.person.get.username))(
                     "profile page"),
                   "."
                 )
               } else { // not logged in
                 Announcement(size = Announcement.Sizes.Lg)(
-                  doteRouterCtl.link(LoginRoute)(^.className := SharedStyles.siteLink, "Login"),
+                  SiteLink(LoginRoute)("Login"),
                   " to start your own profile."
                 )
               }

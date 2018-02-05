@@ -121,10 +121,6 @@ object SharedStyles extends StyleSheet.Inline {
     paddingTop(spacingUnit * 2)
   )
 
-  val siteLink = style(
-    color.rgba(0, 0, 0, 0.87)
-  )
-
   val inlineBlock = style(
     display.inlineBlock
   )

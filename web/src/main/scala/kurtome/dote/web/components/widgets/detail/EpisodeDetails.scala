@@ -11,6 +11,7 @@ import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
+import kurtome.dote.web.components.widgets.button.CopyLinkButton
 import kurtome.dote.web.utils.BaseBackend
 
 import scalacss.internal.mutable.StyleSheet
@@ -48,9 +49,9 @@ object EpisodeDetails {
       marginBottom(SharedStyles.spacingUnit * 2)
     )
 
-    val playButton = style(
-      marginTop(SharedStyles.spacingUnit * 2),
-      marginBottom(SharedStyles.spacingUnit * 2)
+    val actionsContainer = style(
+      marginTop(SharedStyles.spacingUnit),
+      marginBottom(SharedStyles.spacingUnit)
     )
 
     val detailsHeaderContainer = style(
@@ -89,11 +90,10 @@ object EpisodeDetails {
         duration
       }
 
-      Grid(container = true,
-           spacing = 0,
-           alignItems = Grid.AlignItems.FlexStart,
-           style = Styles.detailsHeaderContainer)(
-        Grid(item = true, xs = 12)(
+      GridContainer(spacing = 0,
+                    alignItems = Grid.AlignItems.FlexStart,
+                    style = Styles.detailsHeaderContainer)(
+        GridItem(xs = 12)(
           EpisodeTile(
             dotable = p.dotable,
             width = Math.min(500, ContentFrame.innerWidthPx),
@@ -103,15 +103,17 @@ object EpisodeDetails {
             s"by ",
             SiteLink(DetailsRoute(podcast.id, podcast.slug))(s"${podcast.getCommon.title}"))
         ),
-        Grid(item = true, xs = 12)(
-          <.div(
-            ^.display := (if (AudioPlayer.canPlay(p.dotable)) "block" else "none"),
-            Button(onClick = playAudio,
-                   variant = Button.Variants.Raised,
-                   style = Styles.playButton)("Play", Icons.PlayArrow())
+        GridItem(xs = 12)(
+          GridContainer(style = Styles.actionsContainer)(
+            GridItem()(CopyLinkButton()()),
+            GridItem()(
+              <.div(
+                ^.display := (if (AudioPlayer.canPlay(p.dotable)) "block" else "none"),
+                Button(onClick = playAudio)("Play", Icons.PlayArrow())
+              ))
           )
         ),
-        Grid(item = true, xs = 12)(
+        GridItem(xs = 12)(
           Typography(variant = Typography.Variants.Body1,
                      dangerouslySetInnerHTML = linkifyAndSanitize(description))()
         )

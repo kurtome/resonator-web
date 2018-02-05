@@ -29,7 +29,6 @@ object Typography {
     val Default = Value("default")
     val Primary = Value("primary")
     val Secondary = Value("secondary")
-    val Accent = Value("accent")
     val Error = Value("error")
   }
   type Color = Colors.Value

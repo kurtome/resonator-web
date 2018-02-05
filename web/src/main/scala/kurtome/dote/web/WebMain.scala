@@ -21,10 +21,6 @@ object WebMain extends LogSupport {
   def getRootNode = rootNode
 
   def main(args: Array[String]): Unit = {
-    // Attach both style files to the head
-    SharedStyles.addToDocument()
-    attachStandaloneStyle(StandaloneStyles)
-
     Logger.setDefaultHandler(new JSConsoleLogHandler())
     if (LinkingInfo.productionMode) {
       Logger.setDefaultLogLevel(LogLevel.WARN)
@@ -33,9 +29,17 @@ object WebMain extends LogSupport {
       debug("dev logging enabled.")
     }
 
+    refreshStyles()
+
     rootNode = dom.document.body.querySelector("#reactroot")
 
     DoteRoutes.doteRouter().renderIntoDOM(rootNode)
+  }
+
+  def refreshStyles() = {
+    // Attach both style files to the head
+    SharedStyles.addToDocument()
+    attachStandaloneStyle(new StandaloneStyles)
   }
 
   /**
