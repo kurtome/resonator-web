@@ -31,6 +31,7 @@ object WebMain extends LogSupport {
       debug("dev logging enabled.")
     }
 
+    attachThemeColor()
     refreshStyles()
 
     rootNode = dom.document.body.querySelector("#reactroot")
@@ -39,8 +40,6 @@ object WebMain extends LogSupport {
   }
 
   def refreshStyles() = {
-    attachThemeColor()
-
     // Attach both style files to the head
     SharedStyles.addToDocument()
     attachStandaloneStyle(new StandaloneStyles)
@@ -59,7 +58,7 @@ object WebMain extends LogSupport {
   private def attachThemeColor(): Unit = {
     val metaElement = dom.document.createElement("meta").asInstanceOf[Meta]
     metaElement.name = "theme-color"
-    metaElement.content = MuiTheme.theme.palette.background.default.asInstanceOf[String]
+    metaElement.content = MuiTheme.theme.palette.primary.dark
     dom.document.head.appendChild(metaElement)
   }
 

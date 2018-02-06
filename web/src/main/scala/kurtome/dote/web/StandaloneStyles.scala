@@ -13,7 +13,7 @@ class StandaloneStyles extends StyleSheet.Standalone {
   import dsl._
 
   "html" - (
-    backgroundColor :=! MuiTheme.theme.palette.background.default.asInstanceOf[String]
+    backgroundColor :=! MuiTheme.theme.palette.background.default
   )
 
   "body" - (

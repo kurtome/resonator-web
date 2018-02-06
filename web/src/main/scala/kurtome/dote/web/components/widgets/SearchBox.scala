@@ -37,7 +37,6 @@ object SearchBox {
     val suggestDropdownSheet = style(
       zIndex := "1",
       position.absolute,
-      //backgroundColor :=! MuiTheme.theme.palette.grey.`300`.asInstanceOf[String],
       marginBottom(SharedStyles.spacingUnit),
       left(0 px),
       right(0 px)
@@ -70,10 +69,9 @@ object SearchBox {
           overflow.hidden,
           width(unset),
           color :=! (if (isHighlighted) {
-                       MuiTheme.theme.palette.text.primary.asInstanceOf[String]
+                       MuiTheme.theme.palette.text.primary
                      } else {
-                       MuiTheme.theme.palette.text.secondary.asInstanceOf[String]
-
+                       MuiTheme.theme.palette.text.secondary
                      }),
           fontSize(if (isHighlighted) 1.2 rem else 1 rem),
           textDecoration := "none"

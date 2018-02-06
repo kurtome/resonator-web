@@ -1,6 +1,7 @@
 package kurtome.dote.web.components.materialui
 
 import japgolly.scalajs.react._
+import kurtome.dote.web.constants.MuiTheme
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSImport, JSName}
@@ -20,19 +21,19 @@ object MuiThemeProvider {
   @js.native
   object CreateMuiTheme extends js.Object {
     @JSName("default")
-    def createMuiTheme(themeOverrides: js.Dynamic): js.Dynamic = js.native
+    def createMuiTheme(themeOverrides: js.Dynamic): MuiTheme.Theme = js.native
   }
 
   // NOTE: not all props exposed
   @js.native
   trait Props extends js.Object {
     var disableStylesGeneration: js.UndefOr[Boolean] = js.native
-    var theme: js.Dynamic = js.native
+    var theme: MuiTheme.Theme = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(theme: js.Dynamic, disableStylesGeneration: js.UndefOr[Boolean] = js.undefined) = {
+  def apply(theme: MuiTheme.Theme, disableStylesGeneration: js.UndefOr[Boolean] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.disableStylesGeneration = disableStylesGeneration
     p.theme = theme

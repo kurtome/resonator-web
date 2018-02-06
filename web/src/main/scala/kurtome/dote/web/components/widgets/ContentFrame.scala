@@ -14,6 +14,7 @@ import kurtome.dote.web.constants.MuiTheme
 import scalacss.internal.mutable.StyleSheet
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
+import kurtome.dote.web.constants.MuiTheme.Theme
 import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
 
@@ -72,7 +73,7 @@ object ContentFrame extends LogSupport {
   }
 
   case class Props(currentRoute: DoteRoute)
-  case class State(theme: js.Dynamic)
+  case class State(theme: Theme)
 
   /**
     * Width of the main content area (based on the current viewport size).
@@ -93,7 +94,7 @@ object ContentFrame extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val stateObserver: Observer[js.Dynamic] = (theme: js.Dynamic) => {
+    val stateObserver: Observer[Theme] = (theme: Theme) => {
       bs.modState(_.copy(theme = theme)).runNow()
     }
     MuiTheme.stateObservable.addObserver(stateObserver)
@@ -119,11 +120,11 @@ object ContentFrame extends LogSupport {
                          xl = 4,
                          style = Styles.siteTitleContainer(isXs))(
                       <.span(^.className := Styles.underConstructionText(isXs),
-                             ^.color := MuiTheme.primaryTextColor,
+                             ^.color := MuiTheme.secondaryTextColor,
                              "under construction"),
                       doteRouterCtl.link(HomeRoute)(
                         ^.className := SharedStyles.siteTitleAnchor,
-                        ^.color := MuiTheme.primaryTextColor,
+                        ^.color := MuiTheme.theme.palette.primary.dark,
                         <.span(^.className := Styles.siteTitleText(isXs))(StringValues.siteTitle)
                       )
                     )

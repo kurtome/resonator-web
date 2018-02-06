@@ -3,7 +3,6 @@ package kurtome.dote.web.components.views
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.WebMain
 import kurtome.dote.web.components.materialui._
@@ -24,9 +23,9 @@ object ThemeView extends LogSupport {
 
   case class Props()
   case class State(
-      light: Boolean = MuiTheme.theme.palette.`type`.asInstanceOf[String] == "light",
-      primary: PaletteColor = MuiTheme.theme.palette.primary.asInstanceOf[PaletteColor],
-      secondary: PaletteColor = MuiTheme.theme.palette.secondary.asInstanceOf[PaletteColor])
+      light: Boolean = MuiTheme.theme.palette.paletteType == "light",
+      primary: PaletteColor = MuiTheme.theme.palette.primary,
+      secondary: PaletteColor = MuiTheme.theme.palette.secondary)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -48,7 +47,6 @@ object ThemeView extends LogSupport {
         )
       )
       WebMain.refreshStyles()
-
     }
 
     def render(p: Props, s: State): VdomElement = {

@@ -148,19 +148,15 @@ object ComponentHelpers {
     styleSheet.render[Map[String, js.Dynamic]]
   }
 
-  val breakpointKeys = MuiTheme.theme
-    .selectDynamic("breakpoints")
-    .selectDynamic("keys")
-    .asInstanceOf[js.Array[String]]
-
-  val breakpoints = MuiTheme.theme.selectDynamic("breakpoints").selectDynamic("values")
+  val breakpointKeys = MuiTheme.theme.breakpoints.keys
+  val breakpoints = MuiTheme.theme.breakpoints.values
 
   def isBreakpointXs: Boolean = currentBreakpointString == "xs"
 
   def currentBreakpointString = {
     val width = dom.window.innerWidth
     breakpointKeys.reverse
-      .find(v => width > breakpoints.selectDynamic(v).asInstanceOf[Int])
+      .find(v => width > breakpoints(v))
       .getOrElse("xs")
   }
 
