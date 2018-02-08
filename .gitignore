@@ -8,3 +8,4 @@ target
 /.settings
 /RUNNING_PID
 server/conf/local.conf
+server/conf/local-log.properties

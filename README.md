@@ -4,7 +4,7 @@ Other detailed documentation is in the [doc/](doc/) directory.
 
 Compile and run the `server` project:
 
-```
+```sh
 sbt server/run
 ```
 
@@ -15,8 +15,21 @@ Open <http://localhost:9000> in your browser
 Typically you will have a config file to override connection info for
 running locally, to specify a local config file use a JVM param like so:
 
-```
+``` 
 sbt -Dconfig.file=server/conf/local.conf server/run
+```
+
+#### run_local_server.sh
+
+Create the two following files:
+
+ - Application config: `server/conf/local.conf`
+ - Logging config: `server/conf/local.conf`
+ 
+Then run
+
+```sh
+./run_local_server.sh
 ```
 
 
