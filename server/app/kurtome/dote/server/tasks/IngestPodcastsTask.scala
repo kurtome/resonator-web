@@ -1,5 +1,6 @@
 package kurtome.dote.server.tasks
 
+import java.net.UnknownHostException
 import java.time.LocalDateTime
 
 import akka.actor.{Actor, ActorRef, ActorSystem}
@@ -14,6 +15,8 @@ import kurtome.dote.server.ingestion.PodcastFeedIngester
 import kurtome.dote.server.services.DotableService
 import wvlet.log._
 
+import scala.annotation.tailrec
+import scala.concurrent.TimeoutException
 import scala.util.Try
 
 class IngestPodcastsTask @Inject()(
@@ -60,15 +63,17 @@ class IngestPodcastsActor @Inject()(actorSystem: ActorSystem,
           val response: AddPodcastResponse = Try {
             debug(s"Ingesting $row")
             // use Await to only ingest one at a time to not hog all the DB connections and threads.
-            Await.result(podcastFeedIngester.reingestPodcastByItunesId(row.itunesId) map {
-              result =>
-                debug(s"Finished ingesting $row")
-                result
+            Await.result(podcastFeedIngester.reingestPodcastByItunesId(row.itunesId) map { result =>
+              debug(s"Finished ingesting $row")
+              result
             }, atMost = 10.seconds)
           } recover {
-            case t: Throwable =>
-              error(s"Exception ingesting $row", t)
+            case t: Throwable => {
+              val cause = getCause(t)
+              warn(
+                s"Exception ingesting $row. ${t.getClass.getSimpleName} caused by ${cause.getClass.getName}: ${cause.getMessage}")
               AddPodcastResponse.defaultInstance
+            }
           } get
 
           if (response.podcasts.isEmpty) {
@@ -80,5 +85,16 @@ class IngestPodcastsActor @Inject()(actorSystem: ActorSystem,
           }
         }
       }
+  }
+
+  // TODO: move this to a util
+  @tailrec
+  private def getCause(e: Throwable): Throwable = {
+    val cause = e.getCause
+    if (cause == null || cause == e) {
+      cause
+    } else {
+      getCause(cause)
+    }
   }
 }
