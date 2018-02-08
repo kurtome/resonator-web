@@ -47,7 +47,7 @@ object CopyToClipboard extends LogSupport {
     } recover {
       case t => {
         warn("Oops, unable to copy", t)
-        GlobalNotificationManager.displayMessage("Something went wrong attempting to copy.")
+        GlobalNotificationManager.displayError("Something went wrong attempting to copy.")
       }
     }
 

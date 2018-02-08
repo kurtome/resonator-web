@@ -69,8 +69,9 @@ object AddPodcastDialog extends LogSupport {
             }
             case Failure(t) => {
               bs.modState(_.copy(isLoading = false))
+
               debug("Error occurred.", t)
-              GlobalNotificationManager.displayMessage("Network error while adding podcast.")
+              GlobalNotificationManager.displayError("Network error while adding podcast.")
             }
           }
         } else {
@@ -103,7 +104,9 @@ object AddPodcastDialog extends LogSupport {
           )(),
         ),
         DialogActions()(
-          Button(color = Button.Colors.Secondary, onClick = handleSubmit(s))("Submit")
+          Button(variant = Button.Variants.Raised,
+                 color = Button.Colors.Primary,
+                 onClick = handleSubmit(s))("Submit")
         ),
         Fader(in = s.isLoading)(
           LinearProgress()()

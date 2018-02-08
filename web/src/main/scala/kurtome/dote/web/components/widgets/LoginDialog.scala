@@ -105,23 +105,26 @@ object LoginDialog extends LogSupport {
       bs.modState(_.copy(email = newEmail.toLowerCase)).runNow()
     }
 
-    def renderActions(p: Props, s: State) = {
+    def renderActions(p: Props, s: State): VdomElement = {
       val cancelButton =
-        Button(color = Button.Colors.Primary, disabled = s.isLoading, onClick = p.onClose)(
-          "Cancel")
+        Button(disabled = s.isLoading, onClick = p.onClose)("Cancel")
 
       if (p.loggedInPerson.isEmpty) {
-        <.div(
-          cancelButton,
-          Button(color = Button.Colors.Secondary,
-                 disabled = s.isLoading,
-                 onClick = handleSubmit(p, s))("Send login link")
+        GridContainer()(
+          GridItem()(cancelButton),
+          GridItem()(
+            Button(color = Button.Colors.Primary,
+                   variant = Button.Variants.Raised,
+                   disabled = s.isLoading,
+                   onClick = handleSubmit(p, s))("Send login link"))
         )
       } else {
         <.div(
           cancelButton,
-          Button(color = Button.Colors.Secondary, disabled = s.isLoading, onClick = handleLogout)(
-            "Logout")
+          Button(color = Button.Colors.Primary,
+                 variant = Button.Variants.Raised,
+                 disabled = s.isLoading,
+                 onClick = handleLogout)("Logout")
         )
       }
 

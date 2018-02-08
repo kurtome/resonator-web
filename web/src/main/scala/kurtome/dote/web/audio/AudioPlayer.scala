@@ -43,7 +43,7 @@ object AudioPlayer extends LogSupport {
       this.howl.unload()
       this.howl = null
     }
-    GlobalNotificationManager.displayMessage("Unable to load audio, check internet connection.")
+    GlobalNotificationManager.displayError("Unable to load audio, check internet connection.")
     updateState(State(PlayerStatuses.Off, currentEpiode))
   }
 

@@ -1,6 +1,7 @@
 package kurtome.dote.web.utils
 
 import kurtome.dote.shared.util.observer._
+import kurtome.dote.web.utils.GlobalNotificationManager.NotificationKinds
 import wvlet.log.LogSupport
 
 import scala.concurrent.Future
@@ -32,7 +33,7 @@ object GlobalLoadingManager extends LogSupport {
     f recover {
       case t =>
         debug("async future, something went wrong", t)
-        GlobalNotificationManager.displayMessage("Network request failed.")
+        GlobalNotificationManager.displayError("Network request failed.")
     }
 
     stateObservable.notifyObservers(state)

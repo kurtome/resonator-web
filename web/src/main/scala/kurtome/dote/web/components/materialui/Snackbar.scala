@@ -59,7 +59,7 @@ object Snackbar {
             message: js.UndefOr[raw.ReactElement] = js.undefined,
             open: js.UndefOr[Boolean] = js.undefined,
             resumeHideDurationMs: js.UndefOr[Int] = js.undefined,
-            //onClose: (js.Dynamic, String) => Callback = (_, _) => Callback.empty,
+            onClose: (js.Dynamic, String) => Callback = (_, _) => Callback.empty,
             SnackbarContentProps: js.UndefOr[js.Dynamic] = js.undefined,
             transition: js.UndefOr[Int] = js.undefined,
             style: js.UndefOr[js.Dynamic] = js.undefined) = {
@@ -70,7 +70,7 @@ object Snackbar {
     p.message = message
     p.open = open
     p.resumeHideDuration = resumeHideDurationMs
-    //p.onClose = (e, msg) => onClose(e, msg).runNow()
+    p.onClose = (e, msg) => onClose(e, msg).runNow()
     p.SnackbarContentProps = SnackbarContentProps
     p.transition = transition
     p.style = style

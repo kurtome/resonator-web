@@ -7,6 +7,8 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.utils.GlobalNotificationManager
+import kurtome.dote.web.utils.GlobalNotificationManager.Notification
+import kurtome.dote.web.utils.GlobalNotificationManager.NotificationKinds
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
@@ -16,7 +18,7 @@ import scalacss.internal.mutable.StyleSheet
 object NotificationSnackBar {
 
   case class Props()
-  case class State(message: Option[String] = None, doneDisplaying: Boolean = false) {
+  case class State(message: Option[Notification] = None, doneDisplaying: Boolean = false) {
     def isOpen = message.isDefined && !doneDisplaying
   }
 
@@ -28,13 +30,13 @@ object NotificationSnackBar {
 
     val stateObserver: Observer[GlobalNotificationManager.Notification] =
       (gs: GlobalNotificationManager.Notification) => {
-        bs.modState(_.copy(message = Some(gs.message), doneDisplaying = false)).runNow()
+        bs.modState(_.copy(message = Some(gs), doneDisplaying = false)).runNow()
         bs.forceUpdate.runNow()
       }
     GlobalNotificationManager.stateObservable.addObserver(stateObserver)
 
     def handleSnackbarClose(event: js.Dynamic, reason: String): Callback = Callback {
-      bs.modState(_.copy(doneDisplaying = true)).runNow()
+      close()
     }
 
     val handleSnackbarCloseClicked: Callback = Callback {
@@ -43,38 +45,27 @@ object NotificationSnackBar {
 
     val handleWillUnmount: Callback = Callback {
       GlobalNotificationManager.stateObservable.removeObserver(stateObserver)
-      close()
-    }
-
-    val handleAutoCloseTimeout: () => Unit = () => {
-      close()
     }
 
     def close() = {
-      autoCloseTimerId foreach { timeoutId =>
-        dom.window.clearTimeout(timeoutId)
-      }
-      autoCloseTimerId = None
       bs.modState(_.copy(doneDisplaying = true)).runNow()
     }
-
-    var autoCloseTimerId: Option[Int] = None
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
       val isXs = currentBreakpointString == "xs"
 
-      if (s.message.isDefined && autoCloseTimerId.isEmpty) {
-        autoCloseTimerId = Some(dom.window.setTimeout(handleAutoCloseTimeout, 10000))
+      val color = s.message.map(_.kind) match {
+        case Some(NotificationKinds.Error) => Typography.Colors.Error
+        case _ => Typography.Colors.Inherit
       }
 
-      val displayMessage = s.message.getOrElse("")
+      val displayMessage = s.message.map(_.message).getOrElse("")
       Snackbar(
         open = s.isOpen,
-        // The onClose appears to be broken in the MUI component library, so implementing auto-close
-        // timer inthis component
-        //onClose = handleSnackbarClose,
-        message = <.span(displayMessage).rawElement,
-        action = IconButton(color = IconButton.Colors.Primary,
+        autoHideDurationMs = 10000,
+        onClose = handleSnackbarClose,
+        message = Typography(color = color)(displayMessage).rawElement,
+        action = IconButton(color = IconButton.Colors.Inherit,
                             onClick = handleSnackbarCloseClicked)(Icons.Close()).rawElement,
         anchorOrigin = Snackbar.Shape("top", "right")
       )()

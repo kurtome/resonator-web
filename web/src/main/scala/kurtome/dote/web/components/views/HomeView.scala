@@ -49,7 +49,7 @@ object HomeView extends LogSupport {
         val person = LoggedInPersonManager.person
         LoggedInPersonManager.displayedLoginSnack = true
         if (person.isEmpty) {
-          GlobalNotificationManager.displayMessage("Login link was expired, please login again.")
+          GlobalNotificationManager.displayError("Login link was expired, please login again.")
         } else {
           GlobalNotificationManager.displayMessage(s"Logged in as ${person.get.username}")
         }

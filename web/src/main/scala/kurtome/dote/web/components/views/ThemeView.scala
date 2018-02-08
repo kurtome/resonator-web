@@ -22,10 +22,9 @@ object ThemeView extends LogSupport {
   }
 
   case class Props()
-  case class State(
-      light: Boolean = MuiTheme.theme.palette.paletteType == "light",
-      primary: PaletteColor = MuiTheme.theme.palette.primary,
-      secondary: PaletteColor = MuiTheme.theme.palette.secondary)
+  case class State(light: Boolean = MuiTheme.theme.palette.paletteType == "light",
+                   primary: PaletteColor = MuiTheme.theme.palette.primary,
+                   secondary: PaletteColor = MuiTheme.theme.palette.secondary)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
