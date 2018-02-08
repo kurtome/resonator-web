@@ -96,7 +96,7 @@ class AuthTokenService @Inject()(db: BasicBackend#Database,
 
 }
 object AuthTokenService {
-  val tokenDuration = Duration.ofDays(60)
+  val tokenDuration = Duration.ofDays(120)
 }
 
 case class TokenParts(selector: String, dbValidator: Array[Byte], cookieToken: String)
