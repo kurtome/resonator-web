@@ -103,7 +103,12 @@ object FeedDotableList extends LogSupport {
 
       val minPaddingPx = 12
       val leftoverWidthPx = s.availableWidthPx - (numTilesPerRow * (requestedWidth + minPaddingPx))
-      val tileWidthPx = requestedWidth + (leftoverWidthPx / numTilesPerRow)
+      val tileWidthPx = if (numTilesPerRow == 1) {
+        // use the entire width if there is only one per row
+        s.availableWidthPx
+      } else {
+        requestedWidth + (leftoverWidthPx / numTilesPerRow)
+      }
 
       Grid(container = true, spacing = 0)(
         Grid(item = true, xs = 12)(
