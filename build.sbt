@@ -88,7 +88,8 @@ lazy val web = (project in webBaseDir)
     scalaVersion := scalaV,
     // https://scalacenter.github.io/scalajs-bundler/reference.html#bundling-mode-library-only
     webpackBundlingMode := BundlingMode.LibraryOnly(),
-    webpackConfigFile := Some(baseDirectory.value / "webpack.config.js"),
+    webpackConfigFile in fastOptJS := Some(baseDirectory.value / "dev.webpack.config.js"),
+    webpackConfigFile in fullOptJS := Some(baseDirectory.value / "prod.webpack.config.js"),
     // This is an application with a main method
     scalaJSUseMainModuleInitializer := true,
     // Scala libraries that are Scalajs compatible

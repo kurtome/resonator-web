@@ -3,6 +3,7 @@ syntax = "proto3";
 package kurtome.dote.proto.api.action;
 
 import "api/dotable.proto";
+import "api/common.proto";
 
 message SearchRequest {
   string query = 1;
@@ -10,5 +11,6 @@ message SearchRequest {
 }
 
 message SearchResponse {
-  repeated api.Dotable dotables = 1;
+  api.ActionStatus response_status = 1;
+  repeated api.Dotable dotables = 2;
 }

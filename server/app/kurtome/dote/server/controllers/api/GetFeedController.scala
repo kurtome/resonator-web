@@ -8,6 +8,8 @@ import kurtome.dote.server.controllers.feed.FeedParams
 import kurtome.dote.server.controllers.feed.HomeFeedFetcher
 import kurtome.dote.server.controllers.feed.ProfileFeedFetcher
 import kurtome.dote.server.services.{AuthTokenService, DotableService}
+import kurtome.dote.shared.mapper.StatusMapper
+import kurtome.dote.shared.util.result.SuccessStatus
 import play.api.mvc._
 import wvlet.log.LogSupport
 
@@ -51,13 +53,13 @@ class GetFeedController @Inject()(
 
   private def fetchHomeFeed(feedParams: FeedParams) = {
     homeFeedFetcher.fetch(feedParams) map { feed =>
-      GetFeedResponse(Some(feed))
+      GetFeedResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(feed))
     }
   }
 
   private def fetchProfileFeed(feedParams: FeedParams) = {
     profileFeedFetcher.fetch(feedParams) map { feed =>
-      GetFeedResponse(Some(feed))
+      GetFeedResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(feed))
     }
   }
 

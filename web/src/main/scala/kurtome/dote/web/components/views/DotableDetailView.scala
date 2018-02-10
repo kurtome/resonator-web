@@ -5,6 +5,7 @@ import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dotable.Dotable.Kind
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.common.ActionStatus
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
@@ -29,13 +30,20 @@ object DotableDetailView {
 
       if (cachedDetails.isDefined) {
         // Use cached
-        bs.modState(_.copy(response = GetDotableDetailsResponse(cachedDetails)))
+        bs.modState(
+          _.copy(
+            response = GetDotableDetailsResponse(responseStatus =
+                                                   Some(ActionStatus(success = true)),
+                                                 dotable = cachedDetails)))
       }
 
       // Request from server regardless, to get latest
       val cachedShallow: Option[Dotable] = LocalCache.get(includesDetails = false, id)
-      bs.modState(_.copy(requestInFlight = true,
-                         response = GetDotableDetailsResponse(cachedShallow))) flatMap { _ =>
+      bs.modState(
+        _.copy(requestInFlight = true,
+               response = GetDotableDetailsResponse(responseStatus =
+                                                      Some(ActionStatus(success = true)),
+                                                    cachedShallow))) flatMap { _ =>
         Callback {
           val f = DoteProtoServer.getDotableDetails(request) flatMap { response =>
             bs.modState(_.copy(response = response, requestInFlight = false)).toFuture

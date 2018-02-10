@@ -3,6 +3,7 @@ syntax = "proto3";
 package kurtome.dote.proto.api.action;
 
 import "api/feed.proto";
+import "api/common.proto";
 
 message GetFeedRequest {
   api.FeedId id = 1;
@@ -12,5 +13,6 @@ message GetFeedRequest {
 }
 
 message GetFeedResponse {
-  api.Feed feed = 1;
+  api.ActionStatus response_status = 1;
+  api.Feed feed = 2;
 }

@@ -79,6 +79,12 @@ object AddPodcastDialog extends LogSupport {
         }
     }
 
+    def handleUrlKeyPress(s: State)(event: ReactKeyboardEventFromInput) = Callback {
+      if (event.key == "Enter") {
+        handleSubmit(s).runNow()
+      }
+    }
+
     def render(p: Props, s: State): VdomElement =
       Dialog(open = p.open,
              onEscapeKeyDown = p.onClose,
@@ -97,6 +103,7 @@ object AddPodcastDialog extends LogSupport {
             value = s.url,
             error = s.urlError.nonEmpty,
             onChange = handleUrlChanged,
+            onKeyPress = handleUrlKeyPress(s),
             helperText = Typography()(<.b(s.urlError)),
             name = "itunes-url",
             label = Typography()("iTunes Podcast URL"),

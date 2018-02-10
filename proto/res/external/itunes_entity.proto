@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package kurtome.dote.proto.external;
 
-import "api/dotable.proto";
-
 // This is the structure of a response from the iTunes JSON API:
 // https://itunes.apple.com/lookup?id={entityId}&entity={entityKind}
 //

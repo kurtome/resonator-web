@@ -19,6 +19,8 @@ object StatusCodes extends Enumeration {
   val InvalidUsername = Value
   val NotUnique = Value
   val NotLoggedIn = Value
+  val InvalidAuthentication = Value
+  val NotFound = Value
 }
 
 /**

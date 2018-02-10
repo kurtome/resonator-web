@@ -14,7 +14,6 @@ object MuiTheme extends LogSupport {
   val isDayTime = {
     val time = new js.Date()
     val hours = time.getHours()
-    debug(hours)
     hours >= 7 && hours < 19
   }
 

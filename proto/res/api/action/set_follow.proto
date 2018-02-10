@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api.action;
+
+import "api/common.proto";
+
+message SetFollowRequest {
+  // this must match the logged in person or the request will fail
+  string requester_person_id = 1;
+  // the person to follow / unfollow
+  string follow_person_id = 2;
+  // the desired state
+  State requested_state = 3;
+
+  enum State {
+    UNKNOWN_STATUS = 0;
+    FOLLOWING = 1;
+    NOT_FOLLOWING = 2;
+  }
+}
+
+message SetFollowResponse {
+  api.ActionStatus response_status = 1;
+}

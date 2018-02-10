@@ -3,11 +3,13 @@ syntax = "proto3";
 package kurtome.dote.proto.api.action;
 
 import "api/dotable.proto";
+import "api/common.proto";
 
 message GetDotableDetailsRequest {
   string id = 1;
 }
 
 message GetDotableDetailsResponse {
-  api.Dotable dotable = 1;
+  api.ActionStatus response_status = 1;
+  api.Dotable dotable = 2;
 }

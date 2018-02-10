@@ -9,6 +9,9 @@ object SlickCodegenMain {
     val jdbcUrl = System.getenv("POSTGRESSQL_DATABASE_URL")
     val scalaPackage = "kurtome.dote.slick.db.gen"
 
+    assert(jdbcUrl != null && jdbcUrl.nonEmpty,
+           "jdbc URL required in env variable POSTGRESSQL_DATABASE_URL")
+
     // TODO - generate code into a "target" directory instead of a "src" directory
     val outputDir = "slick-codegen/src/main/scala"
 

@@ -10,6 +10,6 @@ message GetLoggedInPersonRequest {
 }
 
 message GetLoggedInPersonResponse {
-  api.Person person = 1;
-  api.ActionStatus status = 2;
+  api.ActionStatus response_status = 1;
+  api.Person person = 2;
 }

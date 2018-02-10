@@ -3,6 +3,7 @@ syntax = "proto3";
 package kurtome.dote.proto.api.action;
 
 import "api/dotable.proto";
+import "api/common.proto";
 
 message AddPodcastRequest {
   string itunesUrl = 1;
@@ -16,5 +17,6 @@ message AddPodcastRequest {
 }
 
 message AddPodcastResponse {
-  repeated api.Dotable podcasts = 1;
+  api.ActionStatus response_status = 1;
+  repeated api.Dotable podcasts = 2;
 }

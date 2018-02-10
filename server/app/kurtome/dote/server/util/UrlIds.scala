@@ -38,4 +38,7 @@ object UrlIds {
     }
   }
 
+  def decodePerson(urlId: String): Long = decode(IdKinds.Person, urlId)
+  def decodeDotable(urlId: String): Long = decode(IdKinds.Dotable, urlId)
+
 }

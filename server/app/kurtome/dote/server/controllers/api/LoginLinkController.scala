@@ -71,7 +71,7 @@ class LoginLinkController @Inject()(cc: ControllerComponents,
   }
 
   private def toResponse(result: ProduceAction[Option[Tables.PersonRow]]): LoginLinkResponse = {
-    LoginLinkResponse(result.data.map(PersonMapper), Option(StatusMapper.toProto(result.status)))
+    LoginLinkResponse(Some(StatusMapper.toProto(result.status)), result.data.map(PersonMapper))
   }
 
 }

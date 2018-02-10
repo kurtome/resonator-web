@@ -18,6 +18,7 @@ object TextField {
   // NOTE: not all props exposed
   @js.native
   trait Props extends js.Object {
+    var autoComplete: js.UndefOr[String] = js.native
     var autoFocus: js.UndefOr[Boolean] = js.native
     var name: js.UndefOr[String] = js.native
     var value: js.UndefOr[String] = js.native
@@ -35,11 +36,13 @@ object TextField {
     var `type`: js.UndefOr[String] = js.native
     var inputRef: js.UndefOr[js.Any] = js.native
     var onChange: js.Function1[ReactEventFromInput, Unit] = js.native
+    var onKeyPress: js.Function1[ReactKeyboardEventFromInput, Unit] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(autoFocus: js.UndefOr[Boolean] = js.undefined,
+  def apply(autoComplete: js.UndefOr[String] = js.undefined,
+            autoFocus: js.UndefOr[Boolean] = js.undefined,
             fullWidth: js.UndefOr[Boolean] = js.undefined,
             disabled: js.UndefOr[Boolean] = js.undefined,
             required: js.UndefOr[Boolean] = js.undefined,
@@ -52,9 +55,11 @@ object TextField {
             inputType: js.UndefOr[String] = js.undefined,
             inputRef: js.UndefOr[js.Any] = js.undefined,
             onChange: ReactEventFromInput => Callback = _ => Callback.empty,
+            onKeyPress: ReactKeyboardEventFromInput => Callback = _ => Callback.empty,
             className: js.UndefOr[String] = js.undefined,
             margin: String = "normal") = {
     val p = (new js.Object).asInstanceOf[Props]
+    p.autoComplete = autoComplete
     p.value = value
     p.name = name
     p.autoFocus = autoFocus
@@ -69,7 +74,8 @@ object TextField {
     p.fullWidth = fullWidth
     p.`type` = inputType
     p.inputRef = inputRef
-    p.onChange = (s: ReactEventFromInput) => onChange(s).runNow()
+    p.onChange = (e) => onChange(e).runNow()
+    p.onKeyPress = (e) => onKeyPress(e).runNow()
 
     component.withProps(p)
   }

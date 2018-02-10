@@ -12,5 +12,5 @@ message SetDoteRequest {
 }
 
 message SetDoteResponse {
-  api.ActionStatus status = 1;
+  api.ActionStatus response_status = 1;
 }

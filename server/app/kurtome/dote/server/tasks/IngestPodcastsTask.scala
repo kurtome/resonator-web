@@ -63,9 +63,10 @@ class IngestPodcastsActor @Inject()(actorSystem: ActorSystem,
           val response: AddPodcastResponse = Try {
             debug(s"Ingesting $row")
             // use Await to only ingest one at a time to not hog all the DB connections and threads.
-            Await.result(podcastFeedIngester.reingestPodcastByItunesId(row.itunesId) map { result =>
-              debug(s"Finished ingesting $row")
-              result
+            Await.result(podcastFeedIngester.reingestPodcastByItunesId(row.itunesId) map {
+              result =>
+                debug(s"Finished ingesting $row")
+                result
             }, atMost = 10.seconds)
           } recover {
             case t: Throwable => {

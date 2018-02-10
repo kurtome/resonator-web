@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api.action;
+
+import "api/follower.proto";
+import "api/common.proto";
+
+message GetFollowerSummaryRequest {
+  int64 person_id = 1;
+}
+
+message GetFollowerSummaryResponse {
+  api.ActionStatus response_status = 1;
+  api.FollowerSummary summary = 2;
+}

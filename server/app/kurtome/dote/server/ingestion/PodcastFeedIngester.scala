@@ -77,7 +77,7 @@ class PodcastFeedIngester @Inject()(
     } flatMap { podcastIds =>
       Future.sequence(podcastIds.map(podcastDbService.readPodcastWithEpisodes))
     } map { podcasts =>
-      AddPodcastResponse(podcasts.filter(_.isDefined).map(_.get))
+      AddPodcastResponse(podcasts = podcasts.filter(_.isDefined).map(_.get))
     }
 
   }

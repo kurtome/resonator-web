@@ -24,16 +24,8 @@ class GetLoggedInPersonController @Inject()(
   override def action(request: Request[GetLoggedInPersonRequest]) = {
     authTokenService.readLoggedInPersonFromCookie(request) map { result =>
       GetLoggedInPersonResponse(person = result.data.map(PersonMapper),
-                                status = Some(StatusMapper.toProto(result.status)))
+                                responseStatus = Some(StatusMapper.toProto(result.status)))
     }
-//    Future(request.cookies.get("REMEMBER_ME")) flatMap {
-//      case Some(cookie) =>
-//        authTokenService.readPersonForCookieToken(cookie.value) map { result =>
-//          GetLoggedInPersonResponse(person = result.data.map(PersonMapper),
-//                                    status = Some(StatusMapper.toProto(result.status)))
-//        }
-//      case None => Future(GetLoggedInPersonResponse())
-//    }
   }
 
 }

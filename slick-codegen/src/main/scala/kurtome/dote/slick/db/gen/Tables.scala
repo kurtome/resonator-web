@@ -19,6 +19,7 @@ trait Tables {
     Dotable.schema,
     DotableTag.schema,
     Dote.schema,
+    Follower.schema,
     Person.schema,
     PlayEvolutions.schema,
     PodcastEpisodeIngestion.schema,
@@ -332,6 +333,66 @@ trait Tables {
 
   /** Collection-like TableQuery object for table Dote */
   lazy val Dote = new TableQuery(tag => new Dote(tag))
+
+  /** Entity class storing rows of table Follower
+    *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
+    *  @param followTime Database column follow_time SqlType(timestamp)
+    *  @param followerId Database column follower_id SqlType(int8)
+    *  @param followeeId Database column followee_id SqlType(int8) */
+  case class FollowerRow(id: Long,
+                         followTime: java.time.LocalDateTime,
+                         followerId: Long,
+                         followeeId: Long)
+
+  /** GetResult implicit for fetching FollowerRow objects using plain SQL queries */
+  implicit def GetResultFollowerRow(implicit e0: GR[Long],
+                                    e1: GR[java.time.LocalDateTime]): GR[FollowerRow] = GR { prs =>
+    import prs._
+    FollowerRow.tupled((<<[Long], <<[java.time.LocalDateTime], <<[Long], <<[Long]))
+  }
+
+  /** Table description of table follower. Objects of this class serve as prototypes for rows in queries. */
+  class Follower(_tableTag: slick.lifted.Tag)
+      extends profile.api.Table[FollowerRow](_tableTag, "follower") {
+    def * = (id, followTime, followerId, followeeId) <> (FollowerRow.tupled, FollowerRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(id), Rep.Some(followTime), Rep.Some(followerId), Rep.Some(followeeId)).shaped.<>({
+        r =>
+          import r._; _1.map(_ => FollowerRow.tupled((_1.get, _2.get, _3.get, _4.get)))
+      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+
+    /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
+    val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+
+    /** Database column follow_time SqlType(timestamp) */
+    val followTime: Rep[java.time.LocalDateTime] = column[java.time.LocalDateTime]("follow_time")
+
+    /** Database column follower_id SqlType(int8) */
+    val followerId: Rep[Long] = column[Long]("follower_id")
+
+    /** Database column followee_id SqlType(int8) */
+    val followeeId: Rep[Long] = column[Long]("followee_id")
+
+    /** Foreign key referencing Person (database name follower_followee_id_fkey) */
+    lazy val personFk1 = foreignKey("follower_followee_id_fkey", followeeId, Person)(
+      r => r.id,
+      onUpdate = ForeignKeyAction.NoAction,
+      onDelete = ForeignKeyAction.NoAction)
+
+    /** Foreign key referencing Person (database name follower_follower_id_fkey) */
+    lazy val personFk2 = foreignKey("follower_follower_id_fkey", followerId, Person)(
+      r => r.id,
+      onUpdate = ForeignKeyAction.NoAction,
+      onDelete = ForeignKeyAction.NoAction)
+
+    /** Uniqueness Index over (followeeId,followerId) (database name follower_followee_index) */
+    val index1 = index("follower_followee_index", (followeeId, followerId), unique = true)
+  }
+
+  /** Collection-like TableQuery object for table Follower */
+  lazy val Follower = new TableQuery(tag => new Follower(tag))
 
   /** Entity class storing rows of table Person
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey

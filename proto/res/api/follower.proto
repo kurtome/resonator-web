@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api;
+
+import "api/person.proto";
+
+message FollowerSummary {
+  // Person this summary is for
+  Person person = 1;
+
+  repeated Person following = 2;
+  repeated Person followers = 3;
+}

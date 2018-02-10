@@ -81,14 +81,14 @@ object LoginDialog extends LogSupport {
     }
 
     def handleCreateResponse(p: Props, s: State)(response: LoginLinkResponse) = {
-      if (response.getStatus.success) {
+      if (response.getResponseStatus.success) {
         bs.modState(
             _.copy(isLoading = false, errorMessage = "", emailError = "", usernameError = ""))
           .runNow()
         GlobalNotificationManager.displayMessage(s"Login link sent to ${s.email}")
         p.onClose.runNow()
       } else {
-        val serverStatus = StatusMapper.fromProto(response.getStatus)
+        val serverStatus = StatusMapper.fromProto(response.getResponseStatus)
         val serverErrorMsg = statusToErrorMessage(serverStatus)
         bs.modState(_.copy(isLoading = false, errorMessage = serverErrorMsg))
           .runNow()
@@ -100,9 +100,21 @@ object LoginDialog extends LogSupport {
       bs.modState(_.copy(username = newUsername.toLowerCase)).runNow()
     }
 
+    def handleUsernameKeyPress(p: Props, s: State)(event: ReactKeyboardEventFromInput) = Callback {
+      if (event.key == "Enter") {
+        handleSubmit(p, s).runNow()
+      }
+    }
+
     def handleEmailChanged(event: ReactEventFromInput) = Callback {
       val newEmail = event.target.value
       bs.modState(_.copy(email = newEmail.toLowerCase)).runNow()
+    }
+
+    def handleEmailKeyPress(p: Props, s: State)(event: ReactKeyboardEventFromInput) = Callback {
+      if (event.key == "Enter") {
+        handleSubmit(p, s).runNow()
+      }
     }
 
     def renderActions(p: Props, s: State): VdomElement = {
@@ -156,7 +168,9 @@ object LoginDialog extends LogSupport {
             value = if (p.loggedInPerson.isDefined) p.loggedInPerson.get.username else s.username,
             error = s.usernameError.nonEmpty,
             onChange = handleUsernameChanged,
-            helperText = Typography()(<.b(s.usernameError)),
+            onKeyPress = handleUsernameKeyPress(p, s),
+            helperText = Typography(component = "span")(<.b(s.usernameError)),
+            autoComplete = "username",
             name = "username",
             label = Typography()("username")
           )(),
@@ -167,7 +181,9 @@ object LoginDialog extends LogSupport {
             value = if (p.loggedInPerson.isDefined) p.loggedInPerson.get.email else s.email,
             error = s.emailError.nonEmpty,
             onChange = handleEmailChanged,
-            helperText = Typography()(<.b(s.emailError)),
+            onKeyPress = handleEmailKeyPress(p, s),
+            helperText = Typography(component = "span")(<.b(s.emailError)),
+            autoComplete = "email",
             inputType = "email",
             name = "email",
             label = Typography()("email address")

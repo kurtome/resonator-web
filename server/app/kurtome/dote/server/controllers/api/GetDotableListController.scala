@@ -5,6 +5,8 @@ import javax.inject._
 import kurtome.dote.proto.api.action.get_dotable_list._
 import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.shared.mapper.StatusMapper
+import kurtome.dote.shared.util.result.SuccessStatus
 import kurtome.dote.slick.db.DotableKinds
 import play.api.mvc._
 
@@ -21,8 +23,10 @@ class GetDotableListController @Inject()(
 
   override def action(request: Request[GetDotableListRequest]) = {
     podcastDbService
-      .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.body.maxResults)
-      .map(list => GetDotableListResponse(list.list))
+      .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.body.maxResults) map {
+      list =>
+        GetDotableListResponse(Some(StatusMapper.toProto(SuccessStatus)), list.list)
+    }
   }
 
 }
