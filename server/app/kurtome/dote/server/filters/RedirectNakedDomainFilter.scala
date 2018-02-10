@@ -6,7 +6,9 @@ package kurtome.dote.server.filters
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import akka.http.scaladsl.model.StatusCode
 import play.api.Logger
+import play.api.http.Status
 import play.api.mvc._
 
 @Singleton
@@ -17,7 +19,7 @@ class RedirectNakedDomainFilter @Inject()() extends EssentialFilter {
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
     import play.api.libs.streams.Accumulator
     if (req.domain.startsWith("www.")) {
-      Accumulator.done(Results.Redirect(createHttpsRedirectUrl(req), 301))
+      Accumulator.done(Results.Redirect(createHttpsRedirectUrl(req), Status.TEMPORARY_REDIRECT))
     } else {
       next(req)
     }
