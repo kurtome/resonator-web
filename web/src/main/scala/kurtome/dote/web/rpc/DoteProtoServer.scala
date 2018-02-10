@@ -9,6 +9,7 @@ import kurtome.dote.proto.api.action.get_dotable_list._
 import kurtome.dote.proto.api.action.get_feed._
 import kurtome.dote.proto.api.action.search._
 import kurtome.dote.proto.api.action.set_dote._
+import kurtome.dote.proto.api.action.set_follow._
 import kurtome.dote.web.rpc.AjaxRpc.ProtoAction
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -123,5 +124,15 @@ object DoteProtoServer {
         SetDoteRequest.toByteArray(r)
 
       override def parseResponse(r: Array[Byte]) = SetDoteResponse.parseFrom(r)
+    })(request)
+
+  def setFollow(request: SetFollowRequest) =
+    AjaxRpc.protoRequest(new ProtoAction[SetFollowRequest, SetFollowResponse] {
+      override val route = "set-follow"
+
+      override def serializeRequest(r: SetFollowRequest) =
+        SetFollowRequest.toByteArray(r)
+
+      override def parseResponse(r: Array[Byte]) = SetFollowResponse.parseFrom(r)
     })(request)
 }

@@ -170,6 +170,7 @@ object LoginDialog extends LogSupport {
             onChange = handleUsernameChanged,
             onKeyPress = handleUsernameKeyPress(p, s),
             helperText = Typography(component = "span")(<.b(s.usernameError)),
+            inputType = "username",
             autoComplete = "username",
             name = "username",
             label = Typography()("username")

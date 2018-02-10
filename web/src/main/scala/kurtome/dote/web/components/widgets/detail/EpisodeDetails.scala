@@ -11,7 +11,7 @@ import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
-import kurtome.dote.web.components.widgets.button.CopyLinkButton
+import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.utils.BaseBackend
 
 import scalacss.internal.mutable.StyleSheet
@@ -105,7 +105,7 @@ object EpisodeDetails {
         ),
         GridItem(xs = 12)(
           GridContainer(style = Styles.actionsContainer)(
-            GridItem()(CopyLinkButton()()),
+            GridItem()(ShareButton()()),
             GridItem()(
               <.div(
                 ^.display := (if (AudioPlayer.canPlay(p.dotable)) "block" else "none"),

@@ -11,7 +11,7 @@ import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets.button.CopyLinkButton
+import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
   DetailField,
   LinkFieldValue,
@@ -190,7 +190,7 @@ object PodcastDetails {
                   ),
                   GridItem(xs = 12)(
                     GridContainer()(
-                      GridItem()(CopyLinkButton()())
+                      GridItem()(ShareButton()())
                     )
                   ),
                   GridItem(xs = 12)(

@@ -18,7 +18,7 @@ import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.components.widgets.SiteLink
-import kurtome.dote.web.components.widgets.button.CopyLinkButton
+import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.CopyToClipboard
@@ -69,7 +69,7 @@ object ProfileView extends LogSupport {
   }
 
   case class Props(username: String)
-  case class State(feed: Feed = Feed.defaultInstance, requestInFlight: Boolean = false)
+  case class State(feed: Feed = Feed.defaultInstance, following: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -145,6 +145,11 @@ object ProfileView extends LogSupport {
       LoggedInPersonManager.isLoggedIn && p.username == LoggedInPersonManager.person.get.username
     }
 
+    private def handleFollowingChanged(p: Props, s: State)(event: ReactEventFromInput) = Callback {
+      val checked = event.target.checked
+      bs.modState(_.copy(following = checked)).runNow()
+    }
+
     def render(p: Props, s: State): VdomElement = {
 
       Grid(container = true, justify = Grid.Justify.Center)(
@@ -155,14 +160,22 @@ object ProfileView extends LogSupport {
           Grid(container = true, justify = Grid.Justify.FlexStart, spacing = 8)(
             Grid(item = true, xs = 12)(
               Typography(variant = Typography.Variants.Headline, style = Styles.profileHeader)(
-                s"${p.username}'s profile")
+                s"${p.username}'s profile"),
+              <.br(),
+              FormControlLabel(control = Checkbox(checked = s.following,
+                                                  name = "follow",
+                                                  value = "follow",
+                                                  onChange = handleFollowingChanged(p, s))(),
+                               label = Typography()(s"Follow ${p.username}"))()
             ),
+            Grid(item = true, xs = 12)(
+              ),
             Grid(item = true, xs = 12)(
               Announcement(size = Announcement.Sizes.Sm)(
                 "Profile pages are shareable, text it to a friend or share online.")
             ),
             Grid(item = true, xs = 12)(
-              CopyLinkButton()()
+              ShareButton()()
             )
           )
         ),

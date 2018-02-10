@@ -7,7 +7,7 @@ import kurtome.dote.web.utils.CopyToClipboard
 import kurtome.dote.web.utils.GlobalNotificationManager
 import org.scalajs.dom
 
-object CopyLinkButton {
+object ShareButton {
 
   case class Props(copiedMessage: String)
 
@@ -23,7 +23,7 @@ object CopyLinkButton {
     def render(p: Props): VdomElement = {
       Button(variant = Button.Variants.Raised,
              color = Button.Colors.Secondary,
-             onClick = handleShare(p))("Share Link")
+             onClick = handleShare(p))("Share")
     }
   }
 
