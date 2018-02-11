@@ -27,16 +27,20 @@ object NavBar extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val bottomNavRoot = style(
+    val bottomFixedNavRoot = style(
       position.fixed,
       width(100 %%),
       bottom(0 px)
+    )
+
+    val bottomNavRoot = style(
+      width(100 %%)
     )
   }
 
   case class Props(currentRoute: DoteRoute)
   case class State(navValue: String = "home",
-                   isCollapsed: Boolean = false,
+                   isInPageFlow: Boolean = false,
                    isLoading: Boolean = false,
                    loggedInPerson: Option[Person] = None)
 
@@ -49,6 +53,10 @@ object NavBar extends LogSupport {
       }
 
     GlobalLoadingManager.stateObservable.addObserver(loadingObserver)
+
+    val onMount: Callback = Callback {
+      updateIsCollapsed()
+    }
 
     val onUnmount: Callback = Callback {
       GlobalLoadingManager.stateObservable.removeObserver(loadingObserver)
@@ -66,9 +74,9 @@ object NavBar extends LogSupport {
       // hide the nav bar if the vertical space is very small.
       // this can happen on mobile when the keyboard is open.
 
-      val shouldCollapse = dom.window.innerHeight < 400
-      if (bs.state.runNow().isCollapsed != shouldCollapse) {
-        bs.modState(_.copy(isCollapsed = shouldCollapse)).runNow()
+      val putInPageFlow = dom.window.innerHeight < 400
+      if (bs.state.runNow().isInPageFlow != putInPageFlow) {
+        bs.modState(_.copy(isInPageFlow = putInPageFlow)).runNow()
       }
     }
 
@@ -82,33 +90,35 @@ object NavBar extends LogSupport {
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
 
       <.div(
-        ^.className := Styles.bottomNavRoot,
-        Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
-          Grid(item = true, xs = 12)(
-            Fader(in = s.isLoading)(LinearProgress()())
-          ),
-          Grid(item = true, xs = 12)(Divider()()),
-          Grid(item = true, xs = 12)(
-            Collapse(in = !s.isCollapsed)(BottomNavigation(onChange = (_, value) => {
-              bs.modState(_.copy(navValue = value))
-            })(
-              BottomNavigationAction(icon = Icons.Home(),
-                                     value = "home",
-                                     onClick = doteRouterCtl.set(HomeRoute))(),
-              BottomNavigationAction(
-                icon = Icons.Search(),
-                value = "search",
-                onClick = doteRouterCtl.set(SearchRoute)
-              )(),
-              BottomNavigationAction(
-                icon = Icons.AccountCircle(),
-                label = Typography(variant = Typography.Variants.Caption)(
-                  if (s.loggedInPerson.isDefined) s.loggedInPerson.get.username else "Login"),
-                value = "profile",
-                showLabel = true,
-                onClick = handleProfileButtonClicked(p)
-              )()
-            ))
+        <.div(^.height := (if (s.isInPageFlow) "0px" else "56px")),
+        <.div(
+          ^.className := (if (s.isInPageFlow) Styles.bottomNavRoot else Styles.bottomFixedNavRoot),
+          Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
+            Grid(item = true, xs = 12)(
+              Fader(in = s.isLoading)(LinearProgress()())
+            ),
+            Grid(item = true, xs = 12)(Divider()()),
+            Grid(item = true, xs = 12)(
+              BottomNavigation(onChange = (_, value) => {
+                bs.modState(_.copy(navValue = value))
+              })(
+                BottomNavigationAction(icon = Icons.Home(),
+                                       value = "home",
+                                       onClick = doteRouterCtl.set(HomeRoute))(),
+                BottomNavigationAction(
+                  icon = Icons.Search(),
+                  value = "search",
+                  onClick = doteRouterCtl.set(SearchRoute)
+                )(),
+                BottomNavigationAction(
+                  icon = Icons.AccountCircle(),
+                  label = Typography(variant = Typography.Variants.Caption)(
+                    if (s.loggedInPerson.isDefined) s.loggedInPerson.get.username else "Login"),
+                  value = "profile",
+                  showLabel = true,
+                  onClick = handleProfileButtonClicked(p)
+                )()
+              ))
           )
         )
       )
@@ -132,6 +142,7 @@ object NavBar extends LogSupport {
               loggedInPerson = LoggedInPersonManager.person))
     .backend(new Backend(_))
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
+    .componentWillMount(x => x.backend.onMount)
     .componentWillUnmount(x => x.backend.onUnmount)
     .build
 
