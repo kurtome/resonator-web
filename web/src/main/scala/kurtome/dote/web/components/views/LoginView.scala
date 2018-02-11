@@ -126,7 +126,7 @@ object LoginView extends LogSupport {
     }
 
     def renderActions(p: Props, s: State): VdomElement = {
-      GridContainer(alignItems = Grid.AlignItems.Baseline)(
+      GridContainer(justify = Grid.Justify.FlexEnd, alignItems = Grid.AlignItems.Baseline)(
         GridItem()(
           Button(color = Button.Colors.Primary,
                  variant = Button.Variants.Raised,

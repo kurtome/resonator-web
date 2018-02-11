@@ -7,6 +7,7 @@ import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes
 import kurtome.dote.web.DoteRoutes._
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.utils.BaseBackend
@@ -34,6 +35,7 @@ object NavBar extends LogSupport {
     )
 
     val bottomNavRoot = style(
+      marginTop(SharedStyles.spacingUnit),
       width(100 %%)
     )
   }
@@ -90,7 +92,7 @@ object NavBar extends LogSupport {
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
 
       <.div(
-        <.div(^.height := (if (s.isInPageFlow) "0px" else "56px")),
+        <.div(^.height := (if (s.isInPageFlow) "0px" else "64px")),
         <.div(
           ^.className := (if (s.isInPageFlow) Styles.bottomNavRoot else Styles.bottomFixedNavRoot),
           Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(

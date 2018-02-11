@@ -8,7 +8,6 @@ import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.AddRoute
-import kurtome.dote.web.components.AddPodcastDialog
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.Fader
 import kurtome.dote.web.components.widgets.SearchBox
@@ -24,18 +23,16 @@ object SearchView extends LogSupport {
     import dsl._
 
     val announcementText = style(
+      marginTop(SharedStyles.spacingUnit),
       fontSize(1.2 rem)
+    )
+
+    val paperContainer = style(
+      padding(SharedStyles.spacingUnit)
     )
   }
 
-  val handleLoginDialogClosed = (p: Props) =>
-    Callback {
-      if (p.currentRoute == AddRoute) {
-        doteRouterCtl.set(SearchRoute).runNow()
-      }
-  }
-
-  case class Props(currentRoute: DoteRoute)
+  case class Props()
   case class State(showAddText: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -44,25 +41,19 @@ object SearchView extends LogSupport {
       bs.modState(_.copy(showAddText = query.nonEmpty && results.isEmpty))
 
     def render(p: Props, s: State): VdomElement = {
-      <.div(
-        Grid(container = true, spacing = 0, justify = Grid.Justify.Center)(
-          Grid(item = true, xs = 12, sm = 10, md = 8)(
+      Grid(container = true, justify = Grid.Justify.Center)(
+        Grid(item = true, xs = 12, sm = 10, md = 8)(
+          Paper(style = Styles.paperContainer)(
             SearchBox(onResultsUpdated = handleSearchResultsUpdated)()
           ),
-          Grid(item = true, xs = 12, sm = 10, md = 8)(
-            Fader(in = s.showAddText)(
-              Typography(variant = Typography.Variants.Body1, style = Styles.announcementText)(
-                "Not the podcasts you're looking for? Add a podcast to the site ",
-                SiteLink(AddRoute)("here"),
-                "."
-              )
+          Fader(in = s.showAddText)(
+            Typography(variant = Typography.Variants.Body1, style = Styles.announcementText)(
+              "Not the podcasts you're looking for? Add a podcast to the site ",
+              SiteLink(AddRoute)("here"),
+              "."
             )
           )
-        ),
-        AddPodcastDialog(
-          open = p.currentRoute == AddRoute,
-          onClose = handleLoginDialogClosed(p)
-        )()
+        )
       )
     }
   }
@@ -74,7 +65,7 @@ object SearchView extends LogSupport {
     .renderPS((b, p, s) => b.backend.render(p, s))
     .build
 
-  def apply(currentRoute: DoteRoute) = {
-    component.withProps(Props(currentRoute))
+  def apply() = {
+    component.withProps(Props())
   }
 }
