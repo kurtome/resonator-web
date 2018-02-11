@@ -1,18 +1,18 @@
-package kurtome.dote.web.components.widgets
+package kurtome.dote.web.components.views
 
-import kurtome.dote.proto.api.action.login_link._
-import kurtome.dote.proto.api.person.Person
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.action.login_link._
 import kurtome.dote.shared.mapper.StatusMapper
-import kurtome.dote.shared.util.result._
-import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes._
-import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.shared.util.result.ErrorCauses.ErrorCause
 import kurtome.dote.shared.util.result.StatusCodes.StatusCode
+import kurtome.dote.shared.util.result._
 import kurtome.dote.shared.validation.LoginFieldsValidation
+import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.DoteRoutes._
+import kurtome.dote.web.SharedStyles
+import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
 import org.scalajs.dom
 import wvlet.log.LogSupport
@@ -20,9 +20,17 @@ import wvlet.log.LogSupport
 import scala.concurrent.ExecutionContext.Implicits.global
 import scalacss.internal.mutable.StyleSheet
 
-object LoginDialog extends LogSupport {
+object LoginView extends LogSupport {
 
-  case class Props(open: Boolean, onClose: Callback, loggedInPerson: Option[Person])
+  object Styles extends StyleSheet.Inline {
+    import dsl._
+
+    val paperContainer = style(
+      padding(SharedStyles.spacingUnit * 2)
+    )
+  }
+
+  case class Props()
   case class State(isLoading: Boolean = false,
                    username: String = "",
                    email: String = "",
@@ -45,7 +53,7 @@ object LoginDialog extends LogSupport {
     )
   )
 
-  class Backend(bs: BackendScope[Props, State]) extends LogSupport {
+  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val handleSubmit = (p: Props, s: State) =>
       Callback {
@@ -56,9 +64,10 @@ object LoginDialog extends LogSupport {
           bs.modState(
               _.copy(isLoading = true, errorMessage = "", emailError = "", usernameError = ""))
             .runNow()
-          DoteProtoServer
+          val f = DoteProtoServer
             .loginLink(LoginLinkRequest(username = s.username, email = s.email))
             .map(handleCreateResponse(p, s))
+          GlobalLoadingManager.addLoadingFuture(f)
         } else {
           bs.modState(
               _.copy(errorMessage = "",
@@ -86,12 +95,11 @@ object LoginDialog extends LogSupport {
             _.copy(isLoading = false, errorMessage = "", emailError = "", usernameError = ""))
           .runNow()
         GlobalNotificationManager.displayMessage(s"Login link sent to ${s.email}")
-        p.onClose.runNow()
+        doteRouterCtl.set(HomeRoute).runNow()
       } else {
         val serverStatus = StatusMapper.fromProto(response.getResponseStatus)
         val serverErrorMsg = statusToErrorMessage(serverStatus)
-        bs.modState(_.copy(isLoading = false, errorMessage = serverErrorMsg))
-          .runNow()
+        bs.modState(_.copy(isLoading = false, errorMessage = serverErrorMsg)).runNow()
       }
     }
 
@@ -118,83 +126,68 @@ object LoginDialog extends LogSupport {
     }
 
     def renderActions(p: Props, s: State): VdomElement = {
-      val cancelButton =
-        Button(disabled = s.isLoading, onClick = p.onClose)("Cancel")
-
-      if (p.loggedInPerson.isEmpty) {
-        GridContainer()(
-          GridItem()(cancelButton),
-          GridItem()(
-            Button(color = Button.Colors.Primary,
-                   variant = Button.Variants.Raised,
-                   disabled = s.isLoading,
-                   onClick = handleSubmit(p, s))("Send login link"))
-        )
-      } else {
-        <.div(
-          cancelButton,
+      GridContainer(alignItems = Grid.AlignItems.Baseline)(
+        GridItem()(
           Button(color = Button.Colors.Primary,
                  variant = Button.Variants.Raised,
                  disabled = s.isLoading,
-                 onClick = handleLogout)("Logout")
-        )
-      }
-
-    }
-
-    def title(p: Props): String = {
-      if (p.loggedInPerson.isEmpty) {
-        "Enter username and email"
-      } else {
-        "Logout?"
-      }
+                 onClick = handleSubmit(p, s))("Login")
+        ),
+        GridItem()(Typography(align = Typography.Aligns.Center)("or")),
+        GridItem()(
+          Button(color = Button.Colors.Primary,
+                 variant = Button.Variants.Raised,
+                 disabled = s.isLoading,
+                 onClick = handleSubmit(p, s))("Create Account"))
+      )
     }
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
-      Dialog(open = p.open,
-             onEscapeKeyDown = p.onClose,
-             onBackdropClick = p.onClose,
-             maxWidth = Dialog.MaxWidths.Sm,
-             fullWidth = true)(
-        DialogTitle(disableTypography = true)(
-          Typography(variant = Typography.Variants.SubHeading)(title(p))),
-        DialogContent()(
-          Typography(variant = Typography.Variants.Caption, color = Typography.Colors.Error)(
-            s.errorMessage),
-          TextField(
-            autoFocus = true,
-            fullWidth = true,
-            disabled = s.isLoading || p.loggedInPerson.isDefined,
-            value = if (p.loggedInPerson.isDefined) p.loggedInPerson.get.username else s.username,
-            error = s.usernameError.nonEmpty,
-            onChange = handleUsernameChanged,
-            onKeyPress = handleUsernameKeyPress(p, s),
-            helperText = Typography(component = "span")(<.b(s.usernameError)),
-            inputType = "username",
-            autoComplete = "username",
-            name = "username",
-            label = Typography()("username")
-          )(),
-          TextField(
-            autoFocus = false,
-            fullWidth = true,
-            disabled = s.isLoading || p.loggedInPerson.isDefined,
-            value = if (p.loggedInPerson.isDefined) p.loggedInPerson.get.email else s.email,
-            error = s.emailError.nonEmpty,
-            onChange = handleEmailChanged,
-            onKeyPress = handleEmailKeyPress(p, s),
-            helperText = Typography(component = "span")(<.b(s.emailError)),
-            autoComplete = "email",
-            inputType = "email",
-            name = "email",
-            label = Typography()("email address")
-          )()
-        ),
-        DialogActions()(
-          renderActions(p, s)
-        ),
-        Fader(in = s.isLoading)(
-          LinearProgress()()
+      GridContainer(spacing = 0, justify = Grid.Justify.Center)(
+        GridItem(xs = 12, sm = 10, md = 8)(
+          Paper(style = Styles.paperContainer)(
+            GridContainer()(
+              GridItem(xs = 12)(
+                Typography(variant = Typography.Variants.Body1)(
+                  "A login link will be emailed to you. Enter your username and email below.")
+              ),
+              GridItem(xs = 12)(
+                Typography(variant = Typography.Variants.Caption, color = Typography.Colors.Error)(
+                  s.errorMessage),
+                TextField(
+                  autoFocus = true,
+                  fullWidth = true,
+                  disabled = s.isLoading,
+                  value = s.username,
+                  error = s.usernameError.nonEmpty,
+                  onChange = handleUsernameChanged,
+                  onKeyPress = handleUsernameKeyPress(p, s),
+                  helperText = Typography(component = "span")(<.b(s.usernameError)),
+                  inputType = "text",
+                  autoComplete = "username",
+                  name = "username",
+                  label = Typography()("username")
+                )(),
+                TextField(
+                  autoFocus = false,
+                  fullWidth = true,
+                  disabled = s.isLoading,
+                  value = s.email,
+                  error = s.emailError.nonEmpty,
+                  onChange = handleEmailChanged,
+                  onKeyPress = handleEmailKeyPress(p, s),
+                  helperText = Typography(component = "span")(<.b(s.emailError)),
+                  autoComplete = "email",
+                  inputType = "email",
+                  name = "email",
+                  label = Typography()("email address")
+                )()
+              ),
+              GridItem(xs = 12)(
+                renderActions(p, s)
+              )
+            )
+          )
         )
       )
     }
@@ -207,8 +200,6 @@ object LoginDialog extends LogSupport {
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
     .build
 
-  def apply(open: Boolean,
-            onClose: Callback = Callback.empty,
-            loggedInPerson: Option[Person] = None)(c: CtorType.ChildArg*) =
-    component.withChildren(c: _*)(Props(open, onClose, loggedInPerson))
+  def apply()(c: CtorType.ChildArg*) =
+    component.withChildren(c: _*)(Props())
 }

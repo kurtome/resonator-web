@@ -35,8 +35,12 @@ object NotificationSnackBar {
       }
     GlobalNotificationManager.stateObservable.addObserver(stateObserver)
 
-    def handleSnackbarClose(event: js.Dynamic, reason: String): Callback = Callback {
-      close()
+    def handleSnackbarOnClose(event: js.Dynamic, reason: String): Callback = Callback {
+      // notifcation snacks should only auto-close if autoHideDurationMs elapses (ignore the
+      // clickaway close)
+      if (reason == "timeout") {
+        close()
+      }
     }
 
     val handleSnackbarCloseClicked: Callback = Callback {
@@ -63,7 +67,7 @@ object NotificationSnackBar {
       Snackbar(
         open = s.isOpen,
         autoHideDurationMs = 10000,
-        onClose = handleSnackbarClose,
+        onClose = handleSnackbarOnClose,
         message = Typography(color = color)(displayMessage).rawElement,
         action = IconButton(color = IconButton.Colors.Inherit,
                             onClick = handleSnackbarCloseClicked)(Icons.Close()).rawElement,

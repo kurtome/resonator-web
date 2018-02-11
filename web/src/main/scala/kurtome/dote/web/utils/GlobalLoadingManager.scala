@@ -21,7 +21,9 @@ object GlobalLoadingManager extends LogSupport {
   /**
     * Sets the current state to be loading until the [[Future]] input is finished.
     */
-  def addLoadingFuture(f: Future[_]): Unit = {
+  def addLoadingFuture(f: Future[_],
+                       displayError: Boolean = true,
+                       errorMessage: String = "Network request failed."): Unit = {
     state = state.copy(inFlight = state.inFlight :+ f)
 
     f andThen {
@@ -33,7 +35,9 @@ object GlobalLoadingManager extends LogSupport {
     f recover {
       case t =>
         debug("async future, something went wrong", t)
-        GlobalNotificationManager.displayError("Network request failed.")
+        if (displayError) {
+          GlobalNotificationManager.displayError(errorMessage)
+        }
     }
 
     stateObservable.notifyObservers(state)

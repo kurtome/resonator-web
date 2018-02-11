@@ -2,6 +2,7 @@ package kurtome.dote.web.constants
 
 import kurtome.dote.shared.util.observer.Observable
 import kurtome.dote.shared.util.observer.SimpleObservable
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui.{Colors, MuiThemeProvider}
 import wvlet.log.LogSupport
 
@@ -130,7 +131,6 @@ object MuiTheme extends LogSupport {
     val zIndex: js.Dynamic = js.native
   }
 
-
   // Look at the documentation at https://material-ui-next.com/customization/themes/ for
   // that customization is possible.
   def createTheme(light: Boolean, primary: PaletteColor, secondary: PaletteColor): Theme =
@@ -167,9 +167,23 @@ object MuiTheme extends LogSupport {
             )
           ),
           "MuiBottomNavigation" -> l$(
-          "root" -> l$(
-            "backgroundColor" -> (if (light) "#e0e0e0" else "#212121")
-          )
+            "root" -> l$(
+              "backgroundColor" -> (if (light) "#e0e0e0" else "#212121")
+            )
+          ),
+          "MuiFormControl" -> l$(
+            "root" -> l$(
+              "marginTop" -> "8px",
+              "marginBottom" -> "8px"
+            ),
+            "marginNormal" -> l$(
+              "marginTop" -> "8px",
+              "marginBottom" -> "8px"
+            ),
+            "marginDense" -> l$(
+              "marginTop" -> "4px",
+              "marginBottom" -> "4px"
+            )
           )
         )
       )

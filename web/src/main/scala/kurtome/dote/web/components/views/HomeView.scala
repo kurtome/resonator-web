@@ -81,7 +81,7 @@ object HomeView extends LogSupport {
               if (!LoggedInPersonManager.isLoggedIn) {
                 Announcement()(
                   "Keep track of your favorite podcasts, and see what you friends are listening to. ",
-                  SiteLink(LoginRoute)("Login to get started.")
+                  SiteLink(LoginRoute)("Create an account to get started.")
                 )
               } else {
                 Announcement()(

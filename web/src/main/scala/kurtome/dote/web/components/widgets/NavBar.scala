@@ -33,7 +33,6 @@ object NavBar extends LogSupport {
   case class Props(currentRoute: DoteRoute)
   case class State(navValue: String = "home",
                    isLoading: Boolean = false,
-                   loginOpenClicked: Boolean = false,
                    loggedInPerson: Option[Person] = None)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -54,20 +53,10 @@ object NavBar extends LogSupport {
       if (LoggedInPersonManager.isLoggedIn) {
         doteRouterCtl.set(ProfileRoute(LoggedInPersonManager.person.get.username))
       } else {
-        bs.modState(_.copy(loginOpenClicked = true))
-    }
-
-    val handleLoginDialogClosed = (p: Props) =>
-      Callback {
-        if (p.currentRoute == LoginRoute) {
-          doteRouterCtl.set(HomeRoute).runNow()
-        }
-        bs.modState(_.copy(loginOpenClicked = false)).runNow()
+        doteRouterCtl.set(LoginRoute)
     }
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
-      val loginDialogOpen = s.loginOpenClicked || p.currentRoute == LoginRoute
-
       <.div(
         ^.className := Styles.bottomNavRoot,
         Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
@@ -96,10 +85,7 @@ object NavBar extends LogSupport {
                 onClick = handleProfileButtonClicked(p)
               )()
             ))
-        ),
-        LoginDialog(open = loginDialogOpen,
-                    loggedInPerson = s.loggedInPerson,
-                    onClose = handleLoginDialogClosed(p))()
+        )
       )
     }
   }
