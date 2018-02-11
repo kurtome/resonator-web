@@ -10,9 +10,13 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.utils.BaseBackend
+import kurtome.dote.web.utils.Debounce
+import kurtome.dote.web.utils.IsMobile
 import kurtome.dote.web.utils.{GlobalLoadingManager, LoggedInPersonManager}
+import org.scalajs.dom
 import wvlet.log.LogSupport
 
+import scala.scalajs.js
 import scalacss.internal.mutable.StyleSheet
 
 /**
@@ -32,6 +36,7 @@ object NavBar extends LogSupport {
 
   case class Props(currentRoute: DoteRoute)
   case class State(navValue: String = "home",
+                   isCollapsed: Boolean = false,
                    isLoading: Boolean = false,
                    loggedInPerson: Option[Person] = None)
 
@@ -47,6 +52,7 @@ object NavBar extends LogSupport {
 
     val onUnmount: Callback = Callback {
       GlobalLoadingManager.stateObservable.removeObserver(loadingObserver)
+      dom.window.removeEventListener("resize", resizeListener)
     }
 
     val handleProfileButtonClicked = (p: Props) =>
@@ -56,7 +62,25 @@ object NavBar extends LogSupport {
         doteRouterCtl.set(LoginRoute)
     }
 
+    def updateIsCollapsed() = {
+      // hide the nav bar if the vertical space is very small.
+      // this can happen on mobile when the keyboard is open.
+
+      val shouldCollapse = dom.window.innerHeight < 400
+      if (bs.state.runNow().isCollapsed != shouldCollapse) {
+        bs.modState(_.copy(isCollapsed = shouldCollapse)).runNow()
+      }
+    }
+
+    val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
+      (e: js.Dynamic) =>
+        updateIsCollapsed()
+    }
+
+    dom.window.addEventListener("resize", resizeListener)
+
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
+
       <.div(
         ^.className := Styles.bottomNavRoot,
         Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
@@ -65,7 +89,7 @@ object NavBar extends LogSupport {
           ),
           Grid(item = true, xs = 12)(Divider()()),
           Grid(item = true, xs = 12)(
-            BottomNavigation(onChange = (_, value) => {
+            Collapse(in = !s.isCollapsed)(BottomNavigation(onChange = (_, value) => {
               bs.modState(_.copy(navValue = value))
             })(
               BottomNavigationAction(icon = Icons.Home(),
@@ -85,6 +109,7 @@ object NavBar extends LogSupport {
                 onClick = handleProfileButtonClicked(p)
               )()
             ))
+          )
         )
       )
     }
