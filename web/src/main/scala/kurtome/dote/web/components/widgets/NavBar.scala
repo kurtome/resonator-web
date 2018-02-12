@@ -125,12 +125,12 @@ object NavBar extends LogSupport {
 
     var recalcCollapseTimerId: Option[Int] = None
 
-    val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
+    val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 100) {
       (e: js.Dynamic) =>
         updateIsCollapsed()
     }
 
-    val scrollListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
+    val scrollListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 100) {
       (e: js.Dynamic) =>
         updateIsCollapsed()
     }

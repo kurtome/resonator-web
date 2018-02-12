@@ -12,6 +12,9 @@ import javax.inject._
 import kurtome.dote.proto.api.action.add_podcast.AddPodcastResponse
 import kurtome.dote.server.ingestion.PodcastFeedIngester
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.shared.util.result.FailedData
+import kurtome.dote.shared.util.result.ProduceAction
+import kurtome.dote.shared.util.result.UnknownErrorStatus
 import kurtome.dote.slick.db.gen.Tables
 import wvlet.log._
 
@@ -54,7 +57,7 @@ class IngestPodcastsActor @Inject()(
     case IngestPodcasts =>
       debug("Starting podcast ingestion...")
 
-      dotableDbService.getNextPodcastIngestionRows(100) map { ingestionRows =>
+      dotableDbService.getNextPodcastIngestionRows(1000) map { ingestionRows =>
         debug(s"Found ${ingestionRows.size} to ingest.")
         ingestionRows.foreach(ingestPodcast)
       }
@@ -62,7 +65,7 @@ class IngestPodcastsActor @Inject()(
 
   private def ingestPodcast(row: Tables.PodcastFeedIngestionRow) = {
     debug(s"Ingesting $row")
-    val responseFuture: Future[AddPodcastResponse] =
+    val responseFuture: Future[ProduceAction[Seq[Long]]] =
       // use Await to only ingest one at a time to not hog all the DB connections and threads.
       podcastFeedIngester.reingestPodcastByItunesId(row.itunesId) map { result =>
         debug(s"Finished ingesting $row")
@@ -72,11 +75,11 @@ class IngestPodcastsActor @Inject()(
           val cause = getCause(t)
           warn(
             s"Exception ingesting $row. ${t.getClass.getSimpleName} caused by ${cause.getClass.getName}: ${cause.getMessage}")
-          AddPodcastResponse.defaultInstance
+          FailedData(Nil, UnknownErrorStatus)
       }
 
     responseFuture map { response =>
-      if (response.podcasts.isEmpty) {
+      if (response.isError) {
         // Something went wrong or there was no valid podcast in the feed, set the next ingestion
         // time so this doesn't get reprocessed over and over again.
         info(s"Setting next ingestion time for error row $row")

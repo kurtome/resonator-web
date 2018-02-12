@@ -4,6 +4,10 @@ import javax.inject._
 
 import kurtome.dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.shared.util.result.FailedData
+import kurtome.dote.shared.util.result.ProduceAction
+import kurtome.dote.shared.util.result.SuccessData
+import kurtome.dote.shared.util.result.UnknownErrorStatus
 import wvlet.log.LogSupport
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,11 +23,11 @@ class PodcastFeedIngester @Inject()(
   def fetchFeedAndIngestRequest(request: AddPodcastRequest,
                                 itunesId: Long,
                                 itunesUrl: String,
-                                feedUrl: String): Future[AddPodcastResponse] = {
+                                feedUrl: String): Future[ProduceAction[Seq[Long]]] = {
     if (request.ingestLater) {
       podcastDbService.addFeedForLaterIngestion(itunesId, feedUrl) map { _ =>
-        debug(s"added for later ${feedUrl}")
-        AddPodcastResponse()
+        debug(s"added for later $feedUrl")
+        SuccessData(Nil)
       }
     } else {
       // use a blank etag to force the GET
@@ -31,7 +35,7 @@ class PodcastFeedIngester @Inject()(
     }
   }
 
-  def reingestPodcastByItunesId(itunesId: Long): Future[AddPodcastResponse] = {
+  def reingestPodcastByItunesId(itunesId: Long): Future[ProduceAction[Seq[Long]]] = {
     Try(
       podcastDbService.getPodcastIngestionRowByItunesId(itunesId) flatMap { ingestionRowOpt =>
         val ingestionRow = ingestionRowOpt.get
@@ -60,7 +64,7 @@ class PodcastFeedIngester @Inject()(
     ) recover {
       case t: Throwable =>
         error("Reingestion failed.", t)
-        Future(AddPodcastResponse.defaultInstance)
+        Future(FailedData(Nil, UnknownErrorStatus))
     } get
   }
 
@@ -68,18 +72,17 @@ class PodcastFeedIngester @Inject()(
                          itunesId: Long,
                          feedUrl: String,
                          previousFeedEtag: Option[String],
-                         itunesUrl: String): Future[AddPodcastResponse] = {
-    val eventualPodcast: Future[Seq[RssFetchedPodcast]] =
-      podcastFetcher.fetch(itunesUrl, feedUrl, previousFeedEtag, extras)
-
-    eventualPodcast flatMap { rssPodcasts =>
-      Future.sequence(rssPodcasts.map(ingestToDatabase(extras, itunesId, _)))
-    } flatMap { podcastIds =>
-      Future.sequence(podcastIds.map(podcastDbService.readPodcastWithEpisodes))
-    } map { podcasts =>
-      AddPodcastResponse(podcasts = podcasts.filter(_.isDefined).map(_.get))
+                         itunesUrl: String): Future[ProduceAction[Seq[Long]]] = {
+    podcastFetcher.fetch(itunesUrl, feedUrl, previousFeedEtag, extras) flatMap {
+      rssPodcastsResult =>
+        if (rssPodcastsResult.isSuccess) {
+          Future
+            .sequence(rssPodcastsResult.data.map(ingestToDatabase(extras, itunesId, _)))
+            .map(SuccessData(_))
+        } else {
+          Future(FailedData(Nil, UnknownErrorStatus))
+        }
     }
-
   }
 
   private def ingestToDatabase(extras: AddPodcastRequest.Extras,

@@ -10,6 +10,15 @@ sealed abstract class ProduceAction[+TData] {
   val status: ActionStatus
 
   def isSuccess: Boolean = status.isSuccess
+  def isError: Boolean = !status.isSuccess
+
+  def map[A](failedData: A)(fn: (TData) => ProduceAction[A]) = {
+    if (isSuccess) {
+      fn(data)
+    } else {
+      FailedData(failedData, status)
+    }
+  }
 }
 
 final case class SuccessData[+T](data: T) extends ProduceAction[T] {

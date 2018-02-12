@@ -5,6 +5,7 @@ import javax.inject._
 import kurtome.dote.proto.api.action.add_podcast._
 import kurtome.dote.server.ingestion.{ItunesEntityFetcher, PodcastFeedIngester}
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.shared.util.result.ProduceAction
 import play.api.Configuration
 import play.api.mvc._
 
@@ -40,9 +41,20 @@ class AddPodcastController @Inject()(
         if (ingestRowOpt.isEmpty) {
           fetchFromItunesAndIngest(request.body, itunesId)
         } else {
-          podcastFeedIngester.reingestPodcastByItunesId(itunesId)
+          podcastFeedIngester.reingestPodcastByItunesId(itunesId).flatMap(readIngestedPodcasts)
         }
       }
+    }
+  }
+
+  private def readIngestedPodcasts(podcastIds: ProduceAction[Seq[Long]]) = {
+    if (podcastIds.isSuccess) {
+      Future.sequence(podcastIds.data.map(dotableDbService.readPodcastWithEpisodes)) map {
+        podcasts =>
+          AddPodcastResponse(podcasts = podcasts.filter(_.isDefined).map(_.get))
+      }
+    } else {
+      Future(AddPodcastResponse.defaultInstance)
     }
   }
 
@@ -52,10 +64,11 @@ class AddPodcastController @Inject()(
       assert(itunesEntity.resultCount == 1, "must have exactly 1 result")
       debug(s"fetched ${itunesEntity.results.head.trackName} for ingestion")
       val entity = itunesEntity.results.head
-      podcastFeedIngester.fetchFeedAndIngestRequest(request,
-                                                    itunesId,
-                                                    entity.trackViewUrl,
-                                                    entity.feedUrl)
+      val ingestedPodcasts = podcastFeedIngester.fetchFeedAndIngestRequest(request,
+                                                                           itunesId,
+                                                                           entity.trackViewUrl,
+                                                                           entity.feedUrl)
+      ingestedPodcasts.flatMap(readIngestedPodcasts)
     }
   }
 }
