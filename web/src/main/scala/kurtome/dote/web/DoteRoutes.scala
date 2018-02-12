@@ -3,6 +3,7 @@ package kurtome.dote.web
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.extra.router._
+import kurtome.dote.shared.util.observer.SimpleObservable
 import kurtome.dote.web.components.views._
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.views.HelloView
@@ -89,11 +90,14 @@ object DoteRoutes {
         .onPostRender((prev, cur) =>
           Callback {
             currentRoute = cur
+            routeObservable.notifyObservers(cur)
         })
     }
 
   private val baseUrl: BaseUrl =
     BaseUrl(dom.window.location.href.takeWhile(_ != '#'))
+
+  val routeObservable = new SimpleObservable[DoteRoute]
 
   val doteRouter = Router(baseUrl, routerConfig)
 

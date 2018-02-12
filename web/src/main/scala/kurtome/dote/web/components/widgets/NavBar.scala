@@ -15,6 +15,7 @@ import kurtome.dote.web.utils.Debounce
 import kurtome.dote.web.utils.IsMobile
 import kurtome.dote.web.utils.{GlobalLoadingManager, LoggedInPersonManager}
 import org.scalajs.dom
+import org.scalajs.dom.raw.MutationObserverInit
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
@@ -52,6 +53,9 @@ object NavBar extends LogSupport {
   case class State(navValue: String = "home",
                    isCollapsed: Boolean = false,
                    isLoading: Boolean = false,
+                   windowHeight: Int = 0,
+                   documentHeight: Int = 0,
+                   pageYOffset: Int = 0,
                    loggedInPerson: Option[Person] = None)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -65,13 +69,18 @@ object NavBar extends LogSupport {
     GlobalLoadingManager.stateObservable.addObserver(loadingObserver)
 
     val onMount: Callback = Callback {
+      dom.window.addEventListener("resize", resizeListener)
+      dom.window.addEventListener("scroll", scrollListener)
+      routeObservable.addObserver(routeObserver)
       updateIsCollapsed()
     }
 
     val onUnmount: Callback = Callback {
+      recalcCollapseTimerId.foreach(id => dom.window.clearTimeout(id))
       GlobalLoadingManager.stateObservable.removeObserver(loadingObserver)
       dom.window.removeEventListener("resize", resizeListener)
       dom.window.removeEventListener("scroll", scrollListener)
+      routeObservable.removeObserver(routeObserver)
     }
 
     val handleProfileButtonClicked = (p: Props) =>
@@ -81,22 +90,40 @@ object NavBar extends LogSupport {
         doteRouterCtl.set(LoginRoute)
     }
 
-    def updateIsCollapsed() = {
+    def updateIsCollapsed(): Unit = {
       // hide the nav bar if the vertical space is very small.
       // this can happen on mobile when the keyboard is open.
 
-      val shortPage = dom.window.innerHeight < 400
+      val pageYOffset = dom.window.pageYOffset.toInt
+      val windowHeight = dom.window.innerHeight.toInt
+      val documentHeight = dom.document.documentElement.scrollHeight
 
-      val bottomVisiblePixel = dom.window.pageYOffset + dom.window.innerHeight
-      val atEndOfPage = dom.document.documentElement.scrollHeight - bottomVisiblePixel < 30
+      val s = bs.state.runNow()
 
-      val shouldCollapse = shortPage && !atEndOfPage
+      val scrollingUp = windowHeight == s.windowHeight &&
+        documentHeight == s.documentHeight &&
+        pageYOffset < s.pageYOffset
 
-      if (bs.state.runNow().isCollapsed != shouldCollapse) {
-        bs.modState(_.copy(isCollapsed = shouldCollapse)).runNow()
-      }
+      val shortPage = windowHeight < 400
 
+      val bottomVisiblePixel = pageYOffset + windowHeight
+      val atEndOfPage = documentHeight - bottomVisiblePixel < 30
+
+      val shouldCollapse = shortPage && !atEndOfPage && !scrollingUp
+
+      bs.modState(
+          _.copy(isCollapsed = shouldCollapse,
+                 pageYOffset = pageYOffset,
+                 windowHeight = windowHeight,
+                 documentHeight = documentHeight))
+        .runNow()
+
+      recalcCollapseTimerId.foreach(id => dom.window.clearTimeout(id))
+      // recalculate in 5 seconds, so scroll up will only last 2.5 seconds
+      recalcCollapseTimerId = Some(dom.window.setTimeout(() => updateIsCollapsed(), 2500))
     }
+
+    var recalcCollapseTimerId: Option[Int] = None
 
     val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
       (e: js.Dynamic) =>
@@ -108,8 +135,9 @@ object NavBar extends LogSupport {
         updateIsCollapsed()
     }
 
-    dom.window.addEventListener("resize", resizeListener)
-    dom.window.addEventListener("scroll", scrollListener)
+    val routeObserver: Observer[DoteRoute] = (route: DoteRoute) => {
+      updateIsCollapsed()
+    }
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
 
