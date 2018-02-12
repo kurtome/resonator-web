@@ -12,9 +12,11 @@ import javax.inject._
 import kurtome.dote.proto.api.action.add_podcast.AddPodcastResponse
 import kurtome.dote.server.ingestion.PodcastFeedIngester
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.slick.db.gen.Tables
 import wvlet.log._
 
 import scala.annotation.tailrec
+import scala.concurrent.Future
 import scala.concurrent.TimeoutException
 import scala.util.Try
 
@@ -54,37 +56,34 @@ class IngestPodcastsActor @Inject()(
 
       dotableDbService.getNextPodcastIngestionRows(100) map { ingestionRows =>
         debug(s"Found ${ingestionRows.size} to ingest.")
-
-        ingestionRows foreach { row =>
-          val response: AddPodcastResponse = Try {
-            debug(s"Ingesting $row")
-            // use Await to only ingest one at a time to not hog all the DB connections and threads.
-            Await.result(
-              podcastFeedIngester.reingestPodcastByItunesId(row.itunesId) map { result =>
-                Thread.sleep(11 * 1000)
-                debug(s"Finished ingesting $row")
-                result
-              },
-              atMost = 10.seconds
-            )
-          } recover {
-            case t: Throwable => {
-              val cause = getCause(t)
-              warn(
-                s"Exception ingesting $row. ${t.getClass.getSimpleName} caused by ${cause.getClass.getName}: ${cause.getMessage}")
-              AddPodcastResponse.defaultInstance
-            }
-          } get
-
-          if (response.podcasts.isEmpty) {
-            // Something went wrong or there was no valid podcast in the feed, set the next ingestion
-            // time so this doesn't get reprocessed over and over again.
-            info(s"Setting next ingestion time for error row $row")
-            dotableDbService.updateNextIngestionTimeByItunesId(row.itunesId,
-                                                               LocalDateTime.now().plusHours(6))
-          }
-        }
+        ingestionRows.foreach(ingestPodcast)
       }
+  }
+
+  private def ingestPodcast(row: Tables.PodcastFeedIngestionRow) = {
+    debug(s"Ingesting $row")
+    val responseFuture: Future[AddPodcastResponse] =
+      // use Await to only ingest one at a time to not hog all the DB connections and threads.
+      podcastFeedIngester.reingestPodcastByItunesId(row.itunesId) map { result =>
+        debug(s"Finished ingesting $row")
+        result
+      } recover {
+        case t: Throwable =>
+          val cause = getCause(t)
+          warn(
+            s"Exception ingesting $row. ${t.getClass.getSimpleName} caused by ${cause.getClass.getName}: ${cause.getMessage}")
+          AddPodcastResponse.defaultInstance
+      }
+
+    responseFuture map { response =>
+      if (response.podcasts.isEmpty) {
+        // Something went wrong or there was no valid podcast in the feed, set the next ingestion
+        // time so this doesn't get reprocessed over and over again.
+        info(s"Setting next ingestion time for error row $row")
+        dotableDbService.updateNextIngestionTimeByItunesId(row.itunesId,
+                                                           LocalDateTime.now().plusHours(6))
+      }
+    }
   }
 
   // TODO: move this to a util
