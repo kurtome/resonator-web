@@ -68,11 +68,11 @@ class PodcastFeedIngester @Inject()(
     } get
   }
 
-  def fetchFeedAndIngest(extras: AddPodcastRequest.Extras,
-                         itunesId: Long,
-                         feedUrl: String,
-                         previousFeedEtag: Option[String],
-                         itunesUrl: String): Future[ProduceAction[Seq[Long]]] = {
+  private def fetchFeedAndIngest(extras: AddPodcastRequest.Extras,
+                                 itunesId: Long,
+                                 feedUrl: String,
+                                 previousFeedEtag: Option[String],
+                                 itunesUrl: String): Future[ProduceAction[Seq[Long]]] = {
     podcastFetcher.fetch(itunesUrl, feedUrl, previousFeedEtag, extras) flatMap {
       rssPodcastsResult =>
         if (rssPodcastsResult.isSuccess) {

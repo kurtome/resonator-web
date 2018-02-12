@@ -31,7 +31,7 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
       }
 
     debug(s"Fetching $feedUrl")
-    ws.url(feedUrl).withHttpHeaders(headers: _*).withRequestTimeout(5.seconds).get() flatMap {
+    ws.url(feedUrl).withHttpHeaders(headers: _*).withRequestTimeout(10.seconds).get() flatMap {
       response =>
         if (response.status == 200) {
           val etag: Option[String] = response.header("ETag")
