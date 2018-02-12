@@ -4,7 +4,6 @@ import java.net.UnknownHostException
 import java.time.LocalDateTime
 
 import akka.actor.{Actor, ActorRef, ActorSystem}
-import kurtome.dote.server.tasks.IngestPodcastsActor.IngestPodcasts
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
@@ -40,17 +39,14 @@ class IngestPodcastsTask @Inject()(
   }
 }
 
-object IngestPodcastsActor {
-  case object IngestPodcasts
-}
+case object IngestPodcasts
 @Singleton
-class IngestPodcastsActor @Inject()(actorSystem: ActorSystem,
-                                    dotableDbService: DotableService,
-                                    podcastFeedIngester: PodcastFeedIngester)
+class IngestPodcastsActor @Inject()(
+    actorSystem: ActorSystem,
+    dotableDbService: DotableService,
+    podcastFeedIngester: PodcastFeedIngester)(implicit executionContext: ExecutionContext)
     extends Actor
     with LogSupport {
-
-  implicit val ec: ExecutionContext = actorSystem.dispatchers.lookup("tasks-context")
 
   override def receive = {
     case IngestPodcasts =>
@@ -63,11 +59,14 @@ class IngestPodcastsActor @Inject()(actorSystem: ActorSystem,
           val response: AddPodcastResponse = Try {
             debug(s"Ingesting $row")
             // use Await to only ingest one at a time to not hog all the DB connections and threads.
-            Await.result(podcastFeedIngester.reingestPodcastByItunesId(row.itunesId) map {
-              result =>
+            Await.result(
+              podcastFeedIngester.reingestPodcastByItunesId(row.itunesId) map { result =>
+                Thread.sleep(11 * 1000)
                 debug(s"Finished ingesting $row")
                 result
-            }, atMost = 10.seconds)
+              },
+              atMost = 10.seconds
+            )
           } recover {
             case t: Throwable => {
               val cause = getCause(t)
@@ -92,8 +91,8 @@ class IngestPodcastsActor @Inject()(actorSystem: ActorSystem,
   @tailrec
   private def getCause(e: Throwable): Throwable = {
     val cause = e.getCause
-    if (cause == null || cause == e) {
-      cause
+    if (cause == null || cause.eq(e)) {
+      e
     } else {
       getCause(cause)
     }

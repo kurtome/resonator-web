@@ -39,16 +39,15 @@ object SetPopularPodcastsActor {
 }
 
 @Singleton
-class SetPopularPodcastsActor @Inject()(actorSystem: ActorSystem,
-                                        dotableService: DotableService,
-                                        doteService: DoteService,
-                                        podcastFeedIngester: PodcastFeedIngester)
+class SetPopularPodcastsActor @Inject()(
+    actorSystem: ActorSystem,
+    dotableService: DotableService,
+    doteService: DoteService,
+    podcastFeedIngester: PodcastFeedIngester)(implicit executionContext: ExecutionContext)
     extends Actor
     with LogSupport {
 
   private val popularLimit = 100
-
-  implicit val ec: ExecutionContext = actorSystem.dispatchers.lookup("tasks-context")
 
   override def receive = {
     case SetPopularPodcasts =>
