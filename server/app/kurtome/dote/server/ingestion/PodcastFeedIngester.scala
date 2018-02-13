@@ -1,11 +1,13 @@
 package kurtome.dote.server.ingestion
 
+import java.time.LocalDateTime
 import javax.inject._
 
 import kurtome.dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.shared.util.result.FailedData
 import kurtome.dote.shared.util.result.ProduceAction
+import kurtome.dote.shared.util.result.StatusCodes
 import kurtome.dote.shared.util.result.SuccessData
 import kurtome.dote.shared.util.result.UnknownErrorStatus
 import wvlet.log.LogSupport
@@ -80,7 +82,16 @@ class PodcastFeedIngester @Inject()(
             .sequence(rssPodcastsResult.data.map(ingestToDatabase(extras, itunesId, _)))
             .map(SuccessData(_))
         } else {
-          Future(FailedData(Nil, UnknownErrorStatus))
+          if (rssPodcastsResult.status.code == StatusCodes.Unchanged) {
+            // the feed wasn't changed since last time it was checked, re-process this sooner than
+            // normal since feeds that support etags are much cheaper to check for changes.
+            val nextIngestionTime = LocalDateTime.now().plusMinutes(30)
+            podcastDbService.updateNextIngestionTimeByItunesId(itunesId, nextIngestionTime)
+            // this should be interpreted as successfully processed
+            Future(SuccessData(Nil))
+          } else {
+            Future(FailedData(Nil, UnknownErrorStatus))
+          }
         }
     }
   }

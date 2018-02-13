@@ -6,6 +6,7 @@ import scala.concurrent.duration._
 import kurtome.dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
 import kurtome.dote.shared.util.result.FailedData
 import kurtome.dote.shared.util.result.ProduceAction
+import kurtome.dote.shared.util.result.StatusCodes
 import kurtome.dote.shared.util.result.SuccessData
 import kurtome.dote.shared.util.result.UnknownErrorStatus
 import play.api.libs.ws.WSClient
@@ -54,7 +55,7 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
           }
         } else if (response.status == 304) {
           debug(s"Feed unchanged (status was 304) for feed url: $feedUrl")
-          Future(SuccessData(Nil))
+          Future(FailedData(Nil, StatusCodes.Unchanged))
         } else {
           info(s"Response status was ${response.status} for feed url: $feedUrl")
           Future(FailedData(Nil, UnknownErrorStatus))
