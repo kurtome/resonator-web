@@ -9,7 +9,8 @@ import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import javax.inject._
 
-import kurtome.dote.proto.api.action.add_podcast.AddPodcastResponse
+import akka.dispatch.RequiresMessageQueue
+import akka.dispatch.BoundedMessageQueueSemantics
 import kurtome.dote.server.ingestion.PodcastFeedIngester
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.shared.util.result.FailedData
@@ -20,8 +21,6 @@ import wvlet.log._
 
 import scala.annotation.tailrec
 import scala.concurrent.Future
-import scala.concurrent.TimeoutException
-import scala.util.Try
 
 class IngestPodcastsTask @Inject()(
     actorSystem: ActorSystem,
@@ -51,19 +50,23 @@ class IngestPodcastsActor @Inject()(
     dotableDbService: DotableService,
     podcastFeedIngester: PodcastFeedIngester)(implicit executionContext: ExecutionContext)
     extends Actor
+    with RequiresMessageQueue[BoundedMessageQueueSemantics]
     with LogSupport {
 
   override def receive = {
     case IngestPodcasts =>
       debug("Starting podcast ingestion...")
 
-      dotableDbService.getNextPodcastIngestionRows(1000) map { ingestionRows =>
-        debug(s"Found ${ingestionRows.size} to ingest.")
-        ingestionRows.foreach(ingestPodcast)
+      val ingestFutures = dotableDbService.getNextPodcastIngestionRows(1000) flatMap {
+        ingestionRows =>
+          debug(s"Found ${ingestionRows.size} to ingest.")
+          Future.sequence(ingestionRows.map(ingestPodcast))
       }
+      // Wait for this batch of ingestion to finish before allowing another to be scheduled
+      Await.ready(ingestFutures, 2.minute)
   }
 
-  private def ingestPodcast(row: Tables.PodcastFeedIngestionRow) = {
+  private def ingestPodcast(row: Tables.PodcastFeedIngestionRow): Future[_] = {
     debug(s"Ingesting $row")
     val responseFuture: Future[ProduceAction[Seq[Long]]] =
       // use Await to only ingest one at a time to not hog all the DB connections and threads.
@@ -82,7 +85,7 @@ class IngestPodcastsActor @Inject()(
       if (response.isError) {
         // Something went wrong or there was no valid podcast in the feed, set the next ingestion
         // time so this doesn't get reprocessed over and over again.
-        info(s"Setting next ingestion time for error row $row")
+        debug(s"Setting next ingestion time for error row $row")
         dotableDbService.updateNextIngestionTimeByItunesId(row.itunesId,
                                                            LocalDateTime.now().plusHours(6))
       }

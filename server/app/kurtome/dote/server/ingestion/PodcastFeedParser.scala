@@ -1,9 +1,10 @@
 package kurtome.dote.server.ingestion
 
+import java.security.MessageDigest
 import java.time.ZonedDateTime
 import java.util.Locale
-import javax.inject._
 
+import javax.inject._
 import kurtome.dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
 import kurtome.dote.proto.db.dotable.DotableDetails.PodcastEpisode.Audio
 import kurtome.dote.proto.db.dotable.{DotableCommon, DotableDetails, ExternalUrls}
@@ -18,21 +19,22 @@ import scala.xml._
 @Singleton
 class PodcastFeedParser @Inject()() extends LogSupport {
 
-  //val pubDateFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
-  //val pubDateFormatter2 = DateTimeFormatter.RFC_1123_DATE_TIME.withResolverFields()
+  private val sha256 = MessageDigest.getInstance("SHA-256")
 
   def parsePodcastRss(itunesUrl: String,
                       feedUrl: String,
                       feedEtag: Option[String],
+                      feedDataHash: Array[Byte],
                       extras: Extras,
                       rssXml: String): Seq[RssFetchedPodcast] = {
     val channels = XML.loadString(rssXml) \ "channel"
-    channels.map(parsePodcast(itunesUrl, feedUrl, feedEtag, extras, _))
+    channels.map(parsePodcast(itunesUrl, feedUrl, feedEtag, feedDataHash, extras, _))
   }
 
   private def parsePodcast(itunesUrl: String,
                            feedUrl: String,
                            feedEtag: Option[String],
+                           feedDataHash: Array[Byte],
                            extras: Extras,
                            podcast: Node): RssFetchedPodcast = {
     val title: String = podcast \ "title"
@@ -97,6 +99,7 @@ class PodcastFeedParser @Inject()() extends LogSupport {
       feedUrl = feedUrl,
       tags = tags,
       feedEtag = feedEtag,
+      dataHash = feedDataHash,
       common = DotableCommon(
         title = title,
         description = description,
@@ -116,9 +119,11 @@ class PodcastFeedParser @Inject()() extends LogSupport {
   }
 
   private def parseEpisode(episode: Node): RssFetchedEpisode = {
+    val dataHash = sha256.digest(episode.buildString(false).getBytes)
+
     val title: String = episode \ "title"
     val summary: String = episode \ "summary"
-    val description: String = if (summary.nonEmpty) summary else (episode \ "description")
+    val description: String = if (summary.nonEmpty) summary else episode \ "description"
     val author: String = episode \ "author"
     val guid: String = episode \ "guid"
     val pubDateEpochSec =
@@ -138,7 +143,8 @@ class PodcastFeedParser @Inject()() extends LogSupport {
         episodeNumber = episodeNum.getOrElse(0),
         rssGuid = guid,
         audio = audio
-      )
+      ),
+      dataHash = dataHash
     )
   }
 

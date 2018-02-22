@@ -1,8 +1,8 @@
 package kurtome.dote.server.services
 
 import java.time.LocalDateTime
-import javax.inject._
 
+import javax.inject._
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.server.db._
 import kurtome.dote.server.db.DotableDbIo
@@ -18,6 +18,7 @@ import kurtome.dote.slick.db.TagKinds.TagKind
 import kurtome.dote.slick.db.gen.Tables
 import kurtome.dote.slick.db.gen.Tables.DotableRow
 import kurtome.dote.slick.db.gen.Tables.DoteRow
+import kurtome.dote.slick.db.gen.Tables.PodcastEpisodeIngestionRow
 import slick.basic.BasicBackend
 import wvlet.log.LogSupport
 
@@ -172,11 +173,13 @@ class DotableService @Inject()(db: BasicBackend#Database,
         itunesId,
         podcast.feedUrl,
         podcast.feedEtag,
+        podcast.dataHash,
         nextIngestionTime = LocalDateTime.now().plusHours(1))
       episodeIdAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, episodes)
       _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, episodeIdAndGuids)
       _ <- updateTagsForDotable(podcastId, podcast.tags)
-    } yield podcastId).transactionally
+    } yield
+      podcastId).transactionally.withStatementParameters(statementInit = _.setQueryTimeout(30))
     db.run(insertPodcastRowOp)
   }
 
@@ -217,8 +220,10 @@ class DotableService @Inject()(db: BasicBackend#Database,
                                     podcastId: Long) = {
     // Podcast already exists, update it
     val insertPodcastRowOp = (for {
+      row <- podcastFeedIngestionDbIo.lockIngestionRow(itunesId)
       existingEpisodes <- podcastFeedIngestionDbIo.readEpisodesByPodcastId(podcastId)
-      episodesWithExistingId = matchToExistingEpisodeId(episodes, existingEpisodes)
+      episodesWithExistingId = matchToExistingEpisodeIdAndFilterUnchanged(episodes,
+                                                                          existingEpisodes)
       newEpisodes = episodesWithExistingId.filter(_._1.isEmpty).map(_._2)
       existingEpisodesWithId = episodesWithExistingId
         .filter(_._1.isDefined)
@@ -229,12 +234,14 @@ class DotableService @Inject()(db: BasicBackend#Database,
         itunesId,
         podcast.feedUrl,
         podcast.feedEtag,
+        podcast.dataHash,
         nextIngestionTime = LocalDateTime.now().plusHours(1))
       newEpisodesAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, newEpisodes)
       _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, newEpisodesAndGuids)
+      _ <- podcastFeedIngestionDbIo.updateEpisodeRecords(podcastId, existingEpisodesWithId)
       _ <- dotableDbIo.updateEpisodes(podcastId, existingEpisodesWithId)
       _ <- updateTagsForDotable(podcastId, podcast.tags)
-    } yield ()).transactionally
+    } yield ()).transactionally.withStatementParameters(statementInit = _.setQueryTimeout(30))
     db.run(insertPodcastRowOp).map(_ => podcastId)
   }
 
@@ -336,12 +343,12 @@ class DotableService @Inject()(db: BasicBackend#Database,
         .filter(row => row.kind === TagKinds.MetadataFlag && row.key === tag.toString)
         .result
         .headOption) map {
-      case Some(tag) => {
+      case Some(dbTag) => {
         val newTagRows = dotableIds map { dotableId =>
-          Tables.DotableTagRow(tagId = tag.id, dotableId = dotableId)
+          Tables.DotableTagRow(tagId = dbTag.id, dotableId = dotableId)
         }
         val replaceQuery = (for {
-          deleteCount <- Tables.DotableTag.filter(_.tagId === tag.id).delete
+          deleteCount <- Tables.DotableTag.filter(_.tagId === dbTag.id).delete
           insertCount <- Tables.DotableTag ++= newTagRows
         } yield deleteCount).transactionally
         db.run(replaceQuery)
@@ -370,10 +377,23 @@ class DotableService @Inject()(db: BasicBackend#Database,
     }
   }
 
-  private def matchToExistingEpisodeId(episodes: Seq[RssFetchedEpisode],
-                                       existingEpisodes: Seq[Tables.PodcastEpisodeIngestionRow])
+  private def matchToExistingEpisodeIdAndFilterUnchanged(
+      episodes: Seq[RssFetchedEpisode],
+      existingEpisodes: Seq[PodcastEpisodeIngestionRow])
     : Seq[(Option[Long], RssFetchedEpisode)] = {
-    val guidMap = existingEpisodes.map(row => row.guid -> row.episodeDotableId).toMap
-    episodes.map(episode => guidMap.get(episode.details.rssGuid) -> episode)
+    val guidMap = existingEpisodes.map(row => row.guid -> row).toMap
+    episodes
+      .map(episode => guidMap.get(episode.details.rssGuid) -> episode)
+      .filter(shouldReingestEpisode)
+      .map(pair => (pair._1.map(_.episodeDotableId), pair._2))
+  }
+
+  //noinspection MapGetOrElseBoolean
+  private def shouldReingestEpisode(
+      pair: (Option[PodcastEpisodeIngestionRow], RssFetchedEpisode)): Boolean = {
+    pair._1.flatMap(_.lastDataHash) map { existingDataHash =>
+      val same = existingDataHash sameElements pair._2.dataHash
+      !same
+    } getOrElse true // always ingest new episodes
   }
 }

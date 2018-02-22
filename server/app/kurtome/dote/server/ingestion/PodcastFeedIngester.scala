@@ -1,8 +1,8 @@
 package kurtome.dote.server.ingestion
 
 import java.time.LocalDateTime
-import javax.inject._
 
+import javax.inject._
 import kurtome.dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.shared.util.result.FailedData
@@ -10,6 +10,7 @@ import kurtome.dote.shared.util.result.ProduceAction
 import kurtome.dote.shared.util.result.StatusCodes
 import kurtome.dote.shared.util.result.SuccessData
 import kurtome.dote.shared.util.result.UnknownErrorStatus
+import kurtome.dote.slick.db.gen.Tables.PodcastFeedIngestionRow
 import wvlet.log.LogSupport
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -48,7 +49,7 @@ class PodcastFeedIngester @Inject()(
             fetchFeedAndIngest(AddPodcastRequest.Extras.defaultInstance,
                                itunesId,
                                entity.feedUrl,
-                               ingestionRow.lastFeedEtag,
+                               Some(ingestionRow),
                                entity.trackViewUrl)
           }
         } else {
@@ -58,7 +59,7 @@ class PodcastFeedIngester @Inject()(
             fetchFeedAndIngest(AddPodcastRequest.Extras.defaultInstance,
                                itunesId,
                                ingestionRow.feedRssUrl,
-                               ingestionRow.lastFeedEtag,
+                               Some(ingestionRow),
                                itunesUrl)
           }
         }
@@ -73,26 +74,25 @@ class PodcastFeedIngester @Inject()(
   private def fetchFeedAndIngest(extras: AddPodcastRequest.Extras,
                                  itunesId: Long,
                                  feedUrl: String,
-                                 previousFeedEtag: Option[String],
+                                 ingestionRow: Option[PodcastFeedIngestionRow],
                                  itunesUrl: String): Future[ProduceAction[Seq[Long]]] = {
-    podcastFetcher.fetch(itunesUrl, feedUrl, previousFeedEtag, extras) flatMap {
-      rssPodcastsResult =>
-        if (rssPodcastsResult.isSuccess) {
-          Future
-            .sequence(rssPodcastsResult.data.map(ingestToDatabase(extras, itunesId, _)))
-            .map(SuccessData(_))
+    podcastFetcher.fetch(itunesUrl, feedUrl, ingestionRow, extras) flatMap { rssPodcastsResult =>
+      if (rssPodcastsResult.isSuccess) {
+        Future
+          .sequence(rssPodcastsResult.data.map(ingestToDatabase(extras, itunesId, _)))
+          .map(SuccessData(_))
+      } else {
+        if (rssPodcastsResult.status.code == StatusCodes.Unchanged) {
+          // the feed wasn't changed since last time it was checked, either from the etag or the
+          // contents of the feed being checked against the previously ingested feed
+          val nextIngestionTime = LocalDateTime.now().plusMinutes(30)
+          podcastDbService.updateNextIngestionTimeByItunesId(itunesId, nextIngestionTime)
+          // this should be interpreted as successfully processed
+          Future(SuccessData(Nil))
         } else {
-          if (rssPodcastsResult.status.code == StatusCodes.Unchanged) {
-            // the feed wasn't changed since last time it was checked, re-process this sooner than
-            // normal since feeds that support etags are much cheaper to check for changes.
-            val nextIngestionTime = LocalDateTime.now().plusMinutes(30)
-            podcastDbService.updateNextIngestionTimeByItunesId(itunesId, nextIngestionTime)
-            // this should be interpreted as successfully processed
-            Future(SuccessData(Nil))
-          } else {
-            Future(FailedData(Nil, UnknownErrorStatus))
-          }
+          Future(FailedData(Nil, UnknownErrorStatus))
         }
+      }
     }
   }
 

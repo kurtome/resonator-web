@@ -19,6 +19,6 @@ object LoggingConfig extends LogSupport {
     val logProperties = s"$env-log.properties"
     Logger.scanLogLevels(Seq(logProperties))
 
-    info(s"Initialized with $logProperties, (but using log.properties at the moment).")
+    info(s"Initialized logging with config file: $logProperties")
   }
 }

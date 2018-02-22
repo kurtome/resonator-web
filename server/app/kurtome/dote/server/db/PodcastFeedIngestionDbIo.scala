@@ -1,8 +1,9 @@
 package kurtome.dote.server.db
 
 import java.time.LocalDateTime
-import javax.inject._
 
+import javax.inject._
+import kurtome.dote.server.ingestion.RssFetchedEpisode
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.slick.db.gen.Tables
 
@@ -11,20 +12,38 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
 
-  private val table = Tables.PodcastFeedIngestion
+  private val feedTable = Tables.PodcastFeedIngestion
   private val episodeTable = Tables.PodcastEpisodeIngestion
 
-  def insertEpisodeRecords(podcastId: Long, episodeIdAndGuids: Seq[(Long, String)]) = {
-    val rows = episodeIdAndGuids map {
-      case (episodeId, guid) =>
+  object EpisodeQueries {
+    val selectDataHashByDotableId = Compiled { (episodeDotableId: Rep[Long]) =>
+      for {
+        row <- episodeTable.filter(_.episodeDotableId === episodeDotableId)
+      } yield row.lastDataHash
+    }
+  }
+
+  def insertEpisodeRecords(podcastId: Long,
+                           episodeIdAndFetchedData: Seq[(Long, RssFetchedEpisode)]) = {
+    val rows = episodeIdAndFetchedData map {
+      case (episodeId, fetchedEpisode) =>
         Tables.PodcastEpisodeIngestionRow(
           id = 0,
           podcastDotableId = podcastId,
-          guid = guid,
-          episodeDotableId = episodeId
+          guid = fetchedEpisode.details.rssGuid,
+          episodeDotableId = episodeId,
+          lastDataHash = Some(fetchedEpisode.dataHash)
         )
     }
     episodeTable ++= rows
+  }
+
+  def updateEpisodeRecords(podcastId: Long,
+                           episodeIdAndFetchedData: Seq[(Long, RssFetchedEpisode)]) = {
+    DBIO.sequence(episodeIdAndFetchedData map {
+      case (episodeId, fetchedEpisode) =>
+        EpisodeQueries.selectDataHashByDotableId(episodeId).update(Some(fetchedEpisode.dataHash))
+    })
   }
 
   def insertIfNew(itunesId: Long, feedUrl: String) = {
@@ -35,29 +54,35 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   def lockIngestionRow(itunesId: Long) = {
-    table.filter(_.itunesId === itunesId).forUpdate.result.headOption.map(_.get)
+    feedTable.filter(_.itunesId === itunesId).forUpdate.result.headOption.map(_.get)
   }
 
   def updatePodcastRecordByItunesId(podcastDotableId: Long,
                                     itunesId: Long,
                                     feedUrl: String,
                                     feedEtag: Option[String],
+                                    dataHash: Array[Byte],
                                     nextIngestionTime: LocalDateTime) = {
     val q = for {
-      row <- table.filter(_.itunesId === itunesId)
-    } yield (row.podcastDotableId, row.feedRssUrl, row.lastFeedEtag, row.nextIngestionTime)
-    q.update((Some(podcastDotableId), feedUrl, feedEtag, nextIngestionTime))
+      row <- feedTable.filter(_.itunesId === itunesId)
+    } yield
+      (row.podcastDotableId,
+       row.feedRssUrl,
+       row.lastFeedEtag,
+       row.lastDataHash,
+       row.nextIngestionTime)
+    q.update((Some(podcastDotableId), feedUrl, feedEtag, Some(dataHash), nextIngestionTime))
   }
 
   def updateNextIngestionTimeByItunesId(itunesId: Long, nextIngestionTime: LocalDateTime) = {
     val q = for {
-      row <- table.filter(_.itunesId === itunesId)
+      row <- feedTable.filter(_.itunesId === itunesId)
     } yield row.nextIngestionTime
     q.update(nextIngestionTime)
   }
 
   val readRssFeedUrlByItunesIdRaw = Compiled { (itunesId: Rep[Long]) =>
-    table.filter(_.itunesId === itunesId).map(_.feedRssUrl)
+    feedTable.filter(_.itunesId === itunesId).map(_.feedRssUrl)
   }
 
   def updateFeedUrByItunesId(itunesId: Long, feedUrl: String) = {
@@ -65,7 +90,7 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   val readPodcastIdFromItunesIdRaw = Compiled { (itunesId: Rep[Long]) =>
-    table
+    feedTable
       .filter(row => row.itunesId === itunesId && row.podcastDotableId.isDefined)
       .map(_.podcastDotableId.get)
   }
@@ -84,7 +109,7 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   val filterByItunesIdRaw = Compiled { (itunesId: Rep[Long]) =>
-    table.filter(_.itunesId === itunesId)
+    feedTable.filter(_.itunesId === itunesId)
   }
 
   def readRowByItunesId(itunesId: Long) = {
@@ -93,7 +118,7 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
 
   private val readNextIngestionRowsRaw = Compiled {
     (limit: ConstColumn[Long], time: ConstColumn[LocalDateTime]) =>
-      table
+      feedTable
         .sortBy(_.nextIngestionTime.asc)
         .filter(_.nextIngestionTime < time)
         .take(limit)

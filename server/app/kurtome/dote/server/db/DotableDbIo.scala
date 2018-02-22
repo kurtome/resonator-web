@@ -46,7 +46,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
       row = episodeToRow(None, podcastId, episode)
       pairs = for {
         id <- (table returning table.map(_.id)) += row
-      } yield (id, episode.details.rssGuid)
+      } yield (id, episode)
     } yield pairs)
   }
 
