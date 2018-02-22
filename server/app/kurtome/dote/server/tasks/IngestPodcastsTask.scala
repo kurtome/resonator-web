@@ -43,7 +43,9 @@ class IngestPodcastsTask @Inject()(
   }
 }
 
+// Message sent to Actor to request ingestion run
 case object IngestPodcasts
+
 @Singleton
 class IngestPodcastsActor @Inject()(
     actorSystem: ActorSystem,
@@ -53,6 +55,8 @@ class IngestPodcastsActor @Inject()(
     with RequiresMessageQueue[BoundedMessageQueueSemantics]
     with LogSupport {
 
+  private val inProgressIds = createSynchronizedSet[Long]()
+
   override def receive = {
     case IngestPodcasts =>
       debug("Starting podcast ingestion...")
@@ -60,13 +64,29 @@ class IngestPodcastsActor @Inject()(
       val ingestFutures = dotableDbService.getNextPodcastIngestionRows(1000) flatMap {
         ingestionRows =>
           debug(s"Found ${ingestionRows.size} to ingest.")
-          Future.sequence(ingestionRows.map(ingestPodcast))
+
+          if (inProgressIds.size < 300) {
+            val newRows = ingestionRows.filterNot(row => inProgressIds.contains(row.id))
+
+            info(s"""
+            Found ${ingestionRows.size} rows.
+            ${inProgressIds.size} total in progress already.
+            Filtered ${ingestionRows.size - newRows.size} in progress.
+            Starting ingestion for ${newRows.size}.
+            """)
+
+            Future.sequence(newRows.map(ingestPodcast))
+          } else {
+            info(s"Skipping new ingestion run since ${inProgressIds.size} are in progress.")
+            Future()
+          }
       }
       // Wait for this batch of ingestion to finish before allowing another to be scheduled
       Await.ready(ingestFutures, 2.minute)
   }
 
   private def ingestPodcast(row: Tables.PodcastFeedIngestionRow): Future[_] = {
+    inProgressIds.add(row.id)
     debug(s"Ingesting $row")
     val responseFuture: Future[ProduceAction[Seq[Long]]] =
       // use Await to only ingest one at a time to not hog all the DB connections and threads.
@@ -82,6 +102,9 @@ class IngestPodcastsActor @Inject()(
       }
 
     responseFuture map { response =>
+      // remove from in progress
+      inProgressIds.remove(row.id)
+
       if (response.isError) {
         // Something went wrong or there was no valid podcast in the feed, set the next ingestion
         // time so this doesn't get reprocessed over and over again.
@@ -101,5 +124,12 @@ class IngestPodcastsActor @Inject()(
     } else {
       getCause(cause)
     }
+  }
+
+  def createSynchronizedSet[T](): scala.collection.mutable.Set[T] = {
+    import scala.collection.JavaConverters._
+    java.util.Collections
+      .newSetFromMap(new java.util.concurrent.ConcurrentHashMap[T, java.lang.Boolean])
+      .asScala
   }
 }
