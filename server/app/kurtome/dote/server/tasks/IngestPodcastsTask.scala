@@ -65,7 +65,7 @@ class IngestPodcastsActor @Inject()(
         ingestionRows =>
           debug(s"Found ${ingestionRows.size} to ingest.")
 
-          if (inProgressIds.size < 300) {
+          if (inProgressIds.size <= 100) {
             val newRows = ingestionRows.filterNot(row => inProgressIds.contains(row.id))
 
             info(s"""

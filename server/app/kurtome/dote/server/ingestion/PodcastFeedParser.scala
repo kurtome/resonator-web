@@ -187,7 +187,7 @@ class PodcastFeedParser @Inject()() extends LogSupport {
       )
 
       tryParse match {
-        case Failure(t) => warn(s"couldn't parse '$raw' as int")
+        case Failure(t) => debug(s"couldn't parse '$raw' as int")
         case _ =>
       }
 

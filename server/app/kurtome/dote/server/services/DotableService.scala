@@ -161,26 +161,33 @@ class DotableService @Inject()(db: BasicBackend#Database,
                                podcast: RssFetchedPodcast,
                                episodes: Seq[RssFetchedEpisode]) = {
     // New podcast, insert
-    val insertPodcastRowOp = (for {
+    db.run((for {
       _ <- podcastFeedIngestionDbIo.insertIfNew(itunesId, podcast.feedUrl)
       row <- podcastFeedIngestionDbIo.lockIngestionRow(itunesId)
       // throw an exception if the locked row already has a dotable, means there was a race
       // condition and this transaciton should be rolled back
       _ = assert(row.podcastDotableId.isEmpty)
       podcastId <- dotableDbIo.insertAndGetId(podcast) if row.podcastDotableId.isEmpty
-      _ <- podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
-        podcastId,
-        itunesId,
-        podcast.feedUrl,
-        podcast.feedEtag,
-        podcast.dataHash,
-        nextIngestionTime = LocalDateTime.now().plusHours(1))
-      episodeIdAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, episodes)
-      _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, episodeIdAndGuids)
-      _ <- updateTagsForDotable(podcastId, podcast.tags)
-    } yield
-      podcastId).transactionally.withStatementParameters(statementInit = _.setQueryTimeout(30))
-    db.run(insertPodcastRowOp)
+    } yield podcastId).transactionally) flatMap { podcastId =>
+      db.run(
+          DBIO
+            .seq(
+              podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
+                podcastId,
+                itunesId,
+                podcast.feedUrl,
+                podcast.feedEtag,
+                podcast.dataHash,
+                nextIngestionTime = LocalDateTime.now().plusHours(1)),
+              (for {
+                episodeIdAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, episodes)
+                _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, episodeIdAndGuids)
+              } yield ()).transactionally,
+              updateTagsForDotable(podcastId, podcast.tags)
+            )
+            .withStatementParameters(statementInit = _.setQueryTimeout(30)))
+        .map(_ => podcastId)
+    }
   }
 
   def readPersonSmileList(personId: Long,
@@ -218,31 +225,44 @@ class DotableService @Inject()(db: BasicBackend#Database,
                                     podcast: RssFetchedPodcast,
                                     episodes: Seq[RssFetchedEpisode],
                                     podcastId: Long) = {
+
     // Podcast already exists, update it
-    val insertPodcastRowOp = (for {
-      row <- podcastFeedIngestionDbIo.lockIngestionRow(itunesId)
-      existingEpisodes <- podcastFeedIngestionDbIo.readEpisodesByPodcastId(podcastId)
-      episodesWithExistingId = matchToExistingEpisodeIdAndFilterUnchanged(episodes,
-                                                                          existingEpisodes)
-      newEpisodes = episodesWithExistingId.filter(_._1.isEmpty).map(_._2)
-      existingEpisodesWithId = episodesWithExistingId
-        .filter(_._1.isDefined)
-        .map(pair => pair._1.get -> pair._2)
-      _ <- dotableDbIo.updateExisting(podcastId, podcast)
-      _ <- podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
-        podcastId,
-        itunesId,
-        podcast.feedUrl,
-        podcast.feedEtag,
-        podcast.dataHash,
-        nextIngestionTime = LocalDateTime.now().plusHours(1))
-      newEpisodesAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, newEpisodes)
-      _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, newEpisodesAndGuids)
-      _ <- podcastFeedIngestionDbIo.updateEpisodeRecords(podcastId, existingEpisodesWithId)
-      _ <- dotableDbIo.updateEpisodes(podcastId, existingEpisodesWithId)
-      _ <- updateTagsForDotable(podcastId, podcast.tags)
-    } yield ()).transactionally.withStatementParameters(statementInit = _.setQueryTimeout(30))
-    db.run(insertPodcastRowOp).map(_ => podcastId)
+
+    db.run(podcastFeedIngestionDbIo.readEpisodesByPodcastId(podcastId)) flatMap {
+      existingEpisodes =>
+        val episodesWithExistingId =
+          matchToExistingEpisodeIdAndFilterUnchanged(episodes, existingEpisodes)
+        val newEpisodes = episodesWithExistingId.filter(_._1.isEmpty).map(_._2)
+        val existingEpisodesWithId = episodesWithExistingId
+          .filter(_._1.isDefined)
+          .map(pair => pair._1.get -> pair._2)
+
+        // newEpisodesAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, newEpisodes)
+        val updateOperations = DBIO
+          .seq(
+            podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
+              podcastId,
+              itunesId,
+              podcast.feedUrl,
+              podcast.feedEtag,
+              podcast.dataHash,
+              nextIngestionTime = LocalDateTime.now().plusHours(1)),
+            dotableDbIo.updateExisting(podcastId, podcast),
+            (for {
+              // new episodes and ingestion records must be part of one transaction to prevent duplicates.
+              // (podcast_episode_ingestion table has unique keys to prevent this)
+              newEpisodesAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, newEpisodes)
+              _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, newEpisodesAndGuids)
+            } yield ()).transactionally,
+            podcastFeedIngestionDbIo.updateEpisodeRecords(podcastId, existingEpisodesWithId),
+            dotableDbIo.updateEpisodes(podcastId, existingEpisodesWithId),
+            updateTagsForDotable(podcastId, podcast.tags)
+          )
+
+        db.run(updateOperations.withStatementParameters(statementInit = _.setQueryTimeout(30)))
+          .map(_ => podcastId)
+    }
+
   }
 
   def readLimited(kind: DotableKinds.Value, limit: Int): Future[Seq[Dotable]] = {

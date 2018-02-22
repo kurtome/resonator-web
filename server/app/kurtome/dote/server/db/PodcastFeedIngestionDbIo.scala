@@ -75,10 +75,7 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   def updateNextIngestionTimeByItunesId(itunesId: Long, nextIngestionTime: LocalDateTime) = {
-    val q = for {
-      row <- feedTable.filter(_.itunesId === itunesId)
-    } yield row.nextIngestionTime
-    q.update(nextIngestionTime)
+    feedTable.filter(_.itunesId === itunesId).map(_.nextIngestionTime).update(nextIngestionTime)
   }
 
   val readRssFeedUrlByItunesIdRaw = Compiled { (itunesId: Rep[Long]) =>
