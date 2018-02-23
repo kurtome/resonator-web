@@ -1,5 +1,8 @@
 package kurtome.dote.server.ingestion
 
+import java.io.ByteArrayInputStream
+import java.io.InputStreamReader
+import java.io.SequenceInputStream
 import java.security.MessageDigest
 import java.time.ZonedDateTime
 import java.util.Locale
@@ -7,7 +10,7 @@ import java.util.Locale
 import javax.inject._
 import kurtome.dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
 import kurtome.dote.proto.db.dotable.DotableDetails.PodcastEpisode.Audio
-import kurtome.dote.proto.db.dotable.{DotableCommon, DotableDetails, ExternalUrls}
+import kurtome.dote.proto.db.dotable._
 import kurtome.dote.server.model.{MetadataFlag, Tag}
 import kurtome.dote.server.util.Slug
 import kurtome.dote.slick.db.TagKinds
@@ -26,8 +29,10 @@ class PodcastFeedParser @Inject()() extends LogSupport {
                       feedEtag: Option[String],
                       feedDataHash: Array[Byte],
                       extras: Extras,
-                      rssXml: String): Seq[RssFetchedPodcast] = {
-    val channels = XML.loadString(rssXml) \ "channel"
+                      rssBytes: Array[Byte]): Seq[RssFetchedPodcast] = {
+    val xml = XML.load(new ByteArrayInputStream(rssBytes))
+
+    val channels = xml \ "channel"
     channels.map(parsePodcast(itunesUrl, feedUrl, feedEtag, feedDataHash, extras, _))
   }
 
@@ -39,6 +44,8 @@ class PodcastFeedParser @Inject()() extends LogSupport {
                            podcast: Node): RssFetchedPodcast = {
     val title: String = podcast \ "title"
     val description: String = podcast \ "description"
+
+    debug(description)
 
     val itunesImagesWithHref =
       firstDefinedAttributeValue((podcast \ "image").filter(_.prefix == "itunes"), "href")
@@ -69,7 +76,7 @@ class PodcastFeedParser @Inject()() extends LogSupport {
       ((podcast \ "category").map(nodeseq2text(_)) ++
         (podcast \ "category").map(_ \@ "text"))
         .map(_.trim)
-        .filter(_.size > 2)
+        .filter(_.length > 2)
         .distinct
         // only the first category is actually representative of the category for most podcasts
         .take(1)
@@ -79,7 +86,7 @@ class PodcastFeedParser @Inject()() extends LogSupport {
         .map(nodeseq2text(_))
         .flatMap(_.split(","))
         .map(_.trim)
-        .filter(_.size > 2)
+        .filter(_.length > 2)
         .distinct
 
     val author: String = podcast \ "author"

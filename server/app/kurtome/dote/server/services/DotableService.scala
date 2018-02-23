@@ -237,16 +237,8 @@ class DotableService @Inject()(db: BasicBackend#Database,
           .filter(_._1.isDefined)
           .map(pair => pair._1.get -> pair._2)
 
-        // newEpisodesAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, newEpisodes)
         val updateOperations = DBIO
           .seq(
-            podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
-              podcastId,
-              itunesId,
-              podcast.feedUrl,
-              podcast.feedEtag,
-              podcast.dataHash,
-              nextIngestionTime = LocalDateTime.now().plusHours(1)),
             dotableDbIo.updateExisting(podcastId, podcast),
             (for {
               // new episodes and ingestion records must be part of one transaction to prevent duplicates.
@@ -256,7 +248,14 @@ class DotableService @Inject()(db: BasicBackend#Database,
             } yield ()).transactionally,
             podcastFeedIngestionDbIo.updateEpisodeRecords(podcastId, existingEpisodesWithId),
             dotableDbIo.updateEpisodes(podcastId, existingEpisodesWithId),
-            updateTagsForDotable(podcastId, podcast.tags)
+            updateTagsForDotable(podcastId, podcast.tags),
+            podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
+              podcastId,
+              itunesId,
+              podcast.feedUrl,
+              podcast.feedEtag,
+              podcast.dataHash,
+              nextIngestionTime = LocalDateTime.now().plusHours(1))
           )
 
         db.run(updateOperations.withStatementParameters(statementInit = _.setQueryTimeout(30)))
@@ -399,8 +398,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
 
   private def matchToExistingEpisodeIdAndFilterUnchanged(
       episodes: Seq[RssFetchedEpisode],
-      existingEpisodes: Seq[PodcastEpisodeIngestionRow])
-    : Seq[(Option[Long], RssFetchedEpisode)] = {
+      existingEpisodes: Seq[PodcastEpisodeIngestionRow]): Seq[(Option[Long], RssFetchedEpisode)] = {
     val guidMap = existingEpisodes.map(row => row.guid -> row).toMap
     episodes
       .map(episode => guidMap.get(episode.details.rssGuid) -> episode)

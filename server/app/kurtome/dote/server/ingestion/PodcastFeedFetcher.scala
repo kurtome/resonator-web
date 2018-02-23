@@ -41,7 +41,7 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
     }
 
     debug(s"Fetching $feedUrl")
-    ws.url(feedUrl).withHttpHeaders(headers: _*).withRequestTimeout(10.seconds).get() flatMap {
+    ws.url(feedUrl).withHttpHeaders(headers: _*).withRequestTimeout(15.seconds).get() flatMap {
       response =>
         if (response.status == 200) {
           val etag: Option[String] = response.header("ETag")
@@ -51,22 +51,19 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
             debug(s"Feed data hash unchanged for feed url: $feedUrl")
             Future(FailedData(Nil, StatusCodes.Unchanged))
           } else {
-            // Remove any spurious leading characters, which will break the parsing
-            val startXmlIndex = response.body.indexOf('<')
-            if (startXmlIndex >= 0) {
-              val xmlString = response.body.substring(startXmlIndex)
-              val fetchedPodasts =
-                parser.parsePodcastRss(itunesUrl, feedUrl, etag, dataHash, extras, xmlString)
-              filterInvalidPodcasts(fetchedPodasts) map { validPodcasts =>
-                if (validPodcasts.nonEmpty) {
-                  SuccessData(validPodcasts)
-                } else {
-                  FailedData(Nil, UnknownErrorStatus)
-                }
+            val fetchedPodasts =
+              parser.parsePodcastRss(itunesUrl,
+                                     feedUrl,
+                                     etag,
+                                     dataHash,
+                                     extras,
+                                     response.bodyAsBytes.toArray)
+            filterInvalidPodcasts(fetchedPodasts) map { validPodcasts =>
+              if (validPodcasts.nonEmpty) {
+                SuccessData(validPodcasts)
+              } else {
+                FailedData(Nil, UnknownErrorStatus)
               }
-            } else {
-              info(s"Response wasn't valid feed url: $feedUrl")
-              Future(FailedData(Nil, UnknownErrorStatus))
             }
           }
         } else if (response.status == 304) {
@@ -92,7 +89,7 @@ class PodcastFeedFetcher @Inject()(ws: WSClient, parser: PodcastFeedParser)(
     if (hasAudio) {
       val imageUrl = podcast.details.imageUrl
       Try {
-        ws.url(imageUrl).withRequestTimeout(5.seconds).head() map { response =>
+        ws.url(imageUrl).withRequestTimeout(10.seconds).head() map { response =>
           if (response.status == 200) {
             Some(podcast)
           } else {
