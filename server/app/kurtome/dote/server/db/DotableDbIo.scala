@@ -40,14 +40,11 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     } yield id
   }
 
-  def insertEpisodeBatch(podcastId: Long, episodes: Seq[RssFetchedEpisode]) = {
-    DBIO.sequence(for {
-      episode <- episodes
-      row = episodeToRow(None, podcastId, episode)
-      pairs = for {
-        id <- (table returning table.map(_.id)) += row
-      } yield (id, episode)
-    } yield pairs)
+  def insertEpisode(podcastId: Long, episode: RssFetchedEpisode) = {
+    val row = episodeToRow(None, podcastId, episode)
+    for {
+      id <- (table returning table.map(_.id)) += row
+    } yield (id, episode)
   }
 
   def updateEpisodes(podcastId: Long, existingEpisodesWithId: Seq[(Long, RssFetchedEpisode)]) = {

@@ -169,21 +169,27 @@ class DotableService @Inject()(db: BasicBackend#Database,
       _ = assert(row.podcastDotableId.isEmpty)
       podcastId <- dotableDbIo.insertAndGetId(podcast) if row.podcastDotableId.isEmpty
     } yield podcastId).transactionally) flatMap { podcastId =>
+      val episodeInserts = episodes map { episode =>
+        (for {
+          // new episodes and ingestion records must be part of one transaction to prevent duplicates.
+          // (podcast_episode_ingestion table has unique keys to prevent this)
+          idAndGuid <- dotableDbIo.insertEpisode(podcastId, episode)
+          _ <- podcastFeedIngestionDbIo.insertEpisodeRecord(podcastId, idAndGuid._1, idAndGuid._2)
+        } yield ()).transactionally
+      }
+
       db.run(
           DBIO
             .seq(
+              DBIO.sequence(episodeInserts),
+              updateTagsForDotable(podcastId, podcast.tags),
               podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
                 podcastId,
                 itunesId,
                 podcast.feedUrl,
                 podcast.feedEtag,
                 podcast.dataHash,
-                nextIngestionTime = LocalDateTime.now().plusHours(1)),
-              (for {
-                episodeIdAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, episodes)
-                _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, episodeIdAndGuids)
-              } yield ()).transactionally,
-              updateTagsForDotable(podcastId, podcast.tags)
+                nextIngestionTime = LocalDateTime.now().plusHours(1))
             )
             .withStatementParameters(statementInit = _.setQueryTimeout(30)))
         .map(_ => podcastId)
@@ -237,15 +243,21 @@ class DotableService @Inject()(db: BasicBackend#Database,
           .filter(_._1.isDefined)
           .map(pair => pair._1.get -> pair._2)
 
+        val episodeInserts = newEpisodes map { episode =>
+          (for {
+            // new episodes and ingestion records must be part of one transaction to prevent duplicates.
+            // (podcast_episode_ingestion table has unique keys to prevent this)
+            idAndGuid <- dotableDbIo.insertEpisode(podcastId, episode)
+            _ <- podcastFeedIngestionDbIo.insertEpisodeRecord(podcastId,
+                                                              idAndGuid._1,
+                                                              idAndGuid._2)
+          } yield ()).transactionally
+        }
+
         val updateOperations = DBIO
           .seq(
             dotableDbIo.updateExisting(podcastId, podcast),
-            (for {
-              // new episodes and ingestion records must be part of one transaction to prevent duplicates.
-              // (podcast_episode_ingestion table has unique keys to prevent this)
-              newEpisodesAndGuids <- dotableDbIo.insertEpisodeBatch(podcastId, newEpisodes)
-              _ <- podcastFeedIngestionDbIo.insertEpisodeRecords(podcastId, newEpisodesAndGuids)
-            } yield ()).transactionally,
+            DBIO.sequence(episodeInserts),
             podcastFeedIngestionDbIo.updateEpisodeRecords(podcastId, existingEpisodesWithId),
             dotableDbIo.updateEpisodes(podcastId, existingEpisodesWithId),
             updateTagsForDotable(podcastId, podcast.tags),
@@ -398,7 +410,8 @@ class DotableService @Inject()(db: BasicBackend#Database,
 
   private def matchToExistingEpisodeIdAndFilterUnchanged(
       episodes: Seq[RssFetchedEpisode],
-      existingEpisodes: Seq[PodcastEpisodeIngestionRow]): Seq[(Option[Long], RssFetchedEpisode)] = {
+      existingEpisodes: Seq[PodcastEpisodeIngestionRow])
+    : Seq[(Option[Long], RssFetchedEpisode)] = {
     val guidMap = existingEpisodes.map(row => row.guid -> row).toMap
     episodes
       .map(episode => guidMap.get(episode.details.rssGuid) -> episode)

@@ -23,19 +23,14 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
     }
   }
 
-  def insertEpisodeRecords(podcastId: Long,
-                           episodeIdAndFetchedData: Seq[(Long, RssFetchedEpisode)]) = {
-    val rows = episodeIdAndFetchedData map {
-      case (episodeId, fetchedEpisode) =>
-        Tables.PodcastEpisodeIngestionRow(
-          id = 0,
-          podcastDotableId = podcastId,
-          guid = fetchedEpisode.details.rssGuid,
-          episodeDotableId = episodeId,
-          lastDataHash = Some(fetchedEpisode.dataHash)
-        )
-    }
-    episodeTable ++= rows
+  def insertEpisodeRecord(podcastId: Long, episodeId: Long, episode: RssFetchedEpisode) = {
+    episodeTable += Tables.PodcastEpisodeIngestionRow(
+      id = 0,
+      podcastDotableId = podcastId,
+      guid = episode.details.rssGuid,
+      episodeDotableId = episodeId,
+      lastDataHash = Some(episode.dataHash)
+    )
   }
 
   def updateEpisodeRecords(podcastId: Long,
