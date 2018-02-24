@@ -83,7 +83,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   val readByParentIdRaw = Compiled { (parentId: Rep[Long]) =>
-    table.filter(_.parentId === parentId)
+    table.filter(_.parentId === parentId).sortBy(_.contentEditedTime.desc)
   }
 
   val readByChildIdRaw = Compiled { (childId: Rep[Long]) =>

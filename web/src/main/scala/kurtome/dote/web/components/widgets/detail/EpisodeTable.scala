@@ -58,8 +58,7 @@ object EpisodeTable {
 
   private def episodesByRecency(dotable: Dotable) = {
     dotable.kind match {
-      case Dotable.Kind.PODCAST =>
-        dotable.getRelatives.children.sortBy(_.getCommon.publishedEpochSec).reverse
+      case Dotable.Kind.PODCAST => dotable.getRelatives.children
       case _ => Nil
     }
   }
