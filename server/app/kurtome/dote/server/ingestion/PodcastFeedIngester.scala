@@ -85,8 +85,10 @@ class PodcastFeedIngester @Inject()(
         if (rssPodcastsResult.status.code == StatusCodes.Unchanged) {
           // the feed wasn't changed since last time it was checked, either from the etag or the
           // contents of the feed being checked against the previously ingested feed
-          val nextIngestionTime = LocalDateTime.now().plusMinutes(30)
-          podcastDbService.updateNextIngestionTimeByItunesId(itunesId, nextIngestionTime)
+          val waitMinutes: Long = ingestionRow.map(_.reingestWaitMinutes).getOrElse(60L)
+          podcastDbService.updateNextIngestionTimeByItunesId(
+            itunesId,
+            LocalDateTime.now().plusMinutes(waitMinutes))
           // this should be interpreted as successfully processed
           Future(SuccessData(Nil))
         } else {

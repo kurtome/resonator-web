@@ -1,6 +1,9 @@
 package kurtome.dote.server.services
 
+import java.time.Duration
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 
 import javax.inject._
 import kurtome.dote.proto.api.dotable.Dotable
@@ -169,6 +172,8 @@ class DotableService @Inject()(db: BasicBackend#Database,
       _ = assert(row.podcastDotableId.isEmpty)
       podcastId <- dotableDbIo.insertAndGetId(podcast) if row.podcastDotableId.isEmpty
     } yield podcastId).transactionally) flatMap { podcastId =>
+      val waitMinutes = calcIngestionWaitMinutes(podcast)
+
       val episodeInserts = episodes map { episode =>
         (for {
           // new episodes and ingestion records must be part of one transaction to prevent duplicates.
@@ -183,13 +188,13 @@ class DotableService @Inject()(db: BasicBackend#Database,
             .seq(
               DBIO.sequence(episodeInserts),
               updateTagsForDotable(podcastId, podcast.tags),
-              podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
-                podcastId,
-                itunesId,
-                podcast.feedUrl,
-                podcast.feedEtag,
-                podcast.dataHash,
-                nextIngestionTime = LocalDateTime.now().plusHours(1))
+              podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(podcastId,
+                                                                     itunesId,
+                                                                     podcast.feedUrl,
+                                                                     podcast.feedEtag,
+                                                                     podcast.dataHash,
+                                                                     reingestWaitMinutes =
+                                                                       waitMinutes)
             )
             .withStatementParameters(statementInit = _.setQueryTimeout(30)))
         .map(_ => podcastId)
@@ -243,6 +248,8 @@ class DotableService @Inject()(db: BasicBackend#Database,
           .filter(_._1.isDefined)
           .map(pair => pair._1.get -> pair._2)
 
+        val waitMinutes = calcIngestionWaitMinutes(podcast)
+
         val episodeInserts = newEpisodes map { episode =>
           (for {
             // new episodes and ingestion records must be part of one transaction to prevent duplicates.
@@ -261,13 +268,13 @@ class DotableService @Inject()(db: BasicBackend#Database,
             podcastFeedIngestionDbIo.updateEpisodeRecords(podcastId, existingEpisodesWithId),
             dotableDbIo.updateEpisodes(podcastId, existingEpisodesWithId),
             updateTagsForDotable(podcastId, podcast.tags),
-            podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(
-              podcastId,
-              itunesId,
-              podcast.feedUrl,
-              podcast.feedEtag,
-              podcast.dataHash,
-              nextIngestionTime = LocalDateTime.now().plusHours(1))
+            podcastFeedIngestionDbIo.updatePodcastRecordByItunesId(podcastId,
+                                                                   itunesId,
+                                                                   podcast.feedUrl,
+                                                                   podcast.feedEtag,
+                                                                   podcast.dataHash,
+                                                                   reingestWaitMinutes =
+                                                                     waitMinutes)
           )
 
         db.run(updateOperations.withStatementParameters(statementInit = _.setQueryTimeout(30)))
@@ -426,5 +433,27 @@ class DotableService @Inject()(db: BasicBackend#Database,
       val same = existingDataHash sameElements pair._2.dataHash
       !same
     } getOrElse true // always ingest new episodes
+  }
+
+  private def calcIngestionWaitMinutes(podcast: RssFetchedPodcast): Long = {
+    val lastEpisodeTime =
+      LocalDateTime.ofEpochSecond(podcast.common.updatedEpochSec, 0, ZoneOffset.UTC)
+    val now = LocalDateTime.now()
+
+    val duration = if (lastEpisodeTime.isAfter(now.minusWeeks(1))) {
+      // Less than a week old
+      Duration.ofHours(1)
+    } else if (lastEpisodeTime.isAfter(now.minusMonths(1))) {
+      // Less than a month old
+      Duration.ofHours(6)
+    } else if (lastEpisodeTime.isAfter(now.minusYears(1))) {
+      // Less than a year old
+      Duration.ofDays(1)
+    } else {
+      // Over a year old
+      Duration.ofDays(7)
+    }
+
+    duration.getSeconds / 60
   }
 }

@@ -15,4 +15,7 @@ class TaskConfig @Inject()(config: Configuration) {
     tasksEnabled && config.getOptional[Boolean](taskKey).getOrElse(false)
   }
 
+  lazy val ingestionBatchSize: Int =
+    config.get[String]("kurtome.dote.tasks.IngestPodcastsTask.batchSize").toInt
+
 }

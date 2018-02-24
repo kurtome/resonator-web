@@ -57,7 +57,7 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
                                     feedUrl: String,
                                     feedEtag: Option[String],
                                     dataHash: Array[Byte],
-                                    nextIngestionTime: LocalDateTime) = {
+                                    reingestWaitMinutes: Long) = {
     val q = for {
       row <- feedTable.filter(_.itunesId === itunesId)
     } yield
@@ -65,8 +65,15 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
        row.feedRssUrl,
        row.lastFeedEtag,
        row.lastDataHash,
+       row.reingestWaitMinutes,
        row.nextIngestionTime)
-    q.update((Some(podcastDotableId), feedUrl, feedEtag, Some(dataHash), nextIngestionTime))
+    q.update(
+      (Some(podcastDotableId),
+       feedUrl,
+       feedEtag,
+       Some(dataHash),
+       reingestWaitMinutes,
+       LocalDateTime.now().plusMinutes(reingestWaitMinutes)))
   }
 
   def updateNextIngestionTimeByItunesId(itunesId: Long, nextIngestionTime: LocalDateTime) = {

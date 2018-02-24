@@ -2,13 +2,14 @@ package kurtome.dote.server.tasks
 
 import java.net.UnknownHostException
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalUnit
 
 import akka.actor.{Actor, ActorRef, ActorSystem}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import javax.inject._
-
 import akka.dispatch.RequiresMessageQueue
 import akka.dispatch.BoundedMessageQueueSemantics
 import kurtome.dote.server.ingestion.PodcastFeedIngester
@@ -49,23 +50,25 @@ case object IngestPodcasts
 @Singleton
 class IngestPodcastsActor @Inject()(
     actorSystem: ActorSystem,
+    taskConfig: TaskConfig,
     dotableDbService: DotableService,
     podcastFeedIngester: PodcastFeedIngester)(implicit executionContext: ExecutionContext)
     extends Actor
     with RequiresMessageQueue[BoundedMessageQueueSemantics]
     with LogSupport {
 
+  private val batchSize = taskConfig.ingestionBatchSize
   private val inProgressIds = createSynchronizedSet[Long]()
 
   override def receive = {
     case IngestPodcasts =>
       debug("Starting podcast ingestion...")
 
-      val ingestFutures = dotableDbService.getNextPodcastIngestionRows(1000) flatMap {
+      val ingestFutures = dotableDbService.getNextPodcastIngestionRows(batchSize) flatMap {
         ingestionRows =>
           debug(s"Found ${ingestionRows.size} to ingest.")
 
-          if (inProgressIds.size <= 100) {
+          if (inProgressIds.size <= batchSize / 10) {
             val newRows = ingestionRows.filterNot(row => inProgressIds.contains(row.id))
 
             info(s"""
@@ -78,7 +81,7 @@ class IngestPodcastsActor @Inject()(
             Future.sequence(newRows.map(ingestPodcast))
           } else {
             info(s"Skipping new ingestion run since ${inProgressIds.size} are in progress.")
-            Future()
+            Future(Unit)
           }
       }
       // Wait for this batch of ingestion to finish before allowing another to be scheduled
@@ -109,8 +112,9 @@ class IngestPodcastsActor @Inject()(
         // Something went wrong or there was no valid podcast in the feed, set the next ingestion
         // time so this doesn't get reprocessed over and over again.
         debug(s"Setting next ingestion time for error row $row")
-        dotableDbService.updateNextIngestionTimeByItunesId(row.itunesId,
-                                                           LocalDateTime.now().plusHours(6))
+        dotableDbService.updateNextIngestionTimeByItunesId(
+          row.itunesId,
+          LocalDateTime.now().plusMinutes(row.reingestWaitMinutes))
       }
     }
   }
