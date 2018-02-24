@@ -36,14 +36,19 @@ object CopyToClipboard extends LogSupport {
 
     textArea.value = text
 
-    dom.document.body.appendChild(textArea);
+    dom.document.body.appendChild(textArea)
 
     textArea.select()
 
+    // Set a bunch of attributes to ensure this works on all browsers (iOS is finicky)
+    textArea.contentEditable = "true"
+    textArea.readOnly = false
+    textArea.setSelectionRange(0, text.length)
+
     Try {
-      val successful = dom.document.execCommand("copy");
+      val successful = dom.document.execCommand("copy")
       var msg = if (successful) "successful" else "unsuccessful"
-      debug("Copying text command was " + msg);
+      debug("Copying text command was " + msg)
     } recover {
       case t => {
         warn("Oops, unable to copy", t)
