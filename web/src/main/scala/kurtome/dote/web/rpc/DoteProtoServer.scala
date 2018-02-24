@@ -77,7 +77,9 @@ object DoteProtoServer {
 
       override def parseResponse(r: Array[Byte]) = GetFeedResponse.parseFrom(r)
     })(request) map { response =>
-      LocalCache.putObj(LocalCache.ObjectKinds.Feed, "home", response.getFeed)
+      LocalCache.putObj(LocalCache.ObjectKinds.Feed,
+                        response.getFeed.getId.toString,
+                        response.getFeed)
       val lists = response.getFeed.items.map(_.getDotableList.getList)
       lists.flatMap(_.dotables).foreach(d => LocalCache.put(includesDetails = false, dotable = d))
       response

@@ -37,55 +37,47 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService, personService
     val smilePodcasts = dotableService
       .readPersonSmileList(personRow.id, DotableKinds.Podcast, feedParams.maxItemSize) map {
       list =>
-        debug(list.size)
         toListFeedItem(s"$username's $smileEmojis Podcasts", list)
     }
 
     val smileEpisodes = dotableService
       .readPersonSmileList(personRow.id, DotableKinds.PodcastEpisode, feedParams.maxItemSize) map {
       list =>
-        debug(list.size)
         toListFeedItem(s"$username's $smileEmojis Episodes", list)
     }
 
     val laughPodcasts = dotableService
       .readPersonLaughList(personRow.id, DotableKinds.Podcast, feedParams.maxItemSize) map {
       list =>
-        debug(list.size)
         toListFeedItem(s"$username's $laughEmojis Podcasts", list)
     }
 
     val laughEpisodes = dotableService
       .readPersonLaughList(personRow.id, DotableKinds.PodcastEpisode, feedParams.maxItemSize) map {
       list =>
-        debug(list.size)
         toListFeedItem(s"$username's $laughEmojis Episodes", list)
     }
 
     val cryPodcasts = dotableService
       .readPersonCryList(personRow.id, DotableKinds.Podcast, feedParams.maxItemSize) map { list =>
-      debug(list.size)
       toListFeedItem(s"$username's $cryEmojis Podcasts", list)
     }
 
     val cryEpisodes = dotableService
       .readPersonCryList(personRow.id, DotableKinds.PodcastEpisode, feedParams.maxItemSize) map {
       list =>
-        debug(list.size)
         toListFeedItem(s"$username's $cryEmojis Episodes", list)
     }
 
     val scowlPodcasts = dotableService
       .readPersonScowlList(personRow.id, DotableKinds.Podcast, feedParams.maxItemSize) map {
       list =>
-        debug(list.size)
         toListFeedItem(s"$username's $scowlEmojis Podcasts", list)
     }
 
     val scowlEpisodes = dotableService
       .readPersonScowlList(personRow.id, DotableKinds.PodcastEpisode, feedParams.maxItemSize) map {
       list =>
-        debug(list.size)
         toListFeedItem(s"$username's $scowlEmojis Episodes", list)
     }
 
@@ -103,7 +95,7 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService, personService
 
     lists map { lists =>
       val feedItems = lists.filter(_.getDotableList.getList.dotables.nonEmpty)
-      Feed(id = Some(buildId(HomeId())), items = feedItems)
+      Feed(id = Some(feedParams.feedId), items = feedItems)
     }
   }
 }

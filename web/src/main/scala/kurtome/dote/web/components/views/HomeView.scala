@@ -1,21 +1,19 @@
 package kurtome.dote.web.components.views
 
 import kurtome.dote.proto.api.action.get_feed._
-import kurtome.dote.proto.api.feed._
+import kurtome.dote.proto.api.feed.{Feed => ApiFeed}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.HomeId
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 import kurtome.dote.web.DoteRoutes._
-import kurtome.dote.web.components.widgets.feed.FeedDotableList
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.components.lib.LazyLoad
-import kurtome.dote.web.components.materialui.Typography
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.SiteLink
+import kurtome.dote.web.components.widgets.feed.Feed
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -27,10 +25,6 @@ object HomeView extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val feedItemContainer = style(
-      marginBottom(24 px)
-    )
-
     val announcementWrapper = style(
       marginTop(24 px),
       marginBottom(24 px)
@@ -38,7 +32,7 @@ object HomeView extends LogSupport {
   }
 
   case class Props()
-  case class State(feed: Feed = Feed.defaultInstance)
+  case class State(feed: ApiFeed = ApiFeed.defaultInstance)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -58,7 +52,9 @@ object HomeView extends LogSupport {
     }
 
     def fetchHomeData() = {
-      val cachedFeed = LocalCache.getObj(ObjectKinds.Feed, "home", Feed.parseFrom)
+      val cachedFeed = LocalCache.getObj(ObjectKinds.Feed,
+                                         FeedId().withHomeId(HomeId.defaultInstance).toString,
+                                         ApiFeed.parseFrom)
       if (cachedFeed.isDefined) {
         bs.modState(_.copy(feed = cachedFeed.get)).runNow()
       }
@@ -95,20 +91,7 @@ object HomeView extends LogSupport {
           )
         ),
         Grid(item = true, xs = 12)(
-          s.feed.items.zipWithIndex map {
-            case (item, i) =>
-              <.div(
-                ^.key := s"$i${item.getDotableList.getList.title}",
-                ^.className := Styles.feedItemContainer,
-                item.kind match {
-                  case FeedItem.Kind.DOTABLE_LIST =>
-                    LazyLoad(once = true, height = 200)(
-                      FeedDotableList(item.getDotableList, key = Some(i.toString))()
-                    )
-                  case _ => <.div(^.key := i)
-                }
-              )
-          } toVdomArray
+          Feed(s.feed)()
         ),
         Grid(item = true, xs = 12)(
           Grid(container = true, justify = Grid.Justify.Center)(

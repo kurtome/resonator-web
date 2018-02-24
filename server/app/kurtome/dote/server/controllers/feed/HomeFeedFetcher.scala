@@ -134,7 +134,7 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
 
     lists map { lists =>
       val feedItems = lists.filter(_.getDotableList.getList.dotables.nonEmpty)
-      Feed(id = Some(buildId(HomeId())), items = feedItems)
+      Feed(id = Some(params.feedId), items = feedItems)
     }
   }
 }

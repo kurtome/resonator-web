@@ -1,9 +1,7 @@
 package kurtome.dote.web.components.views
 
-import kurtome.dote.proto.api.feed.Feed
-import kurtome.dote.proto.api.feed.FeedItem
+import kurtome.dote.proto.api.feed.{Feed => ApiFeed}
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.action.get_feed.GetFeedRequest
 import kurtome.dote.proto.api.feed.FeedId
@@ -14,17 +12,12 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.widgets.Announcement
-import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.button.ShareButton
-import kurtome.dote.web.components.widgets.feed.FeedDotableList
+import kurtome.dote.web.components.widgets.feed.Feed
 import kurtome.dote.web.rpc.DoteProtoServer
-import kurtome.dote.web.utils.CopyToClipboard
 import kurtome.dote.web.utils.GlobalLoadingManager
-import kurtome.dote.web.utils.GlobalNotificationManager
-import kurtome.dote.web.utils.GlobalNotificationManager.Notification
 import kurtome.dote.web.utils.LoggedInPersonManager
 import kurtome.dote.web.utils.BaseBackend
 import org.scalajs.dom
@@ -40,10 +33,6 @@ object ProfileView extends LogSupport {
     val fieldsContainer = style(
       marginLeft(SharedStyles.spacingUnit),
       marginRight(SharedStyles.spacingUnit)
-    )
-
-    val feedItemContainer = style(
-      marginBottom(SharedStyles.spacingUnit * 3)
     )
 
     val accountInfoContainer = style(
@@ -69,7 +58,7 @@ object ProfileView extends LogSupport {
   }
 
   case class Props(username: String)
-  case class State(feed: Feed = Feed.defaultInstance, following: Boolean = false)
+  case class State(feed: ApiFeed = ApiFeed.defaultInstance, following: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -180,20 +169,7 @@ object ProfileView extends LogSupport {
           )
         ),
         Grid(item = true, xs = 12)(
-          s.feed.items.zipWithIndex map {
-            case (item, i) =>
-              <.div(
-                ^.key := s"$i${item.getDotableList.getList.title}",
-                ^.className := Styles.feedItemContainer,
-                item.kind match {
-                  case FeedItem.Kind.DOTABLE_LIST =>
-                    LazyLoad(once = true, height = 200)(
-                      FeedDotableList(item.getDotableList, key = Some(i.toString))()
-                    )
-                  case _ => <.div(^.key := i)
-                }
-              )
-          } toVdomArray
+          Feed(s.feed)()
         ),
         GridItem(xs = 12)(
           GridContainer(justify = Grid.Justify.Center)(
