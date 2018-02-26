@@ -58,7 +58,7 @@ object HomeView extends LogSupport {
         .map(_.map(ApiFeed.parseFrom)) map { cachedFeed =>
         if (cachedFeed.isDefined) {
           bs modState { s: State =>
-            if (s.serverFetchComplete) {
+            if (!s.serverFetchComplete) {
               debug("using cache feed")
               s.copy(serverFetchComplete = true, feed = cachedFeed.get)
             } else {

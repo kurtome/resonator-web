@@ -81,10 +81,6 @@ object DoteProtoServer {
       LocalCacheWorkerManager.put(LocalCache.ObjectKinds.Feed,
                                   response.getFeed.getId.toString,
                                   response.getFeed)
-      val lists = response.getFeed.items.map(_.getDotableList.getList)
-      lists
-        .flatMap(_.dotables)
-        .foreach(d => LocalCacheWorkerManager.put(LocalCache.ObjectKinds.DotableShallow, d.id, d))
       response
     }
 

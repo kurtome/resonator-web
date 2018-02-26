@@ -7,6 +7,9 @@ import org.scalajs.dom.webworkers.DedicatedWorkerGlobalScope
 import scala.scalajs.js.JSConverters._
 import org.scalajs.dom.webworkers.Worker
 import com.trueaccord.scalapb.GeneratedMessage
+import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.feed.Feed
+import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import wvlet.log.LogLevel
 import wvlet.log.LogSupport
 import wvlet.log.Logger
@@ -97,6 +100,7 @@ object AsyncLocalCacheWorker extends LogSupport {
 
   @JSExport
   def main() = {
+
     DedicatedWorkerGlobalScope.self.addEventListener("message", onMessage _)
     if (LinkingInfo.productionMode) {
       Logger.setDefaultLogLevel(LogLevel.WARN)
@@ -115,7 +119,9 @@ object AsyncLocalCacheWorker extends LogSupport {
     message.cmd match {
       case "put" => {
         val put = message.asInstanceOf[PutCommand]
-        LocalCache.putObj(LocalCache.ObjectKinds(put.kind), put.key, put.obj, put.cacheMinutes)
+        val kind = LocalCache.ObjectKinds(put.kind)
+        LocalCache.putObj(kind, put.key, put.obj, put.cacheMinutes)
+        putChildren(kind, put.obj)
       }
       case "get" => {
         val get = message.asInstanceOf[GetCommand]
@@ -130,6 +136,25 @@ object AsyncLocalCacheWorker extends LogSupport {
         }
       }
 
+    }
+  }
+
+  private def putChildren(kind: ObjectKind, parentObj: js.Array[Byte]) = {
+    kind match {
+      case ObjectKinds.Feed => {
+        Feed.parseFrom(parentObj.toArray).items foreach { item =>
+          item.getDotableList.getList.dotables foreach { child =>
+            LocalCache.putObj(ObjectKinds.DotableShallow, child.id, child.toByteArray.toJSArray)
+          }
+        }
+      }
+      case ObjectKinds.DotableDetails => {
+        Dotable.parseFrom(parentObj.toArray).getRelatives.children foreach { child =>
+          LocalCache.putObj(ObjectKinds.DotableShallow, child.id, child.toByteArray.toJSArray)
+        }
+
+      }
+      case _ => Unit // Other types don't have children
     }
   }
 

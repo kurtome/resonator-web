@@ -1,7 +1,6 @@
 package kurtome.dote.web.utils
 
 import kurtome.dote.shared.util.observer._
-import kurtome.dote.web.utils.GlobalNotificationManager.NotificationKinds
 import wvlet.log.LogSupport
 
 import scala.concurrent.Future

@@ -7,7 +7,6 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.common.ActionStatus
 import kurtome.dote.web.DoteRoutes._
-import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
@@ -60,7 +59,8 @@ object DotableDetailView extends LogSupport {
         LocalCache
           .getObj(LocalCache.ObjectKinds.DotableShallow, id)
           .map(_.map(Dotable.parseFrom)) map { cachedShallow =>
-          if (!bs.state.runNow().serverFetchComplete) {
+          val s = bs.state.runNow()
+          if (!s.serverFetchComplete && s.response.getDotable.getRelatives.childrenFetched) {
             bs.modState(
                 _.copy(requestInFlight = true,
                        requestedId = id,

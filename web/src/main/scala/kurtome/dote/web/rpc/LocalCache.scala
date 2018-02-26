@@ -39,7 +39,7 @@ object LocalCache extends LogSupport {
 
   private class CacheRecord(val expiresAtTime: Double, val value: js.Any) extends js.Object
 
-  private def cacheKey(kind: ObjectKind, key: String) = {
+  private def createCacheKey(kind: ObjectKind, key: String): String = {
     s"resonator-cache/$kind/$key"
   }
 
@@ -48,7 +48,8 @@ object LocalCache extends LogSupport {
   }
 
   def getObj(kind: ObjectKind, key: String): Future[Option[Array[Byte]]] = {
-    IdbKeyval.get(cacheKey(kind, key)).toFuture map { value =>
+    val cacheKey = createCacheKey(kind, key)
+    IdbKeyval.get(cacheKey).toFuture map { value =>
       if (value.isDefined) {
         val cacheRecord = value.get.asInstanceOf[CacheRecord]
         if (cacheRecord.expiresAtTime > Date.now()) {
@@ -67,7 +68,9 @@ object LocalCache extends LogSupport {
              obj: js.Array[Byte],
              cacheMinutes: Int = 10): Future[Unit] = {
     val expiresAtTime = Date.now() + (cacheMinutes * 60 * 1000)
-    IdbKeyval.set(cacheKey(kind, key), new CacheRecord(expiresAtTime, obj)).toFuture
+    val cacheKey = createCacheKey(kind, key)
+    val cacheRecord = new CacheRecord(expiresAtTime, obj)
+    IdbKeyval.set(cacheKey, cacheRecord).toFuture
   }
 
 }
