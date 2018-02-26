@@ -2,6 +2,7 @@ package kurtome.dote.web.rpc
 
 import java.nio.ByteBuffer
 
+import kurtome.dote.web.utils.PerfTime
 import org.scalajs.dom
 import org.scalajs.dom.ext.Ajax
 
@@ -39,7 +40,7 @@ private[rpc] object AjaxRpc {
       {
         val dataArray = xhr.response.asInstanceOf[Int8Array]
         val array = int8Array2ByteArray(dataArray)
-        action.parseResponse(array)
+        PerfTime.debugTime(s"parseResponseAsProto-${action.route}")(action.parseResponse(array))
       }
     }
 

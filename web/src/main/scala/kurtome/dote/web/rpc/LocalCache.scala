@@ -1,52 +1,33 @@
 package kurtome.dote.web.rpc
 
-import com.trueaccord.scalapb.GeneratedMessage
-import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds.ObjectKind
 import wvlet.log.LogSupport
 
+import scala.concurrent.Future
 import scala.scalajs.js
-import scala.scalajs.js.JSON
-import scala.scalajs.js.JSConverters._
-import scala.scalajs.js.annotation.{JSImport, JSName}
+import scala.scalajs.js.Date
+import scala.scalajs.js.Promise
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.scalajs.js.UndefOr.undefOr2ops
+import scala.scalajs.js.annotation.JSImport
 
 object LocalCache extends LogSupport {
 
   /**
-    * http://pieroxy.net/blog/pages/lz-string/index.html
+    * https://github.com/jakearchibald/idb-keyval
     */
-  @JSImport("lz-string/libs/lz-string.js", JSImport.Default)
+  @JSImport("idb-keyval", JSImport.Default)
   @js.native
-  object LzString extends js.Object {
+  object IdbKeyval extends js.Object {
 
-    def compressToUTF16(value: String): String = js.native
-
-    def decompressFromUTF16(value: String): String = js.native
-
-  }
-
-  /**
-    * https://github.com/pamelafox/lscache
-    */
-  @JSImport("lscache/lscache.js", JSImport.Default)
-  @js.native
-  object LsCache extends js.Object {
-
-    def set(key: String, value: String, time: js.UndefOr[Int] = js.undefined): String = js.native
-
-    def set(key: String, value: js.Dynamic): String = js.native
-    def set(key: String, value: js.Dynamic, time: Int): String = js.native
-
-    def get(key: String): String = js.native
-
-    @JSName("get")
-    def getObj(key: String): js.Dynamic = js.native
-
-    def remove(key: String): Unit = js.native
-
-    def flush(): Unit = js.native
-
-    def setBucket(bucket: String): Unit = js.native
+    /**
+      * Stored values must be supported by structured cloning.
+      */
+    def set(key: String, value: js.Any): Promise[Unit] = js.native
+    def get(key: String): Promise[js.UndefOr[js.Any]] = js.native
+    def keys(): Promise[js.Array[String]] = js.native
+    def delete(key: String): Promise[Unit] = js.native
+    def clear(): Promise[Unit] = js.native
   }
 
   object ObjectKinds extends Enumeration {
@@ -56,55 +37,37 @@ object LocalCache extends LogSupport {
     val Feed = Value("feed")
   }
 
+  private class CacheRecord(val expiresAtTime: Double, val value: js.Any) extends js.Object
+
+  private def cacheKey(kind: ObjectKind, key: String) = {
+    s"resonator-cache/$kind/$key"
+  }
+
   def flushAll(): Unit = {
-    ObjectKinds.values foreach { kind =>
-      LsCache.setBucket(kind.toString)
-      LsCache.flush()
+    IdbKeyval.clear()
+  }
+
+  def getObj(kind: ObjectKind, key: String): Future[Option[Array[Byte]]] = {
+    IdbKeyval.get(cacheKey(kind, key)).toFuture map { value =>
+      if (value.isDefined) {
+        val cacheRecord = value.get.asInstanceOf[CacheRecord]
+        if (cacheRecord.expiresAtTime > Date.now()) {
+          Some(cacheRecord.value.asInstanceOf[js.Array[Byte]].toArray)
+        } else {
+          None
+        }
+      } else {
+        None
+      }
     }
   }
 
-  def getObj[R](kind: ObjectKind, key: String, parser: (Array[Byte]) => R): Option[R] = {
-    LsCache.setBucket(kind.toString)
-    Option(LsCache.get(key)) map { compressedOut =>
-      val stringifiedBytesOut = LzString.decompressFromUTF16(compressedOut)
-      val jsArrayOut = JSON.parse(stringifiedBytesOut)
-      val bytesOut = jsArrayOut.asInstanceOf[js.Array[Byte]].toArray
-      parser(bytesOut)
-    }
+  def putObj(kind: ObjectKind,
+             key: String,
+             obj: js.Array[Byte],
+             cacheMinutes: Int = 10): Future[Unit] = {
+    val expiresAtTime = Date.now() + (cacheMinutes * 60 * 1000)
+    IdbKeyval.set(cacheKey(kind, key), new CacheRecord(expiresAtTime, obj)).toFuture
   }
 
-  def putObj(kind: ObjectKind, key: String, obj: GeneratedMessage, cacheMinutes: Int = 10): Unit = {
-    val bytes = obj.toByteArray
-    val stringifiedBytes = JSON.stringify(bytes.toJSArray)
-    val compressed = LzString.compressToUTF16(stringifiedBytes)
-
-    LsCache.setBucket(kind.toString)
-    LsCache.set(key, compressed, cacheMinutes)
-  }
-
-  def put(includesDetails: Boolean, dotable: Dotable): Unit = {
-    val kind = if (includesDetails) {
-      ObjectKinds.DotableDetails
-    } else {
-      ObjectKinds.DotableShallow
-    }
-    putObj(kind, dotable.id, dotable)
-  }
-
-  def get(includesDetails: Boolean, dotableId: String): Option[Dotable] = {
-    val kind = if (includesDetails) {
-      ObjectKinds.DotableDetails
-    } else {
-      ObjectKinds.DotableShallow
-    }
-    getObj(kind, dotableId, Dotable.parseFrom)
-  }
-
-  private def hex2bytes(hex: String): Array[Byte] = {
-    hex.sliding(2, 2).toArray.map(Integer.parseInt(_, 16).toByte)
-  }
-
-  private def bytes2hex(bytes: Array[Byte]): String = {
-    bytes.map("%02x".format(_)).mkString
-  }
 }

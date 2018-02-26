@@ -1,12 +1,12 @@
 package kurtome.dote.server.controllers
 
 import javax.inject._
-
 import com.trueaccord.scalapb.json.JsonFormat
 import kurtome.dote.server.controllers.mappers.PersonMapper
 import kurtome.dote.server.services.AuthTokenService
 import play.api.mvc._
 import views.html.helper.CSRF
+import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext
 
@@ -17,7 +17,8 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class HomeController @Inject()(cc: ControllerComponents, authTokenService: AuthTokenService)(
     implicit ec: ExecutionContext)
-    extends AbstractController(cc) {
+    extends AbstractController(cc)
+    with LogSupport {
 
   //val siteTitle = s"Pod ${cryingFace}${heartEyes}${unamusedFace}s"
   val siteTitle = s"Resonator"
@@ -48,6 +49,14 @@ class HomeController @Inject()(cc: ControllerComponents, authTokenService: AuthT
     */
   def redirectToRoot(route: String) = Action { implicit request: Request[AnyContent] =>
     Redirect("/")
+  }
+
+  def workerJs() = Action {
+    val libraryScriptUrl = findJsLibraryBundleUrl("web")
+    val appScriptUrl = findJsAppBundleUrl("web")
+    Ok(
+      kurtome.dote.server.views.js.worker(libraryScriptUrl.replace("\\", ""), appScriptUrl)
+    )
   }
 
   /**

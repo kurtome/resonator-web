@@ -50,7 +50,7 @@ object DoteProtoServer {
       override def parseResponse(r: Array[Byte]) = GetDotableDetailsResponse.parseFrom(r)
     })(request) map { response =>
       response.dotable foreach { dotable =>
-        LocalCache.put(includesDetails = true, dotable = dotable)
+        LocalCacheWorkerManager.put(LocalCache.ObjectKinds.DotableDetails, dotable.id, dotable)
       }
       response
     }
@@ -64,7 +64,8 @@ object DoteProtoServer {
 
       override def parseResponse(r: Array[Byte]) = GetDotableListResponse.parseFrom(r)
     })(request) map { response =>
-      response.dotables.foreach(d => LocalCache.put(includesDetails = false, dotable = d))
+      response.dotables.foreach(d =>
+        LocalCacheWorkerManager.put(LocalCache.ObjectKinds.DotableShallow, d.id, d))
       response
     }
 
@@ -77,11 +78,13 @@ object DoteProtoServer {
 
       override def parseResponse(r: Array[Byte]) = GetFeedResponse.parseFrom(r)
     })(request) map { response =>
-      LocalCache.putObj(LocalCache.ObjectKinds.Feed,
-                        response.getFeed.getId.toString,
-                        response.getFeed)
+      LocalCacheWorkerManager.put(LocalCache.ObjectKinds.Feed,
+                                  response.getFeed.getId.toString,
+                                  response.getFeed)
       val lists = response.getFeed.items.map(_.getDotableList.getList)
-      lists.flatMap(_.dotables).foreach(d => LocalCache.put(includesDetails = false, dotable = d))
+      lists
+        .flatMap(_.dotables)
+        .foreach(d => LocalCacheWorkerManager.put(LocalCache.ObjectKinds.DotableShallow, d.id, d))
       response
     }
 
@@ -94,7 +97,8 @@ object DoteProtoServer {
 
       override def parseResponse(r: Array[Byte]) = SearchResponse.parseFrom(r)
     })(request) map { response =>
-      response.dotables.foreach(d => LocalCache.put(includesDetails = false, dotable = d))
+      response.dotables.foreach(d =>
+        LocalCacheWorkerManager.put(LocalCache.ObjectKinds.DotableShallow, d.id, d))
       response
     }
 

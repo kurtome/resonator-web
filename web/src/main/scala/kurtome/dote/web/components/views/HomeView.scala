@@ -14,6 +14,7 @@ import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.feed.Feed
+import kurtome.dote.web.rpc.LocalCacheWorkerManager
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -32,7 +33,7 @@ object HomeView extends LogSupport {
   }
 
   case class Props()
-  case class State(feed: ApiFeed = ApiFeed.defaultInstance)
+  case class State(serverFetchComplete: Boolean = false, feed: ApiFeed = ApiFeed.defaultInstance)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -52,11 +53,20 @@ object HomeView extends LogSupport {
     }
 
     def fetchHomeData() = {
-      val cachedFeed = LocalCache.getObj(ObjectKinds.Feed,
-                                         FeedId().withHomeId(HomeId.defaultInstance).toString,
-                                         ApiFeed.parseFrom)
-      if (cachedFeed.isDefined) {
-        bs.modState(_.copy(feed = cachedFeed.get)).runNow()
+      LocalCacheWorkerManager
+        .get(ObjectKinds.Feed, FeedId().withHomeId(HomeId.defaultInstance).toString)
+        .map(_.map(ApiFeed.parseFrom)) map { cachedFeed =>
+        if (cachedFeed.isDefined) {
+          bs modState { s: State =>
+            if (s.serverFetchComplete) {
+              debug("using cache feed")
+              s.copy(serverFetchComplete = true, feed = cachedFeed.get)
+            } else {
+              debug("ignoring cached feed, already got server feed")
+              s
+            }
+          } runNow ()
+        }
       }
 
       // get the latest data as well, in case it has changed
@@ -64,7 +74,7 @@ object HomeView extends LogSupport {
         maxItems = 20,
         maxItemSize = 10,
         id = Some(FeedId().withHomeId(HomeId())))) map { response =>
-        bs.modState(_.copy(feed = response.getFeed)).runNow()
+        bs.modState(_.copy(serverFetchComplete = true, feed = response.getFeed)).runNow()
       }
       GlobalLoadingManager.addLoadingFuture(f)
     }

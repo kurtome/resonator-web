@@ -3,8 +3,11 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
-# An example controller showing a sample home page
+# Load the main html page for the single page app
 GET     /                               kurtome.dote.server.controllers.HomeController.index
+
+# Load the javascript file for the web worker
+GET     /worker.js                      kurtome.dote.server.controllers.HomeController.workerJs()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.versioned(path="/public", file: Asset)

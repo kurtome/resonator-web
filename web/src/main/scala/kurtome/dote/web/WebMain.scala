@@ -5,24 +5,25 @@ import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom
 import CssSettings._
 import kurtome.dote.web.constants.MuiTheme
+import kurtome.dote.web.rpc.LocalCacheWorkerManager
 import org.scalajs.dom.html.Meta
 import wvlet.log._
 
 import scala.scalajs.LinkingInfo
+import scala.scalajs.js.annotation.JSExport
+import scala.scalajs.js.annotation.JSExportTopLevel
 
+@JSExportTopLevel("WebMain")
 object WebMain extends LogSupport {
-
-  val Hello =
-    ScalaComponent
-      .builder[String]("Hello")
-      .render_P(name => <.div("Hello there ", name))
-      .build
 
   private var rootNode: dom.Element = null
 
   def getRootNode = rootNode
 
-  def main(args: Array[String]): Unit = {
+  @JSExport
+  def main(): Unit = {
+    LocalCacheWorkerManager.initWorker()
+
     Logger.setDefaultHandler(new JSConsoleLogHandler())
     if (LinkingInfo.productionMode) {
       Logger.setDefaultLogLevel(LogLevel.WARN)

@@ -34,7 +34,7 @@ object GlobalLoadingManager extends LogSupport {
 
     f recover {
       case t =>
-        debug("async future, something went wrong", t)
+        debug(s"async future, something went wrong. ${t.getClass.getSimpleName}: ${t.getMessage}")
         if (displayError) {
           GlobalNotificationManager.displayError(errorMessage)
         }

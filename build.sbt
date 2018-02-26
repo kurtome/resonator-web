@@ -86,12 +86,13 @@ lazy val web = (project in webBaseDir)
   .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
   .settings(
     scalaVersion := scalaV,
+    scalacOptions ++= Seq("-P:scalajs:sjsDefinedByDefault"),
     // https://scalacenter.github.io/scalajs-bundler/reference.html#bundling-mode-library-only
     webpackBundlingMode := BundlingMode.LibraryOnly(),
     webpackConfigFile in fastOptJS := Some(baseDirectory.value / "dev.webpack.config.js"),
     webpackConfigFile in fullOptJS := Some(baseDirectory.value / "prod.webpack.config.js"),
-    // This is an application with a main method
-    scalaJSUseMainModuleInitializer := true,
+    // Don't automatically call the main method.
+    scalaJSUseMainModuleInitializer := false,
     // Scala libraries that are Scalajs compatible
     libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-dom" % "0.9.2",
@@ -112,10 +113,9 @@ lazy val web = (project in webBaseDir)
       "react" -> "15.6.1",
       "react-autosuggest" -> "9.3.2",
       "react-dom" -> "15.6.1",
-      "lscache" -> "1.1.0",
-      "lz-string" -> "1.4.4",
       "howler" -> "2.0.5",
       "sanitize-html" -> "1.15.0",
+      "idb-keyval" -> "2.3.0",
       "siriwavejs" -> "2.0.2",
       "material-ui" -> "next", // Using "next" to use the 1.0 release while its in beta
       "material-ui-icons" -> "1.0.0-beta.15",

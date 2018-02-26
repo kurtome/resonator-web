@@ -29,6 +29,7 @@ object DotableDetailView extends LogSupport {
 
   case class State(response: GetDotableDetailsResponse = GetDotableDetailsResponse.defaultInstance,
                    requestedId: String = "",
+                   serverFetchComplete: Boolean = false,
                    requestInFlight: Boolean = false)
 
   class Backend(val bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -39,32 +40,42 @@ object DotableDetailView extends LogSupport {
 
       if (s.requestedId != id) {
         val request = GetDotableDetailsRequest(id)
-        val cachedDetails: Option[Dotable] = LocalCache.get(includesDetails = true, id)
+        LocalCache
+          .getObj(LocalCache.ObjectKinds.DotableDetails, id)
+          .map(_.map(Dotable.parseFrom)) map { cachedDetails =>
+          if (!bs.state.runNow().serverFetchComplete) {
+            if (cachedDetails.isDefined) {
+              // Use cached
+              bs.modState(
+                  _.copy(
+                    response = GetDotableDetailsResponse(responseStatus =
+                                                           Some(ActionStatus(success = true)),
+                                                         dotable = cachedDetails)))
+                .runNow()
+            }
+          }
+        }
 
-        if (cachedDetails.isDefined) {
-          // Use cached
-          bs.modState(
-              _.copy(
-                response = GetDotableDetailsResponse(responseStatus =
-                                                       Some(ActionStatus(success = true)),
-                                                     dotable = cachedDetails)))
-            .runNow()
-        } else {
-          // Clear the rendered data while the until the new data is requested
-          bs.modState(_.copy(response = GetDotableDetailsResponse.defaultInstance)).runNow()
+        // Use shallow cached copy if available
+        LocalCache
+          .getObj(LocalCache.ObjectKinds.DotableShallow, id)
+          .map(_.map(Dotable.parseFrom)) map { cachedShallow =>
+          if (!bs.state.runNow().serverFetchComplete) {
+            bs.modState(
+                _.copy(requestInFlight = true,
+                       requestedId = id,
+                       response = GetDotableDetailsResponse(responseStatus =
+                                                              Some(ActionStatus(success = true)),
+                                                            cachedShallow)))
+              .runNow()
+          }
         }
 
         // Request from server regardless, to get latest
-        val cachedShallow: Option[Dotable] = LocalCache.get(includesDetails = false, id)
-        bs.modState(
-            _.copy(requestInFlight = true,
-                   requestedId = id,
-                   response = GetDotableDetailsResponse(responseStatus =
-                                                          Some(ActionStatus(success = true)),
-                                                        cachedShallow)))
-          .runNow()
         val f = DoteProtoServer.getDotableDetails(request) flatMap { response =>
-          bs.modState(_.copy(response = response, requestInFlight = false)).toFuture
+          bs.modState(
+              _.copy(response = response, serverFetchComplete = true, requestInFlight = false))
+            .toFuture
         }
         GlobalLoadingManager.addLoadingFuture(f)
       }
