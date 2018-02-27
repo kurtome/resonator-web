@@ -10,12 +10,12 @@ import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.constants.MuiTheme
-
 import scalacss.internal.mutable.StyleSheet
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.constants.MuiTheme.Theme
 import kurtome.dote.web.utils.BaseBackend
+import org.scalajs.dom
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
@@ -89,7 +89,8 @@ object ContentFrame extends LogSupport {
     }
 
     val paddingPx = 32
-    Math.round(WebMain.getRootNode.clientWidth * usableRatio).toInt - paddingPx
+
+    Math.round(WebMain.getRootNode.scrollWidth * usableRatio).toInt - paddingPx
   }
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {

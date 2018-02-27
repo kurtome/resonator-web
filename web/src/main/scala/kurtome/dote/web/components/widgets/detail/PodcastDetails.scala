@@ -63,7 +63,7 @@ object PodcastDetails {
   }
 
   case class Props(dotable: Dotable)
-  case class State(availableWidth: Int)
+  case class State(availableWidth: Int = 1000)
 
   private case class ExtractedFields(title: String = "",
                                      subtitle: String = "",
@@ -103,26 +103,25 @@ object PodcastDetails {
           title = common.title,
           subtitle = epochSecToDate(common.publishedEpochSec),
           summary = common.description
-          //Seq(DetailField("Duration", durationSecToMin(episodeDetails.durationSec)))
         )
       case _ => ExtractedFields()
     }
   }
 
-  class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
+  class Backend(val bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val updateTileSize: Callback = {
+    val calculateAvailableWidth: Callback = {
       bs.modState(_.copy(availableWidth = ContentFrame.innerWidthPx))
     }
 
     val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
       (e: js.Dynamic) =>
-        updateTileSize.runNow()
+        calculateAvailableWidth.runNow()
     }
-    dom.window.addEventListener("resize", resizeListener)
+    dom.window.document.body.addEventListener("resize", resizeListener)
 
     val handleWillUnmount: Callback = Callback {
-      dom.window.removeEventListener("resize", resizeListener)
+      dom.window.document.body.removeEventListener("resize", resizeListener)
     }
 
     def render(p: Props, s: State): VdomElement = {
@@ -218,9 +217,10 @@ object PodcastDetails {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State(availableWidth = ContentFrame.innerWidthPx))
+    .initialState(State())
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
+    .componentDidMount(x => x.backend.calculateAvailableWidth)
     .componentWillUnmount(x => x.backend.handleWillUnmount)
     .build
 
