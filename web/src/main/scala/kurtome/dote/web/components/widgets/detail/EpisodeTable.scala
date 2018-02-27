@@ -106,42 +106,14 @@ object EpisodeTable {
                   Typography(variant = Typography.Variants.SubHeading)("Episodes")))
               ),
               TableBody()(
-                (episodePage.zipWithIndex map {
-                  case (episode, i) =>
-                    val id = episode.id
-                    val key: String = if (id.isEmpty) i.toString else id
-                    val slug = episode.slug
-                    val detailRoute = DetailsRoute(id = id, slug = slug)
-                    val durationInfo =
-                      durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
-                    val releaseDate = epochSecToDate(episode.getCommon.publishedEpochSec)
-                    val summaryInfo =
-                      if (durationInfo.nonEmpty && releaseDate.nonEmpty) {
-                        s"$durationInfo ($releaseDate)"
-                      } else if (durationInfo.nonEmpty) {
-                        durationInfo
-                      } else {
-                        releaseDate
-                      }
-
-                    TableRow(key = Some(key))(
-                      TableCell(style = Styles.tableCell)(
-                        <.div(
-                          ^.position := "relative",
-                          ^.height := "2.5em",
-                          <.div(
-                            ^.position := "absolute",
-                            ^.maxWidth := "100%",
-                            Typography(variant = Typography.Variants.Body1,
-                                       style = Styles.truncateText)(
-                              SiteLink(detailRoute)(episode.getCommon.title)),
-                            Typography(variant = Typography.Variants.Caption,
-                                       style = Styles.truncateText)(summaryInfo)
-                          )
-                        )
-                      )
-                    )
-                }).toVdomArray
+                if (p.dotable.getRelatives.childrenFetched) {
+                  renderEpisodeRows(episodePage)
+                } else {
+                  GridContainer(justify = Grid.Justify.Center)(
+                    GridItem()(
+                      CircularProgress(variant = CircularProgress.Variant.Indeterminate)())
+                  )
+                }
               ),
               TableFooter()(
                 TableRow()(
@@ -173,6 +145,44 @@ object EpisodeTable {
         )
       )
 
+    }
+
+    private def renderEpisodeRows(episodePage: Seq[Dotable]) = {
+      (episodePage.zipWithIndex map {
+        case (episode, i) =>
+          val id = episode.id
+          val key: String = if (id.isEmpty) i.toString else id
+          val slug = episode.slug
+          val detailRoute = DetailsRoute(id = id, slug = slug)
+          val durationInfo =
+            durationSecToMin(episode.getDetails.getPodcastEpisode.durationSec)
+          val releaseDate = epochSecToDate(episode.getCommon.publishedEpochSec)
+          val summaryInfo =
+            if (durationInfo.nonEmpty && releaseDate.nonEmpty) {
+              s"$durationInfo ($releaseDate)"
+            } else if (durationInfo.nonEmpty) {
+              durationInfo
+            } else {
+              releaseDate
+            }
+
+          TableRow(key = Some(key))(
+            TableCell(style = Styles.tableCell)(
+              <.div(
+                ^.position := "relative",
+                ^.height := "2.5em",
+                <.div(
+                  ^.position := "absolute",
+                  ^.maxWidth := "100%",
+                  Typography(variant = Typography.Variants.Body1, style = Styles.truncateText)(
+                    SiteLink(detailRoute)(episode.getCommon.title)),
+                  Typography(variant = Typography.Variants.Caption, style = Styles.truncateText)(
+                    summaryInfo)
+                )
+              )
+            )
+          )
+      }).toVdomArray
     }
   }
 

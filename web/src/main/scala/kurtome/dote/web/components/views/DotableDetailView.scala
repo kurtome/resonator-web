@@ -91,7 +91,12 @@ object DotableDetailView extends LogSupport {
               case Kind.PODCAST => PodcastDetails(PodcastDetails.Props(dotable))()
               case Kind.PODCAST_EPISODE =>
                 EpisodeDetails(EpisodeDetails.Props(dotable))()
-              case _ => <.div()
+              case _ => {
+                // Waiting for data
+                GridContainer(justify = Grid.Justify.Center)(
+                  GridItem()(CircularProgress(variant = CircularProgress.Variant.Indeterminate)())
+                )
+              }
             }
           )
         )

@@ -331,7 +331,9 @@ class DotableService @Inject()(db: BasicBackend#Database,
     val op = for {
       podcast <- dotableDbIo.readHeadById(DotableKinds.Podcast, id)
       episodes <- dotableDbIo.readByParentId(DotableKinds.PodcastEpisode, id)
-    } yield podcast.map(_.update(_.relatives.children := episodes))
+    } yield
+      podcast.map(
+        _.update(_.relatives := Dotable.Relatives(children = episodes, childrenFetched = true)))
     db.run(op)
   }
 
@@ -342,8 +344,9 @@ class DotableService @Inject()(db: BasicBackend#Database,
       parentOpt <- dotableDbIo.readByChildId(DotableKinds.Podcast, id)
     } yield
       dotableOpt.map(
-        _.update(_.relatives.children := children)
-          .update(_.relatives.parent := parentOpt.getOrElse(Dotable.defaultInstance)))
+        _.update(_.relatives := Dotable
+          .Relatives(parent = parentOpt, children = children, childrenFetched = true)))
+
     db.run(op)
   }
 

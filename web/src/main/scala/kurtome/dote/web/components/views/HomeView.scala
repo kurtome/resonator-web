@@ -57,10 +57,7 @@ object HomeView extends LogSupport {
         .getObj(ObjectKinds.Feed, FeedId().withHomeId(HomeId.defaultInstance).toString)
         .map(_.map(ApiFeed.parseFrom)) map { cachedFeed =>
         if (cachedFeed.isDefined) {
-          bs.modState(
-              _.copy(feed = cachedFeed.get.copy(items = cachedFeed.get.items.drop(3)))
-            )
-            .runNow()
+          bs.modState(_.copy(feed = cachedFeed.get)).runNow()
         }
 
         // get the latest data as well, in case it has changed
