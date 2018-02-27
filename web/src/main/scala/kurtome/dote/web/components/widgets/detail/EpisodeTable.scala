@@ -109,7 +109,7 @@ object EpisodeTable {
                 if (p.dotable.getRelatives.childrenFetched) {
                   renderEpisodeRows(episodePage)
                 } else {
-                  GridContainer(justify = Grid.Justify.Center)(
+                  GridContainer(spacing = 24, justify = Grid.Justify.Center)(
                     GridItem()(
                       CircularProgress(variant = CircularProgress.Variant.Indeterminate)())
                   )

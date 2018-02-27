@@ -3,10 +3,8 @@ package kurtome.dote.web.components.widgets.detail
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.db.dotable.ExternalUrls
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.lib.LazyLoad
@@ -20,7 +18,6 @@ import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
 import kurtome.dote.web.components.widgets.{ContentFrame, PodcastTile}
 import kurtome.dote.web.utils.{BaseBackend, Debounce}
 import org.scalajs.dom
-import wvlet.log.LogSupport
 
 import scala.scalajs.js
 import scalacss.internal.mutable.StyleSheet
@@ -63,7 +60,7 @@ object PodcastDetails {
   }
 
   case class Props(dotable: Dotable)
-  case class State(availableWidth: Int = 1000)
+  case class State(availableWidth: Int = 200)
 
   private case class ExtractedFields(title: String = "",
                                      subtitle: String = "",
@@ -110,21 +107,27 @@ object PodcastDetails {
 
   class Backend(val bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val calculateAvailableWidth: Callback = {
-      bs.modState(_.copy(availableWidth = ContentFrame.innerWidthPx))
+    val calculateAvailableWidth = (s: State) =>
+      Callback {
+        if (s.availableWidth != ContentFrame.innerWidthPx) {
+          bs.modState(_.copy(availableWidth = ContentFrame.innerWidthPx)).runNow()
+        }
     }
 
     val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
       (e: js.Dynamic) =>
-        calculateAvailableWidth.runNow()
+        calculateAvailableWidth(bs.state.runNow()).runNow()
     }
-    dom.window.document.body.addEventListener("resize", resizeListener)
+    dom.window.addEventListener("resize", resizeListener)
 
     val handleWillUnmount: Callback = Callback {
-      dom.window.document.body.removeEventListener("resize", resizeListener)
+      dom.window.removeEventListener("resize", resizeListener)
     }
 
     def render(p: Props, s: State): VdomElement = {
+      // Force a re-render if the width needs to be updated
+      calculateAvailableWidth(s)
+
       val fields = extractFields(p.dotable)
       val podcastDetails = p.dotable.getDetails.getPodcast
       val detailFields =
@@ -220,7 +223,7 @@ object PodcastDetails {
     .initialState(State())
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
-    .componentDidMount(x => x.backend.calculateAvailableWidth)
+    .componentDidMount(x => x.backend.calculateAvailableWidth(x.state))
     .componentWillUnmount(x => x.backend.handleWillUnmount)
     .build
 

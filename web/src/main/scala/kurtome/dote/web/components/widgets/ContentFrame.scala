@@ -90,7 +90,8 @@ object ContentFrame extends LogSupport {
 
     val paddingPx = 32
 
-    Math.round(WebMain.getRootNode.scrollWidth * usableRatio).toInt - paddingPx
+//    Math.round(WebMain.getRootNode.scrollWidth * usableRatio).toInt - paddingPx
+    Math.round(dom.window.document.body.offsetWidth * usableRatio).toInt - paddingPx
   }
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {

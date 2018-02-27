@@ -1,10 +1,9 @@
 package kurtome.dote.server.controllers.feed
-import kurtome.dote.proto.api.feed.{Feed, FeedId}
+import kurtome.dote.proto.api.feed.Feed
 
 import scala.concurrent.{ExecutionContext, Future}
 import javax.inject._
 
-import kurtome.dote.proto.api.feed.FeedId.HomeId
 import kurtome.dote.server.model.{MetadataFlag, TagId}
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.slick.db.{DotableKinds, TagKinds}
