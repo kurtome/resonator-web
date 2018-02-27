@@ -1,6 +1,7 @@
 package kurtome.dote.web.rpc
 
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds.ObjectKind
+import kurtome.dote.web.utils.PerfTime
 import wvlet.log.LogSupport
 
 import scala.concurrent.Future
@@ -32,8 +33,8 @@ object LocalCache extends LogSupport {
 
   object ObjectKinds extends Enumeration {
     type ObjectKind = Value
-    val DotableShallow = Value("dotable-details")
-    val DotableDetails = Value("dotable-shallow")
+    val DotableShallow = Value("dotable-shallow")
+    val DotableDetails = Value("dotable-details")
     val Feed = Value("feed")
   }
 
@@ -53,7 +54,8 @@ object LocalCache extends LogSupport {
       if (value.isDefined) {
         val cacheRecord = value.get.asInstanceOf[CacheRecord]
         if (cacheRecord.expiresAtTime > Date.now()) {
-          Some(cacheRecord.value.asInstanceOf[js.Array[Byte]].toArray)
+          val bytes = cacheRecord.value.asInstanceOf[js.Array[Byte]].toArray
+          Some(bytes)
         } else {
           None
         }

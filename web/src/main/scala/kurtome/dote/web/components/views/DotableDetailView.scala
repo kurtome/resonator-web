@@ -28,7 +28,6 @@ object DotableDetailView extends LogSupport {
 
   case class State(response: GetDotableDetailsResponse = GetDotableDetailsResponse.defaultInstance,
                    requestedId: String = "",
-                   serverFetchComplete: Boolean = false,
                    requestInFlight: Boolean = false)
 
   class Backend(val bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -38,47 +37,49 @@ object DotableDetailView extends LogSupport {
       val id = p.route.id
 
       if (s.requestedId != id) {
-        val request = GetDotableDetailsRequest(id)
         LocalCache
           .getObj(LocalCache.ObjectKinds.DotableDetails, id)
           .map(_.map(Dotable.parseFrom)) map { cachedDetails =>
-          if (!bs.state.runNow().serverFetchComplete) {
-            if (cachedDetails.isDefined) {
-              // Use cached
-              bs.modState(
-                  _.copy(
-                    response = GetDotableDetailsResponse(responseStatus =
-                                                           Some(ActionStatus(success = true)),
-                                                         dotable = cachedDetails)))
-                .runNow()
+          if (cachedDetails.isDefined) {
+            // Use cached
+            bs.modState(
+                _.copy(
+                  response = GetDotableDetailsResponse(responseStatus =
+                                                         Some(ActionStatus(success = true)),
+                                                       dotable = cachedDetails)))
+              .runNow()
+            fetchFromServer(p)
+          } else {
+            // Use shallow cached copy if available
+            LocalCache
+              .getObj(LocalCache.ObjectKinds.DotableShallow, id)
+              .map(_.map(Dotable.parseFrom)) map { cachedShallow =>
+              val s = bs.state.runNow()
+              if (cachedShallow.isDefined) {
+                bs.modState(
+                    _.copy(requestInFlight = true,
+                           requestedId = id,
+                           response = GetDotableDetailsResponse(
+                             responseStatus = Some(ActionStatus(success = true)),
+                             cachedShallow)))
+                  .runNow()
+              }
+
+              // Request from server regardless, to get latest
+              fetchFromServer(p)
             }
           }
         }
 
-        // Use shallow cached copy if available
-        LocalCache
-          .getObj(LocalCache.ObjectKinds.DotableShallow, id)
-          .map(_.map(Dotable.parseFrom)) map { cachedShallow =>
-          val s = bs.state.runNow()
-          if (!s.serverFetchComplete && s.response.getDotable.getRelatives.childrenFetched) {
-            bs.modState(
-                _.copy(requestInFlight = true,
-                       requestedId = id,
-                       response = GetDotableDetailsResponse(responseStatus =
-                                                              Some(ActionStatus(success = true)),
-                                                            cachedShallow)))
-              .runNow()
-          }
-        }
-
-        // Request from server regardless, to get latest
-        val f = DoteProtoServer.getDotableDetails(request) flatMap { response =>
-          bs.modState(
-              _.copy(response = response, serverFetchComplete = true, requestInFlight = false))
-            .toFuture
-        }
-        GlobalLoadingManager.addLoadingFuture(f)
       }
+    }
+
+    def fetchFromServer(p: Props): Unit = {
+      val request = GetDotableDetailsRequest(p.route.id)
+      val f = DoteProtoServer.getDotableDetails(request) flatMap { response =>
+        bs.modState(_.copy(response = response, requestInFlight = false)).toFuture
+      }
+      GlobalLoadingManager.addLoadingFuture(f)
     }
 
     def render(p: Props, s: State): VdomElement = {

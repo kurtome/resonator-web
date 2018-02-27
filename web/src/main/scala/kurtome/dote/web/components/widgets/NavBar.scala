@@ -60,10 +60,11 @@ object NavBar extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
+    var recalcCollapseTimerId: Option[Int] = None
+
     val loadingObserver: Observer[GlobalLoadingManager.State] =
       (gs: GlobalLoadingManager.State) => {
         bs.modState(_.copy(isLoading = gs.isLoading)).runNow()
-        bs.forceUpdate.runNow()
       }
 
     GlobalLoadingManager.stateObservable.addObserver(loadingObserver)
@@ -122,8 +123,6 @@ object NavBar extends LogSupport {
       // recalculate in 5 seconds, so scroll up will only last 2.5 seconds
       recalcCollapseTimerId = Some(dom.window.setTimeout(() => updateIsCollapsed(), 2500))
     }
-
-    var recalcCollapseTimerId: Option[Int] = None
 
     val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 100) {
       (e: js.Dynamic) =>
@@ -195,7 +194,7 @@ object NavBar extends LogSupport {
               loggedInPerson = LoggedInPersonManager.person))
     .backend(new Backend(_))
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
-    .componentWillMount(x => x.backend.onMount)
+    .componentDidMount(x => x.backend.onMount)
     .componentWillUnmount(x => x.backend.onUnmount)
     .build
 

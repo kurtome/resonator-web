@@ -31,6 +31,7 @@ object Feed extends LogSupport {
   class Backend(val bs: BackendScope[Props, Unit]) extends BaseBackend(Styles) {
 
     def render(p: Props): VdomElement = {
+      debug(s"rendering with ${p.feed.items.length} items")
 
       if (p.feed.items.isEmpty) {
         GridContainer(justify = Grid.Justify.Center)(
@@ -48,7 +49,7 @@ object Feed extends LogSupport {
                 item.kind match {
                   case FeedItem.Kind.DOTABLE_LIST =>
                     LazyLoad(once = true,
-                             height = 200,
+                             height = 400,
                              key = Some(s"$i${item.getDotableList.getList.title}"))(
                       FeedDotableList(item.getDotableList, key = Some(i.toString))()
                     )

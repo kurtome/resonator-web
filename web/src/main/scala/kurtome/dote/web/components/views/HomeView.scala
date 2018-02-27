@@ -33,7 +33,7 @@ object HomeView extends LogSupport {
   }
 
   case class Props()
-  case class State(serverFetchComplete: Boolean = false, feed: ApiFeed = ApiFeed.defaultInstance)
+  case class State(feed: ApiFeed = ApiFeed.defaultInstance)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -53,30 +53,26 @@ object HomeView extends LogSupport {
     }
 
     def fetchHomeData() = {
-      LocalCacheWorkerManager
-        .get(ObjectKinds.Feed, FeedId().withHomeId(HomeId.defaultInstance).toString)
+      LocalCache
+        .getObj(ObjectKinds.Feed, FeedId().withHomeId(HomeId.defaultInstance).toString)
         .map(_.map(ApiFeed.parseFrom)) map { cachedFeed =>
         if (cachedFeed.isDefined) {
-          bs modState { s: State =>
-            if (!s.serverFetchComplete) {
-              debug("using cache feed")
-              s.copy(serverFetchComplete = true, feed = cachedFeed.get)
-            } else {
-              debug("ignoring cached feed, already got server feed")
-              s
-            }
-          } runNow ()
+          bs.modState(
+              _.copy(feed = cachedFeed.get.copy(items = cachedFeed.get.items.drop(3)))
+            )
+            .runNow()
         }
+
+        // get the latest data as well, in case it has changed
+        val f = DoteProtoServer.getFeed(
+          GetFeedRequest(maxItems = 20,
+                         maxItemSize = 10,
+                         id = Some(FeedId().withHomeId(HomeId())))) map { response =>
+          bs.modState(_.copy(feed = response.getFeed)).runNow()
+        }
+        GlobalLoadingManager.addLoadingFuture(f)
       }
 
-      // get the latest data as well, in case it has changed
-      val f = DoteProtoServer.getFeed(GetFeedRequest(
-        maxItems = 20,
-        maxItemSize = 10,
-        id = Some(FeedId().withHomeId(HomeId())))) map { response =>
-        bs.modState(_.copy(serverFetchComplete = true, feed = response.getFeed)).runNow()
-      }
-      GlobalLoadingManager.addLoadingFuture(f)
     }
 
     def render(p: Props, s: State): VdomElement = {
@@ -101,6 +97,7 @@ object HomeView extends LogSupport {
           )
         ),
         Grid(item = true, xs = 12)(
+          <.div(s"${s.feed.items.length}"),
           Feed(s.feed)()
         ),
         Grid(item = true, xs = 12)(

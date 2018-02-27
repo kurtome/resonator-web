@@ -39,7 +39,8 @@ private[rpc] object AjaxRpc {
     ) map { xhr =>
       {
         val dataArray = xhr.response.asInstanceOf[Int8Array]
-        val array = int8Array2ByteArray(dataArray)
+        val array = PerfTime.debugTime(s"parseInt8Array2ByteArray-${action.route}")(
+          int8Array2ByteArray(dataArray))
         PerfTime.debugTime(s"parseResponseAsProto-${action.route}")(action.parseResponse(array))
       }
     }

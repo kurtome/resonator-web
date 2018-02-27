@@ -11,6 +11,7 @@ import kurtome.dote.proto.api.action.search._
 import kurtome.dote.proto.api.action.set_dote._
 import kurtome.dote.proto.api.action.set_follow._
 import kurtome.dote.web.rpc.AjaxRpc.ProtoAction
+import kurtome.dote.web.utils.PerfTime
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -78,9 +79,11 @@ object DoteProtoServer {
 
       override def parseResponse(r: Array[Byte]) = GetFeedResponse.parseFrom(r)
     })(request) map { response =>
-      LocalCacheWorkerManager.put(LocalCache.ObjectKinds.Feed,
-                                  response.getFeed.getId.toString,
-                                  response.getFeed)
+      PerfTime.debugTime("cache-feed-response")(
+        LocalCacheWorkerManager.put(LocalCache.ObjectKinds.Feed,
+                                    response.getFeed.getId.toString,
+                                    response.getFeed)
+      )
       response
     }
 
