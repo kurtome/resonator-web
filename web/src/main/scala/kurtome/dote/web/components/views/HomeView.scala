@@ -94,7 +94,6 @@ object HomeView extends LogSupport {
           )
         ),
         Grid(item = true, xs = 12)(
-          <.div(s"${s.feed.items.length}"),
           Feed(s.feed)()
         ),
         Grid(item = true, xs = 12)(
