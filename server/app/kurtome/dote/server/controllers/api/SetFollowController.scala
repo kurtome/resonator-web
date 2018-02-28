@@ -1,8 +1,9 @@
 package kurtome.dote.server.controllers.api
 
 import javax.inject._
-
 import kurtome.dote.proto.api.action.set_follow._
+import kurtome.dote.proto.api.follower.FollowerSummary
+import kurtome.dote.server.controllers.follow.FollowApiHelper
 import kurtome.dote.server.services._
 import kurtome.dote.server.util.UrlIds
 import kurtome.dote.shared.mapper.StatusMapper
@@ -20,7 +21,9 @@ import scala.concurrent._
 @Singleton
 class SetFollowController @Inject()(
     cc: ControllerComponents,
+    personService: PersonService,
     followerService: FollowerService,
+    followApiHelper: FollowApiHelper,
     authTokenService: AuthTokenService)(implicit ec: ExecutionContext)
     extends ProtobufController[SetFollowRequest, SetFollowResponse](cc) {
 
@@ -48,19 +51,24 @@ class SetFollowController @Inject()(
   }
 
   private def follow(followerId: Long, followeeId: Long): Future[SetFollowResponse] = {
-    followerService.follow(followerId, followeeId) map { status =>
-      response(status)
-    }
+    for {
+      followStatus <- followerService.follow(followerId, followeeId)
+      followeePerson <- personService.readById(followeeId)
+      summary <- followApiHelper.getSummary(followeePerson)
+    } yield response(followStatus, summary)
   }
 
   private def unfollow(followerId: Long, followeeId: Long): Future[SetFollowResponse] = {
-    followerService.unfollow(followerId, followeeId) map { status =>
-      response(status)
-    }
+    for {
+      followStatus <- followerService.unfollow(followerId, followeeId)
+      followeePerson <- personService.readById(followeeId)
+      summary <- followApiHelper.getSummary(followeePerson)
+    } yield response(followStatus, summary)
   }
 
-  private def response(status: ActionStatus) = {
-    SetFollowResponse(Some(StatusMapper.toProto(status)))
+  private def response(status: ActionStatus,
+                       summary: FollowerSummary = FollowerSummary.defaultInstance) = {
+    SetFollowResponse(Some(StatusMapper.toProto(status)), Some(summary))
   }
 
 }

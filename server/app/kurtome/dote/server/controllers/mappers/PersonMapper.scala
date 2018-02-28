@@ -7,8 +7,11 @@ import kurtome.dote.slick.db.gen.Tables
 
 object PersonMapper extends ((Tables.PersonRow) => Person) {
   override def apply(row: gen.Tables.PersonRow): Person = {
-    Person(id = UrlIds.encode(UrlIds.IdKinds.Person, row.id),
-           username = row.username,
-           email = row.email)
+    Person(
+      id = UrlIds.encode(UrlIds.IdKinds.Person, row.id),
+      username = row.username,
+      // don't leak email addresses everywhere that Person is returned to the client
+      email = ""
+    )
   }
 }

@@ -3,6 +3,7 @@ syntax = "proto3";
 package kurtome.dote.proto.api.action;
 
 import "api/common.proto";
+import "api/follower.proto";
 
 message SetFollowRequest {
   // this must match the logged in person or the request will fail
@@ -21,4 +22,6 @@ message SetFollowRequest {
 
 message SetFollowResponse {
   api.ActionStatus response_status = 1;
+  // the new summary for of the requested follow_person_id
+  api.FollowerSummary summary = 2;
 }

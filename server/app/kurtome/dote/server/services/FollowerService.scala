@@ -1,11 +1,11 @@
 package kurtome.dote.server.services
 
 import javax.inject._
-
 import kurtome.dote.server.db.FollowerDbIo
 import kurtome.dote.shared.util.result.ActionStatus
 import kurtome.dote.shared.util.result.UnknownErrorStatus
 import kurtome.dote.shared.util.result.SuccessStatus
+import kurtome.dote.slick.db.gen.Tables
 import slick.basic.BasicBackend
 
 import scala.concurrent.ExecutionContext
@@ -28,12 +28,12 @@ class FollowerService @Inject()(db: BasicBackend#Database, followerDbIo: Followe
     }
   }
 
-  def readFollowers(personId: Long): Future[Seq[Long]] = {
-    db.run(followerDbIo.readByFollowee(personId)).map(_.map(_.followerId))
+  def readFollowers(personId: Long): Future[Seq[Tables.PersonRow]] = {
+    db.run(followerDbIo.readByFollowee(personId)).map(_.map(_._2))
   }
 
-  def readFollowees(personId: Long): Future[Seq[Long]] = {
-    db.run(followerDbIo.readByFollower(personId)).map(_.map(_.followerId))
+  def readFollowees(personId: Long): Future[Seq[Tables.PersonRow]] = {
+    db.run(followerDbIo.readByFollower(personId)).map(_.map(_._2))
   }
 
 }

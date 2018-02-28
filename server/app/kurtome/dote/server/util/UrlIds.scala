@@ -38,6 +38,9 @@ object UrlIds {
     }
   }
 
+  def encodePerson(id: Long): String = encode(IdKinds.Person, id)
+  def encodeDotable(id: Long): String = encode(IdKinds.Dotable, id)
+
   def decodePerson(urlId: String): Long = decode(IdKinds.Person, urlId)
   def decodeDotable(urlId: String): Long = decode(IdKinds.Dotable, urlId)
 

@@ -6,7 +6,9 @@ import "api/follower.proto";
 import "api/common.proto";
 
 message GetFollowerSummaryRequest {
-  int64 person_id = 1;
+  // person to get the summary for, no authentication required as followers are public information
+  // (may be hidden later in a person's settings)
+  string username = 1;
 }
 
 message GetFollowerSummaryResponse {

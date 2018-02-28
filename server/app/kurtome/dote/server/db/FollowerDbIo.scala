@@ -12,14 +12,20 @@ import scala.concurrent.ExecutionContext
 class FollowerDbIo @Inject()(implicit executionContext: ExecutionContext) {
   object Queries {
     val filterByFollower = Compiled { (followerId: Rep[Long]) =>
-      Tables.Follower.filter(_.followerId === followerId)
+      for {
+        followees <- Tables.Follower.filter(_.followerId === followerId)
+        followeePeople <- Tables.Person if followeePeople.id === followees.followeeId
+      } yield (followees, followeePeople)
     }
 
     val filterByFollowee = Compiled { (followeeId: Rep[Long]) =>
-      Tables.Follower.filter(_.followeeId === followeeId)
+      for {
+        followers <- Tables.Follower.filter(_.followeeId === followeeId)
+        followerPeople <- Tables.Person if followerPeople.id === followers.followerId
+      } yield (followers, followerPeople)
     }
 
-    val delete = Compiled { (followeeId: Rep[Long], followerId: Rep[Long]) =>
+    val delete = Compiled { (followerId: Rep[Long], followeeId: Rep[Long]) =>
       Tables.Follower
         .filter(row => row.followeeId === followeeId && row.followerId === followerId)
     }

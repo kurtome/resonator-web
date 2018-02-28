@@ -7,6 +7,8 @@ import kurtome.dote.proto.api.action.get_logged_in_person._
 import kurtome.dote.proto.api.action.get_dotable._
 import kurtome.dote.proto.api.action.get_dotable_list._
 import kurtome.dote.proto.api.action.get_feed._
+import kurtome.dote.proto.api.action.get_follower_summary.GetFollowerSummaryRequest
+import kurtome.dote.proto.api.action.get_follower_summary.GetFollowerSummaryResponse
 import kurtome.dote.proto.api.action.search._
 import kurtome.dote.proto.api.action.set_dote._
 import kurtome.dote.proto.api.action.set_follow._
@@ -111,16 +113,6 @@ object DoteProtoServer {
       override def parseResponse(r: Array[Byte]) = LoginLinkResponse.parseFrom(r)
     })(request)
 
-  def getLoggedInPerson(request: GetLoggedInPersonRequest) =
-    AjaxRpc.protoRequest(new ProtoAction[GetLoggedInPersonRequest, GetLoggedInPersonResponse] {
-      override val route = "get-logged-in-person"
-
-      override def serializeRequest(r: GetLoggedInPersonRequest) =
-        GetLoggedInPersonRequest.toByteArray(r)
-
-      override def parseResponse(r: Array[Byte]) = GetLoggedInPersonResponse.parseFrom(r)
-    })(request)
-
   def setDote(request: SetDoteRequest) =
     AjaxRpc.protoRequest(new ProtoAction[SetDoteRequest, SetDoteResponse] {
       override val route = "set-dote"
@@ -129,6 +121,16 @@ object DoteProtoServer {
         SetDoteRequest.toByteArray(r)
 
       override def parseResponse(r: Array[Byte]) = SetDoteResponse.parseFrom(r)
+    })(request)
+
+  def getFollowerSummary(request: GetFollowerSummaryRequest) =
+    AjaxRpc.protoRequest(new ProtoAction[GetFollowerSummaryRequest, GetFollowerSummaryResponse] {
+      override val route = "get-follower-summary"
+
+      override def serializeRequest(r: GetFollowerSummaryRequest) =
+        GetFollowerSummaryRequest.toByteArray(r)
+
+      override def parseResponse(r: Array[Byte]) = GetFollowerSummaryResponse.parseFrom(r)
     })(request)
 
   def setFollow(request: SetFollowRequest) =

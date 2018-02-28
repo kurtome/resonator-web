@@ -20,9 +20,9 @@ POST     /api/v1/get-dotable-list       kurtome.dote.server.controllers.api.GetD
 POST     /api/v1/get-feed               kurtome.dote.server.controllers.api.GetFeedController.protoAction
 POST     /api/v1/search                 kurtome.dote.server.controllers.api.SearchController.protoAction
 POST     /api/v1/create-login-link      kurtome.dote.server.controllers.api.LoginLinkController.protoAction
-POST     /api/v1/get-logged-in-person   kurtome.dote.server.controllers.api.GetLoggedInPersonController.protoAction
 POST     /api/v1/set-dote               kurtome.dote.server.controllers.api.SetDoteController.protoAction
 POST     /api/v1/set-follow             kurtome.dote.server.controllers.api.SetFollowController.protoAction
+POST     /api/v1/get-follower-summary   kurtome.dote.server.controllers.api.GetFollowerSummaryController.protoAction
 
 GET      /logout                        kurtome.dote.server.controllers.LogoutRedirectController.logout
 GET      /lc/:email/:code               kurtome.dote.server.controllers.LoginRedirectController.login(email: String, code: String)
