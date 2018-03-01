@@ -51,6 +51,9 @@ object DoteRoutes extends LogSupport {
       val email = string(".+")
 
       (emptyRule
+
+        | staticRedirect("") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+
         | staticRedirect("/") ~> redirectToPage(HomeRoute)(Redirect.Replace)
 
         | staticRoute("/home", HomeRoute) ~> renderR(_ => HomeView()())
@@ -90,8 +93,6 @@ object DoteRoutes extends LogSupport {
             routeObservable.notifyObservers(cur)
         })
     }
-
-  debug(dom.window.location.protocol + "//" + dom.window.location.host)
 
   private val baseUrl: BaseUrl =
     BaseUrl(dom.window.location.protocol + "//" + dom.window.location.host)
