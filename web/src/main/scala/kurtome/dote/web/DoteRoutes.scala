@@ -8,8 +8,9 @@ import kurtome.dote.web.components.views._
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.views.HelloView
 import org.scalajs.dom
+import wvlet.log.LogSupport
 
-object DoteRoutes {
+object DoteRoutes extends LogSupport {
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -50,32 +51,28 @@ object DoteRoutes {
       val email = string(".+")
 
       (emptyRule
-        | staticRedirect("") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+        | staticRedirect("/") ~> redirectToPage(HomeRoute)(Redirect.Replace)
 
-        | staticRedirect("#") ~> redirectToPage(HomeRoute)(Redirect.Replace)
-
-        | staticRedirect("#/") ~> redirectToPage(HomeRoute)(Redirect.Replace)
-
-        | staticRoute("#/home", HomeRoute) ~> renderR(_ => HomeView()())
+        | staticRoute("/home", HomeRoute) ~> renderR(_ => HomeView()())
 
       // the NavBar will ensure the login dialog is shown over the home page
-        | staticRoute("#/login", LoginRoute) ~> renderR(_ => LoginView()())
+        | staticRoute("/login", LoginRoute) ~> renderR(_ => LoginView()())
 
-        | staticRoute("#/search", SearchRoute) ~> renderR(_ => SearchView()())
+        | staticRoute("/search", SearchRoute) ~> renderR(_ => SearchView()())
 
-        | staticRoute("#/add", AddRoute) ~> renderR(_ => AddPodcastView()())
+        | staticRoute("/add", AddRoute) ~> renderR(_ => AddPodcastView()())
 
-        | staticRoute("#/theme", ThemeRoute) ~> renderR(_ => ThemeView()())
+        | staticRoute("/theme", ThemeRoute) ~> renderR(_ => ThemeView()())
 
-        | dynamicRouteCT("#/details" ~ ("/" ~ id ~ "/" ~ slug)
+        | dynamicRouteCT("/details" ~ ("/" ~ id ~ "/" ~ slug)
           .caseClass[DetailsRoute]) ~> dynRenderR(
           (page: DetailsRoute, routerCtl) => DotableDetailView(page)())
 
-        | dynamicRouteCT("#/profile" ~ ("/" ~ slug)
+        | dynamicRouteCT("/profile" ~ ("/" ~ slug)
           .caseClass[ProfileRoute]) ~> dynRenderR(
           (page: ProfileRoute, routerCtl) => ProfileView(page)())
 
-        | staticRoute("#/not-found", PageNotFoundRoute) ~> render(
+        | staticRoute("/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))
         .notFound(redirectToPage(PageNotFoundRoute)(Redirect.Replace))
 
@@ -94,8 +91,10 @@ object DoteRoutes {
         })
     }
 
+  debug(dom.window.location.protocol + "//" + dom.window.location.host)
+
   private val baseUrl: BaseUrl =
-    BaseUrl(dom.window.location.href.takeWhile(_ != '#'))
+    BaseUrl(dom.window.location.protocol + "//" + dom.window.location.host)
 
   val routeObservable = new SimpleObservable[DoteRoute]
 

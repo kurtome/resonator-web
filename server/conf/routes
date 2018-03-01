@@ -4,7 +4,7 @@
 # ~~~~
 
 # Load the main html page for the single page app
-GET     /                               kurtome.dote.server.controllers.HomeController.index
+GET     /                               kurtome.dote.server.controllers.HomeController.index(route="")
 
 # Load the javascript file for the web worker
 GET     /worker.js                      kurtome.dote.server.controllers.HomeController.workerJs()
@@ -27,4 +27,5 @@ POST     /api/v1/get-follower-summary   kurtome.dote.server.controllers.api.GetF
 GET      /logout                        kurtome.dote.server.controllers.LogoutRedirectController.logout
 GET      /lc/:email/:code               kurtome.dote.server.controllers.LoginRedirectController.login(email: String, code: String)
 
-GET     /*route                         kurtome.dote.server.controllers.HomeController.redirectToRoot(route: String)
+# Same as the rest of the sigle page app
+GET     /*route                         kurtome.dote.server.controllers.HomeController.index(route)

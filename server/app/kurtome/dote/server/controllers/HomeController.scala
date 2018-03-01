@@ -29,8 +29,11 @@ class HomeController @Inject()(cc: ControllerComponents, authTokenService: AuthT
   /**
     * Serve the templated html page for the app. Contains the root react node and the scripts to
     * run the react app.
+    *
+    * @param route the current route e.g. "profile/person1", the React app will use this once
+    *              the client loads the page to render the correct view
     */
-  def index() = Action.async { implicit request: Request[AnyContent] =>
+  def index(route: String = "") = Action.async { implicit request: Request[AnyContent] =>
     authTokenService.simplifiedRead(request) map { personRow =>
       // These fields will be viewable by the current recipient of the page request, but since this
       // is for the logged in person, it's ok to include their details.
@@ -50,14 +53,6 @@ class HomeController @Inject()(cc: ControllerComponents, authTokenService: AuthT
                 findJsLibraryBundleUrl("web"),
                 findJsAppBundleUrl("web")))
     }
-  }
-
-  /**
-    * Route for ensuring random URLs go to the main client side app (which has no base route, uses
-    * # fragment routing)
-    */
-  def redirectToRoot(route: String) = Action { implicit request: Request[AnyContent] =>
-    Redirect("/")
   }
 
   /**
