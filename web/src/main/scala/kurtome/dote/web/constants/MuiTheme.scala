@@ -106,6 +106,7 @@ object MuiTheme extends LogSupport {
     val text: PaletteText = js.native
     val background: PaletteBackground = js.native
     val action: PaletteAction = js.native
+    val divider: String = js.native
   }
 
   @js.native

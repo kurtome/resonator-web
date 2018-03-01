@@ -20,6 +20,7 @@ import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.feed.Feed
+import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.GlobalLoadingManager
 import kurtome.dote.web.utils.LoggedInPersonManager
@@ -59,6 +60,13 @@ object ProfileView extends LogSupport {
 
     val announcementText = style(
       fontSize(1.5 rem)
+    )
+
+    val followCounterContainer = style(
+      display.inlineBlock,
+      borderLeft(1 px, solid, Color(MuiTheme.theme.palette.divider)),
+      paddingLeft(SharedStyles.spacingUnit * 2),
+      paddingRight(SharedStyles.spacingUnit * 2)
     )
   }
 
@@ -195,27 +203,43 @@ object ProfileView extends LogSupport {
         Grid(item = true, xs = 12)(
           Grid(container = true, justify = Grid.Justify.FlexStart, spacing = 8)(
             Grid(item = true, xs = 12)(
-              Typography(variant = Typography.Variants.Headline, style = Styles.profileHeader)(
-                s"${p.username}'s profile"),
-              <.br(),
-              if (isProfileForLoggedInPerson(p)) {
-                <.div()
-              } else {
-                GridContainer(spacing = 0)(
-                  GridItem()(FormControlLabel(
-                    control = Checkbox(checked = isFollowing(s),
-                                       name = "follow",
-                                       value = "follow",
-                                       disabled = isFollowPending(s),
-                                       onChange = handleFollowingChanged(p, s))(),
-                    label = Typography()(s"Follow ${p.username}")
-                  )()),
-                  GridItem()(
-                    Fade(in = s.setFollowInFlight)(
-                      CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
-                    ))
-                )
-              }
+              GridContainer(spacing = 0)(
+                GridItem(xs = 12)(
+                  Typography(variant = Typography.Variants.Headline, style = Styles.profileHeader)(
+                    s"${p.username}'s profile")),
+                GridItem(xs = 12)(
+                  <.div(
+                    ^.className := Styles.followCounterContainer,
+                    Typography(variant = Typography.Variants.Headline)(
+                      s.followerSummary.following.length),
+                    Typography(variant = Typography.Variants.Caption)("Following")
+                  ),
+                  <.div(
+                    ^.className := Styles.followCounterContainer,
+                    Typography(variant = Typography.Variants.Headline)(
+                      s.followerSummary.followers.length),
+                    Typography(variant = Typography.Variants.Caption)("Followers")
+                  )
+                ),
+                GridItem(xs = 12)(if (isProfileForLoggedInPerson(p)) {
+                  <.div()
+                } else {
+                  GridContainer(spacing = 0)(
+                    GridItem()(FormControlLabel(
+                      control = Checkbox(checked = isFollowing(s),
+                                         name = "follow",
+                                         value = "follow",
+                                         disabled = isFollowPending(s),
+                                         onChange = handleFollowingChanged(p, s))(),
+                      label = Typography()(s"Follow ${p.username}")
+                    )()),
+                    GridItem()(
+                      Fade(in = s.setFollowInFlight)(
+                        CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
+                      ))
+                  )
+                })
+              )
             ),
             Grid(item = true, xs = 12)(
               ),
