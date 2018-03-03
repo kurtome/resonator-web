@@ -31,6 +31,10 @@ object LoggedInPersonManager extends LogSupport {
 
   val isLoggedIn: Boolean = person.isDefined
 
+  def isLoggedInPerson(username: String): Boolean = {
+    isLoggedIn && username == person.get.username
+  }
+
   private val cookieValues = dom.document.cookie.split("; ")
   // check for the cookie written by the redirect controller
   val loginAttempted: Boolean = cookieValues.contains("LOGIN_REDIRECT=")

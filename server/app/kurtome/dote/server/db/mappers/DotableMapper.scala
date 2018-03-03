@@ -6,6 +6,7 @@ import kurtome.dote.proto.db.dotable.DotableData
 import kurtome.dote.server.util.{Slug, UrlIds}
 import kurtome.dote.server.util.UrlIds.IdKinds
 import kurtome.dote.slick.db.DotableKinds
+import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.gen.Tables
 
 object DotableMapper extends ((Tables.DotableRow, Option[Tables.DotableRow]) => Dotable) {
@@ -17,14 +18,18 @@ object DotableMapper extends ((Tables.DotableRow, Option[Tables.DotableRow]) => 
       id = UrlIds.encode(IdKinds.Dotable, row.id),
       slug = Slug.slugify(data.getCommon.title),
       relatives = parent.map(relativesFromParent),
-      kind = row.kind match {
-        case DotableKinds.Podcast => Dotable.Kind.PODCAST
-        case DotableKinds.PodcastEpisode => Dotable.Kind.PODCAST_EPISODE
-        case _ => throw new IllegalStateException("unexpected type " + kind)
-      },
+      kind = mapKind(row.kind),
       common = data.common,
       details = data.details
     )
+  }
+
+  def mapKind(rowKind: DotableKind): Dotable.Kind = {
+    rowKind match {
+      case DotableKinds.Podcast => Dotable.Kind.PODCAST
+      case DotableKinds.PodcastEpisode => Dotable.Kind.PODCAST_EPISODE
+      case _ => throw new IllegalStateException("unexpected type " + rowKind)
+    }
   }
 
   private def relativesFromParent(parent: Tables.DotableRow): Dotable.Relatives = {

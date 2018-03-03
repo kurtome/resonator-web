@@ -20,7 +20,7 @@ import wvlet.log.LogSupport
 import scala.scalajs.js
 import scalacss.ScalaCssReact._
 
-object FeedDotableList extends LogSupport {
+object DotableListFeedItem extends LogSupport {
 
   object Styles extends StyleSheet.Inline {
     import dsl._

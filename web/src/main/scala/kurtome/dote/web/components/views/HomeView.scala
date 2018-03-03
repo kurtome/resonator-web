@@ -13,7 +13,7 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.SiteLink
-import kurtome.dote.web.components.widgets.feed.Feed
+import kurtome.dote.web.components.widgets.feed.VerticalFeed
 import kurtome.dote.web.rpc.LocalCacheWorkerManager
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils._
@@ -94,7 +94,7 @@ object HomeView extends LogSupport {
           )
         ),
         Grid(item = true, xs = 12)(
-          Feed(s.feed)()
+          VerticalFeed(s.feed)()
         ),
         Grid(item = true, xs = 12)(
           Grid(container = true, justify = Grid.Justify.Center)(

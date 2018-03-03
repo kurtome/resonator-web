@@ -1,13 +1,13 @@
 package kurtome.dote.server.controllers.api
 
 import javax.inject._
-
 import kurtome.dote.proto.api.action.get_feed._
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.server.controllers.feed.FeedParams
 import kurtome.dote.server.controllers.feed.HomeFeedFetcher
 import kurtome.dote.server.controllers.feed.ProfileFeedFetcher
-import kurtome.dote.server.services.{AuthTokenService, DotableService}
+import kurtome.dote.server.services.AuthTokenService
+import kurtome.dote.server.services.DotableService
 import kurtome.dote.shared.mapper.StatusMapper
 import kurtome.dote.shared.util.result.SuccessStatus
 import play.api.mvc._
@@ -16,7 +16,7 @@ import wvlet.log.LogSupport
 import scala.concurrent._
 
 @Singleton
-class GetFeedController @Inject()(
+class GetFeedItemController @Inject()(
     cc: ControllerComponents,
     podcastDbService: DotableService,
     homeFeedFetcher: HomeFeedFetcher,

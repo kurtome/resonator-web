@@ -5,27 +5,22 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.action.get_feed.GetFeedRequest
 import kurtome.dote.proto.api.action.get_follower_summary.GetFollowerSummaryRequest
-import kurtome.dote.proto.api.action.set_follow.SetFollowRequest
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.ProfileId
 import kurtome.dote.proto.api.follower.FollowerSummary
 import kurtome.dote.proto.api.person.Person
-import kurtome.dote.shared.mapper.StatusMapper
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.button.ShareButton
-import kurtome.dote.web.components.widgets.feed.Feed
-import kurtome.dote.web.constants.MuiTheme
+import kurtome.dote.web.components.widgets.feed.VerticalFeed
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.GlobalLoadingManager
 import kurtome.dote.web.utils.LoggedInPersonManager
 import kurtome.dote.web.utils.BaseBackend
-import kurtome.dote.web.utils.GlobalNotificationManager
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
@@ -61,26 +56,16 @@ object ProfileView extends LogSupport {
     val announcementText = style(
       fontSize(1.5 rem)
     )
-
-    val followCounterContainer = style(
-      display.inlineBlock,
-      borderLeft(1 px, solid, Color(MuiTheme.theme.palette.divider)),
-      paddingLeft(SharedStyles.spacingUnit * 2),
-      paddingRight(SharedStyles.spacingUnit * 2)
-    )
   }
 
   case class Props(username: String)
-  case class State(feed: ApiFeed = ApiFeed.defaultInstance,
-                   followerSummary: FollowerSummary = FollowerSummary.defaultInstance,
-                   setFollowInFlight: Boolean = false)
+  case class State(feed: ApiFeed = ApiFeed.defaultInstance)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val handleNewProps = (p: Props) =>
       Callback {
         fetchProfileFeed(p)
-        fetchFollowerSummary(p)
     }
 
     val handleLogout = Callback {
@@ -98,48 +83,8 @@ object ProfileView extends LogSupport {
       GlobalLoadingManager.addLoadingFuture(f)
     }
 
-    private def fetchFollowerSummary(p: Props): Unit = {
-      val f = DoteProtoServer.getFollowerSummary(GetFollowerSummaryRequest(p.username)) map {
-        response =>
-          bs.modState(_.copy(followerSummary = response.getSummary)).runNow()
-      }
-      GlobalLoadingManager.addLoadingFuture(f)
-    }
-
     private def isProfileForLoggedInPerson(p: Props) = {
-      LoggedInPersonManager.isLoggedIn && p.username == LoggedInPersonManager.person.get.username
-    }
-
-    private def isFollowing(s: State): Boolean = {
-      LoggedInPersonManager.person map { loggedInPerson =>
-        s.followerSummary.followers.exists(_.id == loggedInPerson.id)
-      } getOrElse false
-    }
-
-    private def isFollowPending(s: State): Boolean = {
-      s.followerSummary.person.isEmpty || s.setFollowInFlight
-    }
-
-    private def handleFollowingChanged(p: Props, s: State)(event: ReactEventFromInput) = Callback {
-      val checked = event.target.checked
-      bs.modState(_.copy(setFollowInFlight = true)).runNow()
-      val newState =
-        if (checked) SetFollowRequest.State.FOLLOWING else SetFollowRequest.State.NOT_FOLLOWING
-      val f = DoteProtoServer.setFollow(
-        SetFollowRequest(requesterPersonId = LoggedInPersonManager.person.get.id,
-                         followPersonId = s.followerSummary.person.get.id,
-                         requestedState = newState)
-      ) map { response =>
-        if (StatusMapper.fromProto(response.getResponseStatus).isSuccess) {
-          bs.modState(_.copy(followerSummary = response.getSummary, setFollowInFlight = false))
-            .runNow()
-        } else {
-          bs.modState(_.copy(setFollowInFlight = false))
-            .runNow()
-          GlobalNotificationManager.displayError("Error occurred while following.")
-        }
-      }
-      GlobalLoadingManager.addLoadingFuture(f)
+      LoggedInPersonManager.isLoggedInPerson(p.username)
     }
 
     def renderAccountInfo(p: Props, s: State): VdomElement = {
@@ -203,57 +148,20 @@ object ProfileView extends LogSupport {
         Grid(item = true, xs = 12)(
           Grid(container = true, justify = Grid.Justify.FlexStart, spacing = 8)(
             Grid(item = true, xs = 12)(
-              GridContainer(spacing = 0)(
-                GridItem(xs = 12)(
-                  Typography(variant = Typography.Variants.Headline, style = Styles.profileHeader)(
-                    s"${p.username}'s profile")),
-                GridItem(xs = 12)(
-                  <.div(
-                    ^.className := Styles.followCounterContainer,
-                    Typography(variant = Typography.Variants.Headline)(
-                      s.followerSummary.following.length),
-                    Typography(variant = Typography.Variants.Caption)("Following")
-                  ),
-                  <.div(
-                    ^.className := Styles.followCounterContainer,
-                    Typography(variant = Typography.Variants.Headline)(
-                      s.followerSummary.followers.length),
-                    Typography(variant = Typography.Variants.Caption)("Followers")
-                  )
-                ),
-                GridItem(xs = 12)(if (isProfileForLoggedInPerson(p)) {
-                  <.div()
-                } else {
-                  GridContainer(spacing = 0)(
-                    GridItem()(FormControlLabel(
-                      control = Checkbox(checked = isFollowing(s),
-                                         name = "follow",
-                                         value = "follow",
-                                         disabled = isFollowPending(s),
-                                         onChange = handleFollowingChanged(p, s))(),
-                      label = Typography()(s"Follow ${p.username}")
-                    )()),
-                    GridItem()(
-                      Fade(in = s.setFollowInFlight)(
-                        CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
-                      ))
-                  )
-                })
-              )
+              Typography(variant = Typography.Variants.Headline, style = Styles.profileHeader)(
+                s"${p.username}'s profile")
             ),
-            Grid(item = true, xs = 12)(
-              ),
             Grid(item = true, xs = 12)(
               Announcement(size = Announcement.Sizes.Sm)(
                 "Profile pages are shareable, text it to a friend or share online.")
             ),
             Grid(item = true, xs = 12)(
               ShareButton()()
-            )
+            ),
           )
         ),
         Grid(item = true, xs = 12)(
-          Feed(s.feed)()
+          VerticalFeed(s.feed)()
         ),
         GridItem(xs = 12)(
           GridContainer(justify = Grid.Justify.Center)(

@@ -3,9 +3,19 @@ import kurtome.dote.proto.api.feed.Feed
 
 import scala.concurrent.{ExecutionContext, Future}
 import javax.inject._
-
+import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dotable_list.DotableList
+import kurtome.dote.proto.api.feed.FeedDotableList
+import kurtome.dote.proto.api.feed.FeedItem
+import kurtome.dote.proto.api.feed.FeedItemId
+import kurtome.dote.proto.api.feed.FeedItemId.TagListId
+import kurtome.dote.server.controllers.mappers.TagMapper
+import kurtome.dote.server.db.mappers.DotableMapper
+import kurtome.dote.server.model.Tag
+import kurtome.dote.server.model.TagList
 import kurtome.dote.server.model.{MetadataFlag, TagId}
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.{DotableKinds, TagKinds}
 
 @Singleton
@@ -17,7 +27,10 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
 
     val newEpisodes = dotableService
       .readRecentEpisodes(MetadataFlag.Ids.popular, listLimit) map { episodes =>
-      toListFeedItem("New Episodes", episodes)
+      toTagListFeedItem("New Episodes",
+                        Tag(MetadataFlag.Ids.popular, "New Episodes"),
+                        episodes,
+                        DotableKinds.PodcastEpisode)
     }
 
     val popularList = dotableService
@@ -135,5 +148,21 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
       val feedItems = lists.filter(_.getDotableList.getList.dotables.nonEmpty)
       Feed(id = Some(params.feedId), items = feedItems)
     }
+  }
+
+  private def toListFeedItem(tagList: TagList): FeedItem = {
+    toTagListFeedItem(tagList.tag.name, tagList.tag, tagList.list)
+  }
+
+  private def toTagListFeedItem(title: String,
+                                tag: Tag,
+                                list: Seq[Dotable],
+                                kind: DotableKind = DotableKinds.Podcast): FeedItem = {
+    val feedList = FeedDotableList(Some(DotableList(title = title, dotables = list)))
+    FeedItem()
+      .withId(
+        FeedItemId().withTagListId(
+          TagListId(tag = Some(TagMapper(tag)), dotableKind = DotableMapper.mapKind(kind))))
+      .withContent(FeedItem.Content.DotableList(feedList))
   }
 }

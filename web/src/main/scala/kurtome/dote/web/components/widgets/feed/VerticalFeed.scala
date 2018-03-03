@@ -4,7 +4,10 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.proto.api.feed.FeedItem
+import kurtome.dote.proto.api.feed.FeedItemId.FollowerSummaryId
+import kurtome.dote.proto.api.feed.FeedItemId.Id
+import kurtome.dote.proto.api.feed.FeedItemId.ProfileDoteListId
+import kurtome.dote.proto.api.feed.FeedItemId.TagListId
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.proto.api.feed.{Feed => ApiFeed}
@@ -16,7 +19,7 @@ import kurtome.dote.web.components.materialui.GridItem
 import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
 
-object Feed extends LogSupport {
+object VerticalFeed extends LogSupport {
 
   object Styles extends StyleSheet.Inline {
     import dsl._
@@ -46,12 +49,24 @@ object Feed extends LogSupport {
               <.div(
                 ^.key := s"$i${item.getDotableList.getList.title}",
                 ^.className := Styles.feedItemContainer,
-                item.kind match {
-                  case FeedItem.Kind.DOTABLE_LIST =>
+                item.getId.id match {
+                  case Id.TagListId(TagListId(id, kind)) =>
                     LazyLoad(once = true,
                              height = 400,
                              key = Some(s"$i${item.getDotableList.getList.title}"))(
-                      FeedDotableList(item.getDotableList, key = Some(i.toString))()
+                      DotableListFeedItem(item.getDotableList)()
+                    )
+                  case Id.ProfileDoteListId(ProfileDoteListId(username, listKind, dotableKind)) =>
+                    LazyLoad(once = true,
+                             height = 400,
+                             key = Some(s"$i${item.getDotableList.getList.title}"))(
+                      DotableListFeedItem(item.getDotableList)()
+                    )
+                  case Id.FollowerSummaryId(FollowerSummaryId(username)) =>
+                    LazyLoad(once = true,
+                             height = 400,
+                             key = Some(s"$i-profile-summary-$username"))(
+                      FollowerSummaryFeedItem(item.getFollowerSummary)()
                     )
                   case _ => {
                     warn("unexpected kind")

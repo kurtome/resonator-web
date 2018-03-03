@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api;
+
+import "db/dotable.proto";
+import "api/dote.proto";
+
+// Tag applicable to any dotable for filtering/categorization.
+message Tag {
+  enum Kind {
+    UNKNNOWN_TYPE = 0;
+    METADATA_FLAG = 1;
+    PODCAST_CREATOR = 2;
+    PODCAST_GENRE = 3;
+  }
+
+  message Id {
+    string id = 1;
+    Kind kind = 2;
+  }
+
+  Id id = 1;
+  string display_value = 2;
+}
+

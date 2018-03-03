@@ -3,6 +3,9 @@ syntax = "proto3";
 package kurtome.dote.proto.api;
 
 import "api/dotable_list.proto";
+import "api/dotable.proto";
+import "api/tag.proto";
+import "api/follower.proto";
 
 message Feed {
   FeedId id = 1;
@@ -16,21 +19,48 @@ message FeedId {
   }
   message HomeId {}
   message ProfileId {
-    // if this is not set, this ID represents the currently logged in user
     string username = 1;
   }
 }
 
 
 message FeedItem {
-  enum Kind {
-    UNKNOWN_ITEM_KIND = 0;
-    DOTABLE_LIST = 1;
-  }
-  Kind kind = 1;
+  FeedItemId id = 1;
 
   oneof content {
     FeedDotableList dotable_list = 2;
+    FollowerSummary follower_summary = 3;
+  }
+}
+
+message FeedItemId {
+  oneof id {
+    TagListId tag_list_id = 1;
+    FollowerSummaryId follower_summary_id = 2;
+    ProfileDoteListId profile_dote_list_id = 3;
+  }
+
+  message TagListId {
+    Tag tag = 1;
+    Dotable.Kind dotable_kind = 2;
+  }
+
+  message ProfileDoteListId {
+    string username  = 1;
+    Kind list_kind = 2;
+    Dotable.Kind dotable_kind = 3;
+
+    enum Kind {
+      UNKNOWN_KIND = 0;
+      SMILE = 1;
+      CRY = 2;
+      LAUGH = 3;
+      SCOWL = 4;
+    }
+  }
+
+  message FollowerSummaryId {
+    string username = 1;
   }
 }
 
