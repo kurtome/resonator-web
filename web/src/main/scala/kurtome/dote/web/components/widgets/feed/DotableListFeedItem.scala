@@ -51,8 +51,8 @@ object DotableListFeedItem extends LogSupport {
   )
 
   private def currentTileSizePx(p: Props): Int = {
-    p.list.list.get.dotables.head.kind match {
-      case Dotable.Kind.PODCAST_EPISODE => episodeTileSizes(currentBreakpointString)
+    p.list.list.get.dotables.headOption.map(_.kind) match {
+      case Some(Dotable.Kind.PODCAST_EPISODE) => episodeTileSizes(currentBreakpointString)
       case _ => breakpointTileSizes(currentBreakpointString)
     }
   }

@@ -141,10 +141,10 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
     for {
       lists <- feedItemsFuture
       feedItems = lists.filter(item =>
-        item.getId.id match {
-          case FeedItemId.Id.TagListId(_) => {
+        item.content match {
+          case FeedItem.Content.DotableList(listContent) => {
             // only include non-empty lists
-            item.getDotableList.getList.dotables.nonEmpty
+            listContent.getList.dotables.nonEmpty
           }
           case _ => true
       })

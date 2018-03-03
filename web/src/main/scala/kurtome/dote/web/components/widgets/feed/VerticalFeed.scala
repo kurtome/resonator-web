@@ -10,7 +10,7 @@ import kurtome.dote.proto.api.feed.FeedItemId.ProfileDoteListId
 import kurtome.dote.proto.api.feed.FeedItemId.TagListId
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.proto.api.feed.{Feed => ApiFeed}
+import kurtome.dote.proto.api.feed._
 import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.materialui.CircularProgress
 import kurtome.dote.web.components.materialui.Grid
@@ -29,14 +29,14 @@ object VerticalFeed extends LogSupport {
     )
   }
 
-  case class Props(feed: ApiFeed)
+  case class Props(feed: Feed, isLoading: Boolean)
 
   class Backend(val bs: BackendScope[Props, Unit]) extends BaseBackend(Styles) {
 
     def render(p: Props): VdomElement = {
       debug(s"rendering with ${p.feed.items.length} items")
 
-      if (p.feed.items.isEmpty) {
+      if (p.isLoading) {
         GridContainer(justify = Grid.Justify.Center)(
           GridItem()(
             CircularProgress(variant = CircularProgress.Variant.Indeterminate, size = 60f)()
@@ -52,19 +52,19 @@ object VerticalFeed extends LogSupport {
                 item.getId.id match {
                   case Id.TagListId(TagListId(id, kind)) =>
                     LazyLoad(once = true,
-                             height = 400,
+                             height = 150,
                              key = Some(s"$i${item.getDotableList.getList.title}"))(
                       DotableListFeedItem(item.getDotableList)()
                     )
                   case Id.ProfileDoteListId(ProfileDoteListId(username, listKind, dotableKind)) =>
                     LazyLoad(once = true,
-                             height = 400,
+                             height = 150,
                              key = Some(s"$i${item.getDotableList.getList.title}"))(
                       DotableListFeedItem(item.getDotableList)()
                     )
                   case Id.FollowerSummaryId(FollowerSummaryId(username)) =>
                     LazyLoad(once = true,
-                             height = 400,
+                             height = 100,
                              key = Some(s"$i-profile-summary-$username"))(
                       FollowerSummaryFeedItem(item.getFollowerSummary)()
                     )
@@ -86,5 +86,5 @@ object VerticalFeed extends LogSupport {
     .renderP((builder, props) => builder.backend.render(props))
     .build
 
-  def apply(feed: ApiFeed) = component.withProps(Props(feed))
+  def apply(feed: Feed, isLoading: Boolean) = component.withProps(Props(feed, isLoading))
 }

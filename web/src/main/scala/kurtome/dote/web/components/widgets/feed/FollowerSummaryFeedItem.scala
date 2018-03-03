@@ -81,38 +81,42 @@ object FollowerSummaryFeedItem extends LogSupport {
     }
 
     def render(s: State): VdomElement = {
-      <.div(
-        Paper(style = Styles.root)(
-          <.div(
-            ^.className := Styles.followCounterContainer(true),
-            Typography(variant = Typography.Variants.Headline)(s.followerSummary.following.length),
-            Typography(variant = Typography.Variants.Caption)("Following")
-          ),
-          <.div(
-            ^.className := Styles.followCounterContainer(false),
-            Typography(variant = Typography.Variants.Headline)(s.followerSummary.followers.length),
-            Typography(variant = Typography.Variants.Caption)("Followers")
-          )
-        ),
-        if (LoggedInPersonManager.isLoggedInPerson(s.followerSummary.getPerson.username)) {
-          <.div()
-        } else {
-          GridContainer(spacing = 0)(
-            GridItem()(
-              FormControlLabel(
-                control = Checkbox(checked = isFollowing(s),
-                                   name = "follow",
-                                   value = "follow",
-                                   disabled = isFollowPending(s),
-                                   onChange = handleFollowingChanged(s))(),
-                label = Typography()(s"Follow ${s.followerSummary.getPerson.username}")
-              )()),
-            GridItem()(
-              Fade(in = s.setFollowInFlight)(
-                CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
-              ))
-          )
-        }
+      GridContainer(alignItems = Grid.AlignItems.Center)(
+        GridItem()(
+          Paper(style = Styles.root)(
+            <.div(
+              ^.className := Styles.followCounterContainer(true),
+              Typography(variant = Typography.Variants.Headline)(
+                s.followerSummary.following.length),
+              Typography(variant = Typography.Variants.Caption)("Following")
+            ),
+            <.div(
+              ^.className := Styles.followCounterContainer(false),
+              Typography(variant = Typography.Variants.Headline)(
+                s.followerSummary.followers.length),
+              Typography(variant = Typography.Variants.Caption)("Followers")
+            )
+          )),
+        GridItem()(
+          if (LoggedInPersonManager.isLoggedInPerson(s.followerSummary.getPerson.username)) {
+            <.div()
+          } else {
+            GridContainer(spacing = 0)(
+              GridItem()(
+                FormControlLabel(
+                  control = Checkbox(checked = isFollowing(s),
+                                     name = "follow",
+                                     value = "follow",
+                                     disabled = isFollowPending(s),
+                                     onChange = handleFollowingChanged(s))(),
+                  label = Typography()(s"Follow ${s.followerSummary.getPerson.username}")
+                )()),
+              GridItem()(
+                Fade(in = s.setFollowInFlight)(
+                  CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
+                ))
+            )
+          })
       )
     }
   }

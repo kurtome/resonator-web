@@ -1,7 +1,7 @@
 package kurtome.dote.web.components.views
 
 import kurtome.dote.proto.api.action.get_feed._
-import kurtome.dote.proto.api.feed.{Feed => ApiFeed}
+import kurtome.dote.proto.api.feed._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.feed.FeedId
@@ -9,12 +9,10 @@ import kurtome.dote.proto.api.feed.FeedId.HomeId
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.feed.VerticalFeed
-import kurtome.dote.web.rpc.LocalCacheWorkerManager
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -33,7 +31,7 @@ object HomeView extends LogSupport {
   }
 
   case class Props()
-  case class State(feed: ApiFeed = ApiFeed.defaultInstance)
+  case class State(feed: Feed = Feed.defaultInstance, isFeedLoading: Boolean = true)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -55,9 +53,9 @@ object HomeView extends LogSupport {
     def fetchHomeData() = {
       LocalCache
         .getObj(ObjectKinds.Feed, FeedId().withHomeId(HomeId.defaultInstance).toString)
-        .map(_.map(ApiFeed.parseFrom)) map { cachedFeed =>
+        .map(_.map(Feed.parseFrom)) map { cachedFeed =>
         if (cachedFeed.isDefined) {
-          bs.modState(_.copy(feed = cachedFeed.get)).runNow()
+          bs.modState(_.copy(feed = cachedFeed.get, isFeedLoading = false)).runNow()
         }
 
         // get the latest data as well, in case it has changed
@@ -65,7 +63,7 @@ object HomeView extends LogSupport {
           GetFeedRequest(maxItems = 20,
                          maxItemSize = 10,
                          id = Some(FeedId().withHomeId(HomeId())))) map { response =>
-          bs.modState(_.copy(feed = response.getFeed)).runNow()
+          bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
         }
         GlobalLoadingManager.addLoadingFuture(f)
       }
@@ -94,7 +92,7 @@ object HomeView extends LogSupport {
           )
         ),
         Grid(item = true, xs = 12)(
-          VerticalFeed(s.feed)()
+          VerticalFeed(s.feed, s.isFeedLoading)()
         ),
         Grid(item = true, xs = 12)(
           Grid(container = true, justify = Grid.Justify.Center)(

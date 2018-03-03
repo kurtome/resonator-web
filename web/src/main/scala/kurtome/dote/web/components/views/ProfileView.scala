@@ -1,13 +1,11 @@
 package kurtome.dote.web.components.views
 
-import kurtome.dote.proto.api.feed.{Feed => ApiFeed}
+import kurtome.dote.proto.api.feed._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.action.get_feed.GetFeedRequest
-import kurtome.dote.proto.api.action.get_follower_summary.GetFollowerSummaryRequest
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.ProfileId
-import kurtome.dote.proto.api.follower.FollowerSummary
 import kurtome.dote.proto.api.person.Person
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
@@ -59,7 +57,7 @@ object ProfileView extends LogSupport {
   }
 
   case class Props(username: String)
-  case class State(feed: ApiFeed = ApiFeed.defaultInstance)
+  case class State(feed: Feed = Feed.defaultInstance, isFeedLoading: Boolean = true)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -78,7 +76,7 @@ object ProfileView extends LogSupport {
                        maxItemSize = 10,
                        id = Some(FeedId().withProfileId(ProfileId(username = p.username))))) map {
         response =>
-          bs.modState(_.copy(feed = response.getFeed)).runNow()
+          bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
       }
       GlobalLoadingManager.addLoadingFuture(f)
     }
@@ -161,7 +159,7 @@ object ProfileView extends LogSupport {
           )
         ),
         Grid(item = true, xs = 12)(
-          VerticalFeed(s.feed)()
+          VerticalFeed(s.feed, s.isFeedLoading)()
         ),
         GridItem(xs = 12)(
           GridContainer(justify = Grid.Justify.Center)(
