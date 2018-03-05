@@ -5,10 +5,10 @@ import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dotable_list.DotableList
 import kurtome.dote.proto.api.feed.Feed
 import kurtome.dote.proto.api.feed.FeedDotableList
+import kurtome.dote.proto.api.feed.FeedId
+import kurtome.dote.proto.api.feed.FeedId.FollowerSummaryId
+import kurtome.dote.proto.api.feed.FeedId.ProfileDoteListId
 import kurtome.dote.proto.api.feed.FeedItem
-import kurtome.dote.proto.api.feed.FeedItemId
-import kurtome.dote.proto.api.feed.FeedItemId.FollowerSummaryId
-import kurtome.dote.proto.api.feed.FeedItemId.ProfileDoteListId
 import kurtome.dote.proto.api.follower.FollowerSummary
 import kurtome.dote.server.controllers.follow.FollowApiHelper
 import kurtome.dote.server.db.mappers.DotableMapper
@@ -30,7 +30,7 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
     with LogSupport {
 
   override def fetch(params: FeedParams): Future[Feed] = {
-    personService.readByUsername(params.feedId.getProfileId.username) flatMap {
+    personService.readByUsername(params.feedId.getProfile.username) flatMap {
       case Some(personRow) => fetchForPerson(personRow, params)
       case None => Future(Feed.defaultInstance)
     }
@@ -154,7 +154,7 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
   private def toFollowerSummaryFeedItem(followerSummary: FollowerSummary) = {
     FeedItem()
       .withId(
-        FeedItemId().withFollowerSummaryId(
+        FeedId().withFollowerSummary(
           FollowerSummaryId(username = followerSummary.getPerson.username)))
       .withContent(FeedItem.Content.FollowerSummary(followerSummary))
   }
@@ -167,7 +167,7 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
     val feedList = FeedDotableList(Some(DotableList(title = title, dotables = list)))
     FeedItem()
       .withId(
-        FeedItemId().withProfileDoteListId(
+        FeedId().withProfileDoteList(
           ProfileDoteListId(username = username,
                             listKind = listKind,
                             dotableKind = DotableMapper.mapKind(kind))))

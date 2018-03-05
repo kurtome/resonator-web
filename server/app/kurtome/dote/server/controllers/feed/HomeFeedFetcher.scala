@@ -6,9 +6,10 @@ import javax.inject._
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dotable_list.DotableList
 import kurtome.dote.proto.api.feed.FeedDotableList
+import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedItem
-import kurtome.dote.proto.api.feed.FeedItemId
-import kurtome.dote.proto.api.feed.FeedItemId.TagListId
+import kurtome.dote.proto.api.feed.FeedId.Id
+import kurtome.dote.proto.api.feed.FeedId.TagListId
 import kurtome.dote.server.controllers.mappers.TagMapper
 import kurtome.dote.server.db.mappers.DotableMapper
 import kurtome.dote.server.model.Tag
@@ -161,7 +162,7 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
     val feedList = FeedDotableList(Some(DotableList(title = title, dotables = list)))
     FeedItem()
       .withId(
-        FeedItemId().withTagListId(
+        FeedId().withTagList(
           TagListId(tag = Some(TagMapper(tag)), dotableKind = DotableMapper.mapKind(kind))))
       .withContent(FeedItem.Content.DotableList(feedList))
   }

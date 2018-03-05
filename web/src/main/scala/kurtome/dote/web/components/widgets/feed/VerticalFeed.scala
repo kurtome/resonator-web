@@ -4,10 +4,10 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.proto.api.feed.FeedItemId.FollowerSummaryId
-import kurtome.dote.proto.api.feed.FeedItemId.Id
-import kurtome.dote.proto.api.feed.FeedItemId.ProfileDoteListId
-import kurtome.dote.proto.api.feed.FeedItemId.TagListId
+import kurtome.dote.proto.api.feed.FeedId.FollowerSummaryId
+import kurtome.dote.proto.api.feed.FeedId.Id
+import kurtome.dote.proto.api.feed.FeedId.ProfileDoteListId
+import kurtome.dote.proto.api.feed.FeedId.TagListId
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.proto.api.feed._
@@ -34,8 +34,6 @@ object VerticalFeed extends LogSupport {
   class Backend(val bs: BackendScope[Props, Unit]) extends BaseBackend(Styles) {
 
     def render(p: Props): VdomElement = {
-      debug(s"rendering with ${p.feed.items.length} items")
-
       if (p.isLoading) {
         GridContainer(justify = Grid.Justify.Center)(
           GridItem()(
@@ -50,19 +48,19 @@ object VerticalFeed extends LogSupport {
                 ^.key := s"$i${item.getDotableList.getList.title}",
                 ^.className := Styles.feedItemContainer,
                 item.getId.id match {
-                  case Id.TagListId(TagListId(id, kind)) =>
+                  case Id.TagList(TagListId(id, kind)) =>
                     LazyLoad(once = true,
                              height = 150,
                              key = Some(s"$i${item.getDotableList.getList.title}"))(
                       DotableListFeedItem(item.getDotableList)()
                     )
-                  case Id.ProfileDoteListId(ProfileDoteListId(username, listKind, dotableKind)) =>
+                  case Id.ProfileDoteList(ProfileDoteListId(username, listKind, dotableKind)) =>
                     LazyLoad(once = true,
                              height = 150,
                              key = Some(s"$i${item.getDotableList.getList.title}"))(
                       DotableListFeedItem(item.getDotableList)()
                     )
-                  case Id.FollowerSummaryId(FollowerSummaryId(username)) =>
+                  case Id.FollowerSummary(FollowerSummaryId(username)) =>
                     LazyLoad(once = true,
                              height = 100,
                              key = Some(s"$i-profile-summary-$username"))(

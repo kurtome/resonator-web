@@ -14,32 +14,16 @@ message Feed {
 
 message FeedId {
   oneof id {
-    HomeId home_id = 1;
-    ProfileId profile_id = 2;
+    HomeId home = 1;
+    ProfileId profile = 2;
+    TagListId tag_list = 3;
+    FollowerSummaryId follower_summary = 4;
+    ProfileDoteListId profile_dote_list = 5;
   }
   message HomeId {}
   message ProfileId {
     string username = 1;
   }
-}
-
-
-message FeedItem {
-  FeedItemId id = 1;
-
-  oneof content {
-    FeedDotableList dotable_list = 2;
-    FollowerSummary follower_summary = 3;
-  }
-}
-
-message FeedItemId {
-  oneof id {
-    TagListId tag_list_id = 1;
-    FollowerSummaryId follower_summary_id = 2;
-    ProfileDoteListId profile_dote_list_id = 3;
-  }
-
   message TagListId {
     Tag tag = 1;
     Dotable.Kind dotable_kind = 2;
@@ -61,6 +45,17 @@ message FeedItemId {
 
   message FollowerSummaryId {
     string username = 1;
+  }
+}
+
+
+message FeedItem {
+  // The detailed view of a feed item can itself be a feed.
+  FeedId id = 1;
+
+  oneof content {
+    FeedDotableList dotable_list = 2;
+    FollowerSummary follower_summary = 3;
   }
 }
 

@@ -52,17 +52,17 @@ object HomeView extends LogSupport {
 
     def fetchHomeData() = {
       LocalCache
-        .getObj(ObjectKinds.Feed, FeedId().withHomeId(HomeId.defaultInstance).toString)
+        .getObj(ObjectKinds.Feed, FeedId().withHome(HomeId.defaultInstance).toString)
         .map(_.map(Feed.parseFrom)) map { cachedFeed =>
         if (cachedFeed.isDefined) {
           bs.modState(_.copy(feed = cachedFeed.get, isFeedLoading = false)).runNow()
         }
 
         // get the latest data as well, in case it has changed
-        val f = DoteProtoServer.getFeed(
-          GetFeedRequest(maxItems = 20,
-                         maxItemSize = 10,
-                         id = Some(FeedId().withHomeId(HomeId())))) map { response =>
+        val f = DoteProtoServer.getFeed(GetFeedRequest(
+          maxItems = 20,
+          maxItemSize = 10,
+          id = Some(FeedId().withHome(HomeId())))) map { response =>
           bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
         }
         GlobalLoadingManager.addLoadingFuture(f)

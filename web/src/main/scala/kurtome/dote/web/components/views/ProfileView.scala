@@ -74,7 +74,7 @@ object ProfileView extends LogSupport {
       val f = DoteProtoServer.getFeed(
         GetFeedRequest(maxItems = 20,
                        maxItemSize = 10,
-                       id = Some(FeedId().withProfileId(ProfileId(username = p.username))))) map {
+                       id = Some(FeedId().withProfile(ProfileId(username = p.username))))) map {
         response =>
           bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
       }

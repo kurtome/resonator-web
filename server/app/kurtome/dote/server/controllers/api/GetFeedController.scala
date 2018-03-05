@@ -4,6 +4,7 @@ import javax.inject._
 
 import kurtome.dote.proto.api.action.get_feed._
 import kurtome.dote.proto.api.feed.FeedId
+import kurtome.dote.proto.api.feed.FeedId.Id
 import kurtome.dote.server.controllers.feed.FeedParams
 import kurtome.dote.server.controllers.feed.HomeFeedFetcher
 import kurtome.dote.server.controllers.feed.ProfileFeedFetcher
@@ -38,9 +39,9 @@ class GetFeedController @Inject()(
 
       debug(s"fetching $feedId")
       val fetch = feedId.id match {
-        case FeedId.Id.HomeId(_) => fetchHomeFeed _
-        case FeedId.Id.ProfileId(_) => fetchProfileFeed _
-        case FeedId.Id.Empty => noFeed _
+        case Id.Home(_) => fetchHomeFeed _
+        case Id.Profile(_) => fetchProfileFeed _
+        case Id.Empty => noFeed _
       }
       fetch(feedParams)
     }
