@@ -8,16 +8,17 @@ import kurtome.dote.proto.api.dotable_list.DotableList
 import kurtome.dote.proto.api.feed.FeedDotableList
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedItem
-import kurtome.dote.proto.api.feed.FeedId.Id
 import kurtome.dote.proto.api.feed.FeedId.TagListId
-import kurtome.dote.server.controllers.mappers.TagMapper
 import kurtome.dote.server.db.mappers.DotableMapper
-import kurtome.dote.server.model.Tag
-import kurtome.dote.server.model.TagList
-import kurtome.dote.server.model.{MetadataFlag, TagId}
+import kurtome.dote.shared.constants.TagKinds
+import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.shared.mapper.TagMapper
+import kurtome.dote.shared.model.Tag
+import kurtome.dote.shared.model.TagId
+import kurtome.dote.shared.model.TagList
 import kurtome.dote.slick.db.DotableKinds.DotableKind
-import kurtome.dote.slick.db.{DotableKinds, TagKinds}
+import kurtome.dote.slick.db.DotableKinds
 
 @Singleton
 class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: ExecutionContext)
@@ -161,9 +162,8 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
                                 kind: DotableKind = DotableKinds.Podcast): FeedItem = {
     val feedList = FeedDotableList(Some(DotableList(title = title, dotables = list)))
     FeedItem()
-      .withId(
-        FeedId().withTagList(
-          TagListId(tag = Some(TagMapper(tag)), dotableKind = DotableMapper.mapKind(kind))))
+      .withId(FeedId().withTagList(
+        TagListId(tag = Some(TagMapper.toProto(tag)), dotableKind = DotableMapper.mapKind(kind))))
       .withContent(FeedItem.Content.DotableList(feedList))
   }
 }

@@ -34,6 +34,8 @@ object DoteRoutes extends LogSupport {
 
   case class ProfileRoute(username: String) extends DoteRoute
 
+  case class TagRoute(kind: String, key: String) extends DoteRoute
+
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   type DoteRouterCtl = RouterCtl[DoteRoute]
@@ -43,7 +45,8 @@ object DoteRoutes extends LogSupport {
       import dsl._
 
       // Slug must start and end with a alpha-numeric
-      val slug = string("[a-z0-9][-a-z0-9]+[a-z0-9]")
+      val slug = string("(?:[a-z0-9][-a-z0-9]+[a-z0-9])|[a-z0-9]")
+      val slug2 = string("([a-z0-9][-a-z0-9]+[a-z0-9])|[a-z0-9]")
 
       val id = string("[a-zA-Z0-9]+")
 
@@ -58,7 +61,6 @@ object DoteRoutes extends LogSupport {
 
         | staticRoute("/home", HomeRoute) ~> renderR(_ => HomeView()())
 
-      // the NavBar will ensure the login dialog is shown over the home page
         | staticRoute("/login", LoginRoute) ~> renderR(_ => LoginView()())
 
         | staticRoute("/search", SearchRoute) ~> renderR(_ => SearchView()())
@@ -66,6 +68,10 @@ object DoteRoutes extends LogSupport {
         | staticRoute("/add", AddRoute) ~> renderR(_ => AddPodcastView()())
 
         | staticRoute("/theme", ThemeRoute) ~> renderR(_ => ThemeView()())
+
+        | dynamicRouteCT("/tag" ~ ("/" ~ slug ~)("/" ~ slug)
+          .caseClassDebug[TagRoute]) ~> dynRenderR(
+          (page: TagRoute, routerCtl) => FeedView(page.kind, page.key)())
 
         | dynamicRouteCT("/details" ~ ("/" ~ id ~ "/" ~ slug)
           .caseClass[DetailsRoute]) ~> dynRenderR(

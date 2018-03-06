@@ -3,7 +3,6 @@ package kurtome.dote.server.services
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
 
 import javax.inject._
 import kurtome.dote.proto.api.dotable.Dotable
@@ -11,13 +10,16 @@ import kurtome.dote.server.db._
 import kurtome.dote.server.db.DotableDbIo
 import kurtome.dote.server.db.mappers.{DotableMapper, DoteMapper}
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
-import kurtome.dote.server.model
-import kurtome.dote.server.model.{MetadataFlag, TagId}
+import kurtome.dote.server.model.MetadataFlag
+import kurtome.dote.shared.model
 import kurtome.dote.slick.db.DotableKinds
 import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotePostgresProfile.api._
-import kurtome.dote.slick.db.TagKinds
-import kurtome.dote.slick.db.TagKinds.TagKind
+import kurtome.dote.shared.constants.TagKinds
+import kurtome.dote.shared.constants.TagKinds.TagKind
+import kurtome.dote.shared.model.Tag
+import kurtome.dote.shared.model.TagId
+import kurtome.dote.shared.model.TagList
 import kurtome.dote.slick.db.gen.Tables
 import kurtome.dote.slick.db.gen.Tables.DotableRow
 import kurtome.dote.slick.db.gen.Tables.DoteRow
@@ -120,7 +122,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
   }
 
   lazy val popularTagDbId: Future[Long] =
-    db.run(tagDbIo.readTagDbId(model.MetadataFlag.Ids.popular)).map(_.get)
+    db.run(tagDbIo.readTagDbId(MetadataFlag.Ids.popular)).map(_.get)
 
   def setPopularTag(dotableId: Long) = {
     popularTagDbId map { tagId =>
@@ -292,9 +294,9 @@ class DotableService @Inject()(db: BasicBackend#Database,
   }
 
   def readTagList(kind: DotableKinds.Value,
-                  tagId: model.TagId,
+                  tagId: TagId,
                   limit: Long,
-                  personId: Option[Long] = None): Future[model.TagList] = {
+                  personId: Option[Long] = None): Future[TagList] = {
     val tagQuery = for {
       tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
     } yield tags
@@ -311,7 +313,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
       dotesFuture flatMap { dotes =>
         val combined = setDotes(dotables, dotes)
         db.run(tagQuery.result.headOption.map(t =>
-          model.TagList(model.Tag(t.get.kind, t.get.key, t.get.name), combined)))
+          model.TagList(Tag(t.get.kind, t.get.key, t.get.name), combined)))
       }
     }
   }

@@ -6,6 +6,8 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.VdomElement
+import kurtome.dote.proto.api.feed.FeedDotableList
+import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.DoteRouterCtl
@@ -14,6 +16,7 @@ import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.Debounce
+import kurtome.dote.web.utils.FeedIdRoutes
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
@@ -31,7 +34,7 @@ object DotableListFeedItem extends LogSupport {
   }
   Styles.addToDocument()
 
-  case class Props(list: ApiList)
+  case class Props(feedItem: FeedItem)
   case class State(tileSizePx: Int, availableWidthPx: Int)
 
   private val breakpointTileSizes = Map[String, Int](
@@ -51,7 +54,7 @@ object DotableListFeedItem extends LogSupport {
   )
 
   private def currentTileSizePx(p: Props): Int = {
-    p.list.list.get.dotables.headOption.map(_.kind) match {
+    p.feedItem.getDotableList.getList.dotables.headOption.map(_.kind) match {
       case Some(Dotable.Kind.PODCAST_EPISODE) => episodeTileSizes(currentBreakpointString)
       case _ => breakpointTileSizes(currentBreakpointString)
     }
@@ -75,10 +78,25 @@ object DotableListFeedItem extends LogSupport {
       dom.window.removeEventListener("resize", resizeListener)
     }
 
-    def render(p: Props, s: State): VdomElement = {
+    private def renderTitle(p: Props, title: String): VdomElement = {
+      val titleRoute = FeedIdRoutes.toRoute(p.feedItem.getId)
+      p.feedItem.getDotableList.style match {
+        case FeedDotableList.Style.PRIMARY => {
+          Typography(variant = Typography.Variants.Headline)(title)
+        }
+        case _ => {
+          if (titleRoute.isDefined) {
+            SiteLink(titleRoute.get)(Typography(variant = Typography.Variants.SubHeading)(title))
+          } else {
+            Typography(variant = Typography.Variants.SubHeading)(title)
+          }
+        }
+      }
+    }
 
+    def render(p: Props, s: State): VdomElement = {
       val requestedWidth = s.tileSizePx
-      val list = p.list.getList
+      val list = p.feedItem.getDotableList.getList
       // the actual padding will be dynamic since the tiles are evenly spaced, so just make sure
       // the number of tiles has some extra space
       val tilePaddingPx = requestedWidth / 5
@@ -86,12 +104,23 @@ object DotableListFeedItem extends LogSupport {
       // dotable)
       val numTilesPerRow: Int = s.availableWidthPx / (requestedWidth + tilePaddingPx)
       val numRows =
-        if (numTilesPerRow == 1) {
-          3
-        } else if (numTilesPerRow < 6) {
-          2
-        } else {
-          1
+        p.feedItem.getDotableList.style match {
+          case FeedDotableList.Style.PRIMARY => {
+            if (list.dotables.length % numTilesPerRow == 0) {
+              list.dotables.length / numTilesPerRow
+            } else {
+              (list.dotables.length / numTilesPerRow) + 1
+            }
+          }
+          case _ => {
+            if (numTilesPerRow == 1) {
+              3
+            } else if (numTilesPerRow < 6) {
+              2
+            } else {
+              1
+            }
+          }
         }
       val numTiles = numTilesPerRow * numRows
       val dotables = list.dotables
@@ -112,7 +141,7 @@ object DotableListFeedItem extends LogSupport {
 
       Grid(container = true, spacing = 0)(
         Grid(item = true, xs = 12)(
-          Typography(variant = Typography.Variants.SubHeading)(list.title),
+          renderTitle(p, list.title),
           Grid(container = true,
                spacing = 0,
                alignItems = Grid.AlignItems.FlexStart,
@@ -145,11 +174,11 @@ object DotableListFeedItem extends LogSupport {
     .componentWillUnmount(x => x.backend.handleWillUnmount)
     .build
 
-  def apply(list: ApiList, key: Option[String] = None) = {
+  def apply(feedItem: FeedItem, key: Option[String] = None) = {
     if (key.isDefined) {
-      component.withKey(key.get).withProps(Props(list))
+      component.withKey(key.get).withProps(Props(feedItem))
     } else {
-      component.withProps(Props(list))
+      component.withProps(Props(feedItem))
     }
   }
 

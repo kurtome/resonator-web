@@ -1,13 +1,12 @@
 package kurtome.dote.server.controllers.api
 
 import javax.inject._
-
 import kurtome.dote.proto.api.action.get_feed._
-import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.Id
 import kurtome.dote.server.controllers.feed.FeedParams
 import kurtome.dote.server.controllers.feed.HomeFeedFetcher
 import kurtome.dote.server.controllers.feed.ProfileFeedFetcher
+import kurtome.dote.server.controllers.feed.TagListFeedFetcher
 import kurtome.dote.server.services.{AuthTokenService, DotableService}
 import kurtome.dote.shared.mapper.StatusMapper
 import kurtome.dote.shared.util.result.SuccessStatus
@@ -22,6 +21,7 @@ class GetFeedController @Inject()(
     podcastDbService: DotableService,
     homeFeedFetcher: HomeFeedFetcher,
     profileFeedFetcher: ProfileFeedFetcher,
+    tagListFeedFetcher: TagListFeedFetcher,
     authTokenService: AuthTokenService)(implicit ec: ExecutionContext)
     extends ProtobufController[GetFeedRequest, GetFeedResponse](cc)
     with LogSupport {
@@ -41,7 +41,8 @@ class GetFeedController @Inject()(
       val fetch = feedId.id match {
         case Id.Home(_) => fetchHomeFeed _
         case Id.Profile(_) => fetchProfileFeed _
-        case Id.Empty => noFeed _
+        case Id.TagList(_) => fetchTagList _
+        case _ => noFeed _
       }
       fetch(feedParams)
     }
@@ -60,6 +61,12 @@ class GetFeedController @Inject()(
 
   private def fetchProfileFeed(feedParams: FeedParams) = {
     profileFeedFetcher.fetch(feedParams) map { feed =>
+      GetFeedResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(feed))
+    }
+  }
+
+  private def fetchTagList(feedParams: FeedParams) = {
+    tagListFeedFetcher.fetch(feedParams) map { feed =>
       GetFeedResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(feed))
     }
   }

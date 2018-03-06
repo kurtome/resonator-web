@@ -1,7 +1,7 @@
 package kurtome.dote.server.ingestion
 
 import kurtome.dote.proto.db.dotable.{DotableCommon, DotableDetails}
-import kurtome.dote.server.model.Tag
+import kurtome.dote.shared.model.Tag
 
 case class RssFetchedPodcast(feedUrl: String,
                              feedEtag: Option[String],

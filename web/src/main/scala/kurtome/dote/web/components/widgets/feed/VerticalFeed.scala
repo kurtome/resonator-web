@@ -48,23 +48,23 @@ object VerticalFeed extends LogSupport {
                 ^.key := s"$i${item.getDotableList.getList.title}",
                 ^.className := Styles.feedItemContainer,
                 item.getId.id match {
-                  case Id.TagList(TagListId(id, kind)) =>
+                  case Id.TagList(_) =>
                     LazyLoad(once = true,
                              height = 150,
                              key = Some(s"$i${item.getDotableList.getList.title}"))(
-                      DotableListFeedItem(item.getDotableList)()
+                      DotableListFeedItem(item)()
                     )
-                  case Id.ProfileDoteList(ProfileDoteListId(username, listKind, dotableKind)) =>
+                  case Id.ProfileDoteList(_) =>
                     LazyLoad(once = true,
                              height = 150,
                              key = Some(s"$i${item.getDotableList.getList.title}"))(
-                      DotableListFeedItem(item.getDotableList)()
+                      DotableListFeedItem(item)()
                     )
                   case Id.FollowerSummary(FollowerSummaryId(username)) =>
                     LazyLoad(once = true,
                              height = 100,
                              key = Some(s"$i-profile-summary-$username"))(
-                      FollowerSummaryFeedItem(item.getFollowerSummary)()
+                      FollowerSummaryFeedItem(item.getFollowerSummary.getSummary)()
                     )
                   case _ => {
                     warn("unexpected kind")

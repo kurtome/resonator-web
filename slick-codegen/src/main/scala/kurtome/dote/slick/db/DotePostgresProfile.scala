@@ -2,6 +2,7 @@ package kurtome.dote.slick.db
 
 import java.time._
 
+import kurtome.dote.shared.constants.TagKinds
 import com.github.tminglei.slickpg._
 import com.github.tminglei.slickpg.enums.PgEnumExtensions
 import org.json4s.{JValue, JsonMethods}
@@ -17,14 +18,6 @@ object DotableKinds extends Enumeration {
   type DotableKind = Value
   val Podcast = Value("podcast")
   val PodcastEpisode = Value("podcast_episode")
-}
-
-object TagKinds extends Enumeration {
-  type TagKind = Value
-  val MetadataFlag = Value("metadata_flag")
-  val PodcastCreator = Value("podcast_creator")
-  val PodcastGenre = Value("podcast_genre")
-  val Keyword = Value("keyword")
 }
 
 trait DotePostgresProfile

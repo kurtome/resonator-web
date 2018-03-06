@@ -5,6 +5,7 @@ import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dotable_list.DotableList
 import kurtome.dote.proto.api.feed.Feed
 import kurtome.dote.proto.api.feed.FeedDotableList
+import kurtome.dote.proto.api.feed.FeedFollowerSummary
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.FollowerSummaryId
 import kurtome.dote.proto.api.feed.FeedId.ProfileDoteListId
@@ -152,11 +153,13 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
   }
 
   private def toFollowerSummaryFeedItem(followerSummary: FollowerSummary) = {
+    val itemId =
+      FeedId().withFollowerSummary(
+        FollowerSummaryId(username = followerSummary.getPerson.username))
+    val content = FeedFollowerSummary(Some(followerSummary))
     FeedItem()
-      .withId(
-        FeedId().withFollowerSummary(
-          FollowerSummaryId(username = followerSummary.getPerson.username)))
-      .withContent(FeedItem.Content.FollowerSummary(followerSummary))
+      .withId(itemId)
+      .withContent(FeedItem.Content.FollowerSummary(content))
   }
 
   private def toProfileListFeedItem(username: String,

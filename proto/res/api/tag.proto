@@ -15,7 +15,7 @@ message Tag {
   }
 
   message Id {
-    string id = 1;
+    string key = 1;
     Kind kind = 2;
   }
 

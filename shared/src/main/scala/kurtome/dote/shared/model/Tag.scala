@@ -1,7 +1,7 @@
-package kurtome.dote.server.model
+package kurtome.dote.shared.model
 
 import kurtome.dote.proto.api.dotable.Dotable
-import kurtome.dote.slick.db.TagKinds.TagKind
+import kurtome.dote.shared.constants.TagKinds.TagKind
 
 case class TagId(kind: TagKind, key: String)
 

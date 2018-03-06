@@ -747,16 +747,17 @@ trait Tables {
     *  @param key Database column key SqlType(text), Length(2147483647,true)
     *  @param name Database column name SqlType(text), Length(2147483647,true) */
   case class TagRow(id: Long,
-                    kind: kurtome.dote.slick.db.TagKinds.Value,
+                    kind: kurtome.dote.shared.constants.TagKinds.Value,
                     key: String,
                     name: String)
 
   /** GetResult implicit for fetching TagRow objects using plain SQL queries */
   implicit def GetResultTagRow(implicit e0: GR[Long],
-                               e1: GR[kurtome.dote.slick.db.TagKinds.Value],
+                               e1: GR[kurtome.dote.shared.constants.TagKinds.Value],
                                e2: GR[String]): GR[TagRow] = GR { prs =>
     import prs._
-    TagRow.tupled((<<[Long], <<[kurtome.dote.slick.db.TagKinds.Value], <<[String], <<[String]))
+    TagRow.tupled(
+      (<<[Long], <<[kurtome.dote.shared.constants.TagKinds.Value], <<[String], <<[String]))
   }
 
   /** Table description of table tag. Objects of this class serve as prototypes for rows in queries. */
@@ -773,8 +774,8 @@ trait Tables {
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
 
     /** Database column kind SqlType(tagkind) */
-    val kind: Rep[kurtome.dote.slick.db.TagKinds.Value] =
-      column[kurtome.dote.slick.db.TagKinds.Value]("kind")
+    val kind: Rep[kurtome.dote.shared.constants.TagKinds.Value] =
+      column[kurtome.dote.shared.constants.TagKinds.Value]("kind")
 
     /** Database column key SqlType(text), Length(2147483647,true) */
     val key: Rep[String] = column[String]("key", O.Length(2147483647, varying = true))

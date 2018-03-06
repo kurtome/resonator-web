@@ -1,8 +1,6 @@
 package kurtome.dote.server.ingestion
 
 import java.io.ByteArrayInputStream
-import java.io.InputStreamReader
-import java.io.SequenceInputStream
 import java.security.MessageDigest
 import java.time.ZonedDateTime
 import java.util.Locale
@@ -11,9 +9,10 @@ import javax.inject._
 import kurtome.dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
 import kurtome.dote.proto.db.dotable.DotableDetails.PodcastEpisode.Audio
 import kurtome.dote.proto.db.dotable._
-import kurtome.dote.server.model.{MetadataFlag, Tag}
+import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.util.Slug
-import kurtome.dote.slick.db.TagKinds
+import kurtome.dote.shared.constants.TagKinds
+import kurtome.dote.shared.model.Tag
 import wvlet.log.LogSupport
 
 import scala.util.{Failure, Try}

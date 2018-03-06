@@ -1,12 +1,13 @@
 package kurtome.dote.server.db
 
 import java.sql.Types
-import javax.inject._
 
-import kurtome.dote.server.model
-import kurtome.dote.server.model.{Tag, TagId}
+import javax.inject._
+import kurtome.dote.shared
 import kurtome.dote.slick.db.DotePostgresProfile.api._
-import kurtome.dote.slick.db.TagKinds.TagKind
+import kurtome.dote.shared.constants.TagKinds.TagKind
+import kurtome.dote.shared.model.Tag
+import kurtome.dote.shared.model.TagId
 import kurtome.dote.slick.db.gen.Tables
 import kurtome.dote.slick.db.gen.Tables.{DotableTagRow, TagRow}
 import slick.jdbc.SetParameter
@@ -61,14 +62,14 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
     case (kind, params) => params.setObject(s"${kind.toString}", Types.OTHER)
   }
 
-  def upsertTag(tag: model.Tag) = {
+  def upsertTag(tag: shared.model.Tag) = {
     sqlu"""INSERT INTO tag (kind, key, name)
          SELECT ${tag.id.kind}, ${tag.id.key}, ${tag.name}
          WHERE NOT EXISTS (
          SELECT 1 FROM tag t1 WHERE t1.kind = ${tag.id.kind} AND t1.key = ${tag.id.key})"""
   }
 
-  def upsertTagBatch(tags: Seq[model.Tag]) = {
+  def upsertTagBatch(tags: Seq[shared.model.Tag]) = {
     // Upserts all and returns a sum of affected row count
     DBIO.sequence(tags.map(upsertTag)).map(_.sum)
   }

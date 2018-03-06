@@ -1,6 +1,7 @@
 package kurtome.dote.server.model
 
-import kurtome.dote.slick.db.TagKinds
+import kurtome.dote.shared.model.TagId
+import kurtome.dote.shared.constants.TagKinds
 
 /**
   * Keys for [[TagKinds.MetadataFlag]] tags.

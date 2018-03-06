@@ -2,7 +2,6 @@ package kurtome.dote.web.rpc
 
 import java.nio.ByteBuffer
 
-import kurtome.dote.web.utils.PerfTime
 import org.scalajs.dom
 import org.scalajs.dom.ext.Ajax
 

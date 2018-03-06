@@ -55,10 +55,23 @@ message FeedItem {
 
   oneof content {
     FeedDotableList dotable_list = 2;
-    FollowerSummary follower_summary = 3;
+    FeedFollowerSummary follower_summary = 3;
   }
 }
 
 message FeedDotableList {
   DotableList list = 1;
+  Style style = 2;
+
+  enum Style {
+    UNKNOWN_STYLE = 0;
+    // Used when there are many lists or items beind displayed one after anothjer
+    SUMMARY = 1;
+    // Used when this list is meant to be the primary display on the page
+    PRIMARY = 2;
+  }
+}
+
+message FeedFollowerSummary {
+  FollowerSummary summary = 1;
 }

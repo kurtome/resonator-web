@@ -66,6 +66,7 @@ lazy val slickCodegen = (project in slickCodegenBaseDir)
       postgresJdbcDriver
     )
   )
+  .dependsOn(sharedJvm)
 
 val feedScraperBaseDir = file("feed-scraper")
 lazy val feedScraper = (project in feedScraperBaseDir)
