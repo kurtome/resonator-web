@@ -78,11 +78,18 @@ object DotableListFeedItem extends LogSupport {
       dom.window.removeEventListener("resize", resizeListener)
     }
 
-    private def renderTitle(p: Props, title: String): VdomElement = {
+    private def renderTitle(p: Props): VdomElement = {
+      val list = p.feedItem.getDotableList.getList
+      val title = list.title
+      val subtitle = list.subtitle
+
       val titleRoute = FeedIdRoutes.toRoute(p.feedItem.getId)
       p.feedItem.getDotableList.style match {
         case FeedDotableList.Style.PRIMARY => {
-          Typography(variant = Typography.Variants.Headline)(title)
+          <.div(
+            Typography(variant = Typography.Variants.Headline)(title),
+            Typography(variant = Typography.Variants.SubHeading)(subtitle)
+          )
         }
         case _ => {
           if (titleRoute.isDefined) {
@@ -141,7 +148,7 @@ object DotableListFeedItem extends LogSupport {
 
       Grid(container = true, spacing = 0)(
         Grid(item = true, xs = 12)(
-          renderTitle(p, list.title),
+          renderTitle(p),
           Grid(container = true,
                spacing = 0,
                alignItems = Grid.AlignItems.FlexStart,

@@ -28,8 +28,13 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
     val personId = params.loggedInUser.map(_.id)
 
     val newEpisodes = dotableService
-      .readEpisodeTagList(MetadataFlag.Ids.popular, listLimit)
-      .map(toListFeedItem(_, DotableKinds.PodcastEpisode))
+      .readEpisodeTagList(MetadataFlag.Ids.popular, listLimit) map { tagList =>
+      toTagListFeedItem("New Episodes",
+                        "From Popular Podcasts",
+                        tagList.tag,
+                        tagList.list,
+                        DotableKinds.PodcastEpisode)
+    }
 
     val popularList = dotableService
       .readPodcastTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, listLimit, personId)
@@ -152,19 +157,20 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
   }
 
   private def toListFeedItem(tagList: TagList): FeedItem = {
-    toTagListFeedItem(tagList.tag.name, tagList.tag, tagList.list)
-  }
-
-  private def toListFeedItem(tagList: TagList,
-                             kind: DotableKind = DotableKinds.Podcast): FeedItem = {
-    toTagListFeedItem(tagList.tag.name, tagList.tag, tagList.list, kind)
+    toTagListFeedItem(tagList.tag.name,
+                      "Ordered by Newest Episode",
+                      tagList.tag,
+                      tagList.list,
+                      DotableKinds.Podcast)
   }
 
   private def toTagListFeedItem(title: String,
+                                subtitle: String,
                                 tag: Tag,
                                 list: Seq[Dotable],
-                                kind: DotableKind = DotableKinds.Podcast): FeedItem = {
-    val feedList = FeedDotableList(Some(DotableList(title = title, dotables = list)))
+                                kind: DotableKind): FeedItem = {
+    val feedList = FeedDotableList(
+      Some(DotableList(title = title, subtitle = subtitle, dotables = list)))
     FeedItem()
       .withId(FeedId().withTagList(
         TagListId(tag = Some(TagMapper.toProto(tag)), dotableKind = DotableMapper.mapKind(kind))))

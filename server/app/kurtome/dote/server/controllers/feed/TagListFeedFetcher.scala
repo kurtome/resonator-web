@@ -9,6 +9,7 @@ import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.TagListId
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.server.db.mappers.DotableMapper
+import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.shared.mapper.TagMapper
 import kurtome.dote.shared.model.Tag
@@ -51,15 +52,25 @@ class TagListFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: 
   }
 
   private def toListFeedItem(kind: DotableKind)(tagList: TagList): FeedItem = {
-    toTagListFeedItem(tagList.tag.name, tagList.tag, tagList.list, kind)
+    if (kind == DotableKinds.PodcastEpisode && tagList.tag.id == MetadataFlag.Ids.popular) {
+      toTagListFeedItem("New Episodes", "From Popular Podcasts", tagList.tag, tagList.list, kind)
+    } else {
+      toTagListFeedItem(tagList.tag.name,
+                        "Ordered by Newest Episode",
+                        tagList.tag,
+                        tagList.list,
+                        kind)
+    }
   }
 
   private def toTagListFeedItem(title: String,
+                                subtitle: String,
                                 tag: Tag,
                                 list: Seq[Dotable],
                                 kind: DotableKind): FeedItem = {
-    val feedList = FeedDotableList(Some(DotableList(title = title, dotables = list)),
-                                   style = FeedDotableList.Style.PRIMARY)
+    val feedList = FeedDotableList(
+      Some(DotableList(title = title, subtitle = subtitle, dotables = list)),
+      style = FeedDotableList.Style.PRIMARY)
     FeedItem()
       .withId(FeedId().withTagList(
         TagListId(tag = Some(TagMapper.toProto(tag)), dotableKind = DotableMapper.mapKind(kind))))
