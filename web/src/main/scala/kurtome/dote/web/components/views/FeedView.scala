@@ -3,6 +3,7 @@ package kurtome.dote.web.components.views
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.action.get_feed._
+import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.TagListId
 import kurtome.dote.proto.api.feed._
@@ -57,10 +58,15 @@ object FeedView extends LogSupport {
     .componentDidMount(x => x.backend.handleDidMount(x.props))
     .build
 
-  def apply(kind: String, key: String) = {
+  def apply(kind: String, key: String, hashPortion: String) = {
     debug(s"kind:$kind key:$key")
+    val dotableKind = if (hashPortion == "dk=episode") {
+      Dotable.Kind.PODCAST_EPISODE
+    } else {
+      Dotable.Kind.PODCAST
+    }
     val tag = TagMapper.toProto(Tag(TagKindUrlMapper.fromUrl(kind), key, key))
-    val id = FeedId().withTagList(TagListId().withTag(tag))
+    val id = FeedId().withTagList(TagListId().withTag(tag).withDotableKind(dotableKind))
     component.withProps(Props(id))
   }
 }

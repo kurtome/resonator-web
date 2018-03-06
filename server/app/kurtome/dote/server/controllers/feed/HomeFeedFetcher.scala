@@ -28,103 +28,102 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
     val personId = params.loggedInUser.map(_.id)
 
     val newEpisodes = dotableService
-      .readRecentEpisodes(MetadataFlag.Ids.popular, listLimit) map { episodes =>
-      toTagListFeedItem("New Episodes",
-                        Tag(MetadataFlag.Ids.popular, "New Episodes"),
-                        episodes,
-                        DotableKinds.PodcastEpisode)
-    }
+      .readEpisodeTagList(MetadataFlag.Ids.popular, listLimit)
+      .map(toListFeedItem(_, DotableKinds.PodcastEpisode))
 
     val popularList = dotableService
-      .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, listLimit, personId)
+      .readPodcastTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, listLimit, personId)
       .map(toListFeedItem)
 
     val nprList = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastCreator, "npr"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastCreator, "npr"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val comedy = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastGenre, "comedy"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastGenre, "comedy"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val crookedMediaList = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastCreator, "crooked-media"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastCreator, "crooked-media"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val arts = dotableService
-      .readTagList(DotableKinds.Podcast, TagId(TagKinds.PodcastGenre, "arts"), listLimit, personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastGenre, "arts"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val technology = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastGenre, "technology"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastGenre, "technology"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val music = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastGenre, "music"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastGenre, "music"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val gimlet = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastCreator, "gimlet"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastCreator, "gimlet"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val newsAndPolitics = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastGenre, "news-politics"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastGenre, "news-politics"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val tvAndFilm = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastGenre, "tv-film"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastGenre, "tv-film"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val societyAndCulture = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastGenre, "society-culture"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastGenre, "society-culture"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val sportsAndRecreation = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastGenre, "sports-recreation"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastGenre, "sports-recreation"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val wnyc = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastCreator, "wnyc-studios"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastCreator, "wnyc-studios"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val theRinger = dotableService
-      .readTagList(DotableKinds.Podcast,
-                   TagId(TagKinds.PodcastCreator, "the-ringer"),
-                   listLimit,
-                   personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          TagId(TagKinds.PodcastCreator, "the-ringer"),
+                          listLimit,
+                          personId)
       .map(toListFeedItem)
 
     val lists = Future.sequence(
@@ -154,6 +153,11 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
 
   private def toListFeedItem(tagList: TagList): FeedItem = {
     toTagListFeedItem(tagList.tag.name, tagList.tag, tagList.list)
+  }
+
+  private def toListFeedItem(tagList: TagList,
+                             kind: DotableKind = DotableKinds.Podcast): FeedItem = {
+    toTagListFeedItem(tagList.tag.name, tagList.tag, tagList.list, kind)
   }
 
   private def toTagListFeedItem(title: String,

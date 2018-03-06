@@ -1,5 +1,6 @@
 package kurtome.dote.web.utils
 
+import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId._
 import kurtome.dote.shared.constants.TagKinds
@@ -8,6 +9,7 @@ import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.DoteRoutes.HomeRoute
 import kurtome.dote.web.DoteRoutes.ProfileRoute
 import kurtome.dote.web.DoteRoutes.TagRoute
+import kurtome.dote.web.DoteRoutes.TagRouteHash
 
 object FeedIdRoutes {
 
@@ -22,7 +24,11 @@ object FeedIdRoutes {
       case Id.Profile(ProfileId(username)) => Some(ProfileRoute(username))
       case Id.TagList(TagListId(Some(protoTag), kind)) => {
         val tag = TagMapper.fromProto(protoTag)
-        Some(TagRoute(TagKindUrlMapper.toUrl(tag.id.kind), tag.id.key))
+        kind match {
+          case Dotable.Kind.PODCAST_EPISODE =>
+            Some(TagRouteHash(TagKindUrlMapper.toUrl(tag.id.kind), tag.id.key, "dk=episode"))
+          case _ => Some(TagRoute(TagKindUrlMapper.toUrl(tag.id.kind), tag.id.key))
+        }
       }
       case _ => None
     }

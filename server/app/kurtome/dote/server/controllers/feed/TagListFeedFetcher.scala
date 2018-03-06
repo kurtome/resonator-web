@@ -25,26 +25,39 @@ class TagListFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: 
   override def fetch(params: FeedParams): Future[Feed] = {
     assert(params.feedId.id.isTagList)
 
+    for {
+      feedItem <- fetchListItem(params)
+    } yield Feed(id = Some(params.feedId), items = Seq(feedItem))
+  }
+
+  private def fetchListItem(params: FeedParams): Future[FeedItem] = {
     val tagListId = params.feedId.getTagList
     val tagId = TagMapper.fromProto(tagListId.getTag).id
     val listLimit = params.maxItemSize
     val personId = params.loggedInUser.map(_.id)
 
-    for {
-      feedItem <- dotableService
-        .readTagList(DotableKinds.Podcast, tagId, listLimit, personId)
-        .map(toListFeedItem)
-    } yield Feed(id = Some(params.feedId), items = Seq(feedItem))
+    tagListId.dotableKind match {
+      case Dotable.Kind.PODCAST_EPISODE => {
+        dotableService
+          .readEpisodeTagList(tagId, listLimit)
+          .map(toListFeedItem(DotableKinds.PodcastEpisode))
+      }
+      case _ => {
+        dotableService
+          .readPodcastTagList(DotableKinds.Podcast, tagId, listLimit, personId)
+          .map(toListFeedItem(DotableKinds.Podcast))
+      }
+    }
   }
 
-  private def toListFeedItem(tagList: TagList): FeedItem = {
-    toTagListFeedItem(tagList.tag.name, tagList.tag, tagList.list)
+  private def toListFeedItem(kind: DotableKind)(tagList: TagList): FeedItem = {
+    toTagListFeedItem(tagList.tag.name, tagList.tag, tagList.list, kind)
   }
 
   private def toTagListFeedItem(title: String,
                                 tag: Tag,
                                 list: Seq[Dotable],
-                                kind: DotableKind = DotableKinds.Podcast): FeedItem = {
+                                kind: DotableKind): FeedItem = {
     val feedList = FeedDotableList(Some(DotableList(title = title, dotables = list)),
                                    style = FeedDotableList.Style.PRIMARY)
     FeedItem()

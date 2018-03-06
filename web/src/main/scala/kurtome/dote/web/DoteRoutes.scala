@@ -36,6 +36,8 @@ object DoteRoutes extends LogSupport {
 
   case class TagRoute(kind: String, key: String) extends DoteRoute
 
+  case class TagRouteHash(kind: String, key: String, hashPortion: String) extends DoteRoute
+
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   type DoteRouterCtl = RouterCtl[DoteRoute]
@@ -46,7 +48,6 @@ object DoteRoutes extends LogSupport {
 
       // Slug must start and end with a alpha-numeric
       val slug = string("(?:[a-z0-9][-a-z0-9]+[a-z0-9])|[a-z0-9]")
-      val slug2 = string("([a-z0-9][-a-z0-9]+[a-z0-9])|[a-z0-9]")
 
       val id = string("[a-zA-Z0-9]+")
 
@@ -69,9 +70,13 @@ object DoteRoutes extends LogSupport {
 
         | staticRoute("/theme", ThemeRoute) ~> renderR(_ => ThemeView()())
 
-        | dynamicRouteCT("/tag" ~ ("/" ~ slug ~)("/" ~ slug)
+        | dynamicRouteCT(("/tag" ~ "/" ~ slug ~ "/" ~ slug)
           .caseClassDebug[TagRoute]) ~> dynRenderR(
-          (page: TagRoute, routerCtl) => FeedView(page.kind, page.key)())
+          (page: TagRoute, routerCtl) => FeedView(page.kind, page.key, "")())
+
+        | dynamicRouteCT(("/tag" ~ "/" ~ slug ~ "/" ~ slug ~ "#" ~ remainingPathOrBlank)
+          .caseClassDebug[TagRouteHash]) ~> dynRenderR(
+          (page: TagRouteHash, routerCtl) => FeedView(page.kind, page.key, page.hashPortion)())
 
         | dynamicRouteCT("/details" ~ ("/" ~ id ~ "/" ~ slug)
           .caseClass[DetailsRoute]) ~> dynRenderR(

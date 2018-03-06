@@ -23,7 +23,7 @@ class GetDotableListController @Inject()(
 
   override def action(request: Request[GetDotableListRequest]) = {
     podcastDbService
-      .readTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.body.maxResults) map {
+      .readPodcastTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, request.body.maxResults) map {
       list =>
         GetDotableListResponse(Some(StatusMapper.toProto(SuccessStatus)), list.list)
     }

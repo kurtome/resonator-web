@@ -293,10 +293,10 @@ class DotableService @Inject()(db: BasicBackend#Database,
     db.run(dotableDbIo.search(query, kind, limit))
   }
 
-  def readTagList(kind: DotableKinds.Value,
-                  tagId: TagId,
-                  limit: Long,
-                  personId: Option[Long] = None): Future[TagList] = {
+  def readPodcastTagList(kind: DotableKinds.Value,
+                         tagId: TagId,
+                         limit: Long,
+                         personId: Option[Long] = None): Future[TagList] = {
     val tagQuery = for {
       tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
     } yield tags
@@ -369,7 +369,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
     db.run(podcastFeedIngestionDbIo.readNextIngestionRows(limit))
   }
 
-  def readRecentEpisodes(tagId: TagId, limit: Int): Future[Seq[Dotable]] = {
+  def readEpisodeTagList(tagId: TagId, limit: Int): Future[TagList] = {
     val q = Queries
       .recentEpisodesFromPodcastTagList(tagId.kind, tagId.key, limit)
       .result
@@ -377,7 +377,10 @@ class DotableService @Inject()(db: BasicBackend#Database,
         list map {
           case (d, parent) => DotableMapper(d, Some(parent))
       })
-    db.run(q)
+    for {
+      list <- db.run(q)
+      tag <- db.run(tagDbIo.readTagById(tagId))
+    } yield TagList(tag.get, list)
   }
 
   def replaceMetadataTagList(tag: MetadataFlag.Keys.Value, dotableIds: Seq[Long]) = {
