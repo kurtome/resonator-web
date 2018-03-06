@@ -48,7 +48,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
           dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
           (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if dotables.id === dotableTags.dotableId && dotables.kind === kind
-        } yield (dotables, parents)).take(limit)
+        } yield (dotables, parents)).sortBy(_._1.contentEditedTime.desc).take(limit)
     }
 
     val personTagListDotes = Compiled {
@@ -62,7 +62,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
           dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
           dotables <- Tables.Dotable
           if dotables.id === dotableTags.dotableId && dotables.kind === kind
-        } yield dotables).take(listLimit)
+        } yield dotables).sortBy(_.contentEditedTime.desc).take(listLimit)
 
         for {
           dotables <- dotablesQuery
