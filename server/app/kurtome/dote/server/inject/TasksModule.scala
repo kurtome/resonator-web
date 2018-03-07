@@ -6,4 +6,5 @@ import play.api.inject._
 class TasksModule
     extends SimpleModule(bind[TaskConfig].toSelf,
                          bind[IngestPodcastsTask].toSelf.eagerly,
-                         bind[SetPopularPodcastsTask].toSelf.eagerly)
+                         bind[SetPopularPodcastsTask].toSelf.eagerly,
+                         bind[WarmDbTask].toSelf.eagerly)

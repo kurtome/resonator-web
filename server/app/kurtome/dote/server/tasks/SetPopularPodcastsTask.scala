@@ -6,7 +6,6 @@ import akka.actor.{Actor, ActorRef, ActorSystem}
 import kurtome.dote.server.ingestion.PodcastFeedIngester
 import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.services.{DotableService, DoteService}
-import kurtome.dote.server.tasks.SetPopularPodcastsActor.SetPopularPodcasts
 import kurtome.dote.slick.db.DotableKinds
 import wvlet.log.LogSupport
 
@@ -34,9 +33,7 @@ class SetPopularPodcastsTask @Inject()(
   }
 }
 
-object SetPopularPodcastsActor {
-  case object SetPopularPodcasts
-}
+case object SetPopularPodcasts
 
 @Singleton
 class SetPopularPodcastsActor @Inject()(
