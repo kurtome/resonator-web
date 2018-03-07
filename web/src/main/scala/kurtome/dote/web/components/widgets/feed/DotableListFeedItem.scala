@@ -81,14 +81,14 @@ object DotableListFeedItem extends LogSupport {
     private def renderTitle(p: Props): VdomElement = {
       val list = p.feedItem.getDotableList.getList
       val title = list.title
-      val subtitle = list.subtitle
+      val caption = list.caption
 
       val titleRoute = FeedIdRoutes.toRoute(p.feedItem.getId)
       p.feedItem.getDotableList.style match {
         case FeedDotableList.Style.PRIMARY => {
           <.div(
             Typography(variant = Typography.Variants.Headline)(title),
-            Typography(variant = Typography.Variants.SubHeading)(subtitle)
+            Typography(variant = Typography.Variants.Caption)(caption)
           )
         }
         case _ => {

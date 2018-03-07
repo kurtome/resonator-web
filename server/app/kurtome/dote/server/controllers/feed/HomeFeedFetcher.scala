@@ -165,12 +165,12 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
   }
 
   private def toTagListFeedItem(title: String,
-                                subtitle: String,
+                                caption: String,
                                 tag: Tag,
                                 list: Seq[Dotable],
                                 kind: DotableKind): FeedItem = {
     val feedList = FeedDotableList(
-      Some(DotableList(title = title, subtitle = subtitle, dotables = list)))
+      Some(DotableList(title = title, caption = caption, dotables = list)))
     FeedItem()
       .withId(FeedId().withTagList(
         TagListId(tag = Some(TagMapper.toProto(tag)), dotableKind = DotableMapper.mapKind(kind))))

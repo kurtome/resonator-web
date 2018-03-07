@@ -64,12 +64,12 @@ class TagListFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: 
   }
 
   private def toTagListFeedItem(title: String,
-                                subtitle: String,
+                                caption: String,
                                 tag: Tag,
                                 list: Seq[Dotable],
                                 kind: DotableKind): FeedItem = {
     val feedList = FeedDotableList(
-      Some(DotableList(title = title, subtitle = subtitle, dotables = list)),
+      Some(DotableList(title = title, caption = caption, dotables = list)),
       style = FeedDotableList.Style.PRIMARY)
     FeedItem()
       .withId(FeedId().withTagList(
