@@ -74,4 +74,13 @@ message FeedDotableList {
 
 message FeedFollowerSummary {
   FollowerSummary summary = 1;
+  Style style = 2;
+
+  enum Style {
+    UNKNOWN_STYLE = 0;
+    // Used when there are many lists or items beind displayed one after anothjer
+    SUMMARY = 1;
+    // Used when this list is meant to be the primary display on the page
+    PRIMARY = 2;
+  }
 }

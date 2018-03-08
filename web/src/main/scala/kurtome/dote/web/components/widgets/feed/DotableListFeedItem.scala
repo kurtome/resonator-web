@@ -182,6 +182,7 @@ object DotableListFeedItem extends LogSupport {
     .build
 
   def apply(feedItem: FeedItem, key: Option[String] = None) = {
+    assert(feedItem.content.isDotableList)
     if (key.isDefined) {
       component.withKey(key.get).withProps(Props(feedItem))
     } else {

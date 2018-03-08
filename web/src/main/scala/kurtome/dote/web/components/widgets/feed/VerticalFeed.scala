@@ -64,7 +64,7 @@ object VerticalFeed extends LogSupport {
                     LazyLoad(once = true,
                              height = 100,
                              key = Some(s"$i-profile-summary-$username"))(
-                      FollowerSummaryFeedItem(item.getFollowerSummary.getSummary)()
+                      FollowerSummaryFeedItem(item)()
                     )
                   case _ => {
                     warn("unexpected kind")

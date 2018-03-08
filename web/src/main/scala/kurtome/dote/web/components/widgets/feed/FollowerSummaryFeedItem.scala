@@ -5,15 +5,21 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.action.set_follow.SetFollowRequest
+import kurtome.dote.proto.api.feed.FeedFollowerSummary
+import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.proto.api.follower.FollowerSummary
+import kurtome.dote.proto.api.person.Person
 import kurtome.dote.shared.mapper.StatusMapper
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.BaseBackend
+import kurtome.dote.web.utils.FeedIdRoutes
 import kurtome.dote.web.utils.GlobalLoadingManager
 import kurtome.dote.web.utils.GlobalNotificationManager
 import kurtome.dote.web.utils.LoggedInPersonManager
@@ -40,10 +46,24 @@ object FollowerSummaryFeedItem extends LogSupport {
           paddingLeft(SharedStyles.spacingUnit * 2),
           paddingRight(SharedStyles.spacingUnit * 2)
       ))
+
+    val tableContainer = style(
+      padding(SharedStyles.spacingUnit)
+    )
+
+    val tableCell = style(
+      padding(SharedStyles.spacingUnit * 2)
+    )
+
+    val truncateText = style(
+      whiteSpace.nowrap,
+      overflow.hidden,
+      textOverflow := "ellipsis"
+    )
   }
   Styles.addToDocument()
 
-  case class Props(followerSummary: FollowerSummary)
+  case class Props(feedItem: FeedItem)
   case class State(followerSummary: FollowerSummary, setFollowInFlight: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -80,10 +100,56 @@ object FollowerSummaryFeedItem extends LogSupport {
       GlobalLoadingManager.addLoadingFuture(f)
     }
 
-    def render(s: State): VdomElement = {
+    private def counterContainer(p: Props)(vdomElement: VdomElement): VdomElement = {
+      FeedIdRoutes.toRoute(p.feedItem.getId) match {
+        case Some(route) => doteRouterCtl.link(route)(vdomElement)
+        case _ => vdomElement
+      }
+    }
+
+    private def renderPersonSable(title: String, people: Seq[Person]): VdomElement = {
+      if (people.isEmpty) {
+        <.div()
+      } else {
+        Paper(style = Styles.tableContainer)(
+          Table()(
+            TableHead()(
+              TableRow()(
+                TableCell(style = Styles.tableCell)(
+                  Typography(variant = Typography.Variants.SubHeading)(title)))
+            ),
+            TableBody()((people.zipWithIndex map {
+              case (person, i) =>
+                val id = person.id
+                val key: String = if (id.isEmpty) i.toString else id
+                val username = person.username
+                val detailRoute = ProfileRoute(username)
+
+                TableRow(key = Some(key))(
+                  TableCell(style = Styles.tableCell)(
+                    <.div(
+                      ^.position := "relative",
+                      ^.height := "1.5em",
+                      <.div(
+                        ^.position := "absolute",
+                        ^.maxWidth := "100%",
+                        Typography(
+                          variant = Typography.Variants.Body1,
+                          style = Styles.truncateText)(SiteLink(detailRoute)(person.username))
+                      )
+                    )
+                  )
+                )
+            }).toVdomArray)
+          )
+        )
+      }
+    }
+
+    def render(p: Props, s: State): VdomElement = {
       GridContainer(alignItems = Grid.AlignItems.Center)(
         GridItem()(
-          Paper(style = Styles.root)(
+          counterContainer(p)(Paper(style = Styles.root)(
             <.div(
               ^.className := Styles.followCounterContainer(true),
               Typography(variant = Typography.Variants.Headline)(
@@ -96,7 +162,7 @@ object FollowerSummaryFeedItem extends LogSupport {
                 s.followerSummary.followers.length),
               Typography(variant = Typography.Variants.Caption)("Followers")
             )
-          )),
+          ))),
         GridItem()(
           if (LoggedInPersonManager.isLoggedInPerson(s.followerSummary.getPerson.username)) {
             <.div()
@@ -116,20 +182,29 @@ object FollowerSummaryFeedItem extends LogSupport {
                   CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
                 ))
             )
-          })
+          }),
+        if (p.feedItem.getFollowerSummary.style == FeedFollowerSummary.Style.PRIMARY) {
+          GridItem(xs = 12)(
+            renderPersonSable("Following", s.followerSummary.following),
+            renderPersonSable("Followers", s.followerSummary.followers)
+          )
+        } else {
+          <.div()
+        }
       )
     }
   }
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => State(p.followerSummary))
+    .initialStateFromProps(p => State(p.feedItem.getFollowerSummary.getSummary))
     .backend(new Backend(_))
-    .renderS((builder, state) => builder.backend.render(state))
+    .renderPS((builder, props, state) => builder.backend.render(props, state))
     .build
 
-  def apply(followerSummary: FollowerSummary) = {
-    component.withProps(Props(followerSummary))
+  def apply(feedItem: FeedItem) = {
+    assert(feedItem.getId.id.isFollowerSummary)
+    component.withProps(Props(feedItem))
   }
 
 }

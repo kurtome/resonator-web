@@ -4,6 +4,7 @@ import javax.inject._
 import kurtome.dote.proto.api.action.get_feed._
 import kurtome.dote.proto.api.feed.FeedId.Id
 import kurtome.dote.server.controllers.feed.FeedParams
+import kurtome.dote.server.controllers.feed.FollowerSummaryFeedFetcher
 import kurtome.dote.server.controllers.feed.HomeFeedFetcher
 import kurtome.dote.server.controllers.feed.ProfileFeedFetcher
 import kurtome.dote.server.controllers.feed.TagListFeedFetcher
@@ -22,6 +23,7 @@ class GetFeedController @Inject()(
     homeFeedFetcher: HomeFeedFetcher,
     profileFeedFetcher: ProfileFeedFetcher,
     tagListFeedFetcher: TagListFeedFetcher,
+    followerSummaryFeedFetcher: FollowerSummaryFeedFetcher,
     authTokenService: AuthTokenService)(implicit ec: ExecutionContext)
     extends ProtobufController[GetFeedRequest, GetFeedResponse](cc)
     with LogSupport {
@@ -42,6 +44,7 @@ class GetFeedController @Inject()(
         case Id.Home(_) => fetchHomeFeed _
         case Id.Profile(_) => fetchProfileFeed _
         case Id.TagList(_) => fetchTagList _
+        case Id.FollowerSummary(_) => fetchFollowerSummaryFeed _
         case _ => noFeed _
       }
       fetch(feedParams)
@@ -67,6 +70,12 @@ class GetFeedController @Inject()(
 
   private def fetchTagList(feedParams: FeedParams) = {
     tagListFeedFetcher.fetch(feedParams) map { feed =>
+      GetFeedResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(feed))
+    }
+  }
+
+  private def fetchFollowerSummaryFeed(feedParams: FeedParams) = {
+    followerSummaryFeedFetcher.fetch(feedParams) map { feed =>
       GetFeedResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(feed))
     }
   }

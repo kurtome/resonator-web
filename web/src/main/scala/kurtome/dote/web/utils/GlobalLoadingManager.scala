@@ -1,7 +1,9 @@
 package kurtome.dote.web.utils
 
 import kurtome.dote.shared.util.observer._
+import wvlet.log.LogLevel
 import wvlet.log.LogSupport
+import wvlet.log.Logger
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,7 +35,11 @@ object GlobalLoadingManager extends LogSupport {
 
     f recover {
       case t =>
-        debug(s"async future, something went wrong. ${t.getClass.getSimpleName}: ${t.getMessage}")
+        info(s"async future, something went wrong. ${t.getClass.getSimpleName}: ${t.getMessage}")
+        if (Logger.rootLogger.getLogLevel == LogLevel.DEBUG) {
+          t.printStackTrace()
+        }
+
         if (displayError) {
           GlobalNotificationManager.displayError(errorMessage)
         }

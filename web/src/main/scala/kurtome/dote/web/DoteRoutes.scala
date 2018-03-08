@@ -34,6 +34,8 @@ object DoteRoutes extends LogSupport {
 
   case class ProfileRoute(username: String) extends DoteRoute
 
+  case class FollowersRoute(username: String) extends DoteRoute
+
   case class TagRoute(kind: String, key: String) extends DoteRoute
 
   case class TagRouteHash(kind: String, key: String, hashPortion: String) extends DoteRoute
@@ -71,12 +73,11 @@ object DoteRoutes extends LogSupport {
         | staticRoute("/theme", ThemeRoute) ~> renderR(_ => ThemeView()())
 
         | dynamicRouteCT(("/tag" ~ "/" ~ slug ~ "/" ~ slug)
-          .caseClass[TagRoute]) ~> dynRenderR(
-          (page: TagRoute, routerCtl) => FeedView(page.kind, page.key, "")())
+          .caseClass[TagRoute]) ~> dynRenderR((page: TagRoute, routerCtl) => FeedView(page)())
 
         | dynamicRouteCT(("/tag" ~ "/" ~ slug ~ "/" ~ slug ~ "#" ~ remainingPathOrBlank)
           .caseClass[TagRouteHash]) ~> dynRenderR(
-          (page: TagRouteHash, routerCtl) => FeedView(page.kind, page.key, page.hashPortion)())
+          (page: TagRouteHash, routerCtl) => FeedView(page)())
 
         | dynamicRouteCT("/details" ~ ("/" ~ id ~ "/" ~ slug)
           .caseClass[DetailsRoute]) ~> dynRenderR(
@@ -85,6 +86,10 @@ object DoteRoutes extends LogSupport {
         | dynamicRouteCT("/profile" ~ ("/" ~ slug)
           .caseClass[ProfileRoute]) ~> dynRenderR(
           (page: ProfileRoute, routerCtl) => ProfileView(page)())
+
+        | dynamicRouteCT("/profile" ~ ("/" ~ slug ~ "/followers")
+          .caseClass[FollowersRoute]) ~> dynRenderR(
+          (page: FollowersRoute, routerCtl) => FeedView(page)())
 
         | staticRoute("/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))

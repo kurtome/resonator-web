@@ -10,37 +10,37 @@ import scala.scalajs.js
   */
 object Icons {
 
-  @JSImport("material-ui-icons/Home", JSImport.Default)
+  @JSImport("mdi-material-ui/Home", JSImport.Default)
   @js.native
   private object HomeRaw extends js.Object {}
   val Home = JsComponent[Null, Children.None, Null](HomeRaw)
 
-  @JSImport("material-ui-icons/Add", JSImport.Default)
+  @JSImport("mdi-material-ui/Plus", JSImport.Default)
   @js.native
   private object AddRaw extends js.Object {}
   val Add = JsComponent[Null, Children.None, Null](AddRaw)
 
-  @JSImport("material-ui-icons/Stop", JSImport.Default)
+  @JSImport("mdi-material-ui/Stop", JSImport.Default)
   @js.native
   private object StopRaw extends js.Object {}
   val Stop = JsComponent[Null, Children.None, Null](StopRaw)
 
-  @JSImport("material-ui-icons/Pause", JSImport.Default)
+  @JSImport("mdi-material-ui/Pause", JSImport.Default)
   @js.native
   private object PauseRaw extends js.Object {}
   val Pause = JsComponent[Null, Children.None, Null](PauseRaw)
 
-  @JSImport("material-ui-icons/PlayArrow", JSImport.Default)
+  @JSImport("mdi-material-ui/Play", JSImport.Default)
   @js.native
   private object PlayArrowRaw extends js.Object {}
   val PlayArrow = JsComponent[Null, Children.None, Null](PlayArrowRaw)
 
-  @JSImport("material-ui-icons/AccountCircle", JSImport.Default)
+  @JSImport("mdi-material-ui/AccountCircle", JSImport.Default)
   @js.native
   private object AccountCircleRaw extends js.Object {}
   val AccountCircle = JsComponent[Null, Children.None, Null](AccountCircleRaw)
 
-  @JSImport("material-ui-icons/Close", JSImport.Default)
+  @JSImport("mdi-material-ui/Close", JSImport.Default)
   @js.native
   private object CloseRaw extends js.Object {}
   val Close = JsComponent[Null, Children.None, Null](CloseRaw)
@@ -55,28 +55,28 @@ object Icons {
   private object Replay10Raw extends js.Object {}
   val Replay10 = JsComponent[Null, Children.None, Null](Replay10Raw)
 
-  @JSImport("material-ui-icons/Search", JSImport.Default)
+  @JSImport("mdi-material-ui/Magnify", JSImport.Default)
   @js.native
   private object SearchRaw extends js.Object {}
   val Search = JsComponent[Null, Children.None, Null](SearchRaw)
 
-  @JSImport("material-ui-icons/KeyboardArrowLeft", JSImport.Default)
+  @JSImport("mdi-material-ui/ArrowLeft", JSImport.Default)
   @js.native
   private object KeyboardArrowLeftRaw extends js.Object {}
   val KeyboardArrowLeft = JsComponent[Null, Children.None, Null](KeyboardArrowLeftRaw)
 
-  @JSImport("material-ui-icons/KeyboardArrowRight", JSImport.Default)
+  @JSImport("mdi-material-ui/ArrowRight", JSImport.Default)
   @js.native
   private object KeyboardArrowRightRaw extends js.Object {}
   val KeyboardArrowRight = JsComponent[Null, Children.None, Null](KeyboardArrowRightRaw)
 
-  @JSImport("material-ui-icons/ExpandMore", JSImport.Default)
+  @JSImport("mdi-material-ui/ChevronDown", JSImport.Default)
   @js.native
   private object ExpandMoreRaw extends js.Object {}
-  val ExpandMore = JsComponent[Null, Children.None, Null](ExpandMoreRaw)
+  val ChevronDown = JsComponent[Null, Children.None, Null](ExpandMoreRaw)
 
-  @JSImport("material-ui-icons/ExpandLess", JSImport.Default)
+  @JSImport("mdi-material-ui/ChevronUp", JSImport.Default)
   @js.native
   private object ExpandLessRaw extends js.Object {}
-  val ExpandLess = JsComponent[Null, Children.None, Null](ExpandLessRaw)
+  val ChevronUp = JsComponent[Null, Children.None, Null](ExpandLessRaw)
 }

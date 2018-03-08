@@ -120,6 +120,7 @@ lazy val web = (project in webBaseDir)
       "siriwavejs" -> "2.0.2",
       "material-ui" -> "next", // Using "next" to use the 1.0 release while its in beta
       "material-ui-icons" -> "1.0.0-beta.15",
+      "mdi-material-ui" -> "3.1.0",
       "mobile-detect" -> "1.4.1",
       "react-lazyload" -> "2.3.0"
     )

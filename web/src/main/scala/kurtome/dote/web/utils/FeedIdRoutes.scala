@@ -6,6 +6,7 @@ import kurtome.dote.proto.api.feed.FeedId._
 import kurtome.dote.shared.constants.TagKinds
 import kurtome.dote.shared.mapper.TagMapper
 import kurtome.dote.web.DoteRoutes.DoteRoute
+import kurtome.dote.web.DoteRoutes.FollowersRoute
 import kurtome.dote.web.DoteRoutes.HomeRoute
 import kurtome.dote.web.DoteRoutes.ProfileRoute
 import kurtome.dote.web.DoteRoutes.TagRoute
@@ -30,6 +31,7 @@ object FeedIdRoutes {
           case _ => Some(TagRoute(TagKindUrlMapper.toUrl(tag.id.kind), tag.id.key))
         }
       }
+      case Id.FollowerSummary(FollowerSummaryId(username)) => Some(FollowersRoute(username))
       case _ => None
     }
   }

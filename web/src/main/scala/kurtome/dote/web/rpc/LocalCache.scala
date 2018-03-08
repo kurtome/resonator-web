@@ -1,7 +1,6 @@
 package kurtome.dote.web.rpc
 
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds.ObjectKind
-import kurtome.dote.web.utils.PerfTime
 import wvlet.log.LogSupport
 
 import scala.concurrent.Future
