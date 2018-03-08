@@ -58,9 +58,9 @@ object DoteRoutes extends LogSupport {
 
         | staticRedirect("") ~> redirectToPage(HomeRoute)(Redirect.Replace)
 
-        | staticRedirect("/") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+        | staticRedirect("/home") ~> redirectToPage(HomeRoute)(Redirect.Replace)
 
-        | staticRoute("/home", HomeRoute) ~> renderR(_ => HomeView()())
+        | staticRoute("/", HomeRoute) ~> renderR(_ => HomeView()())
 
         | staticRoute("/login", LoginRoute) ~> renderR(_ => LoginView()())
 
@@ -71,11 +71,11 @@ object DoteRoutes extends LogSupport {
         | staticRoute("/theme", ThemeRoute) ~> renderR(_ => ThemeView()())
 
         | dynamicRouteCT(("/tag" ~ "/" ~ slug ~ "/" ~ slug)
-          .caseClassDebug[TagRoute]) ~> dynRenderR(
+          .caseClass[TagRoute]) ~> dynRenderR(
           (page: TagRoute, routerCtl) => FeedView(page.kind, page.key, "")())
 
         | dynamicRouteCT(("/tag" ~ "/" ~ slug ~ "/" ~ slug ~ "#" ~ remainingPathOrBlank)
-          .caseClassDebug[TagRouteHash]) ~> dynRenderR(
+          .caseClass[TagRouteHash]) ~> dynRenderR(
           (page: TagRouteHash, routerCtl) => FeedView(page.kind, page.key, page.hashPortion)())
 
         | dynamicRouteCT("/details" ~ ("/" ~ id ~ "/" ~ slug)

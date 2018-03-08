@@ -7,6 +7,7 @@ import CssSettings._
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.LocalCacheWorkerManager
 import org.scalajs.dom.html.Meta
+import org.scalajs.dom.html.Style
 import wvlet.log._
 
 import scala.scalajs.LinkingInfo
@@ -51,7 +52,8 @@ object WebMain extends LogSupport {
     */
   private def attachStandaloneStyle(stylesheet: StyleSheet.Standalone): Unit = {
     val rawCssStr: String = stylesheet.render
-    val styleElement = dom.document.createElement("style")
+    val styleElement = dom.document.createElement("style").asInstanceOf[Style]
+    styleElement.`type` = "text/css"
     styleElement.innerHTML = rawCssStr
     dom.document.head.appendChild(styleElement)
   }

@@ -72,11 +72,13 @@ object ThemeView extends LogSupport {
                                  color = Button.Colors.Secondary)("Raised secondary button")),
         GridItem(xs = 12)(Button(variant = Button.Variants.Floating)("+")),
         GridItem(xs = 12)(
-          TextField(autoFocus = false,
-                    label = Typography()("Default text field"),
-                    placeholder = "Placeholder text",
-                    value = "Current value",
-                    helperText = Typography()("Helper text"))()),
+          TextField(
+            autoFocus = false,
+            label = Typography()("Default text field"),
+            placeholder = "Placeholder text",
+            value = "Current value",
+            helperText = Typography(component = "span")("Helper text")
+          )()),
         GridItem(xs = 12)(
           TextField(
             autoFocus = false,
@@ -84,7 +86,7 @@ object ThemeView extends LogSupport {
             label = Typography()("Error text field"),
             placeholder = "Error placeholder text",
             value = "Current value",
-            helperText = Typography()("Error helper text")
+            helperText = Typography(component = "span")("Error helper text")
           )()),
         GridItem(xs = 12)(
           TextField(
@@ -93,7 +95,7 @@ object ThemeView extends LogSupport {
             label = Typography()("Disabled text field"),
             placeholder = "Disabled placeholder text",
             value = "Current value",
-            helperText = Typography()("Disabled helper text")
+            helperText = Typography(component = "span")("Disabled helper text")
           )()),
         Paper(style = Styles.paperContainer)(
           Typography(variant = Typography.Variants.SubHeading)("Paper"),

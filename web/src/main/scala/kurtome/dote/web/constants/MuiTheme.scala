@@ -7,7 +7,6 @@ import kurtome.dote.web.components.materialui.{Colors, MuiThemeProvider}
 import wvlet.log.LogSupport
 
 import scala.scalajs._
-import scala.scalajs.js.JSON
 import scala.scalajs.js.annotation.JSName
 
 object MuiTheme extends LogSupport {
@@ -18,18 +17,34 @@ object MuiTheme extends LogSupport {
     hours >= 7 && hours < 19
   }
 
-  var curTheme: Theme =
+//  var curTheme: Theme =
+//    createTheme(
+//      light = isDayTime,
+//      primary = Left(PaletteColor(light = Colors.cyan.`300`,
+//                             main = Colors.cyan.`500`,
+//                             dark = Colors.cyan.`700`,
+//                             contrastText = Colors.grey.`900`)),
+//      secondary = Left(PaletteColor(light = Colors.teal.`100`,
+//                               main = Colors.teal.`200`,
+//                               dark = Colors.teal.`300`,
+//                               contrastText = Colors.grey.`900`))
+//    )
+
+  val lightBackground = PaletteBackground("#fff", "#f9f7e0")
+  val darkBackground = PaletteBackground("#424242", "#303030")
+
+  val lightBottomNav = "#f2f2c9"
+  val darkBottomNav = "#424242"
+
+
+  var curTheme: Theme = {
+    val isLightTheme = isDayTime
     createTheme(
-      light = isDayTime,
-      primary = PaletteColor(light = Colors.cyan.`300`,
-                             main = Colors.cyan.`500`,
-                             dark = Colors.cyan.`700`,
-                             contrastText = Colors.grey.`900`),
-      secondary = PaletteColor(light = Colors.teal.`100`,
-                               main = Colors.teal.`200`,
-                               dark = Colors.teal.`300`,
-                               contrastText = Colors.grey.`900`)
+      light = isLightTheme,
+      primary = PaletteColor("#56b8af"),
+      secondary = PaletteColor("#aa2f2c"),
     )
+  }
 
   def theme: Theme = curTheme
 
@@ -53,6 +68,12 @@ object MuiTheme extends LogSupport {
     var contrastText: String = js.native
   }
   object PaletteColor {
+    def apply(main: String): PaletteColor = {
+      val color = new js.Object().asInstanceOf[PaletteColor]
+      color.main = main
+      color
+    }
+
     def apply(light: String, main: String, dark: String, contrastText: String): PaletteColor = {
       val color = new js.Object().asInstanceOf[PaletteColor]
       color.light = light
@@ -79,8 +100,16 @@ object MuiTheme extends LogSupport {
 
   @js.native
   trait PaletteBackground extends js.Object {
-    val paper: String = js.native
-    val default: String = js.native
+    var paper: String = js.native
+    var default: String = js.native
+  }
+  object PaletteBackground {
+    def apply(paper: String, default: String): PaletteBackground = {
+      val background = new js.Object().asInstanceOf[PaletteBackground]
+      background.paper = paper
+      background.default = default
+      background
+    }
   }
 
   @js.native
@@ -141,6 +170,7 @@ object MuiTheme extends LogSupport {
           "primary" -> primary,
           "secondary" -> secondary,
           "type" -> (if (light) "light" else "dark"),
+          "background" -> (if (light) lightBackground else darkBackground)
         ),
         "typography" -> l$(
           "fontFamily" -> "syntesia",
@@ -169,7 +199,7 @@ object MuiTheme extends LogSupport {
           ),
           "MuiBottomNavigation" -> l$(
             "root" -> l$(
-              "backgroundColor" -> (if (light) "#e0e0e0" else "#212121")
+              "backgroundColor" -> (if (light) lightBottomNav else darkBottomNav)
             )
           ),
           "MuiFormControl" -> l$(
