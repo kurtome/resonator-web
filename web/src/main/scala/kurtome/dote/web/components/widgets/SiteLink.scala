@@ -13,7 +13,11 @@ object SiteLink {
 
   class Backend(bs: BackendScope[Props, Unit]) {
     def render(p: Props, pc: PropsChildren): VdomElement = {
-      val color = MuiTheme.theme.palette.text.primary.asInstanceOf[String]
+      val color = if (MuiTheme.theme.palette.paletteType == "light") {
+        MuiTheme.theme.palette.primary.dark
+      } else {
+        MuiTheme.theme.palette.primary.light
+      }
       doteRouterCtl.link(p.route)(^.color := color, pc)
     }
   }
