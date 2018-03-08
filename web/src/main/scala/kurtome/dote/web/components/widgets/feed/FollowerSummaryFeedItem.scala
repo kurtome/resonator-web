@@ -124,20 +124,10 @@ object FollowerSummaryFeedItem extends LogSupport {
                 val key: String = if (id.isEmpty) i.toString else id
                 val username = person.username
                 val detailRoute = ProfileRoute(username)
-
                 TableRow(key = Some(key))(
                   TableCell(style = Styles.tableCell)(
-                    <.div(
-                      ^.position := "relative",
-                      ^.height := "1.5em",
-                      <.div(
-                        ^.position := "absolute",
-                        ^.maxWidth := "100%",
-                        Typography(
-                          variant = Typography.Variants.Body1,
-                          style = Styles.truncateText)(SiteLink(detailRoute)(person.username))
-                      )
-                    )
+                    Typography(variant = Typography.Variants.Body1, noWrap = true)(
+                      SiteLink(detailRoute)(person.username))
                   )
                 )
             }).toVdomArray)

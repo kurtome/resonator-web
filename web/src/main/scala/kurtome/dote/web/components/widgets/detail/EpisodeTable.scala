@@ -2,10 +2,9 @@ package kurtome.dote.web.components.widgets.detail
 
 import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.{DoteRoute, DetailsRoute}
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.ComponentHelpers._
@@ -37,12 +36,6 @@ object EpisodeTable {
 
     val tableCell = style(
       padding(SharedStyles.spacingUnit * 2)
-    )
-
-    val truncateText = style(
-      whiteSpace.nowrap,
-      overflow.hidden,
-      textOverflow := "ellipsis"
     )
 
   }
@@ -174,10 +167,9 @@ object EpisodeTable {
                 <.div(
                   ^.position := "absolute",
                   ^.maxWidth := "100%",
-                  Typography(variant = Typography.Variants.Body1, style = Styles.truncateText)(
+                  Typography(variant = Typography.Variants.Body1, noWrap = true)(
                     SiteLink(detailRoute)(episode.getCommon.title)),
-                  Typography(variant = Typography.Variants.Caption, style = Styles.truncateText)(
-                    summaryInfo)
+                  Typography(variant = Typography.Variants.Caption, noWrap = true)(summaryInfo)
                 )
               )
             )
