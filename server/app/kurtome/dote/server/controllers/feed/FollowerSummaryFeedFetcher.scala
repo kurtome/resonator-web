@@ -8,13 +8,15 @@ import kurtome.dote.proto.api.feed.FeedId.FollowerSummaryId
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.proto.api.follower.FollowerSummary
 import kurtome.dote.server.controllers.follow.FollowApiHelper
+import kurtome.dote.server.services.PersonService
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 @Singleton
-class FollowerSummaryFeedFetcher @Inject()(followApiHelper: FollowApiHelper)(
-    implicit ec: ExecutionContext)
+class FollowerSummaryFeedFetcher @Inject()(
+    personService: PersonService,
+    followApiHelper: FollowApiHelper)(implicit ec: ExecutionContext)
     extends FeedFetcher {
   override def fetch(params: FeedParams): Future[Feed] = {
     assert(params.feedId.id.isFollowerSummary)
@@ -25,8 +27,10 @@ class FollowerSummaryFeedFetcher @Inject()(followApiHelper: FollowApiHelper)(
   }
 
   private def fetchSummaryItem(params: FeedParams): Future[FeedItem] = {
+    val username = params.feedId.getFollowerSummary.username
     for {
-      summary <- followApiHelper.getSummary(params.loggedInUser)
+      person <- personService.readByUsername(username)
+      summary <- followApiHelper.getSummary(person)
     } yield toFollowerSummaryFeedItem(summary)
   }
 
