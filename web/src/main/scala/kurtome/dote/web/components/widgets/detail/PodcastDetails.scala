@@ -32,11 +32,6 @@ object PodcastDetails {
       lineHeight(1 em)
     )
 
-    val textSectionDivider = style(
-      marginTop(SharedStyles.spacingUnit),
-      marginBottom(SharedStyles.spacingUnit)
-    )
-
     val detailsHeaderContainer = style(
       marginBottom(SharedStyles.spacingUnit * 2)
     )
@@ -46,6 +41,10 @@ object PodcastDetails {
       marginRight.auto,
       marginBottom(SharedStyles.spacingUnit * 3),
       display.table
+    )
+
+    val episodeTableWrapper = style(
+      marginTop(SharedStyles.spacingUnit),
     )
 
     val normalTileContainer = style(
@@ -110,7 +109,7 @@ object PodcastDetails {
       <.div()
     } else {
       <.div(
-        GridContainer()(
+        GridContainer(spacing = 8)(
           (keywords map { keyword =>
             GridItem(key = Some(keyword.getId.kind.toString + keyword.getId.key))(
               Chip(label = Typography()(keyword.displayValue),
@@ -163,7 +162,7 @@ object PodcastDetails {
           DetailField("Listen", LinkFieldValue("iTunes", podcastDetails.getExternalUrls.itunes))
         ) filter { field =>
           field.values exists {
-            case TextFieldValue(text) => text.nonEmpty
+            case TextFieldValue(text)      => text.nonEmpty
             case LinkFieldValue(text, url) => text.nonEmpty && url.nonEmpty
           }
         }
@@ -171,7 +170,7 @@ object PodcastDetails {
       val shouldCenterTile = currentBreakpointString match {
         case "xs" => true
         case "sm" => true
-        case _ => false
+        case _    => false
       }
 
       val tileContainerStyle = if (shouldCenterTile) {
@@ -224,11 +223,11 @@ object PodcastDetails {
                     Typography(variant = Typography.Variants.Body1,
                                dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
                   ),
-                  Grid(item = true, xs = 12)(Divider(style = Styles.textSectionDivider)()),
+                  Grid(item = true, xs = 12)(Divider()()),
                   Grid(item = true, xs = 12)(
                     DetailFieldList(detailFields)()
                   ),
-                  Grid(item = true, xs = 12)(Divider(style = Styles.textSectionDivider)()),
+                  Grid(item = true, xs = 12)(Divider()()),
                   Grid(item = true, xs = 12)(
                     renderTags(p.dotable)
                   )
@@ -238,7 +237,8 @@ object PodcastDetails {
           )
         ),
         Grid(item = true, xs = 12)(
-          LazyLoad(once = true, height = 500)(
+          <.div(
+            ^.className := Styles.episodeTableWrapper,
             EpisodeTable(EpisodeTable.Props(p.dotable))()
           )
         )
