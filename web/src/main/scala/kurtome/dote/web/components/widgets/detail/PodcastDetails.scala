@@ -4,18 +4,20 @@ import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.db.dotable.ExternalUrls
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.tag.Tag
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
+import kurtome.dote.web.DoteRoutes._
+import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.lib.LazyLoad
+import kurtome.dote.web.components.materialui
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.button.ShareButton
-import kurtome.dote.web.components.widgets.detail.DetailFieldList.{
-  DetailField,
-  LinkFieldValue,
-  TextFieldValue
-}
+import kurtome.dote.web.components.widgets.detail.DetailFieldList._
 import kurtome.dote.web.components.widgets.{ContentFrame, PodcastTile}
+import kurtome.dote.web.utils.FeedIdRoutes
 import kurtome.dote.web.utils.{BaseBackend, Debounce}
 import org.scalajs.dom
 
@@ -62,8 +64,8 @@ object PodcastDetails {
   case class Props(dotable: Dotable)
   case class State(availableWidth: Int = 200)
 
-  private case class ExtractedFields(title: String = "",
-                                     subtitle: String = "",
+  private case class ExtractedFields(title: String,
+                                     subtitle: VdomElement,
                                      summary: String = "",
                                      author: Option[String] = None,
                                      externalUrls: ExternalUrls = ExternalUrls.defaultInstance)
@@ -75,17 +77,15 @@ object PodcastDetails {
         val latestEpisode =
           dotable.getRelatives.children.headOption.getOrElse(Dotable.defaultInstance)
         val podcastDetails = dotable.getDetails.getPodcast
-        val subtitle: String = {
-          val creator =
-            if (podcastDetails.author.isEmpty) None
-            else Some(s"by ${podcastDetails.author}")
+        val subtitle: VdomElement = {
+          val creator = creatorFromTags(dotable)
           val years = epochSecRangeToYearRange(common.publishedEpochSec, common.updatedEpochSec)
           if (creator.isDefined && years.isDefined) {
-            s"${creator.get} (${years.get})"
+            <.span(renderCreator(creator.get), s" (${years.get})")
           } else if (creator.isDefined) {
-            creator.get
+            renderCreator(creator.get)
           } else {
-            years.getOrElse("")
+            <.span("" + years.getOrElse(""))
           }
         }
         ExtractedFields(
@@ -98,11 +98,42 @@ object PodcastDetails {
         val episodeDetails = dotable.getDetails.getPodcastEpisode
         ExtractedFields(
           title = common.title,
-          subtitle = epochSecToDate(common.publishedEpochSec),
+          subtitle = <.span(epochSecToDate(common.publishedEpochSec)),
           summary = common.description
         )
-      case _ => ExtractedFields()
+      case _ => ExtractedFields("", <.div())
     }
+  }
+
+  private def renderTags(dotable: Dotable): VdomElement = {
+    val keywords = dotable.getTagCollection.tags
+    if (keywords.isEmpty) {
+      <.div()
+    } else {
+      <.div(
+        GridContainer()(
+          (keywords map { keyword =>
+            GridItem(key = Some(keyword.getId.kind.toString + keyword.getId.key))(
+              Chip(label = Typography()(keyword.displayValue),
+                   onClick = doteRouterCtl.set(tagToRoute(keyword)))()
+            )
+          }) toVdomArray
+        )
+      )
+    }
+  }
+
+  private def tagToRoute(tag: Tag) = {
+    val urlKind = FeedIdRoutes.TagKindUrlMapper.toUrl(tag.getId.kind)
+    TagRoute(urlKind, tag.getId.key)
+  }
+
+  private def renderCreator(creator: Tag): VdomElement = {
+    SiteLink(tagToRoute(creator))(creator.displayValue)
+  }
+
+  def creatorFromTags(dotable: Dotable): Option[Tag] = {
+    dotable.getTagCollection.tags.find(_.getId.kind == Tag.Kind.PODCAST_CREATOR)
   }
 
   class Backend(val bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -202,6 +233,10 @@ object PodcastDetails {
                   Grid(item = true, xs = 12)(Divider(style = Styles.textSectionDivider)()),
                   Grid(item = true, xs = 12)(
                     DetailFieldList(detailFields)()
+                  ),
+                  Grid(item = true, xs = 12)(Divider(style = Styles.textSectionDivider)()),
+                  Grid(item = true, xs = 12)(
+                    renderTags(p.dotable)
                   )
                 )
               )

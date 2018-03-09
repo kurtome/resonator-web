@@ -21,7 +21,10 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
   private val table = Tables.DotableTag
 
   private val readByDotableIdRaw = Compiled { (dotableId: Rep[Long]) =>
-    table.filter(_.dotableId === dotableId)
+    for {
+      dt <- table.filter(_.dotableId === dotableId)
+      t <- tagTable if t.id === dt.tagId
+    } yield t
   }
 
   private val readTagByKeyRaw = Compiled { (kind: Rep[TagKind], key: Rep[String]) =>

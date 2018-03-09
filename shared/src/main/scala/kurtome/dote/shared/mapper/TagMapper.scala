@@ -28,6 +28,7 @@ object TagMapper {
       case TagKinds.PodcastGenre   => Tag.Kind.PODCAST_GENRE
       case TagKinds.PodcastCreator => Tag.Kind.PODCAST_CREATOR
       case TagKinds.MetadataFlag   => Tag.Kind.METADATA_FLAG
+      case TagKinds.Keyword   => Tag.Kind.KEYWORD
       case _                       => Tag.Kind.UNKNNOWN_TYPE
     }
   }
@@ -37,6 +38,7 @@ object TagMapper {
       case Tag.Kind.PODCAST_CREATOR => TagKinds.PodcastCreator
       case Tag.Kind.METADATA_FLAG   => TagKinds.MetadataFlag
       case Tag.Kind.PODCAST_GENRE   => TagKinds.PodcastGenre
+      case Tag.Kind.KEYWORD   => TagKinds.Keyword
       case _                        => throw new IllegalArgumentException(s"Unexpected kind $kind")
     }
   }

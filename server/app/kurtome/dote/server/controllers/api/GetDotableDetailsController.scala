@@ -17,15 +17,15 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class GetDotableDetailsController @Inject()(
     cc: ControllerComponents,
-    podcastDbService: DotableService)(implicit ec: ExecutionContext)
+    dotableService: DotableService)(implicit ec: ExecutionContext)
     extends ProtobufController[GetDotableDetailsRequest, GetDotableDetailsResponse](cc) {
 
   override def parseRequest(bytes: Array[Byte]) =
     GetDotableDetailsRequest.parseFrom(bytes)
 
   override def action(request: Request[GetDotableDetailsRequest]) = {
-    podcastDbService
-      .readDotableWithParentAndChildren(UrlIds.decode(IdKinds.Dotable, request.body.id)) map {
+    dotableService
+      .readDotableDetails(UrlIds.decode(IdKinds.Dotable, request.body.id)) map {
       case Some(dotable) =>
         GetDotableDetailsResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(dotable))
       case None =>

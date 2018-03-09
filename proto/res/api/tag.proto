@@ -12,6 +12,7 @@ message Tag {
     METADATA_FLAG = 1;
     PODCAST_CREATOR = 2;
     PODCAST_GENRE = 3;
+    KEYWORD = 4;
   }
 
   message Id {

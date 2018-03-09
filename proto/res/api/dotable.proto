@@ -11,7 +11,7 @@ message Dotable {
   string id = 1;
   db.DotableCommon common = 2;
   Relatives relatives = 3;
-  repeated Tag tags = 4;
+  TagCollection tag_collection = 4;
   Kind kind = 5;
   db.DotableDetails details = 6;
   string slug = 7;
@@ -23,6 +23,11 @@ message Dotable {
     UNKNOWN_KIND = 0;
     PODCAST = 1;
     PODCAST_EPISODE = 2;
+  }
+
+  message TagCollection {
+    repeated Tag tags = 1;
+    bool tags_fetched = 2;
   }
 
   message Relatives {

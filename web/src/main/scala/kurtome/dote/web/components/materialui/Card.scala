@@ -18,6 +18,7 @@ object Card {
   @js.native
   trait Props extends js.Object {
     var raised: js.UndefOr[Boolean] = js.native
+    var onClick: js.Function0[Unit] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)

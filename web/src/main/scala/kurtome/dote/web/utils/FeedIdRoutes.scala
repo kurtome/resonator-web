@@ -3,6 +3,7 @@ package kurtome.dote.web.utils
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId._
+import kurtome.dote.proto.api.tag.Tag
 import kurtome.dote.shared.constants.TagKinds
 import kurtome.dote.shared.mapper.TagMapper
 import kurtome.dote.web.DoteRoutes.DoteRoute
@@ -38,6 +39,10 @@ object FeedIdRoutes {
 
   object TagKindUrlMapper {
     import TagKinds._
+
+    def toUrl(kind: Tag.Kind): String = {
+      toUrl(TagMapper.mapKind(kind))
+    }
 
     def toUrl(kind: TagKind): String = {
       kind match {

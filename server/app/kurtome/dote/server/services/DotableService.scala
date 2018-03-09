@@ -6,6 +6,7 @@ import java.time.ZoneOffset
 
 import javax.inject._
 import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dotable.Dotable.TagCollection
 import kurtome.dote.server.db._
 import kurtome.dote.server.db.DotableDbIo
 import kurtome.dote.server.db.mappers.{DotableMapper, DoteMapper}
@@ -17,6 +18,7 @@ import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.shared.constants.TagKinds
 import kurtome.dote.shared.constants.TagKinds.TagKind
+import kurtome.dote.shared.mapper.TagMapper
 import kurtome.dote.shared.model.Tag
 import kurtome.dote.shared.model.TagId
 import kurtome.dote.shared.model.TagList
@@ -339,15 +341,30 @@ class DotableService @Inject()(db: BasicBackend#Database,
     db.run(op)
   }
 
-  def readDotableWithParentAndChildren(id: Long): Future[Option[Dotable]] = {
+  def readDotableDetails(id: Long): Future[Option[Dotable]] = {
+    val childrenQuery = dotableDbIo.readByParentId(id)
+    val parentQuery = dotableDbIo.readByChildId(DotableKinds.Podcast, id)
+    val tagsQuery = tagDbIo.readByDotableId(id)
     val op = for {
       dotableOpt <- dotableDbIo.readHeadById(id)
-      children <- dotableDbIo.readByParentId(id)
-      parentOpt <- dotableDbIo.readByChildId(DotableKinds.Podcast, id)
+      children <- childrenQuery
+      parentOpt <- parentQuery
+      tags <- tagsQuery
     } yield
       dotableOpt.map(
-        _.update(_.relatives := Dotable
-          .Relatives(parent = parentOpt, children = children, childrenFetched = true)))
+        _.withRelatives(
+          Dotable.Relatives(parent = parentOpt,
+                            parentFetched = true,
+                            children = children,
+                            childrenFetched = true))
+          .withTagCollection(TagCollection(tagsFetched = true, tags = tags map { tagRow =>
+            TagMapper.toProto(
+              Tag(
+                kind = tagRow.kind,
+                key = tagRow.key,
+                name = tagRow.name
+              ))
+          })))
 
     db.run(op)
   }
