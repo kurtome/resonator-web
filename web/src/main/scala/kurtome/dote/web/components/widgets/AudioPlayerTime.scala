@@ -60,7 +60,7 @@ object AudioPlayerTime extends LogSupport {
         ""
       } else {
         val hours = (s.secRemaining / 3600).toInt
-        val minutes = (s.secRemaining / 60).toInt
+        val minutes = (s.secRemaining / 60).toInt - (hours * 60)
         val seconds = (s.secRemaining % 60).toInt
         if (hours > 0) {
           f"-$hours%02d:$minutes%02d:$seconds%02d"

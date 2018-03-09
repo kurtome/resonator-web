@@ -24,3 +24,8 @@ message Tag {
   string display_value = 2;
 }
 
+message TagCollection {
+  repeated Tag tags = 1;
+  bool tags_fetched = 2;
+  string title = 3;
+}

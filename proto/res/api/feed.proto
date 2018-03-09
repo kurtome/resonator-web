@@ -19,15 +19,20 @@ message FeedId {
     TagListId tag_list = 3;
     FollowerSummaryId follower_summary = 4;
     ProfileDoteListId profile_dote_list = 5;
+    TagCollectionId tag_collection = 6;
   }
   message HomeId {}
+
   message ProfileId {
     string username = 1;
   }
+
   message TagListId {
     Tag tag = 1;
     Dotable.Kind dotable_kind = 2;
   }
+
+  message TagCollectionId {}
 
   message ProfileDoteListId {
     string username  = 1;
@@ -56,6 +61,7 @@ message FeedItem {
   oneof content {
     FeedDotableList dotable_list = 2;
     FeedFollowerSummary follower_summary = 3;
+    FeedTagCollection tag_collection = 4;
   }
 }
 
@@ -83,4 +89,9 @@ message FeedFollowerSummary {
     // Used when this list is meant to be the primary display on the page
     PRIMARY = 2;
   }
+}
+
+
+message FeedTagCollection {
+  TagCollection tag_collection = 1;
 }

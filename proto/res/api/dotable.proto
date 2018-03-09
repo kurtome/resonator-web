@@ -25,11 +25,6 @@ message Dotable {
     PODCAST_EPISODE = 2;
   }
 
-  message TagCollection {
-    repeated Tag tags = 1;
-    bool tags_fetched = 2;
-  }
-
   message Relatives {
     Dotable parent = 1;
     bool parent_fetched = 2;

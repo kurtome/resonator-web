@@ -123,4 +123,10 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
   def tagKeyExists(kind: TagKind, key: String) = {
     tagKeyExistsRaw(kind, key).result
   }
+
+  def readTagsByKeys(kind: TagKind, keys: Seq[String]) = {
+    (for {
+      t <- tagTable.filter(row => row.kind === kind && row.key.inSet(keys))
+    } yield t).result
+  }
 }

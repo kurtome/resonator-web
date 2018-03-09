@@ -55,7 +55,7 @@ object FeedIdRoutes {
     def toUrl(kind: TagKind): String = {
       kind match {
         case MetadataFlag => "m"
-        case PodcastCreator => "network"
+        case PodcastCreator => "creator"
         case PodcastGenre => "category"
         case Keyword => "keyword"
       }
@@ -64,7 +64,7 @@ object FeedIdRoutes {
     def fromUrl(s: String): TagKind = {
       s match {
         case "m" => MetadataFlag
-        case "network" => PodcastCreator
+        case "creator" => PodcastCreator
         case "category" => PodcastGenre
         case "keyword" => Keyword
       }

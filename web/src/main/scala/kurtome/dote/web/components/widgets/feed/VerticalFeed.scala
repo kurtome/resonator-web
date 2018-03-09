@@ -7,6 +7,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.feed.FeedId.FollowerSummaryId
 import kurtome.dote.proto.api.feed.FeedId.Id
 import kurtome.dote.proto.api.feed.FeedId.ProfileDoteListId
+import kurtome.dote.proto.api.feed.FeedId.TagCollectionId
 import kurtome.dote.proto.api.feed.FeedId.TagListId
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
@@ -44,6 +45,7 @@ object VerticalFeed extends LogSupport {
         <.div(
           p.feed.items.zipWithIndex map {
             case (item, i) =>
+              debug(item)
               <.div(
                 ^.key := s"$i${item.getDotableList.getList.title}",
                 ^.className := Styles.feedItemContainer,
@@ -65,6 +67,11 @@ object VerticalFeed extends LogSupport {
                              height = 100,
                              key = Some(s"$i-profile-summary-$username"))(
                       FollowerSummaryFeedItem(item)()
+                    )
+                  case Id.TagCollection(TagCollectionId()) =>
+                    debug("got tag collection")
+                    LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
+                      TagCollectionFeedItem(item)()
                     )
                   case _ => {
                     warn("unexpected kind")

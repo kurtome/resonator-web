@@ -7,22 +7,69 @@ import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dotable_list.DotableList
 import kurtome.dote.proto.api.feed.FeedDotableList
 import kurtome.dote.proto.api.feed.FeedId
+import kurtome.dote.proto.api.feed.FeedId.TagCollectionId
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.proto.api.feed.FeedId.TagListId
+import kurtome.dote.proto.api.feed.FeedTagCollection
+import kurtome.dote.proto.api.tag
+import kurtome.dote.proto.api.tag.TagCollection
 import kurtome.dote.server.db.mappers.DotableMapper
 import kurtome.dote.shared.constants.TagKinds
 import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.server.services.TagService
 import kurtome.dote.shared.mapper.TagMapper
 import kurtome.dote.shared.model.Tag
 import kurtome.dote.shared.model.TagId
 import kurtome.dote.shared.model.TagList
 import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotableKinds
+import kurtome.dote.slick.db.gen.Tables
+import wvlet.log.LogSupport
 
 @Singleton
-class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: ExecutionContext)
-    extends FeedFetcher {
+class HomeFeedFetcher @Inject()(dotableService: DotableService, tagService: TagService)(
+    implicit ec: ExecutionContext)
+    extends FeedFetcher
+    with LogSupport {
+
+  private val topCategories = Seq(
+    "religion-spirituality",
+    "music",
+    "comedy",
+    "business",
+    "society-culture",
+    "sports-recreation",
+    "tv-film",
+    "news-politics",
+    "health",
+    "games-hobbies",
+    "arts",
+    "education",
+    "technology",
+    "kids-family"
+  )
+
+  private val topCreators = Seq(
+    "gimlet",
+    "the-ringer",
+    "wnyc-studios",
+    "the-new-york-times",
+    "prx",
+    "npr",
+    "howstuffworks",
+    "this-american-life",
+    "joe-rogan",
+    "espn",
+    "wondery",
+    "american-public-media",
+    "earwolf",
+    "slate",
+    "relay-fm",
+    "dan-carlan",
+    "roman-mars"
+  )
+
   override def fetch(params: FeedParams): Future[Feed] = {
     val listLimit = params.maxItemSize
     val personId = params.loggedInUser.map(_.id)
@@ -40,119 +87,36 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
       .readPodcastTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, listLimit, personId)
       .map(toListFeedItem)
 
-    val nprList = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastCreator, "npr"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
+    val creatorsTagCollection = tagService
+      .readTags(TagKinds.PodcastCreator, topCreators)
+      .map(toTagCollectionFeedItem("Top Creators", _))
 
-    val comedy = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastGenre, "comedy"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val crookedMediaList = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastCreator, "crooked-media"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val arts = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastGenre, "arts"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val technology = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastGenre, "technology"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val music = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastGenre, "music"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val gimlet = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastCreator, "gimlet"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val newsAndPolitics = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastGenre, "news-politics"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val tvAndFilm = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastGenre, "tv-film"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val societyAndCulture = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastGenre, "society-culture"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val sportsAndRecreation = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastGenre, "sports-recreation"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val wnyc = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastCreator, "wnyc-studios"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
-
-    val theRinger = dotableService
-      .readPodcastTagList(DotableKinds.Podcast,
-                          TagId(TagKinds.PodcastCreator, "the-ringer"),
-                          listLimit,
-                          personId)
-      .map(toListFeedItem)
+    val categoriesTagCollection = tagService
+      .readTags(TagKinds.PodcastGenre, topCategories)
+      .map(toTagCollectionFeedItem("Top Categories", _))
 
     val lists = Future.sequence(
       Seq(
         newEpisodes,
         popularList,
-        societyAndCulture,
-        nprList,
-        comedy,
-        crookedMediaList,
-        technology,
-        gimlet,
-        sportsAndRecreation,
-        arts,
-        music,
-        wnyc,
-        theRinger,
-        newsAndPolitics,
-        tvAndFilm
+        creatorsTagCollection,
+        categoriesTagCollection
       ))
 
     lists map { lists =>
-      val feedItems = lists.filter(_.getDotableList.getList.dotables.nonEmpty)
+      val feedItems = lists.filter(validFeedItem)
       Feed(id = Some(params.feedId), items = feedItems)
+    }
+  }
+
+  private def validFeedItem(feedItem: FeedItem): Boolean = {
+    feedItem.content match {
+      case FeedItem.Content.DotableList(feedDotableList) => {
+        feedDotableList.getList.dotables.nonEmpty
+      }
+      case FeedItem.Content.TagCollection(feedTagCollection) => {
+        feedTagCollection.getTagCollection.tags.nonEmpty
+      }
     }
   }
 
@@ -175,5 +139,15 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: Exe
       .withId(FeedId().withTagList(
         TagListId(tag = Some(TagMapper.toProto(tag)), dotableKind = DotableMapper.mapKind(kind))))
       .withContent(FeedItem.Content.DotableList(feedList))
+  }
+
+  private def toTagCollectionFeedItem(title: String, list: Seq[Tables.TagRow]): FeedItem = {
+    val collection = FeedTagCollection(
+      Some(TagCollection(title = title, tagsFetched = true, tags = list map { row =>
+        TagMapper.toProto(Tag(row.kind, row.key, row.name))
+      })))
+    FeedItem()
+      .withId(FeedId().withTagCollection(TagCollectionId()))
+      .withContent(FeedItem.Content.TagCollection(collection))
   }
 }

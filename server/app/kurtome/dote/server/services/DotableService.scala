@@ -6,7 +6,7 @@ import java.time.ZoneOffset
 
 import javax.inject._
 import kurtome.dote.proto.api.dotable.Dotable
-import kurtome.dote.proto.api.dotable.Dotable.TagCollection
+import kurtome.dote.proto.api.tag.TagCollection
 import kurtome.dote.server.db._
 import kurtome.dote.server.db.DotableDbIo
 import kurtome.dote.server.db.mappers.{DotableMapper, DoteMapper}
