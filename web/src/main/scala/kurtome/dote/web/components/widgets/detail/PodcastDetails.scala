@@ -11,13 +11,12 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.lib.LazyLoad
-import kurtome.dote.web.components.materialui
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.detail.DetailFieldList._
 import kurtome.dote.web.components.widgets.{ContentFrame, PodcastTile}
-import kurtome.dote.web.utils.FeedIdRoutes
+import kurtome.dote.web.utils.FeedIdRoutes.TagRouteMapper
 import kurtome.dote.web.utils.{BaseBackend, Debounce}
 import org.scalajs.dom
 
@@ -115,7 +114,7 @@ object PodcastDetails {
           (keywords map { keyword =>
             GridItem(key = Some(keyword.getId.kind.toString + keyword.getId.key))(
               Chip(label = Typography()(keyword.displayValue),
-                   onClick = doteRouterCtl.set(tagToRoute(keyword)))()
+                   onClick = doteRouterCtl.set(TagRouteMapper.toRoute(keyword)))()
             )
           }) toVdomArray
         )
@@ -123,13 +122,8 @@ object PodcastDetails {
     }
   }
 
-  private def tagToRoute(tag: Tag) = {
-    val urlKind = FeedIdRoutes.TagKindUrlMapper.toUrl(tag.getId.kind)
-    TagRoute(urlKind, tag.getId.key)
-  }
-
   private def renderCreator(creator: Tag): VdomElement = {
-    SiteLink(tagToRoute(creator))(creator.displayValue)
+    SiteLink(TagRouteMapper.toRoute(creator))(creator.displayValue)
   }
 
   def creatorFromTags(dotable: Dotable): Option[Tag] = {

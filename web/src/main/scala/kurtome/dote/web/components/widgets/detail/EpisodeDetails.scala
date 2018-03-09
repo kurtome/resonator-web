@@ -2,7 +2,6 @@ package kurtome.dote.web.components.widgets.detail
 
 import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
@@ -13,7 +12,6 @@ import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.utils.BaseBackend
-
 import scalacss.internal.mutable.StyleSheet
 
 object EpisodeDetails {

@@ -24,17 +24,25 @@ object FeedIdRoutes {
     feedId.id match {
       case Id.Home(_) => Some(HomeRoute)
       case Id.Profile(ProfileId(username)) => Some(ProfileRoute(username))
-      case Id.TagList(TagListId(Some(protoTag), kind)) => {
-        val tag = TagMapper.fromProto(protoTag)
-        kind match {
-          case Dotable.Kind.PODCAST_EPISODE =>
-            Some(TagRouteHash(TagKindUrlMapper.toUrl(tag.id.kind), tag.id.key, "dk=episode"))
-          case _ => Some(TagRoute(TagKindUrlMapper.toUrl(tag.id.kind), tag.id.key))
-        }
+      case Id.TagList(TagListId(Some(tag), kind)) => {
+        Some(TagRouteMapper.toRoute(tag, kind))
       }
       case Id.FollowerSummary(FollowerSummaryId(username)) => Some(FollowersRoute(username))
       case _ => None
     }
+  }
+
+  object TagRouteMapper {
+
+    def toRoute(tag: Tag, kind: Dotable.Kind = Dotable.Kind.PODCAST): DoteRoute = {
+      val urlKind = FeedIdRoutes.TagKindUrlMapper.toUrl(tag.getId.kind)
+
+      kind match {
+        case Dotable.Kind.PODCAST_EPISODE => TagRouteHash(urlKind, tag.getId.key, "dk=episode")
+        case _ => TagRoute(urlKind, tag.getId.key)
+      }
+    }
+
   }
 
   object TagKindUrlMapper {
