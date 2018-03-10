@@ -45,7 +45,6 @@ object VerticalFeed extends LogSupport {
         <.div(
           p.feed.items.zipWithIndex map {
             case (item, i) =>
-              debug(item)
               <.div(
                 ^.key := s"$i${item.getDotableList.getList.title}",
                 ^.className := Styles.feedItemContainer,
@@ -69,7 +68,6 @@ object VerticalFeed extends LogSupport {
                       FollowerSummaryFeedItem(item)()
                     )
                   case Id.TagCollection(TagCollectionId()) =>
-                    debug("got tag collection")
                     LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
                       TagCollectionFeedItem(item)()
                     )

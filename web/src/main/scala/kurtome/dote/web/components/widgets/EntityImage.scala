@@ -8,6 +8,7 @@ import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -58,7 +59,7 @@ object EntityImage extends LogSupport {
 
     val placeholder = style(
       position.absolute,
-      backgroundColor(rgb(200, 200, 200)),
+      backgroundColor :=! MuiTheme.theme.palette.background.paper,
       width(100 %%),
       // Use padding top to force the height of the div to match the width
       paddingTop(100 %%)

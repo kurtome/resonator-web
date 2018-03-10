@@ -79,9 +79,9 @@ object PodcastDetails {
           val creator = creatorFromTags(dotable)
           val years = epochSecRangeToYearRange(common.publishedEpochSec, common.updatedEpochSec)
           if (creator.isDefined && years.isDefined) {
-            <.span(renderCreator(creator.get), s" (${years.get})")
+            <.span("by ", renderCreator(creator.get), s" (${years.get})")
           } else if (creator.isDefined) {
-            renderCreator(creator.get)
+            <.span("by ", renderCreator(creator.get))
           } else {
             <.span("" + years.getOrElse(""))
           }

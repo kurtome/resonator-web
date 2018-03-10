@@ -8,6 +8,7 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
@@ -27,41 +28,6 @@ object PodcastTile extends LogSupport {
       pointerEvents := "auto"
     )
 
-    val imageContainer = style(
-      )
-
-    val overlayContainer = style(
-      position.absolute,
-      pointerEvents := "none",
-      width(100 %%),
-      height(100 %%)
-    )
-
-    val overlayActionsContainer = style(
-      width(100 %%),
-      height(100 %%)
-    )
-
-    val overlay = style(
-      position.absolute,
-      backgroundColor(rgba(255, 255, 255, 0.4)),
-      width(100 %%),
-      height(100 %%)
-    )
-
-    val nestedImg = style(
-      position.absolute,
-      animation := s"${Animations.fadeInImage.name.value} 1s",
-      width(100 %%)
-    )
-
-    val placeholder = style(
-      position.absolute,
-      backgroundColor(rgb(200, 200, 200)),
-      width(100 %%),
-      // Use padding top to force the height of the div to match the width
-      paddingTop(100 %%)
-    )
   }
 
   private object Animations extends StyleSheet.Inline {
