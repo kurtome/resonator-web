@@ -77,13 +77,10 @@ object PodcastDetails {
         val podcastDetails = dotable.getDetails.getPodcast
         val subtitle: VdomElement = {
           val creator = creatorFromTags(dotable)
-          val years = epochSecRangeToYearRange(common.publishedEpochSec, common.updatedEpochSec)
-          if (creator.isDefined && years.isDefined) {
-            <.span("by ", renderCreator(creator.get), s" (${years.get})")
-          } else if (creator.isDefined) {
-            <.span("by ", renderCreator(creator.get))
+          if (creator.isDefined) {
+            <.strong("by ", renderCreator(creator.get))
           } else {
-            <.span("" + years.getOrElse(""))
+            <.span("")
           }
         }
         ExtractedFields(
@@ -212,7 +209,15 @@ object PodcastDetails {
                   Grid(item = true, xs = 12)(
                     Typography(style = Styles.titleText, variant = Typography.Variants.Headline)(
                       fields.title),
-                    Typography(variant = Typography.Variants.SubHeading)(fields.subtitle)
+                    if (p.dotable.getRelatives.childrenFetched) {
+                      Typography(variant = Typography.Variants.Body1)(<.strong(
+                        s"${p.dotable.getRelatives.children.length} Episodes (${epochSecRangeToYearRange(
+                          p.dotable.getCommon.publishedEpochSec,
+                          p.dotable.getCommon.updatedEpochSec).getOrElse("")})"))
+                    } else {
+                      <.div()
+                    },
+                    Typography(variant = Typography.Variants.Body1)(fields.subtitle)
                   ),
                   GridItem(xs = 12)(
                     GridContainer()(

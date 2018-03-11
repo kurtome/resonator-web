@@ -2,7 +2,6 @@ package kurtome.dote.web.constants
 
 import kurtome.dote.shared.util.observer.Observable
 import kurtome.dote.shared.util.observer.SimpleObservable
-import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui.{Colors, MuiThemeProvider}
 import wvlet.log.LogSupport
 
@@ -16,19 +15,6 @@ object MuiTheme extends LogSupport {
     val hours = time.getHours()
     hours >= 7 && hours < 19
   }
-
-//  var curTheme: Theme =
-//    createTheme(
-//      light = isDayTime,
-//      primary = Left(PaletteColor(light = Colors.cyan.`300`,
-//                             main = Colors.cyan.`500`,
-//                             dark = Colors.cyan.`700`,
-//                             contrastText = Colors.grey.`900`)),
-//      secondary = Left(PaletteColor(light = Colors.teal.`100`,
-//                               main = Colors.teal.`200`,
-//                               dark = Colors.teal.`300`,
-//                               contrastText = Colors.grey.`900`))
-//    )
 
   val lightBackground = PaletteBackground("#fff", "#f9f7e0")
   val darkBackground = PaletteBackground("#424242", "#303030")

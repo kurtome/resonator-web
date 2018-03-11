@@ -98,8 +98,9 @@ object EpisodeDetails {
             elevation = 2
           )(),
           Typography(variant = Typography.Variants.Body1)(
-            s"by ",
-            SiteLink(DetailsRoute(podcast.id, podcast.slug))(s"${podcast.getCommon.title}"))
+            <.strong(
+              s"by ",
+              SiteLink(DetailsRoute(podcast.id, podcast.slug))(s"${podcast.getCommon.title}")))
         ),
         GridItem(xs = 12)(
           GridContainer(style = Styles.actionsContainer)(
