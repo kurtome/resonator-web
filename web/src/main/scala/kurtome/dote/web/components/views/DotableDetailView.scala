@@ -17,6 +17,7 @@ import scalacss.internal.mutable.StyleSheet
 import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Try
 
 object DotableDetailView extends LogSupport {
 
@@ -24,7 +25,7 @@ object DotableDetailView extends LogSupport {
     import dsl._
   }
 
-  case class Props(route: DetailsRoute)
+  case class Props(id: String, queryParams: Map[String, String])
 
   case class State(response: GetDotableDetailsResponse = GetDotableDetailsResponse.defaultInstance,
                    requestedId: String = "",
@@ -34,7 +35,7 @@ object DotableDetailView extends LogSupport {
 
     def fetchDetails(p: Props): Callback = Callback {
       val s = bs.state.runNow()
-      val id = p.route.id
+      val id = p.id
 
       if (s.requestedId != id) {
         LocalCache
@@ -75,7 +76,7 @@ object DotableDetailView extends LogSupport {
     }
 
     def fetchFromServer(p: Props): Unit = {
-      val request = GetDotableDetailsRequest(p.route.id)
+      val request = GetDotableDetailsRequest(p.id)
       val f = DoteProtoServer.getDotableDetails(request) flatMap { response =>
         bs.modState(_.copy(response = response, requestInFlight = false)).toFuture
       }
@@ -84,13 +85,16 @@ object DotableDetailView extends LogSupport {
 
     def render(p: Props, s: State): VdomElement = {
       val dotable = s.response.getDotable
+
+      val episodeTablePage = Try(p.queryParams.getOrElse("ep_page", "0").toInt).getOrElse(0)
+
       Fade(in = true, timeoutMs = 300)(
         Grid(container = true, spacing = 0)(
           Grid(item = true, xs = 12)(
             dotable.kind match {
-              case Kind.PODCAST => PodcastDetails(PodcastDetails.Props(dotable))()
-              case Kind.PODCAST_EPISODE =>
-                EpisodeDetails(EpisodeDetails.Props(dotable))()
+              case Kind.PODCAST =>
+                PodcastDetails(PodcastDetails.Props(dotable, episodeTablePage))()
+              case Kind.PODCAST_EPISODE => EpisodeDetails(EpisodeDetails.Props(dotable))()
               case _ => {
                 // Waiting for data
                 GridContainer(justify = Grid.Justify.Center)(
@@ -114,6 +118,6 @@ object DotableDetailView extends LogSupport {
     .build
 
   def apply(route: DetailsRoute) = {
-    component.withProps(Props(route))
+    component.withProps(Props(route.id, route.queryParams))
   }
 }

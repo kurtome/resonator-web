@@ -99,7 +99,7 @@ object EpisodeDetails {
           )(),
           Typography(variant = Typography.Variants.Body1)(
             <.strong(
-              s"by ",
+              s"from ",
               SiteLink(DetailsRoute(podcast.id, podcast.slug))(s"${podcast.getCommon.title}")))
         ),
         GridItem(xs = 12)(

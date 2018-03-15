@@ -35,6 +35,7 @@ import scala.util.Random
 @Singleton
 class DotableService @Inject()(db: BasicBackend#Database,
                                dotableDbIo: DotableDbIo,
+                               doteService: DoteService,
                                podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo,
                                tagDbIo: DotableTagDbIo)(implicit ec: ExecutionContext)
     extends LogSupport {
@@ -341,10 +342,12 @@ class DotableService @Inject()(db: BasicBackend#Database,
     db.run(op)
   }
 
-  def readDotableDetails(id: Long): Future[Option[Dotable]] = {
+  def readDotableDetails(id: Long, personId: Option[Long]): Future[Option[Dotable]] = {
     val childrenQuery = dotableDbIo.readByParentId(id)
     val parentQuery = dotableDbIo.readByChildId(DotableKinds.Podcast, id)
     val tagsQuery = tagDbIo.readByDotableId(id)
+
+    val pendingDote = doteService.readDote(personId.getOrElse(0), id)
     val op = for {
       dotableOpt <- dotableDbIo.readHeadById(id)
       children <- childrenQuery
@@ -366,7 +369,11 @@ class DotableService @Inject()(db: BasicBackend#Database,
               ))
           })))
 
-    db.run(op)
+    for {
+      dotable <- db.run(op)
+      dote <- pendingDote
+    } yield dotable.map(_.copy(dote = dote.map(DoteMapper.toProto(_))))
+
   }
 
   def readDotableShallow(id: Long): Future[Option[Dotable]] = {

@@ -20,7 +20,8 @@ object DoteRoutes extends LogSupport {
 
   case object SearchRoute extends DoteRoute
 
-  case class DetailsRoute(id: String, slug: String) extends DoteRoute
+  case class DetailsRoute(id: String, slug: String, queryParams: Map[String, String] = Map())
+      extends DoteRoute
 
   case object PageNotFoundRoute extends DoteRoute
 
@@ -36,17 +37,53 @@ object DoteRoutes extends LogSupport {
 
   case class FollowersRoute(username: String) extends DoteRoute
 
-  case class TagRoute(kind: String, key: String) extends DoteRoute
-
-  case class TagRouteHash(kind: String, key: String, hashPortion: String) extends DoteRoute
+  case class TagRoute(kind: String, key: String, queryParams: Map[String, String] = Map())
+      extends DoteRoute
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   type DoteRouterCtl = RouterCtl[DoteRoute]
 
+  object AdditionalDsl {
+    import StaticDsl._
+
+    private val queryCaptureRegex = "(:?(\\?.*)|())#?|$"
+
+    /**
+      * Captures the query portion of the URL to a param map.
+      * Note that this is not a strict capture, URLs without a query string will still be accepted,
+      * and the parameter map will simply by empty.
+      */
+    def query: RouteB[Map[String, String]] =
+      new RouteB[Map[String, String]](
+        queryCaptureRegex,
+        1,
+        capturedGroups => {
+          val capturedQuery = capturedGroups(0).replaceFirst("\\?", "")
+          val params = capturedQuery.split("&").filter(_.nonEmpty) map { param =>
+            // Note that it is possible for there to be just a key and no value
+            val key = param.takeWhile(_ != '=')
+            val value = param.drop(key.length + 1)
+            key -> value
+          }
+          Some(params.toMap)
+        },
+        paramsMap => {
+          paramsMap.foldLeft("")((str, param) => {
+            if (str.isEmpty) {
+              s"?${param._1}=${param._2}"
+            } else {
+              str + s"&${param._1}=${param._2}"
+            }
+          })
+        }
+      )
+  }
+
   private val routerConfig: RouterConfig[DoteRoute] =
     RouterConfigDsl[DoteRoute].buildConfig { dsl =>
       import dsl._
+      import AdditionalDsl._
 
       // Slug must start and end with a alpha-numeric
       val slug = string("(?:[a-z0-9][-a-z0-9]+[a-z0-9])|[a-z0-9]")
@@ -72,14 +109,10 @@ object DoteRoutes extends LogSupport {
 
         | staticRoute("/theme", ThemeRoute) ~> renderR(_ => ThemeView()())
 
-        | dynamicRouteCT(("/tag" ~ "/" ~ slug ~ "/" ~ slug)
+        | dynamicRouteCT(("/tag" ~ "/" ~ slug ~ "/" ~ slug ~ query)
           .caseClass[TagRoute]) ~> dynRenderR((page: TagRoute, routerCtl) => FeedView(page)())
 
-        | dynamicRouteCT(("/tag" ~ "/" ~ slug ~ "/" ~ slug ~ "#" ~ remainingPathOrBlank)
-          .caseClass[TagRouteHash]) ~> dynRenderR(
-          (page: TagRouteHash, routerCtl) => FeedView(page)())
-
-        | dynamicRouteCT("/details" ~ ("/" ~ id ~ "/" ~ slug)
+        | dynamicRouteCT("/details" ~ ("/" ~ id ~ "/" ~ slug ~ query)
           .caseClass[DetailsRoute]) ~> dynRenderR(
           (page: DetailsRoute, routerCtl) => DotableDetailView(page)())
 

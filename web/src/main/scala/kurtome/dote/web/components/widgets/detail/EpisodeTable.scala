@@ -3,6 +3,7 @@ package kurtome.dote.web.components.widgets.detail
 import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.db.dotable.DotableDetails
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
@@ -11,6 +12,7 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.utils.BaseBackend
+import org.scalajs.dom
 
 import scala.scalajs.js
 import scalacss.internal.mutable.StyleSheet
@@ -40,13 +42,12 @@ object EpisodeTable {
 
   }
 
-  case class Props(dotable: Dotable)
+  case class Props(dotable: Dotable, initialPage: Int = 0, rowsPerPage: Int = 5)
+  case class State(page: Int)
 
-  case class State(page: Int = 0, rowsPerPage: Int = 10)
-
-  private def lastPage(p: Props, s: State): Int = {
+  private def lastPage(p: Props): Int = {
     val numEpisodes = p.dotable.getRelatives.children.size
-    numEpisodes / s.rowsPerPage
+    numEpisodes / p.rowsPerPage
   }
 
   private def episodesByRecency(dotable: Dotable) = {
@@ -58,35 +59,37 @@ object EpisodeTable {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val onPageChanged: (js.Dynamic, Int) => Callback = (event, page) => {
-      bs.modState(_.copy(page = page))
+    def goToPage(page: Int) = {
+      val dotable = bs.props.runNow().dotable
+      val url = doteRouterCtl
+        .urlFor(DetailsRoute(dotable.id, dotable.slug, Map("ep_page" -> page.toString)))
+        .value
+      dom.window.history.pushState(new js.Object(), "Resonator", url)
     }
 
-    val onPageSizeChanged: (js.Dynamic) => Callback = (event) => {
-      bs modState { curState =>
-        val rowIndex = curState.page * curState.rowsPerPage
-        val newRowsPerPage = event.target.value.asInstanceOf[Int]
-        val newPage = rowIndex / newRowsPerPage
-        curState.copy(page = newPage, rowsPerPage = newRowsPerPage)
-      }
+    def handlePrevPageClicked(s: State)() = Callback {
+      val newPage = Math.max(0, s.page - 1)
+      goToPage(newPage)
+      bs.modState(_.copy(page = newPage)).runNow()
     }
 
-    def handlePrevPageClicked(s: State)() =
-      bs.modState(_.copy(page = Math.max(0, s.page - 1)))
-
-    def handleNextPageClicked(p: Props, s: State)() =
-      bs.modState(_.copy(page = Math.min(lastPage(p, s), s.page + 1)))
+    def handleNextPageClicked(p: Props, s: State)() = Callback {
+      val newPage = Math.min(lastPage(p), s.page + 1)
+      goToPage(newPage)
+      bs.modState(_.copy(page = newPage)).runNow()
+    }
 
     def render(p: Props, s: State): VdomElement = {
+      debug(p.initialPage + " " + s.page)
       val episodes = episodesByRecency(p.dotable)
 
-      val pageStartIndex = s.rowsPerPage * s.page
-      val pageEndIndex = Math.min(pageStartIndex + s.rowsPerPage, episodes.size)
+      val pageStartIndex = p.rowsPerPage * s.page
+      val pageEndIndex = Math.min(pageStartIndex + p.rowsPerPage, episodes.size)
       val episodesOnPage = episodes.slice(pageStartIndex, pageEndIndex)
 
       // Fill the page with blank episodes if there is extra space
       val episodePage = episodesOnPage ++
-        (1 to s.rowsPerPage - episodesOnPage.size).map(_ => Dotable.defaultInstance)
+        (1 to p.rowsPerPage - episodesOnPage.size).map(_ => Dotable.defaultInstance)
 
       val isXs = isBreakpointXs
 
@@ -110,7 +113,7 @@ object EpisodeTable {
               ),
               TableFooter()(
                 TableRow()(
-                  TableCell(style = Styles.tableCell)(
+                  TableCell()(
                     Grid(
                       container = true,
                       spacing = 0,
@@ -127,7 +130,7 @@ object EpisodeTable {
                           IconButton(disabled = s.page <= 0, onClick = handlePrevPageClicked(s))(
                             Icons.KeyboardArrowLeft()),
                           IconButton(
-                            disabled = s.page >= lastPage(p, s),
+                            disabled = s.page >= lastPage(p),
                             onClick = handleNextPageClicked(p, s))(Icons.KeyboardArrowRight())
                         )
                       )
@@ -180,9 +183,10 @@ object EpisodeTable {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State(rowsPerPage = if (ComponentHelpers.isBreakpointXs) 5 else 10))
+    .initialState(State(0))
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
+    .componentWillReceiveProps(x => x.modState(_.copy(page = x.nextProps.initialPage)))
     .build
 
   def apply(p: Props) = component.withProps(p)

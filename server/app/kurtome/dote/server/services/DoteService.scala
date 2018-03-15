@@ -22,6 +22,10 @@ class DoteService @Inject()(db: BasicBackend#Database, doteDbIo: DoteDbIo)(
     db.run(doteDbIo.upsert(personId, dotableId, dote)).map(_ => Unit)
   }
 
+  def readDote(personId: Long, dotableId: Long): Future[Option[Tables.DoteRow]] = {
+    db.run(doteDbIo.readDote(personId, dotableId))
+  }
+
   def readPopular(kind: DotableKind, limit: Long): Future[Seq[Tables.DotableRow]] = {
     db.run(doteDbIo.mostPopularDotables(kind, LocalDateTime.now.minus(popularAge), limit))
   }

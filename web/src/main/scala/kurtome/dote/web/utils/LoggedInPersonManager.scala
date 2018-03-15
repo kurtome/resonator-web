@@ -31,6 +31,8 @@ object LoggedInPersonManager extends LogSupport {
 
   val isLoggedIn: Boolean = person.isDefined
 
+  val isNotLoggedIn: Boolean = person.isEmpty
+
   def isLoggedInPerson(username: String): Boolean = {
     isLoggedIn && username == person.get.username
   }

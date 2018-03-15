@@ -27,6 +27,7 @@ import scalacss.ScalaCssReact._
 import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.scalajs.js
 
 object FollowerSummaryFeedItem extends LogSupport {
 
@@ -137,6 +138,9 @@ object FollowerSummaryFeedItem extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
+      val showFollowCheckbox = (LoggedInPersonManager.isNotLoggedIn
+        || LoggedInPersonManager.isLoggedInPerson(s.followerSummary.getPerson.username))
+
       GridContainer(alignItems = Grid.AlignItems.Center)(
         GridItem()(
           counterContainer(p)(Paper(style = Styles.root)(
@@ -153,26 +157,25 @@ object FollowerSummaryFeedItem extends LogSupport {
               Typography(variant = Typography.Variants.Caption)("Followers")
             )
           ))),
-        GridItem()(
-          if (LoggedInPersonManager.isLoggedInPerson(s.followerSummary.getPerson.username)) {
-            <.div()
-          } else {
-            GridContainer(spacing = 0)(
-              GridItem()(
-                FormControlLabel(
-                  control = Checkbox(checked = isFollowing(s),
-                                     name = "follow",
-                                     value = "follow",
-                                     disabled = isFollowPending(s),
-                                     onChange = handleFollowingChanged(s))(),
-                  label = Typography()(s"Follow ${s.followerSummary.getPerson.username}")
-                )()),
-              GridItem()(
-                Fade(in = s.setFollowInFlight)(
-                  CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
-                ))
-            )
-          }),
+        GridItem()(if (showFollowCheckbox) {
+          <.div()
+        } else {
+          GridContainer(spacing = 0)(
+            GridItem()(
+              FormControlLabel(
+                control = Checkbox(checked = isFollowing(s),
+                                   name = "follow",
+                                   value = "follow",
+                                   disabled = isFollowPending(s),
+                                   onChange = handleFollowingChanged(s))(),
+                label = s"Follow ${s.followerSummary.getPerson.username}"
+              )()),
+            GridItem()(
+              Fade(in = s.setFollowInFlight)(
+                CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
+              ))
+          )
+        }),
         if (p.feedItem.getFollowerSummary.style == FeedFollowerSummary.Style.PRIMARY) {
           GridItem(xs = 12)(
             renderPersonSable("Following", s.followerSummary.following),

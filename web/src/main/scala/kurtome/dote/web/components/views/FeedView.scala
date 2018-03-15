@@ -13,7 +13,7 @@ import kurtome.dote.shared.model.Tag
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.FollowersRoute
 import kurtome.dote.web.DoteRoutes.TagRoute
-import kurtome.dote.web.DoteRoutes.TagRouteHash
+import kurtome.dote.web.DoteRoutes.TagRoute
 import kurtome.dote.web.components.widgets.feed.VerticalFeed
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.FeedIdRoutes.TagKindUrlMapper
@@ -63,14 +63,7 @@ object FeedView extends LogSupport {
     .build
 
   def apply(route: TagRoute) = {
-    val dotableKind = Dotable.Kind.PODCAST
-    val tag = TagMapper.toProto(Tag(TagKindUrlMapper.fromUrl(route.kind), route.key, route.key))
-    val id = FeedId().withTagList(TagListId().withTag(tag).withDotableKind(dotableKind))
-    component.withProps(Props(id))
-  }
-
-  def apply(route: TagRouteHash) = {
-    val dotableKind = if (route.hashPortion == "dk=episode") {
+    val dotableKind = if (route.queryParams.get("dk").contains("episode")) {
       Dotable.Kind.PODCAST_EPISODE
     } else {
       Dotable.Kind.PODCAST

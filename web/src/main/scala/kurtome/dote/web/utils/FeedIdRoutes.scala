@@ -11,7 +11,6 @@ import kurtome.dote.web.DoteRoutes.FollowersRoute
 import kurtome.dote.web.DoteRoutes.HomeRoute
 import kurtome.dote.web.DoteRoutes.ProfileRoute
 import kurtome.dote.web.DoteRoutes.TagRoute
-import kurtome.dote.web.DoteRoutes.TagRouteHash
 
 object FeedIdRoutes {
 
@@ -38,7 +37,8 @@ object FeedIdRoutes {
       val urlKind = FeedIdRoutes.TagKindUrlMapper.toUrl(tag.getId.kind)
 
       kind match {
-        case Dotable.Kind.PODCAST_EPISODE => TagRouteHash(urlKind, tag.getId.key, "dk=episode")
+        case Dotable.Kind.PODCAST_EPISODE =>
+          TagRoute(urlKind, tag.getId.key, Map("dk" -> "episode"))
         case _ => TagRoute(urlKind, tag.getId.key)
       }
     }

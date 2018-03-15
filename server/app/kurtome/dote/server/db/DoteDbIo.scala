@@ -1,8 +1,8 @@
 package kurtome.dote.server.db
 
 import java.time.LocalDateTime
-import javax.inject._
 
+import javax.inject._
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotePostgresProfile.api._
@@ -10,6 +10,7 @@ import kurtome.dote.slick.db.gen.Tables
 import slick.lifted.Compiled
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 @Singleton
 class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
@@ -60,6 +61,10 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
 
   def recentRecentDotesWithDotables(limit: Long) = {
     Queries.recentDotesWithDotable(limit).result
+  }
+
+  def readDote(personId: Long, dotableId: Long) = {
+    Queries.filterByPersonAndDotableId(personId, dotableId).result.headOption
   }
 
   def upsert(personId: Long, dotableId: Long, dote: Dote) = {

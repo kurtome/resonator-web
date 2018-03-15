@@ -17,19 +17,16 @@ object FormControlLabel {
   // NOTE: not all props exposed
   @js.native
   trait Props extends js.Object {
-    var control: js.UndefOr[raw.ReactElement] = js.native
-    var label: js.UndefOr[raw.ReactElement] = js.native
+    var control: js.UndefOr[raw.ReactNode] = js.native
+    var label: js.UndefOr[raw.ReactNode] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(
-      control: js.UndefOr[GenericComponent.Unmounted[_, _]] = js.undefined,
-      label: js.UndefOr[GenericComponent.Unmounted[_, _]] = js.undefined
-  ) = {
+  def apply(control: vdom.VdomNode, label: vdom.VdomNode) = {
     val p = (new js.Object).asInstanceOf[Props]
-    p.control = control.map(_.raw)
-    p.label = label.map(_.raw)
+    p.control = control.rawNode
+    p.label = label.rawNode
     component.withProps(p)
   }
 

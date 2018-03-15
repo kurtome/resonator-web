@@ -59,7 +59,7 @@ object PodcastDetails {
 
   }
 
-  case class Props(dotable: Dotable)
+  case class Props(dotable: Dotable, episodeTablePage: Int)
   case class State(availableWidth: Int = 200)
 
   private case class ExtractedFields(title: String,
@@ -78,7 +78,7 @@ object PodcastDetails {
         val subtitle: VdomElement = {
           val creator = creatorFromTags(dotable)
           if (creator.isDefined) {
-            <.strong("by ", renderCreator(creator.get))
+            <.strong("from ", renderCreator(creator.get))
           } else {
             <.span("")
           }
@@ -244,7 +244,7 @@ object PodcastDetails {
         Grid(item = true, xs = 12)(
           <.div(
             ^.className := Styles.episodeTableWrapper,
-            EpisodeTable(EpisodeTable.Props(p.dotable))()
+            EpisodeTable(EpisodeTable.Props(p.dotable, p.episodeTablePage))()
           )
         )
       )
