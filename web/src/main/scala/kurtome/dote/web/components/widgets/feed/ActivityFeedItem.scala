@@ -123,7 +123,7 @@ object ActivityFeedItem extends LogSupport {
                      xs = 12,
                      sm = 6,
                      lg = 4)(
-                  Paper(style = Styles.paperWrapper(!isLastInRow))(
+                  Paper(style = Styles.paperWrapper(!isLastInRow), elevation = 1)(
                     <.div(
                       ^.width := "100%",
                       ^.display := "inline-block",
@@ -133,9 +133,15 @@ object ActivityFeedItem extends LogSupport {
                     ),
                     Typography(noWrap = true)(s"Rated $smile$cry$laugh$scowl"),
                     if (dotable.kind == Dotable.Kind.PODCAST) {
-                      PodcastTile(dotable = dotable, width = "100px")()
+                      PodcastTile(dotable = dotable,
+                                  width = "100px",
+                                  elevation = 3,
+                                  disableActions = true)()
                     } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-                      EpisodeTile(dotable = dotable, width = 250)()
+                      EpisodeTile(dotable = dotable,
+                                  width = 250,
+                                  elevation = 3,
+                                  disableActions = true)()
                     } else {
                       // Placeholder for correct spacing
                       <.div(^.width := "200px")

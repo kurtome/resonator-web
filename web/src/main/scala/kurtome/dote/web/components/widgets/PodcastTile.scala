@@ -72,7 +72,11 @@ object PodcastTile extends LogSupport {
             ^.className := Styles.container,
             EntityImage(dotable = p.dotable, width = p.width)()
           ),
-          TileActionShim(p.dotable, s.hover)()
+          if (p.disableActions) {
+            <.div()
+          } else {
+            TileActionShim(p.dotable, s.hover)()
+          }
         )
       )
 

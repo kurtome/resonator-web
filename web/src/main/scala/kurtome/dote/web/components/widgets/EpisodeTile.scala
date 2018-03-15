@@ -78,7 +78,7 @@ object EpisodeTile extends LogSupport {
     )
   }
 
-  case class Props(dotable: Dotable, elevation: Int, width: Int)
+  case class Props(dotable: Dotable, elevation: Int, width: Int, disableActions: Boolean)
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
                    smileCount: Int = 0,
@@ -128,7 +128,11 @@ object EpisodeTile extends LogSupport {
                 epochSecToDate(p.dotable.getCommon.publishedEpochSec))
             )
           ),
-          TileActionShim(p.dotable, s.hover)()
+          if (p.disableActions) {
+            <.div()
+          } else {
+            TileActionShim(p.dotable, s.hover)()
+          }
         )
       )
 
@@ -148,6 +152,9 @@ object EpisodeTile extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable, elevation: Int = 6, width: Int = 300) =
-    component.withProps(Props(dotable, elevation, width))
+  def apply(dotable: Dotable,
+            elevation: Int = 6,
+            width: Int = 300,
+            disableActions: Boolean = false) =
+    component.withProps(Props(dotable, elevation, width, disableActions))
 }
