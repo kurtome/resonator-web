@@ -13,6 +13,7 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
+
   object Queries {
     val filterByPersonAndDotableId = Compiled { (personId: Rep[Long], dotableId: Rep[Long]) =>
       Tables.Dote.filter(row => row.personId === personId && row.dotableId === dotableId)
@@ -20,6 +21,19 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
 
     val filterByPersonId = Compiled { (personId: Rep[Long]) =>
       Tables.Dote.filter(row => row.personId === personId)
+    }
+
+    val recentDotesWithDotable = Compiled { (limit: ConstColumn[Long]) =>
+      for {
+        dote <- Tables.Dote
+          .filter(row =>
+            row.smileCount > 0 || row.cryCount > 0 || row.laughCount > 0 || row.scowlCount > 0)
+          .sortBy(_.doteTime.desc)
+          .take(limit)
+        person <- Tables.Person if dote.personId === person.id
+        (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
+        if d.id === dote.dotableId
+      } yield (dote, person, d, p)
     }
 
     val mostPopularDotables = Compiled {
@@ -42,6 +56,10 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
 
   def mostPopularDotables(kind: DotableKind, maxDoteAge: LocalDateTime, limit: Long) = {
     Queries.mostPopularDotables(kind, maxDoteAge, limit).result
+  }
+
+  def recentRecentDotesWithDotables(limit: Long) = {
+    Queries.recentDotesWithDotable(limit).result
   }
 
   def upsert(personId: Long, dotableId: Long, dote: Dote) = {

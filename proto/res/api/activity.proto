@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api;
+
+import "api/dotable.proto";
+import "api/dote.proto";
+
+message ActivityList {
+  repeated Activity items = 1;
+  string title = 2;
+  string caption = 3;
+}
+
+message Activity {
+  oneof content {
+    DoteActivity dote = 1;
+  }
+}
+
+message DoteActivity {
+  Dotable dotable = 1;
+  Dote dote = 2;
+}
+
+

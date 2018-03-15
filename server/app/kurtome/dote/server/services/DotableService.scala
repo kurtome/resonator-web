@@ -434,7 +434,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
     val dotesByDoteableId = dotes.map(d => (d.dotableId, d)).toMap
     dotablesById map {
       case (dotableId, dotable) => {
-        val dote = dotesByDoteableId.get(dotableId).map(DoteMapper)
+        val dote = dotesByDoteableId.get(dotableId).map(DoteMapper.toProto(_))
         dotable.copy(dote = dote)
       }
     }

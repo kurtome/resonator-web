@@ -4,6 +4,7 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.feed.FeedId.ActivityId
 import kurtome.dote.proto.api.feed.FeedId.FollowerSummaryId
 import kurtome.dote.proto.api.feed.FeedId.Id
 import kurtome.dote.proto.api.feed.FeedId.ProfileDoteListId
@@ -71,8 +72,12 @@ object VerticalFeed extends LogSupport {
                     LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
                       TagCollectionFeedItem(item)()
                     )
+                  case Id.Activity(ActivityId()) =>
+                    LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
+                      ActivityFeedItem(item)()
+                    )
                   case _ => {
-                    warn("unexpected kind")
+                    warn(s"unexpected kind ${item.getId.id}")
                     <.div(^.key := i)
                   }
                 }

@@ -13,7 +13,7 @@ object MuiTheme extends LogSupport {
   val isDayTime = {
     val time = new js.Date()
     val hours = time.getHours()
-    hours >= 7 && hours < 19
+    hours >= 6 && hours < 20
   }
 
   val lightBackground = PaletteBackground("#fff", "#f9f7e0")

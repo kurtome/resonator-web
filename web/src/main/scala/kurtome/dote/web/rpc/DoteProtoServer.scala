@@ -58,20 +58,6 @@ object DoteProtoServer {
       response
     }
 
-  def getDotableList(request: GetDotableListRequest) =
-    AjaxRpc.protoRequest(new ProtoAction[GetDotableListRequest, GetDotableListResponse] {
-      override val route = "get-dotable-list"
-
-      override def serializeRequest(r: GetDotableListRequest) =
-        GetDotableListRequest.toByteArray(r)
-
-      override def parseResponse(r: Array[Byte]) = GetDotableListResponse.parseFrom(r)
-    })(request) map { response =>
-      response.dotables.foreach(d =>
-        LocalCacheWorkerManager.put(LocalCache.ObjectKinds.DotableShallow, d.id, d))
-      response
-    }
-
   def getFeed(request: GetFeedRequest) =
     AjaxRpc.protoRequest(new ProtoAction[GetFeedRequest, GetFeedResponse] {
       override val route = "get-feed"

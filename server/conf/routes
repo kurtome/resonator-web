@@ -16,7 +16,6 @@ GET     /assets/*file                   controllers.Assets.versioned(path="/publ
 POST     /api/v1/hello                  kurtome.dote.server.controllers.api.HelloController.protoAction
 POST     /api/v1/add-podcast            kurtome.dote.server.controllers.api.AddPodcastController.protoAction
 POST     /api/v1/get-dotable-details    kurtome.dote.server.controllers.api.GetDotableDetailsController.protoAction
-POST     /api/v1/get-dotable-list       kurtome.dote.server.controllers.api.GetDotableListController.protoAction
 POST     /api/v1/get-feed               kurtome.dote.server.controllers.api.GetFeedController.protoAction
 POST     /api/v1/search                 kurtome.dote.server.controllers.api.SearchController.protoAction
 POST     /api/v1/create-login-link      kurtome.dote.server.controllers.api.LoginLinkController.protoAction

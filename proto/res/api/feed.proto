@@ -6,6 +6,7 @@ import "api/dotable_list.proto";
 import "api/dotable.proto";
 import "api/tag.proto";
 import "api/follower.proto";
+import "api/activity.proto";
 
 message Feed {
   FeedId id = 1;
@@ -20,6 +21,7 @@ message FeedId {
     FollowerSummaryId follower_summary = 4;
     ProfileDoteListId profile_dote_list = 5;
     TagCollectionId tag_collection = 6;
+    ActivityId activity = 7;
   }
   message HomeId {}
 
@@ -51,6 +53,11 @@ message FeedId {
   message FollowerSummaryId {
     string username = 1;
   }
+
+  message ActivityId {
+    // empty message indicates recent global activity.
+    // potentially will support username and following filters
+  }
 }
 
 
@@ -62,12 +69,14 @@ message FeedItem {
     FeedDotableList dotable_list = 2;
     FeedFollowerSummary follower_summary = 3;
     FeedTagCollection tag_collection = 4;
+    FeedActivityList activity_list = 5;
   }
 }
 
 message FeedDotableList {
   DotableList list = 1;
   Style style = 2;
+  ItemStyle item_style = 3;
 
   enum Style {
     UNKNOWN_STYLE = 0;
@@ -75,6 +84,11 @@ message FeedDotableList {
     SUMMARY = 1;
     // Used when this list is meant to be the primary display on the page
     PRIMARY = 2;
+  }
+
+  enum ItemStyle {
+    UNKNOWN_ITEM_STYLE = 0;
+    ACTIVITY_ITEM = 1;
   }
 }
 
@@ -91,7 +105,10 @@ message FeedFollowerSummary {
   }
 }
 
-
 message FeedTagCollection {
   TagCollection tag_collection = 1;
+}
+
+message FeedActivityList {
+  ActivityList activity_list = 1;
 }

@@ -3,10 +3,16 @@ import kurtome.dote.proto.api.feed.Feed
 
 import scala.concurrent.{ExecutionContext, Future}
 import javax.inject._
+import kurtome.dote.proto.api.activity.Activity
+import kurtome.dote.proto.api.activity.ActivityList
+import kurtome.dote.proto.api.activity.DoteActivity
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dotable_list.DotableList
+import kurtome.dote.proto.api.dote.Dote
+import kurtome.dote.proto.api.feed.FeedActivityList
 import kurtome.dote.proto.api.feed.FeedDotableList
 import kurtome.dote.proto.api.feed.FeedId
+import kurtome.dote.proto.api.feed.FeedId.ActivityId
 import kurtome.dote.proto.api.feed.FeedId.TagCollectionId
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.proto.api.feed.FeedId.TagListId
@@ -14,9 +20,11 @@ import kurtome.dote.proto.api.feed.FeedTagCollection
 import kurtome.dote.proto.api.tag
 import kurtome.dote.proto.api.tag.TagCollection
 import kurtome.dote.server.db.mappers.DotableMapper
+import kurtome.dote.server.db.mappers.DoteMapper
 import kurtome.dote.shared.constants.TagKinds
 import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.server.services.DoteService
 import kurtome.dote.server.services.TagService
 import kurtome.dote.shared.mapper.TagMapper
 import kurtome.dote.shared.model.Tag
@@ -28,8 +36,9 @@ import kurtome.dote.slick.db.gen.Tables
 import wvlet.log.LogSupport
 
 @Singleton
-class HomeFeedFetcher @Inject()(dotableService: DotableService, tagService: TagService)(
-    implicit ec: ExecutionContext)
+class HomeFeedFetcher @Inject()(doteService: DoteService,
+                                dotableService: DotableService,
+                                tagService: TagService)(implicit ec: ExecutionContext)
     extends FeedFetcher
     with LogSupport {
 
@@ -74,6 +83,14 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService, tagService: TagS
     val listLimit = params.maxItemSize
     val personId = params.loggedInUser.map(_.id)
 
+    val recentActivity = doteService
+      .readRecentDotesWithDotables(listLimit)
+      .map(_.map(pair =>
+        (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
+      list =>
+        toActivityListFeedItem("Recent Activity", "", list)
+    }
+
     val newEpisodes = dotableService
       .readEpisodeTagList(MetadataFlag.Ids.popular, listLimit) map { tagList =>
       toTagListFeedItem("New Episodes",
@@ -97,6 +114,7 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService, tagService: TagS
 
     val lists = Future.sequence(
       Seq(
+        recentActivity,
         newEpisodes,
         popularList,
         creatorsTagCollection,
@@ -117,6 +135,9 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService, tagService: TagS
       case FeedItem.Content.TagCollection(feedTagCollection) => {
         feedTagCollection.getTagCollection.tags.nonEmpty
       }
+      case FeedItem.Content.ActivityList(activityList) => {
+        activityList.getActivityList.items.nonEmpty
+      }
     }
   }
 
@@ -126,6 +147,21 @@ class HomeFeedFetcher @Inject()(dotableService: DotableService, tagService: TagS
                       tagList.tag,
                       tagList.list,
                       DotableKinds.Podcast)
+  }
+
+  private def toActivityListFeedItem(title: String,
+                                     caption: String,
+                                     list: Seq[(Dote, Dotable)]): FeedItem = {
+    val feedList = FeedActivityList(
+      Some(
+        ActivityList(
+          title = title,
+          caption = caption,
+          items = list.map(pair =>
+            Activity().withDote(DoteActivity().withDote(pair._1).withDotable(pair._2))))))
+    FeedItem()
+      .withId(FeedId().withActivity(ActivityId()))
+      .withContent(FeedItem.Content.ActivityList(feedList))
   }
 
   private def toTagListFeedItem(title: String,
