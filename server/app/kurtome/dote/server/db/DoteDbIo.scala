@@ -24,7 +24,7 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
     }
 
     val recentDotesWithDotable = Compiled { (limit: ConstColumn[Long]) =>
-      for {
+      (for {
         dote <- Tables.Dote
           .filter(row =>
             row.smileCount > 0 || row.cryCount > 0 || row.laughCount > 0 || row.scowlCount > 0)
@@ -33,7 +33,7 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
         person <- Tables.Person if dote.personId === person.id
         (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
         if d.id === dote.dotableId
-      } yield (dote, person, d, p)
+      } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
     }
 
     val mostPopularDotables = Compiled {
