@@ -31,10 +31,12 @@ object ActivityFeedItem extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val paperWrapper = style(
-      padding(SharedStyles.spacingUnit),
-      marginRight(SharedStyles.spacingUnit)
-    )
+    val paperWrapper = styleF.bool(
+      includeRightMargin =>
+        styleS(
+          padding(SharedStyles.spacingUnit),
+          marginRight(if (includeRightMargin) SharedStyles.spacingUnit * 2 else 0 px)
+      ))
 
     val tileContainer = style(
       marginTop(12 px)
@@ -114,13 +116,14 @@ object ActivityFeedItem extends LogSupport {
                 val cry = Emojis.cryEmojis.lift(dote.cryCount - 1).getOrElse("")
                 val laugh = Emojis.laughEmojis.lift(dote.laughCount - 1).getOrElse("")
                 val scowl = Emojis.scowlEmojis.lift(dote.scowlCount - 1).getOrElse("")
+                val isLastInRow = ((i + 1) % numTilesPerRow) == 0
                 Grid(key = Some(dotable.id + i),
                      item = true,
                      style = Styles.tileContainer,
                      xs = 12,
                      sm = 6,
                      lg = 4)(
-                  Paper(style = Styles.paperWrapper)(
+                  Paper(style = Styles.paperWrapper(!isLastInRow))(
                     <.div(
                       ^.width := "100%",
                       ^.display := "inline-block",
