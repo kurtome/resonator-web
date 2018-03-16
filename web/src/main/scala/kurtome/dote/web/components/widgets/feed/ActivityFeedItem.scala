@@ -6,9 +6,7 @@ import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.activity.Activity
 import kurtome.dote.proto.api.dotable.Dotable
-import kurtome.dote.proto.api.feed.FeedDotableList
 import kurtome.dote.proto.api.feed.FeedItem
-import kurtome.dote.proto.api.feed.{FeedDotableList => ApiList}
 import kurtome.dote.shared.constants.Emojis
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.ProfileRoute
@@ -31,15 +29,16 @@ object ActivityFeedItem extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val paperWrapper = styleF.bool(
-      includeRightMargin =>
-        styleS(
-          padding(SharedStyles.spacingUnit),
-          marginRight(if (includeRightMargin) SharedStyles.spacingUnit * 2 else 0 px)
-      ))
+    val title = style(
+      marginBottom(SharedStyles.spacingUnit)
+    )
+
+    val paperWrapper = style(
+      padding(SharedStyles.spacingUnit)
+    )
 
     val tileContainer = style(
-      marginTop(12 px)
+      marginTop(0 px)
     )
 
     val accountIcon = style(
@@ -79,7 +78,7 @@ object ActivityFeedItem extends LogSupport {
       val caption = list.caption
 
       val titleRoute = FeedIdRoutes.toRoute(p.feedItem.getId)
-      Typography(variant = Typography.Variants.SubHeading)(title)
+      Typography(variant = Typography.Variants.SubHeading, style = Styles.title)(title)
     }
 
     def render(p: Props, s: State): VdomElement = {
@@ -89,11 +88,16 @@ object ActivityFeedItem extends LogSupport {
       val numTilesPerRow: Int = currentBreakpointString match {
         case "xs" => 1
         case "sm" => 2
-        case "md" => 2
+        case "md" => 3
         case _ => 3
       }
-      val numRows = if (isBreakpointXs) 4 else 2
-      val numTiles = numTilesPerRow * numRows
+      val numRows = if (isBreakpointXs) 3 else 2
+
+      val padding = 16
+
+      val numTiles = numRows * numTilesPerRow
+      val tileWidth = (s.availableWidthPx - (numTilesPerRow * 16)) / numTilesPerRow
+
       val visibleActivities = activities
       // Pad with placeholders to make the list spacing balanced, rendering code below
       // will handle the placeholders
@@ -101,13 +105,10 @@ object ActivityFeedItem extends LogSupport {
         // take the number that fit
         .take(numTiles)
 
-      Grid(container = true, spacing = 0)(
-        Grid(item = true, xs = 12)(
+      GridContainer(spacing = 0)(
+        GridItem(xs = 12)(
           renderTitle(p),
-          Grid(container = true,
-               spacing = 0,
-               alignItems = Grid.AlignItems.FlexStart,
-               justify = Grid.Justify.SpaceBetween)(
+          GridContainer(spacing = 16, justify = Grid.Justify.SpaceBetween)(
             visibleActivities.zipWithIndex map {
               case (activity, i) =>
                 val dotable = activity.getDote.getDotable
@@ -117,35 +118,33 @@ object ActivityFeedItem extends LogSupport {
                 val laugh = Emojis.laughEmojis.lift(dote.laughCount - 1).getOrElse("")
                 val scowl = Emojis.scowlEmojis.lift(dote.scowlCount - 1).getOrElse("")
                 val isLastInRow = ((i + 1) % numTilesPerRow) == 0
-                Grid(key = Some(dotable.id + i),
-                     item = true,
-                     style = Styles.tileContainer,
-                     xs = 12,
-                     sm = 6,
-                     lg = 4)(
-                  Paper(style = Styles.paperWrapper(!isLastInRow), elevation = 1)(
-                    <.div(
-                      ^.width := "100%",
-                      ^.display := "inline-block",
-                      Typography(style = Styles.accountIcon)(Icons.AccountCircle()),
-                      Typography(noWrap = true, style = Styles.username)(
-                        SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
-                    ),
-                    Typography(noWrap = true)(s"Rated $smile$cry$laugh$scowl"),
-                    if (dotable.kind == Dotable.Kind.PODCAST) {
-                      PodcastTile(dotable = dotable,
-                                  width = "100px",
-                                  elevation = 3,
-                                  disableActions = true)()
-                    } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-                      EpisodeTile(dotable = dotable,
-                                  width = 250,
-                                  elevation = 3,
-                                  disableActions = true)()
-                    } else {
-                      // Placeholder for correct spacing
-                      <.div(^.width := "200px")
-                    }
+                GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
+                  <.div(
+                    ^.width := asPxStr(tileWidth),
+                    Paper(style = Styles.paperWrapper, elevation = 1)(
+                      <.div(
+                        ^.width := "100%",
+                        ^.display := "inline-block",
+                        Typography(style = Styles.accountIcon)(Icons.AccountCircle()),
+                        Typography(noWrap = true, style = Styles.username)(
+                          SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
+                      ),
+                      Typography(noWrap = true)(s"Rated $smile$cry$laugh$scowl"),
+                      if (dotable.kind == Dotable.Kind.PODCAST) {
+                        PodcastTile(dotable = dotable,
+                                    width = "100px",
+                                    elevation = 3,
+                                    disableActions = true)()
+                      } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
+                        EpisodeTile(dotable = dotable,
+                                    width = tileWidth - padding,
+                                    elevation = 3,
+                                    disableActions = true)()
+                      } else {
+                        // Placeholder for correct spacing
+                        <.div(^.width := asPxStr(tileWidth))
+                      }
+                    )
                   )
                 )
             } toVdomArray
