@@ -30,8 +30,7 @@ object SearchBox {
     import dsl._
 
     val contextWrapper = style(
-      position.relative,
-      marginBottom(SharedStyles.spacingUnit * 2)
+      position.relative
     )
 
     val suggestDropdownSheet = style(
@@ -76,6 +75,14 @@ object SearchBox {
           fontSize(if (isHighlighted) 1.2 rem else 1 rem),
           textDecoration := "none"
       ))
+
+    val searchIcon = style(
+      float.right
+    )
+
+    val textFieldWrapper = style(
+      overflow.auto
+    )
   }
 
   case class Props(onResultsUpdated: (String, Seq[Dotable]) => Callback)
@@ -156,14 +163,15 @@ object SearchBox {
         val i = textRemaining.toLowerCase.indexOf(query.toLowerCase)
         if (i < 0) {
           if (textRemaining.nonEmpty) {
-            textNodes ++= Seq(<.i(textRemaining))
+            textNodes += <.i(^.key := "search-prefix-text-remaining", textRemaining)
           }
           textRemaining = ""
         } else {
           if (i > 0) {
-            textNodes ++= Seq(<.i(textRemaining.substring(0, i)))
+            textNodes += <.i(^.key := "search-text-matching", textRemaining.substring(0, i))
           }
-          textNodes ++= Seq(<.span(textRemaining.substring(i, i + query.length)))
+          textNodes += <.span(^.key := "search-postfix-text-remaining",
+                              textRemaining.substring(i, i + query.length))
           textRemaining = textRemaining.substring(i + query.length)
         }
       }
@@ -224,15 +232,19 @@ object SearchBox {
 
     def renderInput(s: State): js.Function1[InputProps, raw.ReactElement] = (inputProps) => {
       <.div(
-        TextField(
-          value = inputProps.value,
-          placeholder = inputProps.placeholder,
-          inputType = inputProps.inputType,
-          fullWidth = true,
-          autoFocus = true,
-          onChange = (e) => Callback(inputProps.onChange(e)),
-          inputRef = inputProps.ref
-        )(),
+        IconButton(style = Styles.searchIcon)(Icons.Search()),
+        <.div(
+          ^.className := Styles.textFieldWrapper,
+          TextField(
+            value = inputProps.value,
+            placeholder = inputProps.placeholder,
+            inputType = inputProps.inputType,
+            fullWidth = true,
+            autoFocus = true,
+            onChange = (e) => Callback(inputProps.onChange(e)),
+            inputRef = inputProps.ref
+          )()
+        ),
         <.div(
           ^.visibility := (if (s.isLoading) "visible" else "hidden"),
           Fade(in = s.isLoading, timeoutMs = 1000)(LinearProgress()())
