@@ -131,10 +131,10 @@ object NavBar extends LogSupport {
 
       val shortPage = windowHeight < 400
 
-      val bottomVisiblePixel = pageYOffset + windowHeight
-      val atEndOfPage = documentHeight - bottomVisiblePixel < 30
+      val topVisiblePixel = pageYOffset
+      val topOfPage = topVisiblePixel < 40
 
-      val shouldCollapse = shortPage && !atEndOfPage && !scrollingUp
+      val shouldCollapse = shortPage && !topOfPage && !scrollingUp
 
       bs.modState(
           _.copy(isCollapsed = shouldCollapse,
@@ -176,20 +176,22 @@ object NavBar extends LogSupport {
             Paper(style = Styles.navPaper)(
               CenteredMainContent()(
                 GridContainer(justify = Grid.Justify.SpaceBetween, spacing = 0)(
-                  SiteTitle()(),
-                  GridContainer(style = Styles.actionsContainer,
-                                spacing = 0,
-                                alignItems = Grid.AlignItems.Center)(
-                    GridItem(hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isLoggedIn))(
-                      Button(onClick = doteRouterCtl.set(LoginRoute))("Login")),
-                    GridItem(hidden = Grid.HiddenProps(xsUp = p.currentRoute == HomeRoute))(
-                      IconButton(onClick = doteRouterCtl.set(HomeRoute))(Icons.Home())
-                    ),
-                    GridItem(
-                      hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
-                      IconButton(onClick = handleProfileButtonClicked(p))(Icons.AccountCircle())),
-                    GridItem()(
-                      IconButton(onClick = doteRouterCtl.set(SearchRoute))(Icons.Search()))
+                  GridItem(hidden = Grid.HiddenProps(xsUp = s.isCollapsed))(SiteTitle()()),
+                  GridItem()(
+                    GridContainer(style = Styles.actionsContainer,
+                                  spacing = 0,
+                                  alignItems = Grid.AlignItems.Center)(
+                      GridItem(hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isLoggedIn))(
+                        Button(onClick = doteRouterCtl.set(LoginRoute))("Login")),
+                      GridItem(hidden = Grid.HiddenProps(xsUp = p.currentRoute == HomeRoute))(
+                        IconButton(onClick = doteRouterCtl.set(HomeRoute))(Icons.Home())
+                      ),
+                      GridItem(hidden =
+                        Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(IconButton(
+                        onClick = handleProfileButtonClicked(p))(Icons.AccountCircle())),
+                      GridItem()(
+                        IconButton(onClick = doteRouterCtl.set(SearchRoute))(Icons.Search()))
+                    )
                   )
                 )
               ))),
