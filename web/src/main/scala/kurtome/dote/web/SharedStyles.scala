@@ -107,11 +107,6 @@ object SharedStyles extends StyleSheet.Inline {
     _.src("url(/assets/fonts/ss-emoji/ss-emoji-adobe-mozilla.ttf)")
   )
 
-  val siteTitleAnchor = style(
-    textDecorationLine.none,
-    display.block
-  )
-
   val siteRoot = style(
     padding(0 px)
   )

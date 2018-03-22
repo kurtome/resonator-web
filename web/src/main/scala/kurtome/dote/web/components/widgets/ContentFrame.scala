@@ -2,10 +2,8 @@ package kurtome.dote.web.components.widgets
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.shared.constants.StringValues
 import kurtome.dote.shared.util.observer.Observer
-import kurtome.dote.web.DoteRoutes._
-import kurtome.dote.web.{SharedStyles, WebMain}
+import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
@@ -29,45 +27,14 @@ object ContentFrame extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val siteTitleText = styleF.bool(
-      isXs =>
-        styleS(
-          fontFamily(SharedStyles.jaapokkiSubtractFf),
-          fontSize(if (isXs) 1.5 rem else 3 rem),
-          textAlign.center
-      )
-    )
-
-    val siteTitleContainer = styleF.bool(
-      isXs =>
-        styleS(
-          margin.auto,
-          display.block,
-          textAlign.center,
-          paddingTop(if (isXs) 4 px else 30 px)
-      )
-    )
-
-    val underConstructionText = styleF.bool(
-      isXs =>
-        styleS(
-          transform := "rotate(-20deg)",
-          fontSize(if (isXs) 1 rem else 2 rem),
-          left(35 %%),
-          position.absolute
-      )
+    val contentRoot = style(
+      marginTop(SharedStyles.spacingUnit * 2)
     )
 
     val bottomNavRoot = style(
       position.fixed,
       width(100 %%),
       bottom(0 px)
-    )
-
-    val contentRoot = style(
-      paddingTop(SharedStyles.spacingUnit * 4),
-      paddingLeft(SharedStyles.spacingUnit * 2),
-      paddingRight(SharedStyles.spacingUnit * 2)
     )
 
   }
@@ -109,53 +76,13 @@ object ContentFrame extends LogSupport {
 
       MuiThemeProvider(s.theme)(
         <.div(
-          Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
-            Grid(item = true, xs = 12)(
-              Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
-                Grid(item = true, xs = 12)(
-                  Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
-                    Grid(item = true,
-                         xs = 10,
-                         sm = 8,
-                         md = 8,
-                         lg = 6,
-                         xl = 4,
-                         style = Styles.siteTitleContainer(isXs))(
-                      <.span(^.className := Styles.underConstructionText(isXs),
-                             ^.color := MuiTheme.secondaryTextColor,
-                             "under construction"),
-                      doteRouterCtl.link(HomeRoute)(
-                        ^.className := SharedStyles.siteTitleAnchor,
-                        ^.color := MuiTheme.theme.palette.primary.dark,
-                        <.span(^.className := Styles.siteTitleText(isXs))(StringValues.siteTitle)
-                      )
-                    )
-                  )
-                ),
-                Grid(item = true, xs = 12)(
-                  Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
-                    Grid(item = true, xs = 8, md = 6, lg = 4, xl = 4)(Divider()())
-                  )
-                ),
-                Grid(item = true, xs = 12)(
-                  Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
-                    Grid(item = true,
-                         xs = 12,
-                         sm = 10,
-                         md = 10,
-                         lg = 8,
-                         xl = 6,
-                         style = Styles.contentRoot)(mainContent)
-                  )
-                ),
-                Grid(item = true, xs = 12)(
-                  <.div(^.position := "absolute", ^.minHeight := "80px", AudioWave()))
-              ),
-              AudioControls()()
-            )
+          NavBar(p.currentRoute)(),
+          <.div(
+            ^.className := Styles.contentRoot,
+            CenteredMainContent()(mainContent)
           ),
           NotificationSnackBar()(),
-          NavBar(p.currentRoute)()
+          AudioControls()()
         )
       )
     }

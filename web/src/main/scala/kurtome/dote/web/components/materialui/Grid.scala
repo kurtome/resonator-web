@@ -6,12 +6,12 @@ import japgolly.scalajs.react.component.Js.RawMounted
 import japgolly.scalajs.react.component.Js.UnmountedWithRawType
 import kurtome.dote.web.components.materialui.Grid.AlignItems
 import kurtome.dote.web.components.materialui.Grid.Direction
+import kurtome.dote.web.components.materialui.Grid.HiddenProps
 import kurtome.dote.web.components.materialui.Grid.Justify
 import kurtome.dote.web.components.materialui.Grid.Wrap
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
-import scalacss.internal.StyleA
 
 /**
   * Wrapper for https://material-ui-next.com/api/grid/
@@ -21,6 +21,21 @@ object Grid {
   @JSImport("material-ui/Grid/Grid.js", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
+
+  /**
+    * https://material-ui-next.com/layout/hidden/
+    */
+  @js.native
+  trait HiddenProps extends js.Object {
+    var xsUp: Boolean = js.native
+  }
+  object HiddenProps {
+    def apply(xsUp: Boolean): HiddenProps = {
+      val p = new js.Object().asInstanceOf[HiddenProps]
+      p.xsUp = xsUp
+      p
+    }
+  }
 
   object Wrap extends Enumeration {
     val Wrap = Value("wrap")
@@ -66,6 +81,7 @@ object Grid {
     var sm: js.UndefOr[Int] = js.native
     var md: js.UndefOr[Int] = js.native
     var lg: js.UndefOr[Int] = js.native
+    var hidden: js.UndefOr[HiddenProps] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
@@ -83,7 +99,8 @@ object Grid {
             lg: js.UndefOr[Int] = js.undefined,
             md: js.UndefOr[Int] = js.undefined,
             sm: js.UndefOr[Int] = js.undefined,
-            xs: js.UndefOr[Int] = js.undefined)
+            xs: js.UndefOr[Int] = js.undefined,
+            hidden: js.UndefOr[HiddenProps] = js.undefined)
     : CtorType.Children[Props, UnmountedWithRawType[Props, Null, RawMounted]] = {
     val p = (new js.Object).asInstanceOf[Props]
     p.style = style
@@ -98,6 +115,7 @@ object Grid {
     p.justify = justify.map(_.toString)
     p.direction = direction.map(_.toString)
     p.wrap = wrap.map(_.toString)
+    p.hidden = hidden
 
     if (key.isDefined) {
       component.withKey(key.get).withProps(p)
@@ -114,6 +132,7 @@ object GridContainer {
       justify: js.UndefOr[Justify.Value] = js.undefined,
       direction: js.UndefOr[Direction.Value] = js.undefined,
       wrap: js.UndefOr[Wrap.Value] = js.undefined,
+      hidden: js.UndefOr[HiddenProps] = js.undefined,
       alignItems: js.UndefOr[AlignItems.Value] = js.undefined
   ): CtorType.Children[Grid.Props, UnmountedWithRawType[Grid.Props, Null, RawMounted]] = {
     Grid(container = true,
@@ -122,7 +141,8 @@ object GridContainer {
          justify = justify,
          direction = direction,
          wrap = wrap,
-         alignItems = alignItems)
+         alignItems = alignItems,
+         hidden = hidden)
   }
 }
 
@@ -130,12 +150,21 @@ object GridItem {
   def apply(
       key: Option[react.Key] = None,
       style: js.UndefOr[js.Dynamic] = js.undefined,
+      hidden: js.UndefOr[HiddenProps] = js.undefined,
       xl: js.UndefOr[Int] = js.undefined,
       lg: js.UndefOr[Int] = js.undefined,
       md: js.UndefOr[Int] = js.undefined,
       sm: js.UndefOr[Int] = js.undefined,
       xs: js.UndefOr[Int] = js.undefined
   ): CtorType.Children[Grid.Props, UnmountedWithRawType[Grid.Props, Null, RawMounted]] = {
-    Grid(item = true, key = key, style = style, xl = xl, lg = lg, md = md, sm = sm, xs = xs)
+    Grid(item = true,
+         key = key,
+         style = style,
+         xl = xl,
+         lg = lg,
+         md = md,
+         sm = sm,
+         xs = xs,
+         hidden = hidden)
   }
 }

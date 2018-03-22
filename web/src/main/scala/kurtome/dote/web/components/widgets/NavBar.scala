@@ -10,6 +10,7 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.Debounce
 import kurtome.dote.web.utils.IsMobile
@@ -29,16 +30,35 @@ object NavBar extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
+    val title = style(
+      width.unset
+    )
+
+    val titleContainer = style(
+      width.unset
+    )
+
+    val actionsContainer = style(
+      width.unset
+    )
+
     val pageLengthHack = style(
       position.fixed,
-      width(100 %%),
+      //width(100 %%),
       bottom(0 px)
     )
 
-    val bottomFixedNavRoot = style(
+    val navWrapper = style(
+      zIndex(1),
       position.fixed,
       width(100 %%),
-      bottom(0 px)
+      top(0 px)
+    )
+
+    val navPaper = style(
+      backgroundColor :=! MuiTheme.theme.palette.primary.dark,
+      width.unset,
+      height.unset
     )
 
     val bottomNavRoot = style(
@@ -46,6 +66,10 @@ object NavBar extends LogSupport {
       marginTop(SharedStyles.spacingUnit),
       width(100 %%),
       bottom(0 px)
+    )
+
+    val invisible = style(
+      visibility.hidden
     )
   }
 
@@ -141,37 +165,35 @@ object NavBar extends LogSupport {
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
 
       <.div(
-        <.div(^.height := "64px"),
         <.div(
-          ^.className := Styles.bottomFixedNavRoot,
-          Grid(container = true, justify = Grid.Justify.Center, spacing = 0)(
-            Grid(item = true, xs = 12)(
-              Fader(in = s.isLoading)(LinearProgress()())
-            ),
-            Grid(item = true, xs = 12)(Divider()()),
-            Grid(item = true, xs = 12)(
-              Collapse(in = !s.isCollapsed)(BottomNavigation(onChange = (_, value) => {
-                bs.modState(_.copy(navValue = value))
-              })(
-                BottomNavigationAction(icon = Icons.Home(),
-                                       value = "home",
-                                       onClick = doteRouterCtl.set(HomeRoute))(),
-                BottomNavigationAction(
-                  icon = Icons.Search(),
-                  value = "search",
-                  onClick = doteRouterCtl.set(SearchRoute)
-                )(),
-                BottomNavigationAction(
-                  icon = Icons.AccountCircle(),
-                  label = Typography(variant = Typography.Variants.Caption)(
-                    if (s.loggedInPerson.isDefined) s.loggedInPerson.get.username else "Login"),
-                  value = "profile",
-                  showLabel = true,
-                  onClick = handleProfileButtonClicked(p)
-                )()
-              ))
-            )
-          )
+          // placeholder to make the height match the nav bar when it's fixed to push the main
+          // content out of the nav bar
+          IconButton(style = Styles.invisible)(Icons.Search())
+        ),
+        <.div(
+          ^.className := Styles.navWrapper,
+          Collapse(in = !s.isCollapsed)(
+            Paper(style = Styles.navPaper)(
+              CenteredMainContent()(
+                GridContainer(justify = Grid.Justify.SpaceBetween, spacing = 0)(
+                  SiteTitle()(),
+                  GridContainer(style = Styles.actionsContainer,
+                                spacing = 0,
+                                alignItems = Grid.AlignItems.Center)(
+                    GridItem(hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isLoggedIn))(
+                      Button(onClick = doteRouterCtl.set(LoginRoute))("Login")),
+                    GridItem(hidden = Grid.HiddenProps(xsUp = p.currentRoute == HomeRoute))(
+                      IconButton(onClick = doteRouterCtl.set(HomeRoute))(Icons.Home())
+                    ),
+                    GridItem(
+                      hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+                      IconButton(onClick = handleProfileButtonClicked(p))(Icons.AccountCircle())),
+                    GridItem()(
+                      IconButton(onClick = doteRouterCtl.set(SearchRoute))(Icons.Search()))
+                  )
+                )
+              ))),
+          Fader(in = s.isLoading)(LinearProgress()())
         )
       )
     }
