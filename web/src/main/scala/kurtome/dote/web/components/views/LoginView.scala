@@ -131,14 +131,7 @@ object LoginView extends LogSupport {
           Button(color = Button.Colors.Primary,
                  variant = Button.Variants.Raised,
                  disabled = s.isLoading,
-                 onClick = handleSubmit(p, s))("Login")
-        ),
-        GridItem()(Typography(align = Typography.Aligns.Center)("or")),
-        GridItem()(
-          Button(color = Button.Colors.Primary,
-                 variant = Button.Variants.Raised,
-                 disabled = s.isLoading,
-                 onClick = handleSubmit(p, s))("Create Account"))
+                 onClick = handleSubmit(p, s))("Submit"))
       )
     }
 
