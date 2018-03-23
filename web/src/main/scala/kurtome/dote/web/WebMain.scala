@@ -61,7 +61,7 @@ object WebMain extends LogSupport {
   private def attachThemeColor(): Unit = {
     val metaElement = dom.document.createElement("meta").asInstanceOf[Meta]
     metaElement.name = "theme-color"
-    metaElement.content = MuiTheme.theme.palette.primary.dark
+    metaElement.content = MuiTheme.theme.palette.primary.light
     dom.document.head.appendChild(metaElement)
   }
 

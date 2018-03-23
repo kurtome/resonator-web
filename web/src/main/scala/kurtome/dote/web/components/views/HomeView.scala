@@ -47,7 +47,6 @@ object HomeView extends LogSupport {
           GlobalNotificationManager.displayMessage(s"Logged in as ${person.get.username}")
         }
       }
-
     }
 
     def fetchHomeData() = {

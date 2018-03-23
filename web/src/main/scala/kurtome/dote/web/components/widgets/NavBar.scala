@@ -71,6 +71,10 @@ object NavBar extends LogSupport {
     val invisible = style(
       visibility.hidden
     )
+
+    val actionButton = style(
+      color.white
+    )
   }
 
   case class Props(currentRoute: DoteRoute)
@@ -182,15 +186,19 @@ object NavBar extends LogSupport {
                                   spacing = 0,
                                   alignItems = Grid.AlignItems.Center)(
                       GridItem(hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isLoggedIn))(
-                        Button(onClick = doteRouterCtl.set(LoginRoute))("Login")),
+                        Button(style = Styles.actionButton,
+                               onClick = doteRouterCtl.set(LoginRoute))("Login")),
                       GridItem(hidden = Grid.HiddenProps(xsUp = p.currentRoute == HomeRoute))(
-                        IconButton(onClick = doteRouterCtl.set(HomeRoute))(Icons.Home())
+                        IconButton(style = Styles.actionButton,
+                                   onClick = doteRouterCtl.set(HomeRoute))(Icons.Home())
                       ),
                       GridItem(hidden =
                         Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(IconButton(
+                        style = Styles.actionButton,
                         onClick = handleProfileButtonClicked(p))(Icons.AccountCircle())),
                       GridItem()(
-                        IconButton(onClick = doteRouterCtl.set(SearchRoute))(Icons.Search()))
+                        IconButton(style = Styles.actionButton,
+                                   onClick = doteRouterCtl.set(SearchRoute))(Icons.Search()))
                     )
                   )
                 )

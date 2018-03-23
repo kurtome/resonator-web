@@ -28,7 +28,8 @@ object ContentFrame extends LogSupport {
     import dsl._
 
     val contentRoot = style(
-      marginTop(SharedStyles.spacingUnit * 2)
+      marginTop(SharedStyles.spacingUnit * 2),
+      marginBottom(SharedStyles.spacingUnit * 2)
     )
 
     val bottomNavRoot = style(

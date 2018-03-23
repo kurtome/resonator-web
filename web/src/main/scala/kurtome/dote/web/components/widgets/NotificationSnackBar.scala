@@ -71,7 +71,7 @@ object NotificationSnackBar {
         message = Typography(color = color)(displayMessage).rawElement,
         action = IconButton(color = IconButton.Colors.Inherit,
                             onClick = handleSnackbarCloseClicked)(Icons.Close()).rawElement,
-        anchorOrigin = Snackbar.Shape("top", "right")
+        anchorOrigin = Snackbar.Shape("bottom", "left")
       )()
     }
   }
