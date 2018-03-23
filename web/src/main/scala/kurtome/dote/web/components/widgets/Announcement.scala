@@ -51,7 +51,9 @@ object Announcement extends LogSupport {
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
       <.div(
-        Typography(variant = Typography.Variants.Body1, style = textStyle(p))(mainContent)
+        Typography(color = Typography.Colors.Inherit,
+                   variant = Typography.Variants.Body1,
+                   style = textStyle(p))(mainContent)
       )
     }
   }

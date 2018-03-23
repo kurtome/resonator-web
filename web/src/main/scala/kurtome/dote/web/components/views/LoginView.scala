@@ -12,6 +12,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
 import org.scalajs.dom
@@ -136,53 +137,54 @@ object LoginView extends LogSupport {
     }
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
-      GridContainer(spacing = 0, justify = Grid.Justify.Center)(
-        GridItem(xs = 12, sm = 10, md = 8)(
-          Paper(style = Styles.paperContainer)(
-            GridContainer()(
-              GridItem(xs = 12)(
-                Typography(variant = Typography.Variants.Body1)(
-                  "A login link will be emailed to you. Enter your username and email below.")
-              ),
-              GridItem(xs = 12)(
-                Typography(variant = Typography.Variants.Caption, color = Typography.Colors.Error)(
-                  s.errorMessage),
-                TextField(
-                  autoFocus = true,
-                  fullWidth = true,
-                  disabled = s.isLoading,
-                  value = s.username,
-                  error = s.usernameError.nonEmpty,
-                  onChange = handleUsernameChanged,
-                  onKeyPress = handleUsernameKeyPress(p, s),
-                  helperText = Typography(component = "span")(<.b(s.usernameError)),
-                  inputType = "text",
-                  autoComplete = "username",
-                  name = "username",
-                  label = Typography()("username")
-                )(),
-                TextField(
-                  autoFocus = false,
-                  fullWidth = true,
-                  disabled = s.isLoading,
-                  value = s.email,
-                  error = s.emailError.nonEmpty,
-                  onChange = handleEmailChanged,
-                  onKeyPress = handleEmailKeyPress(p, s),
-                  helperText = Typography(component = "span")(<.b(s.emailError)),
-                  autoComplete = "email",
-                  inputType = "email",
-                  name = "email",
-                  label = Typography()("email address")
-                )()
-              ),
-              GridItem(xs = 12)(
-                renderActions(p, s)
+      MainContentSection()(
+        GridContainer(spacing = 0, justify = Grid.Justify.Center)(
+          GridItem(xs = 12, sm = 10, md = 8)(
+            Paper(style = Styles.paperContainer)(
+              GridContainer()(
+                GridItem(xs = 12)(
+                  Typography(variant = Typography.Variants.Body1)(
+                    "A login link will be emailed to you. Enter your username and email below.")
+                ),
+                GridItem(xs = 12)(
+                  Typography(variant = Typography.Variants.Caption,
+                             color = Typography.Colors.Error)(s.errorMessage),
+                  TextField(
+                    autoFocus = true,
+                    fullWidth = true,
+                    disabled = s.isLoading,
+                    value = s.username,
+                    error = s.usernameError.nonEmpty,
+                    onChange = handleUsernameChanged,
+                    onKeyPress = handleUsernameKeyPress(p, s),
+                    helperText = Typography(component = "span")(<.b(s.usernameError)),
+                    inputType = "text",
+                    autoComplete = "username",
+                    name = "username",
+                    label = Typography()("username")
+                  )(),
+                  TextField(
+                    autoFocus = false,
+                    fullWidth = true,
+                    disabled = s.isLoading,
+                    value = s.email,
+                    error = s.emailError.nonEmpty,
+                    onChange = handleEmailChanged,
+                    onKeyPress = handleEmailKeyPress(p, s),
+                    helperText = Typography(component = "span")(<.b(s.emailError)),
+                    autoComplete = "email",
+                    inputType = "email",
+                    name = "email",
+                    label = Typography()("email address")
+                  )()
+                ),
+                GridItem(xs = 12)(
+                  renderActions(p, s)
+                )
               )
             )
           )
-        )
-      )
+        ))
     }
   }
 

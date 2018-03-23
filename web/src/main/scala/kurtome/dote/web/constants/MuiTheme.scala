@@ -27,8 +27,8 @@ object MuiTheme extends LogSupport {
     val isLightTheme = isDayTime
     createTheme(
       light = isLightTheme,
-      primary = PaletteColor("#56b8af"),
-      secondary = PaletteColor("#aa2f2c"),
+      primary = PaletteColor("#59b7af", "#4d7e7a", "#406b66"),
+      secondary = PaletteColor("#aa2f2c")
     )
   }
 
@@ -57,6 +57,14 @@ object MuiTheme extends LogSupport {
     def apply(main: String): PaletteColor = {
       val color = new js.Object().asInstanceOf[PaletteColor]
       color.main = main
+      color
+    }
+
+    def apply(light: String, main: String, dark: String): PaletteColor = {
+      val color = new js.Object().asInstanceOf[PaletteColor]
+      color.light = light
+      color.main = main
+      color.dark = dark
       color
     }
 

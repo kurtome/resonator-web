@@ -9,6 +9,7 @@ import kurtome.dote.proto.api.common.ActionStatus
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 import kurtome.dote.web.utils.BaseBackend
@@ -88,22 +89,18 @@ object DotableDetailView extends LogSupport {
 
       val episodeTablePage = Try(p.queryParams.getOrElse("ep_page", "0").toInt).getOrElse(0)
 
-      Fade(in = true, timeoutMs = 300)(
-        Grid(container = true, spacing = 0)(
-          Grid(item = true, xs = 12)(
-            dotable.kind match {
-              case Kind.PODCAST =>
-                PodcastDetails(PodcastDetails.Props(dotable, episodeTablePage))()
-              case Kind.PODCAST_EPISODE => EpisodeDetails(EpisodeDetails.Props(dotable))()
-              case _ => {
-                // Waiting for data
-                GridContainer(justify = Grid.Justify.Center)(
-                  GridItem()(CircularProgress(variant = CircularProgress.Variant.Indeterminate)())
-                )
-              }
-            }
-          )
-        )
+      MainContentSection()(
+        dotable.kind match {
+          case Kind.PODCAST =>
+            PodcastDetails(PodcastDetails.Props(dotable, episodeTablePage))()
+          case Kind.PODCAST_EPISODE => EpisodeDetails(EpisodeDetails.Props(dotable))()
+          case _ => {
+            // Waiting for data
+            GridContainer(justify = Grid.Justify.Center)(
+              GridItem()(CircularProgress(variant = CircularProgress.Variant.Indeterminate)())
+            )
+          }
+        }
       )
     }
   }

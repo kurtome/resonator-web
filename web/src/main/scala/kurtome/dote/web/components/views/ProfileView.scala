@@ -12,6 +12,7 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.Announcement
+import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.feed.VerticalFeed
@@ -138,53 +139,54 @@ object ProfileView extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
-
-      Grid(container = true, justify = Grid.Justify.Center)(
-        Grid(item = true, xs = 12)(
-          renderAccountInfo(p, s)
-        ),
-        Grid(item = true, xs = 12)(
-          Grid(container = true, justify = Grid.Justify.FlexStart, spacing = 8)(
-            Grid(item = true, xs = 12)(
-              Typography(variant = Typography.Variants.Headline, style = Styles.profileHeader)(
-                s"${p.username}'s profile")
-            ),
-            Grid(item = true, xs = 12)(
-              Announcement(size = Announcement.Sizes.Sm)(
-                "Profile pages are shareable, text it to a friend or share online.")
-            ),
-            Grid(item = true, xs = 12)(
-              ShareButton()()
-            ),
-          )
-        ),
-        Grid(item = true, xs = 12)(
-          VerticalFeed(s.feed, s.isFeedLoading)()
-        ),
-        GridItem(xs = 12)(
-          GridContainer(justify = Grid.Justify.Center)(
-            GridItem(xs = 12)(
-              if (isProfileForLoggedInPerson(p)) {
+      MainContentSection()(
+        Grid(container = true, justify = Grid.Justify.Center)(
+          Grid(item = true, xs = 12)(
+            renderAccountInfo(p, s)
+          ),
+          Grid(item = true, xs = 12)(
+            Grid(container = true, justify = Grid.Justify.FlexStart, spacing = 8)(
+              Grid(item = true, xs = 12)(
+                Typography(variant = Typography.Variants.Headline, style = Styles.profileHeader)(
+                  s"${p.username}'s profile")
+              ),
+              Grid(item = true, xs = 12)(
                 Announcement(size = Announcement.Sizes.Sm)(
-                  "Your recent activity will show up on your profile. Find something new from the ",
-                  SiteLink(HomeRoute)("popular podcasts"),
-                  " or try ",
-                  SiteLink(SearchRoute)("searching for a podcast"),
-                  " you already love."
-                )
-              } else if (LoggedInPersonManager.isLoggedIn) {
-                Announcement(size = Announcement.Sizes.Sm)(
-                  "Checkout your own ",
-                  SiteLink(ProfileRoute(LoggedInPersonManager.person.get.username))(
-                    "profile page"),
-                  "."
-                )
-              } else { // not logged in
-                Announcement(size = Announcement.Sizes.Lg)(
-                  SiteLink(LoginRoute)("Login"),
-                  " to start your own profile."
-                )
-              }
+                  "Profile pages are shareable, text it to a friend or share online.")
+              ),
+              Grid(item = true, xs = 12)(
+                ShareButton()()
+              ),
+            )
+          ),
+          Grid(item = true, xs = 12)(
+            VerticalFeed(s.feed, s.isFeedLoading)()
+          ),
+          GridItem(xs = 12)(
+            GridContainer(justify = Grid.Justify.Center)(
+              GridItem(xs = 12)(
+                if (isProfileForLoggedInPerson(p)) {
+                  Announcement(size = Announcement.Sizes.Sm)(
+                    "Your recent activity will show up on your profile. Find something new from the ",
+                    SiteLink(HomeRoute)("popular podcasts"),
+                    " or try ",
+                    SiteLink(SearchRoute)("searching for a podcast"),
+                    " you already love."
+                  )
+                } else if (LoggedInPersonManager.isLoggedIn) {
+                  Announcement(size = Announcement.Sizes.Sm)(
+                    "Checkout your own ",
+                    SiteLink(ProfileRoute(LoggedInPersonManager.person.get.username))(
+                      "profile page"),
+                    "."
+                  )
+                } else { // not logged in
+                  Announcement(size = Announcement.Sizes.Lg)(
+                    SiteLink(LoginRoute)("Login"),
+                    " to start your own profile."
+                  )
+                }
+              )
             )
           )
         )

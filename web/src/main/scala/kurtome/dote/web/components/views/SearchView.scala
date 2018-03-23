@@ -10,11 +10,11 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.AddRoute
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.Fader
+import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.SearchBox
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
-
 import scalacss.internal.mutable.StyleSheet
 
 object SearchView extends LogSupport {
@@ -41,20 +41,21 @@ object SearchView extends LogSupport {
       bs.modState(_.copy(showAddText = query.nonEmpty && results.isEmpty))
 
     def render(p: Props, s: State): VdomElement = {
-      Grid(container = true, justify = Grid.Justify.Center)(
-        Grid(item = true, xs = 12, sm = 10, md = 8)(
-          Paper(style = Styles.paperContainer)(
-            SearchBox(onResultsUpdated = handleSearchResultsUpdated)()
-          ),
-          Fader(in = s.showAddText)(
-            Typography(variant = Typography.Variants.Body1, style = Styles.announcementText)(
-              "Not the podcasts you're looking for? Add a podcast to the site ",
-              SiteLink(AddRoute)("here"),
-              "."
+      MainContentSection()(
+        Grid(container = true, justify = Grid.Justify.Center)(
+          Grid(item = true, xs = 12, sm = 10, md = 8)(
+            Paper(style = Styles.paperContainer)(
+              SearchBox(onResultsUpdated = handleSearchResultsUpdated)()
+            ),
+            Fader(in = s.showAddText)(
+              Typography(variant = Typography.Variants.Body1, style = Styles.announcementText)(
+                "Not the podcasts you're looking for? Add a podcast to the site ",
+                SiteLink(AddRoute)("here"),
+                "."
+              )
             )
           )
-        )
-      )
+        ))
     }
   }
 

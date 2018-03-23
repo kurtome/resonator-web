@@ -27,11 +27,6 @@ object ContentFrame extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val contentRoot = style(
-      marginTop(SharedStyles.spacingUnit * 2),
-      marginBottom(SharedStyles.spacingUnit * 2)
-    )
-
     val bottomNavRoot = style(
       position.fixed,
       width(100 %%),
@@ -58,7 +53,6 @@ object ContentFrame extends LogSupport {
 
     val paddingPx = 32
 
-//    Math.round(WebMain.getRootNode.scrollWidth * usableRatio).toInt - paddingPx
     Math.round(dom.window.document.body.offsetWidth * usableRatio).toInt - paddingPx
   }
 
@@ -78,10 +72,7 @@ object ContentFrame extends LogSupport {
       MuiThemeProvider(s.theme)(
         <.div(
           NavBar(p.currentRoute)(),
-          <.div(
-            ^.className := Styles.contentRoot,
-            CenteredMainContent()(mainContent)
-          ),
+          mainContent,
           NotificationSnackBar()(),
           AudioControls()()
         )

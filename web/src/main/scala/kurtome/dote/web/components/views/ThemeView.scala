@@ -6,6 +6,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.WebMain
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.constants.MuiTheme.PaletteColor
 import kurtome.dote.web.utils.BaseBackend
@@ -49,38 +50,38 @@ object ThemeView extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
-      GridContainer()(
-        GridItem(xs = 12)(
-          Button(variant = Button.Variants.Raised, onClick = handleToggleLights)("Toggle Lights")),
-        GridItem(xs = 12)(Divider()()),
-        GridItem(xs = 12)(Typography()("Default text")),
-        GridItem(xs = 12)(Typography(variant = Typography.Variants.Title)("Title text")),
-        GridItem(xs = 12)(Typography(variant = Typography.Variants.SubHeading)("Subheading text")),
-        GridItem(xs = 12)(Typography(variant = Typography.Variants.Body1)("Body1 text")),
-        GridItem(xs = 12)(Typography(variant = Typography.Variants.Caption)("Caption text")),
-        GridItem(xs = 12)(Typography(color = Typography.Colors.Primary)("Primary color text")),
-        GridItem(xs = 12)(Typography(color = Typography.Colors.Secondary)("Secondary color text")),
-        GridItem(xs = 12)(Typography(color = Typography.Colors.Error)("Error color text")),
-        GridItem(xs = 12)(Button()("Flat button")),
-        GridItem(xs = 12)(Button(color = Button.Colors.Primary)("Flat primary button")),
-        GridItem(xs = 12)(Button(color = Button.Colors.Secondary)("Flat secondary button")),
-        GridItem(xs = 12)(Button(variant = Button.Variants.Raised)("Raised button")),
-        GridItem(xs = 12)(
-          Button(variant = Button.Variants.Raised, color = Button.Colors.Primary)(
-            "Raised primary button")),
-        GridItem(xs = 12)(Button(variant = Button.Variants.Raised,
-                                 color = Button.Colors.Secondary)("Raised secondary button")),
-        GridItem(xs = 12)(Button(variant = Button.Variants.Floating)("+")),
-        GridItem(xs = 12)(
-          TextField(
+      MainContentSection()(
+        GridContainer()(
+          GridItem(xs = 12)(Button(variant = Button.Variants.Raised, onClick = handleToggleLights)(
+            "Toggle Lights")),
+          GridItem(xs = 12)(Divider()()),
+          GridItem(xs = 12)(Typography()("Default text")),
+          GridItem(xs = 12)(Typography(variant = Typography.Variants.Title)("Title text")),
+          GridItem(xs = 12)(
+            Typography(variant = Typography.Variants.SubHeading)("Subheading text")),
+          GridItem(xs = 12)(Typography(variant = Typography.Variants.Body1)("Body1 text")),
+          GridItem(xs = 12)(Typography(variant = Typography.Variants.Caption)("Caption text")),
+          GridItem(xs = 12)(Typography(color = Typography.Colors.Primary)("Primary color text")),
+          GridItem(xs = 12)(
+            Typography(color = Typography.Colors.Secondary)("Secondary color text")),
+          GridItem(xs = 12)(Typography(color = Typography.Colors.Error)("Error color text")),
+          GridItem(xs = 12)(Button()("Flat button")),
+          GridItem(xs = 12)(Button(color = Button.Colors.Primary)("Flat primary button")),
+          GridItem(xs = 12)(Button(color = Button.Colors.Secondary)("Flat secondary button")),
+          GridItem(xs = 12)(Button(variant = Button.Variants.Raised)("Raised button")),
+          GridItem(xs = 12)(Button(variant = Button.Variants.Raised,
+                                   color = Button.Colors.Primary)("Raised primary button")),
+          GridItem(xs = 12)(Button(variant = Button.Variants.Raised,
+                                   color = Button.Colors.Secondary)("Raised secondary button")),
+          GridItem(xs = 12)(Button(variant = Button.Variants.Floating)("+")),
+          GridItem(xs = 12)(TextField(
             autoFocus = false,
             label = Typography()("Default text field"),
             placeholder = "Placeholder text",
             value = "Current value",
             helperText = Typography(component = "span")("Helper text")
           )()),
-        GridItem(xs = 12)(
-          TextField(
+          GridItem(xs = 12)(TextField(
             autoFocus = false,
             error = true,
             label = Typography()("Error text field"),
@@ -88,8 +89,7 @@ object ThemeView extends LogSupport {
             value = "Current value",
             helperText = Typography(component = "span")("Error helper text")
           )()),
-        GridItem(xs = 12)(
-          TextField(
+          GridItem(xs = 12)(TextField(
             autoFocus = false,
             disabled = true,
             label = Typography()("Disabled text field"),
@@ -97,12 +97,12 @@ object ThemeView extends LogSupport {
             value = "Current value",
             helperText = Typography(component = "span")("Disabled helper text")
           )()),
-        Paper(style = Styles.paperContainer)(
-          Typography(variant = Typography.Variants.SubHeading)("Paper"),
-          Typography()("This is a paper container.")
-        ),
-        GridItem(xs = 12)()
-      )
+          Paper(style = Styles.paperContainer)(
+            Typography(variant = Typography.Variants.SubHeading)("Paper"),
+            Typography()("This is a paper container.")
+          ),
+          GridItem(xs = 12)()
+        ))
     }
   }
 

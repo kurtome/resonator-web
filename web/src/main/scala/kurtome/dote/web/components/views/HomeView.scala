@@ -9,10 +9,16 @@ import kurtome.dote.proto.api.feed.FeedId.HomeId
 import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.components.materialui.Button
 import kurtome.dote.web.components.materialui.Grid
+import kurtome.dote.web.components.materialui.GridContainer
+import kurtome.dote.web.components.materialui.GridItem
 import kurtome.dote.web.components.widgets.Announcement
+import kurtome.dote.web.components.widgets.FlatRoundedButton
+import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.feed.VerticalFeed
+import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.LocalCache.ObjectKinds
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -27,6 +33,15 @@ object HomeView extends LogSupport {
     val announcementWrapper = style(
       marginTop(24 px),
       marginBottom(24 px)
+    )
+
+    val loginAnnouncementPaper = style(
+      width(100.%%),
+      backgroundColor.white
+    )
+
+    val loginButton = style(
+      backgroundColor :=! MuiTheme.theme.palette.primary.light
     )
   }
 
@@ -70,39 +85,31 @@ object HomeView extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
-      Grid(container = true, spacing = 0, justify = Grid.Justify.Center)(
-        Grid(item = true, xs = 12)(
-          Grid(container = true, spacing = 0, justify = Grid.Justify.Center)(
-            Grid(item = true, xs = 12, style = Styles.announcementWrapper)(
-              if (!LoggedInPersonManager.isLoggedIn) {
-                Announcement()(
-                  "Keep track of your favorite podcasts, and see what you friends are listening to. ",
-                  SiteLink(LoginRoute)("Create an account to get started.")
+      <.div(
+        if (!LoggedInPersonManager.isLoggedIn) {
+          MainContentSection(variant = MainContentSection.Variants.Primary)(
+            GridContainer(justify = Grid.Justify.SpaceBetween,
+                          alignItems = Grid.AlignItems.Center)(
+              GridItem(xs = 12, md = 8)(
+                <.div(
+                  ^.color := "white",
+                  Announcement()(
+                    "Keep track of your favorite podcasts, " +
+                      "and see what you friends are listening to."
+                  )
                 )
-              } else {
-                Announcement()(
-                  "Share your ",
-                  SiteLink(ProfileRoute(LoggedInPersonManager.person.get.username))(
-                    "profile page"),
-                  " to show off your favorite podcasts."
-                )
-              }
-            )
-          )
-        ),
-        Grid(item = true, xs = 12)(
-          VerticalFeed(s.feed, s.isFeedLoading)()
-        ),
-        Grid(item = true, xs = 12)(
-          Grid(container = true, justify = Grid.Justify.Center)(
-            Grid(item = true, xs = 12, style = Styles.announcementWrapper)(
-              Announcement()(
-                "Can't find what you're looking for? Try ",
-                SiteLink(SearchRoute)("searching for a podcast"),
-                "."
+              ),
+              GridItem()(
+                FlatRoundedButton(variant = FlatRoundedButton.Variants.Fill,
+                                  onClick = doteRouterCtl.set(LoginRoute))("Sign Up for Free")
               )
             )
           )
+        } else {
+          <.div()
+        },
+        MainContentSection()(
+          VerticalFeed(s.feed, s.isFeedLoading)()
         )
       )
     }

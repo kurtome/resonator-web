@@ -13,6 +13,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.GlobalLoadingManager
@@ -98,37 +99,36 @@ object AddPodcastView extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement =
-      GridContainer(spacing = 0, justify = Grid.Justify.Center)(
-        GridItem(xs = 12, sm = 10, md = 8)(
-          Paper(style = Styles.paperContainer)(
-            GridItem(xs = 12)(Typography(variant = Typography.Variants.SubHeading)("Add Podcast")),
-            GridItem(xs = 12)(
-              Typography(variant = Typography.Variants.Caption, color = Typography.Colors.Error)(
-                s.errorMessage),
-              TextField(
-                autoFocus = true,
-                fullWidth = true,
-                disabled = s.isLoading,
-                value = s.url,
-                error = s.urlError.nonEmpty,
-                onChange = handleUrlChanged,
-                onKeyPress = handleUrlKeyPress(s),
-                helperText = Typography()(<.b(s.urlError)),
-                name = "itunes-url",
-                label = Typography()("iTunes Podcast URL"),
-                placeholder = "https://itunes.apple.com/us/podcast/foocast/id123456789",
-              )(),
-            ),
-            GridItem(xs = 12)(
-              GridContainer(spacing = 0, justify = Grid.Justify.FlexEnd)(
-                Button(variant = Button.Variants.Raised,
-                       color = Button.Colors.Primary,
-                       onClick = handleSubmit(s))("Submit")
-              )
+      MainContentSection()(
+        Paper(style = Styles.paperContainer)(
+          GridItem(xs = 12)(Typography(variant = Typography.Variants.SubHeading)("Add Podcast")),
+          GridItem(xs = 12)(
+            Typography(variant = Typography.Variants.Caption, color = Typography.Colors.Error)(
+              s.errorMessage),
+            TextField(
+              autoFocus = true,
+              fullWidth = true,
+              disabled = s.isLoading,
+              value = s.url,
+              error = s.urlError.nonEmpty,
+              onChange = handleUrlChanged,
+              onKeyPress = handleUrlKeyPress(s),
+              helperText = Typography()(<.b(s.urlError)),
+              name = "itunes-url",
+              label = Typography()("iTunes Podcast URL"),
+              placeholder = "https://itunes.apple.com/us/podcast/foocast/id123456789",
+            )(),
+          ),
+          GridItem(xs = 12)(
+            GridContainer(spacing = 0, justify = Grid.Justify.FlexEnd)(
+              Button(variant = Button.Variants.Raised,
+                     color = Button.Colors.Primary,
+                     onClick = handleSubmit(s))("Submit")
             )
           )
         )
       )
+
   }
 
   val component = ScalaComponent
