@@ -68,11 +68,11 @@ object SharedStyles extends StyleSheet.Inline {
   )
 
   val roboto = fontFace("roboto")(
-    _.src("url(/assets/fonts/roboto/Roboto_Regular.ttf)")
+    _.src("url(/assets/fonts/roboto/Roboto-Regular.ttf)")
   )
 
   val robotoSlab = fontFace("robotoSlab")(
-    _.src("url(/assets/fonts/robotoSlab/Roboto_Regular.ttf)")
+    _.src("url(/assets/fonts/robotoSlab/Roboto-Regular.ttf)")
   )
 
   val cutePunkFf = fontFace("cutePunk")(

@@ -8,6 +8,7 @@ import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import scalacss.internal.mutable.StyleSheet
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.components.materialui.MuiThemeProvider
 
 object MainContentSection {
 
@@ -41,7 +42,14 @@ object MainContentSection {
         ^.paddingBottom := "16px",
         ^.backgroundColor := color(p),
         ^.width := "100%",
-        CenteredMainContent()(pc)
+        if (p.variant == Variants.Primary) {
+          // Use the dark theme so text shows up correctly on the dark background.
+          MuiThemeProvider(MuiTheme.darkTheme)(
+            CenteredMainContent()(pc)
+          )
+        } else {
+          CenteredMainContent()(pc)
+        }
       )
     }
   }

@@ -7,6 +7,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.materialui.Typography
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import scalacss.internal.mutable.StyleSheet
@@ -18,22 +19,21 @@ object SiteTitle extends LogSupport {
     import dsl._
 
     val siteTitleText = style(
+      marginTop(16.px),
       fontFamily(SharedStyles.rogueSansExtBoldIt),
       fontStyle.italic,
-      fontSize(1.9.rem),
-      lineHeight(2.5.rem)
-    )
-
-    val underConstructionText = style(
-      paddingLeft(8.px),
-      fontSize(1.rem),
-      lineHeight(2.5.rem),
-      position.absolute
+      fontSize(1.9.rem)
     )
 
     val siteTitleAnchor = style(
       textDecorationLine.none,
       display.inlineBlock
+    )
+
+    val subtitleText = style(
+      marginTop(-8.px),
+      textAlign.center,
+      color :=! MuiTheme.theme.palette.grey.`400`
     )
   }
 
@@ -57,9 +57,8 @@ object SiteTitle extends LogSupport {
           ^.color := MuiTheme.theme.palette.common.white,
           <.span(^.className := Styles.siteTitleText, StringValues.siteTitle)
         ),
-        <.span(^.className := Styles.underConstructionText,
-               ^.color := MuiTheme.secondaryTextColor,
-               "(under construction)")
+        Typography(variant = Typography.Variants.Caption, style = Styles.subtitleText)(
+          "(under construction)")
       )
     }
   }

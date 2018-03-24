@@ -88,7 +88,7 @@ object ActivityFeedItem extends LogSupport {
       val numTilesPerRow: Int = currentBreakpointString match {
         case "xs" => 1
         case "sm" => 2
-        case "md" => 3
+        case "md" => 2
         case _ => 3
       }
       val numRows = if (isBreakpointXs) 3 else 2

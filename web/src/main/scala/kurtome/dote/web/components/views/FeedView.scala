@@ -13,8 +13,6 @@ import kurtome.dote.shared.model.Tag
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.FollowersRoute
 import kurtome.dote.web.DoteRoutes.TagRoute
-import kurtome.dote.web.DoteRoutes.TagRoute
-import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.feed.VerticalFeed
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.FeedIdRoutes.TagKindUrlMapper
@@ -51,9 +49,7 @@ object FeedView extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
-      MainContentSection()(
-        VerticalFeed(s.feed, s.isFeedLoading)()
-      )
+      VerticalFeed(s.feed, s.isFeedLoading)()
     }
   }
 

@@ -9,9 +9,8 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.FlatRoundedButton
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.detail.DetailFieldList._
@@ -109,8 +108,9 @@ object PodcastDetails {
         GridContainer(spacing = 8)(
           (keywords map { keyword =>
             GridItem(key = Some(keyword.getId.kind.toString + keyword.getId.key))(
-              Chip(label = Typography()(keyword.displayValue),
-                   onClick = doteRouterCtl.set(TagRouteMapper.toRoute(keyword)))()
+              FlatRoundedButton(
+                variant = FlatRoundedButton.Variants.FillWhite,
+                onClick = doteRouterCtl.set(TagRouteMapper.toRoute(keyword)))(keyword.displayValue)
             )
           }) toVdomArray
         )

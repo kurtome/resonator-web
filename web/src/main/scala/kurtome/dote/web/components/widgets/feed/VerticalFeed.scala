@@ -18,6 +18,7 @@ import kurtome.dote.web.components.materialui.CircularProgress
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
+import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
 
@@ -25,10 +26,6 @@ object VerticalFeed extends LogSupport {
 
   object Styles extends StyleSheet.Inline {
     import dsl._
-
-    val feedItemContainer = style(
-      marginBottom(24 px)
-    )
   }
 
   case class Props(feed: Feed, isLoading: Boolean)
@@ -48,33 +45,41 @@ object VerticalFeed extends LogSupport {
             case (item, i) =>
               <.div(
                 ^.key := s"$i${item.getDotableList.getList.title}",
-                ^.className := Styles.feedItemContainer,
                 item.getId.id match {
                   case Id.TagList(_) =>
-                    LazyLoad(once = true,
-                             height = 150,
-                             key = Some(s"$i${item.getDotableList.getList.title}"))(
-                      DotableListFeedItem(item)()
+                    MainContentSection()(
+                      LazyLoad(once = true,
+                               height = 150,
+                               key = Some(s"$i${item.getDotableList.getList.title}"))(
+                        DotableListFeedItem(item)()
+                      )
                     )
                   case Id.ProfileDoteList(_) =>
-                    LazyLoad(once = true,
-                             height = 150,
-                             key = Some(s"$i${item.getDotableList.getList.title}"))(
-                      DotableListFeedItem(item)()
+                    MainContentSection()(
+                      LazyLoad(once = true,
+                               height = 150,
+                               key = Some(s"$i${item.getDotableList.getList.title}"))(
+                        DotableListFeedItem(item)()
+                      )
                     )
                   case Id.FollowerSummary(FollowerSummaryId(username)) =>
-                    LazyLoad(once = true,
-                             height = 100,
-                             key = Some(s"$i-profile-summary-$username"))(
-                      FollowerSummaryFeedItem(item)()
-                    )
+                    MainContentSection()(
+                      LazyLoad(once = true,
+                               height = 100,
+                               key = Some(s"$i-profile-summary-$username"))(
+                        FollowerSummaryFeedItem(item)()
+                      ))
                   case Id.TagCollection(TagCollectionId()) =>
-                    LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
-                      TagCollectionFeedItem(item)()
+                    MainContentSection(variant = MainContentSection.Variants.Primary)(
+                      LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
+                        TagCollectionFeedItem(item)()
+                      )
                     )
                   case Id.Activity(ActivityId()) =>
-                    LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
-                      ActivityFeedItem(item)()
+                    MainContentSection(variant = MainContentSection.Variants.White)(
+                      LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
+                        ActivityFeedItem(item)()
+                      )
                     )
                   case _ => {
                     warn(s"unexpected kind ${item.getId.id}")

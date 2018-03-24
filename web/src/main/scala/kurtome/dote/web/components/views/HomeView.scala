@@ -108,9 +108,7 @@ object HomeView extends LogSupport {
         } else {
           <.div()
         },
-        MainContentSection()(
-          VerticalFeed(s.feed, s.isFeedLoading)()
-        )
+        VerticalFeed(s.feed, s.isFeedLoading)()
       )
     }
   }

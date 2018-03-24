@@ -9,6 +9,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.FlatRoundedButton
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.FeedIdRoutes.TagRouteMapper
 import scalacss.ScalaCssReact._
@@ -39,8 +40,9 @@ object TagCollectionFeedItem extends LogSupport {
         ),
         (tags map { tag =>
           GridItem(key = Some(tag.getId.kind.toString + tag.getId.key))(
-            Chip(label = Typography()(tag.displayValue),
-                 onClick = doteRouterCtl.set(TagRouteMapper.toRoute(tag)))()
+            FlatRoundedButton(
+              variant = FlatRoundedButton.Variants.FillWhite,
+              onClick = doteRouterCtl.set(TagRouteMapper.toRoute(tag)))(tag.displayValue)
           )
         }) toVdomArray
       )

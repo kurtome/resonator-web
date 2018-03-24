@@ -22,16 +22,28 @@ object MuiTheme extends LogSupport {
   val lightBottomNav = "#f2f2c9"
   val darkBottomNav = "#424242"
 
-
-  var curTheme: Theme = {
-    val isLightTheme = isDayTime
+  private def createThemeWithDefaultPalette(isLight: Boolean) = {
     createTheme(
-      light = isLightTheme,
+      light = isLight,
       primary = PaletteColor("#25baaf", "#3C807a", "#316d66"),
       secondary = PaletteColor("#aa2f2c")
     )
   }
 
+  var curTheme: Theme = {
+    val isLightTheme = isDayTime
+    createThemeWithDefaultPalette(isLightTheme)
+  }
+
+  /**
+    * Constant dark theme, can be used in sections that are dark all the time.
+    */
+  val darkTheme = createThemeWithDefaultPalette(false)
+
+  /**
+    * The current theme, can be changed on the theme page and by default updates based on the
+    * time of day.
+    */
   def theme: Theme = curTheme
 
   def primaryTextColor: String = theme.palette.text.primary.asInstanceOf[String]
@@ -168,7 +180,7 @@ object MuiTheme extends LogSupport {
         ),
         "typography" -> l$(
           "fontFamily" -> "roboto",
-          "htmlFontSize" -> 14,
+          "htmlFontSize" -> 16,
           "headline" -> l$(
             "fontFamily" -> "roboto",
             "textTransform" -> "uppercase"

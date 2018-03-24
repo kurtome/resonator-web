@@ -50,6 +50,8 @@ object EpisodeTile extends LogSupport {
 
     val mainTextWrapper = style(
       marginTop(SharedStyles.spacingUnit / 2),
+      marginLeft(SharedStyles.spacingUnit),
+      marginRight(SharedStyles.spacingUnit),
       display.inlineBlock,
       position.absolute
     )
@@ -57,20 +59,12 @@ object EpisodeTile extends LogSupport {
     val titleLine = style(
       marginLeft(SharedStyles.spacingUnit),
       marginRight(SharedStyles.spacingUnit / 2),
-      marginBottom(SharedStyles.spacingUnit / 2),
-      overflow.hidden,
-      display.block,
-      lineHeight(1.5 em),
-      minHeight(3 em),
-      maxHeight(3 em)
+      marginBottom(SharedStyles.spacingUnit / 2)
     )
 
     val textLine = style(
       marginLeft(SharedStyles.spacingUnit),
-      marginRight(SharedStyles.spacingUnit),
-      whiteSpace.nowrap,
-      overflow.hidden,
-      textOverflow := "ellipsis"
+      marginRight(SharedStyles.spacingUnit)
     )
 
     val paperContainer = style(
@@ -101,7 +95,8 @@ object EpisodeTile extends LogSupport {
 
       val height = 100
       val imageSize = height
-      val titleWidth = p.width - imageSize
+      val textMargins = 16
+      val titleWidth = p.width - (imageSize + textMargins)
 
       Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation,
             style = Styles.paperContainer)(
@@ -120,11 +115,11 @@ object EpisodeTile extends LogSupport {
               ^.className := Styles.mainTextWrapper,
               ^.width := asPxStr(titleWidth),
               ^.height := asPxStr(imageSize),
-              Typography(variant = Typography.Variants.Body1, style = Styles.titleLine)(
+              Typography(variant = Typography.Variants.Body1, noWrap = true)(
                 p.dotable.getCommon.title),
-              Typography(variant = Typography.Variants.Caption, style = Styles.textLine)(
+              Typography(variant = Typography.Variants.Caption, noWrap = true)(
                 durationSecToMin(p.dotable.getDetails.getPodcastEpisode.durationSec)),
-              Typography(variant = Typography.Variants.Caption, style = Styles.textLine)(
+              Typography(variant = Typography.Variants.Caption, noWrap = true)(
                 epochSecToDate(p.dotable.getCommon.publishedEpochSec))
             )
           ),
