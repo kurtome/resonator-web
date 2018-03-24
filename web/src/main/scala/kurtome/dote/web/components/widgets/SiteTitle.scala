@@ -18,8 +18,10 @@ object SiteTitle extends LogSupport {
     import dsl._
 
     val siteTitleText = style(
-      fontFamily(SharedStyles.jaapokkiSubtractFf),
-      fontSize(1.9.rem)
+      fontFamily(SharedStyles.rogueSansExtBoldIt),
+      fontStyle.italic,
+      fontSize(1.9.rem),
+      lineHeight(2.5.rem)
     )
 
     val underConstructionText = style(

@@ -10,7 +10,7 @@ import kurtome.dote.proto.api.feed.FeedDotableList
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.DoteRouterCtl
+import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
@@ -92,11 +92,12 @@ object DotableListFeedItem extends LogSupport {
           )
         }
         case _ => {
-          if (titleRoute.isDefined) {
-            SiteLink(titleRoute.get)(Typography(variant = Typography.Variants.SubHeading)(title))
-          } else {
-            Typography(variant = Typography.Variants.SubHeading)(title)
-          }
+          GridContainer(spacing = 0,
+                        justify = Grid.Justify.SpaceBetween,
+                        alignItems = Grid.AlignItems.Center)(
+            GridItem()(Typography(variant = Typography.Variants.Title)(title)),
+            GridItem()(FlatRoundedButton(onClick = doteRouterCtl.set(titleRoute.get))("See More"))
+          )
         }
       }
     }

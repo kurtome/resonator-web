@@ -27,7 +27,7 @@ object MuiTheme extends LogSupport {
     val isLightTheme = isDayTime
     createTheme(
       light = isLightTheme,
-      primary = PaletteColor("#59b7af", "#4d7e7a", "#406b66"),
+      primary = PaletteColor("#25baaf", "#3C807a", "#316d66"),
       secondary = PaletteColor("#aa2f2c")
     )
   }
@@ -167,28 +167,31 @@ object MuiTheme extends LogSupport {
           "background" -> (if (light) lightBackground else darkBackground)
         ),
         "typography" -> l$(
-          "fontFamily" -> "syntesia",
+          "fontFamily" -> "roboto",
           "htmlFontSize" -> 14,
           "headline" -> l$(
-            "fontFamily" -> "aileronHeavy",
+            "fontFamily" -> "roboto",
             "textTransform" -> "uppercase"
           ),
           "title" -> l$(
-            "fontFamily" -> "aileronHeavy",
+            "fontFamily" -> "roboto",
             "textTransform" -> "uppercase"
           ),
           "subheading" -> l$(
-            "fontFamily" -> "aileronSemiBold",
+            "fontFamily" -> "roboto",
           ),
           "button" -> l$(
-            "fontFamily" -> "aileronRegular",
-            "textTransform" -> "uppercase"
+            "fontFamily" -> "roboto",
+            "textTransform" -> js.undefined,
           )
         ),
         "overrides" -> l$(
           "MuiLinearProgress" -> l$(
             "primaryColor" -> l$(
               "backgroundColor" -> "transparent"
+            ),
+            "primaryColorBar" -> l$(
+              "backgroundColor" -> primary.light
             )
           ),
           "MuiBottomNavigation" -> l$(

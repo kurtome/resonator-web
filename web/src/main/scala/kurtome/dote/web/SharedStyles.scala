@@ -67,6 +67,14 @@ object SharedStyles extends StyleSheet.Inline {
     margin(spacingUnit * 2)
   )
 
+  val roboto = fontFace("roboto")(
+    _.src("url(/assets/fonts/roboto/Roboto_Regular.ttf)")
+  )
+
+  val robotoSlab = fontFace("robotoSlab")(
+    _.src("url(/assets/fonts/robotoSlab/Roboto_Regular.ttf)")
+  )
+
   val cutePunkFf = fontFace("cutePunk")(
     _.src("url(/assets/fonts/cutepunk/Cutepunk_Regular.otf)")
   )
@@ -107,13 +115,12 @@ object SharedStyles extends StyleSheet.Inline {
     _.src("url(/assets/fonts/ss-emoji/ss-emoji-adobe-mozilla.ttf)")
   )
 
-  val siteRoot = style(
-    padding(0 px)
+  val rogueSansExtBoldIt = fontFace("rogueSansExtBoldIt")(
+    _.src("url(/assets/fonts/rogue-sans/rogue-sans-ext-bold-it.otf)")
   )
 
-  val titleText = style(
-    textAlign.center,
-    paddingTop(spacingUnit * 2)
+  val siteRoot = style(
+    padding(0 px)
   )
 
   val inlineBlock = style(

@@ -63,22 +63,6 @@ object ComponentHelpers {
     }
   }
 
-  implicit val style2value: Attr.ValueType[StyleA, String] =
-    ValueType((fn, style: StyleA) => fn(style.htmlClass))
-
-  implicit def style2string(style: StyleA): String = {
-    style.htmlClass
-  }
-
-  implicit def style2classname(style: StyleA): js.UndefOr[String] = {
-    style.htmlClass
-  }
-
-  implicit def func2jsUndefOr[T1, T2, R](
-      fn: Function2[T1, T2, R]): js.UndefOr[js.Function2[T1, T2, R]] = {
-    js.UndefOr.any2undefOrA(fn)
-  }
-
   /**
     * https://github.com/punkave/sanitize-html
     */

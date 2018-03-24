@@ -187,7 +187,7 @@ object NavBar extends LogSupport {
                                   alignItems = Grid.AlignItems.Center)(
                       GridItem(hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isLoggedIn))(
                         Button(style = Styles.actionButton,
-                               onClick = doteRouterCtl.set(LoginRoute))("Login")),
+                               onClick = doteRouterCtl.set(LoginRoute))("Log In")),
                       GridItem(hidden = Grid.HiddenProps(xsUp = p.currentRoute == HomeRoute))(
                         IconButton(style = Styles.actionButton,
                                    onClick = doteRouterCtl.set(HomeRoute))(Icons.Home())

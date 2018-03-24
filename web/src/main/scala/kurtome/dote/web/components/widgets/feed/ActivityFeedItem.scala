@@ -78,7 +78,7 @@ object ActivityFeedItem extends LogSupport {
       val caption = list.caption
 
       val titleRoute = FeedIdRoutes.toRoute(p.feedItem.getId)
-      Typography(variant = Typography.Variants.SubHeading, style = Styles.title)(title)
+      Typography(variant = Typography.Variants.Title, style = Styles.title)(title)
     }
 
     def render(p: Props, s: State): VdomElement = {

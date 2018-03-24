@@ -117,7 +117,7 @@ object FollowerSummaryFeedItem extends LogSupport {
             TableHead()(
               TableRow()(
                 TableCell(style = Styles.tableCell)(
-                  Typography(variant = Typography.Variants.SubHeading)(title)))
+                  Typography(variant = Typography.Variants.Title)(title)))
             ),
             TableBody()((people.zipWithIndex map {
               case (person, i) =>

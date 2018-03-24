@@ -35,7 +35,7 @@ object TagCollectionFeedItem extends LogSupport {
 
       GridContainer(spacing = 8)(
         GridItem(xs = 12)(
-          Typography(variant = Typography.Variants.SubHeading)(collection.title)
+          Typography(variant = Typography.Variants.Title)(collection.title)
         ),
         (tags map { tag =>
           GridItem(key = Some(tag.getId.kind.toString + tag.getId.key))(

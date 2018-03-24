@@ -16,7 +16,16 @@ object FlatRoundedButton {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    private val roundCornerRadius = 40 px
+    private val roundCornerRadius = 35 px
+    private val paddingSides = 24 px
+
+    val rounded = style(
+      paddingLeft(paddingSides),
+      paddingRight(paddingSides),
+      paddingTop(4 px),
+      paddingBottom(4 px),
+      borderRadius(roundCornerRadius)
+    )
 
     val fillPrimaryLightButton = style(
       backgroundColor :=! MuiTheme.theme.palette.primary.light,
@@ -30,7 +39,8 @@ object FlatRoundedButton {
 
     val borderPrimaryLightButton = style(
       borderColor :=! MuiTheme.theme.palette.primary.light,
-      borderWidth(2 px),
+      borderWidth(1 px),
+      borderStyle.solid,
       borderRadius(roundCornerRadius)
     )
 
@@ -71,8 +81,10 @@ object FlatRoundedButton {
     }
 
     def render(p: Props, pc: PropsChildren): VdomElement = {
-      Button(style = buttonStyle(p), onClick = p.onClick)(
-        Typography(variant = Typography.Variants.SubHeading, style = textStyle(p))(pc))
+      <.div(
+        ^.className := buttonStyle(p),
+        Button(style = Styles.rounded, onClick = p.onClick)(Typography(style = textStyle(p))(pc))
+      )
     }
   }
 
