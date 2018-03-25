@@ -41,7 +41,7 @@ object TagCollectionFeedItem extends LogSupport {
         (tags map { tag =>
           GridItem(key = Some(tag.getId.kind.toString + tag.getId.key))(
             FlatRoundedButton(
-              variant = FlatRoundedButton.Variants.FillWhite,
+              variant = FlatRoundedButton.Variants.FillLight,
               onClick = doteRouterCtl.set(TagRouteMapper.toRoute(tag)))(tag.displayValue)
           )
         }) toVdomArray

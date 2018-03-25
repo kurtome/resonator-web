@@ -28,6 +28,14 @@ object PodcastTile extends LogSupport {
       pointerEvents := "auto"
     )
 
+    val activityPaper = style(
+      backgroundColor :=! MuiTheme.theme.palette.extras.accentPaperBackground
+    )
+
+    val defaultPaper = style(
+      backgroundColor :=! MuiTheme.theme.palette.background.paper
+    )
+
   }
 
   private object Animations extends StyleSheet.Inline {
@@ -39,7 +47,17 @@ object PodcastTile extends LogSupport {
   }
   Animations.addToDocument()
 
-  case class Props(dotable: Dotable, elevation: Int, width: String, disableActions: Boolean)
+  object Variants extends Enumeration {
+    val Activity = Value // recent activity feed
+    val Default = Value
+  }
+  type Variant = Variants.Value
+
+  case class Props(dotable: Dotable,
+                   elevation: Int,
+                   width: String,
+                   disableActions: Boolean,
+                   variant: Variant)
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
                    smileCount: Int = 0,
@@ -48,6 +66,13 @@ object PodcastTile extends LogSupport {
                    scowlCount: Int = 0)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
+
+    def paperStyle(p: Props): StyleA = {
+      p.variant match {
+        case Variants.Activity => Styles.activityPaper
+        case _ => Styles.defaultPaper
+      }
+    }
 
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id
@@ -60,8 +85,7 @@ object PodcastTile extends LogSupport {
         p.dotable.getDetails.getPodcast.imageUrl
       }
 
-      Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation,
-            className = SharedStyles.inlineBlock)(
+      Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation, style = paperStyle(p))(
         <.div(
           ^.className := Styles.wrapper,
           ^.width := p.width,
@@ -97,8 +121,9 @@ object PodcastTile extends LogSupport {
     .build
 
   def apply(dotable: Dotable,
-            elevation: Int = 6,
+            elevation: Int = 5,
             width: String = "175px",
-            disableActions: Boolean = false) =
-    component.withProps(Props(dotable, elevation, width, disableActions))
+            disableActions: Boolean = false,
+            variant: Variant = Variants.Default) =
+    component.withProps(Props(dotable, elevation, width, disableActions, variant))
 }

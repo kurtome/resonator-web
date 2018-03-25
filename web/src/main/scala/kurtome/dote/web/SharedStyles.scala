@@ -123,10 +123,6 @@ object SharedStyles extends StyleSheet.Inline {
     padding(0 px)
   )
 
-  val inlineBlock = style(
-    display.inlineBlock
-  )
-
   val episodeList = style(
     height(100 %%),
     overflow.auto

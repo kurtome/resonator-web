@@ -22,6 +22,16 @@ object MuiTheme extends LogSupport {
   val lightBottomNav = "#f2f2c9"
   val darkBottomNav = "#424242"
 
+  /**
+    * Constant dark theme, can be used in sections that are dark all the time.
+    */
+  val darkTheme = createThemeWithDefaultPalette(false)
+
+  /**
+    * Constant light theme, can be used in sections that are light all the time.
+    */
+  val lightTheme = createThemeWithDefaultPalette(true)
+
   private def createThemeWithDefaultPalette(isLight: Boolean) = {
     createTheme(
       light = isLight,
@@ -31,14 +41,15 @@ object MuiTheme extends LogSupport {
   }
 
   var curTheme: Theme = {
-    val isLightTheme = isDayTime
-    createThemeWithDefaultPalette(isLightTheme)
+    if (isDayTime) {
+      lightTheme
+    } else {
+      // disabling night mode until visual bugs are fixed
+      lightTheme
+      //darkTheme
+    }
   }
 
-  /**
-    * Constant dark theme, can be used in sections that are dark all the time.
-    */
-  val darkTheme = createThemeWithDefaultPalette(false)
 
   /**
     * The current theme, can be changed on the theme page and by default updates based on the
@@ -109,12 +120,27 @@ object MuiTheme extends LogSupport {
     var paper: String = js.native
     var default: String = js.native
   }
+
   object PaletteBackground {
     def apply(paper: String, default: String): PaletteBackground = {
       val background = new js.Object().asInstanceOf[PaletteBackground]
       background.paper = paper
       background.default = default
       background
+    }
+  }
+
+  @js.native
+  trait PaletteExtras extends js.Object {
+    var cardHeader: String = js.native
+    var accentPaperBackground: String = js.native
+  }
+  object PaletteExtras {
+    def apply(cardHeader: String = "#dce5e3", accentPaperBackground: String = "#edf4f3") = {
+      val extras = new js.Object().asInstanceOf[PaletteExtras]
+      extras.cardHeader = cardHeader
+      extras.accentPaperBackground = accentPaperBackground
+      extras
     }
   }
 
@@ -142,6 +168,7 @@ object MuiTheme extends LogSupport {
     val background: PaletteBackground = js.native
     val action: PaletteAction = js.native
     val divider: String = js.native
+    val extras: PaletteExtras = js.native
   }
 
   @js.native
@@ -176,7 +203,8 @@ object MuiTheme extends LogSupport {
           "primary" -> primary,
           "secondary" -> secondary,
           "type" -> (if (light) "light" else "dark"),
-          "background" -> (if (light) lightBackground else darkBackground)
+          "background" -> (if (light) lightBackground else darkBackground),
+          "extras" -> PaletteExtras()
         ),
         "typography" -> l$(
           "fontFamily" -> "roboto",

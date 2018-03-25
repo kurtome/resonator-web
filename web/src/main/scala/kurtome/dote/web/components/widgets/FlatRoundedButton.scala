@@ -32,8 +32,8 @@ object FlatRoundedButton {
       borderRadius(roundCornerRadius)
     )
 
-    val fillWhiteButton = style(
-      backgroundColor :=! MuiTheme.theme.palette.common.white,
+    val fillLightButton = style(
+      backgroundColor :=! MuiTheme.theme.palette.background.paper,
       borderRadius(roundCornerRadius)
     )
 
@@ -56,8 +56,8 @@ object FlatRoundedButton {
   case class Props(variant: Variant, onClick: Callback)
 
   object Variants extends Enumeration {
-    val Fill: Value = Value
-    val FillWhite: Value = Value
+    val FillPrimary: Value = Value
+    val FillLight: Value = Value
     val Border: Value = Value
   }
   type Variant = Variants.Value
@@ -67,15 +67,15 @@ object FlatRoundedButton {
     def textStyle(p: Props): StyleA = {
       // text color should be opposite of the button color
       p.variant match {
-        case Variants.Fill => Styles.whiteText
+        case Variants.FillPrimary => Styles.whiteText
         case _ => Styles.lightPrimaryText
       }
     }
 
     def buttonStyle(p: Props): StyleA = {
       p.variant match {
-        case Variants.Fill => Styles.fillPrimaryLightButton
-        case Variants.FillWhite => Styles.fillWhiteButton
+        case Variants.FillPrimary => Styles.fillPrimaryLightButton
+        case Variants.FillLight => Styles.fillLightButton
         case _ => Styles.borderPrimaryLightButton
       }
     }

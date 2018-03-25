@@ -15,6 +15,7 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
+import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.Debounce
 import kurtome.dote.web.utils.FeedIdRoutes
@@ -34,7 +35,15 @@ object ActivityFeedItem extends LogSupport {
     )
 
     val paperWrapper = style(
-      padding(SharedStyles.spacingUnit)
+      backgroundColor :=! MuiTheme.theme.palette.extras.cardHeader
+    )
+
+    val headerTextWrapper = style(
+      width :=! ("calc(100% - 16px)"), // leave space for the padding
+      paddingTop(SharedStyles.spacingUnit),
+      paddingLeft(SharedStyles.spacingUnit),
+      paddingRight(SharedStyles.spacingUnit),
+      display.inlineBlock
     )
 
     val tileContainer = style(
@@ -43,6 +52,10 @@ object ActivityFeedItem extends LogSupport {
 
     val accountIcon = style(
       float.left
+    )
+
+    val ratingText = style(
+      float.right
     )
 
     val username = style(
@@ -108,46 +121,50 @@ object ActivityFeedItem extends LogSupport {
       GridContainer(spacing = 0)(
         GridItem(xs = 12)(
           renderTitle(p),
-          GridContainer(spacing = 16, justify = Grid.Justify.SpaceBetween)(
-            visibleActivities.zipWithIndex map {
-              case (activity, i) =>
-                val dotable = activity.getDote.getDotable
-                val dote = activity.getDote.getDote
-                val smile = Emojis.smileEmojis.lift(dote.smileCount - 1).getOrElse("")
-                val cry = Emojis.cryEmojis.lift(dote.cryCount - 1).getOrElse("")
-                val laugh = Emojis.laughEmojis.lift(dote.laughCount - 1).getOrElse("")
-                val scowl = Emojis.scowlEmojis.lift(dote.scowlCount - 1).getOrElse("")
-                val isLastInRow = ((i + 1) % numTilesPerRow) == 0
-                GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
-                  <.div(
-                    ^.width := asPxStr(tileWidth),
-                    Paper(style = Styles.paperWrapper, elevation = 1)(
-                      <.div(
-                        ^.width := "100%",
-                        ^.display := "inline-block",
-                        Typography(style = Styles.accountIcon)(Icons.AccountCircle()),
-                        Typography(noWrap = true, style = Styles.username)(
-                          SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
-                      ),
-                      Typography(noWrap = true)(s"Rated $smile$cry$laugh$scowl"),
-                      if (dotable.kind == Dotable.Kind.PODCAST) {
-                        PodcastTile(dotable = dotable,
-                                    width = "100px",
-                                    elevation = 3,
-                                    disableActions = true)()
-                      } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-                        EpisodeTile(dotable = dotable,
-                                    width = tileWidth - padding,
-                                    elevation = 3,
-                                    disableActions = true)()
-                      } else {
-                        // Placeholder for correct spacing
-                        <.div(^.width := asPxStr(tileWidth))
-                      }
+          MuiThemeProvider(MuiTheme.lightTheme)(
+            GridContainer(spacing = 16, justify = Grid.Justify.SpaceBetween)(
+              visibleActivities.zipWithIndex map {
+                case (activity, i) =>
+                  val dotable = activity.getDote.getDotable
+                  val dote = activity.getDote.getDote
+                  val smile = Emojis.smileEmojis.lift(dote.smileCount - 1).getOrElse("")
+                  val cry = Emojis.cryEmojis.lift(dote.cryCount - 1).getOrElse("")
+                  val laugh = Emojis.laughEmojis.lift(dote.laughCount - 1).getOrElse("")
+                  val scowl = Emojis.scowlEmojis.lift(dote.scowlCount - 1).getOrElse("")
+                  val isLastInRow = ((i + 1) % numTilesPerRow) == 0
+                  GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
+                    <.div(
+                      ^.width := asPxStr(tileWidth),
+                      Paper(style = Styles.paperWrapper, elevation = 1)(
+                        <.div(
+                          ^.className := Styles.headerTextWrapper,
+                          Typography(style = Styles.accountIcon)(Icons.AccountCircle()),
+                          Typography(noWrap = true, style = Styles.ratingText)(
+                            s"$smile$cry$laugh$scowl"),
+                          Typography(noWrap = true, style = Styles.username)(SiteLink(
+                            ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
+                        ),
+                        if (dotable.kind == Dotable.Kind.PODCAST) {
+                          PodcastTile(dotable = dotable,
+                                      width = "100px",
+                                      elevation = 0,
+                                      disableActions = true,
+                                      variant = PodcastTile.Variants.Activity)()
+                        } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
+                          EpisodeTile(dotable = dotable,
+                                      width = tileWidth,
+                                      elevation = 0,
+                                      disableActions = true,
+                                      variant = EpisodeTile.Variants.Activity)()
+                        } else {
+                          // Placeholder for correct spacing
+                          <.div(^.width := asPxStr(tileWidth))
+                        }
+                      )
                     )
                   )
-                )
-            } toVdomArray
+              } toVdomArray
+            )
           )
         )
       )

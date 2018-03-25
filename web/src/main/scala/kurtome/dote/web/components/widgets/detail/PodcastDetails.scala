@@ -109,7 +109,7 @@ object PodcastDetails {
           (keywords map { keyword =>
             GridItem(key = Some(keyword.getId.kind.toString + keyword.getId.key))(
               FlatRoundedButton(
-                variant = FlatRoundedButton.Variants.FillWhite,
+                variant = FlatRoundedButton.Variants.FillLight,
                 onClick = doteRouterCtl.set(TagRouteMapper.toRoute(keyword)))(keyword.displayValue)
             )
           }) toVdomArray

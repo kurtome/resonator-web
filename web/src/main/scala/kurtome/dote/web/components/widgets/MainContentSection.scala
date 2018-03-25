@@ -19,7 +19,7 @@ object MainContentSection {
 
   object Variants extends Enumeration {
     val Primary: Value = Value
-    val White: Value = Value
+    val Light: Value = Value
     val Default: Value = Value
   }
   type Variant = Variants.Value
@@ -30,7 +30,7 @@ object MainContentSection {
 
     def color(p: Props): String = {
       p.variant match {
-        case Variants.White => MuiTheme.theme.palette.common.white
+        case Variants.Light => MuiTheme.theme.palette.background.paper
         case Variants.Primary => MuiTheme.theme.palette.primary.main
         case _ => MuiTheme.theme.palette.background.default
       }

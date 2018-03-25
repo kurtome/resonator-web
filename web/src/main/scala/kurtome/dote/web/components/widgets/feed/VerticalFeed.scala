@@ -76,7 +76,7 @@ object VerticalFeed extends LogSupport {
                       )
                     )
                   case Id.Activity(ActivityId()) =>
-                    MainContentSection(variant = MainContentSection.Variants.White)(
+                    MainContentSection(variant = MainContentSection.Variants.Light)(
                       LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
                         ActivityFeedItem(item)()
                       )

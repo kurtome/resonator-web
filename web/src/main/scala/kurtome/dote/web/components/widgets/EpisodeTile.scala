@@ -8,6 +8,7 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
@@ -67,12 +68,27 @@ object EpisodeTile extends LogSupport {
       marginRight(SharedStyles.spacingUnit)
     )
 
-    val paperContainer = style(
-      display.inlineBlock
+    val activityPaper = style(
+      backgroundColor :=! MuiTheme.theme.palette.extras.accentPaperBackground
     )
+
+    val defaultPaper = style(
+      backgroundColor :=! MuiTheme.theme.palette.background.paper
+    )
+
   }
 
-  case class Props(dotable: Dotable, elevation: Int, width: Int, disableActions: Boolean)
+  object Variants extends Enumeration {
+    val Activity = Value // recent activity feed
+    val Default = Value
+  }
+  type Variant = Variants.Value
+
+  case class Props(dotable: Dotable,
+                   elevation: Int,
+                   width: Int,
+                   disableActions: Boolean,
+                   variant: Variant)
   case class State(imgLoaded: Boolean = false,
                    hover: Boolean = false,
                    smileCount: Int = 0,
@@ -81,6 +97,13 @@ object EpisodeTile extends LogSupport {
                    scowlCount: Int = 0)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
+
+    def paperStyle(p: Props): StyleA = {
+      p.variant match {
+        case Variants.Activity => Styles.activityPaper
+        case _ => Styles.defaultPaper
+      }
+    }
 
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id
@@ -98,8 +121,7 @@ object EpisodeTile extends LogSupport {
       val textMargins = 16
       val titleWidth = p.width - (imageSize + textMargins)
 
-      Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation,
-            style = Styles.paperContainer)(
+      Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation, style = paperStyle(p))(
         <.div(
           ^.className := Styles.wrapper,
           ^.width := asPxStr(p.width),
@@ -114,7 +136,6 @@ object EpisodeTile extends LogSupport {
             <.div(
               ^.className := Styles.mainTextWrapper,
               ^.width := asPxStr(titleWidth),
-              ^.height := asPxStr(imageSize),
               Typography(variant = Typography.Variants.Body1, noWrap = true)(
                 p.dotable.getCommon.title),
               Typography(variant = Typography.Variants.Caption, noWrap = true)(
@@ -148,8 +169,9 @@ object EpisodeTile extends LogSupport {
     .build
 
   def apply(dotable: Dotable,
-            elevation: Int = 6,
+            elevation: Int = 5,
             width: Int = 300,
-            disableActions: Boolean = false) =
-    component.withProps(Props(dotable, elevation, width, disableActions))
+            disableActions: Boolean = false,
+            variant: Variant = Variants.Default) =
+    component.withProps(Props(dotable, elevation, width, disableActions, variant))
 }
