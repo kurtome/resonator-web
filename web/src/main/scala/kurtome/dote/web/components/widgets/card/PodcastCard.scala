@@ -1,20 +1,17 @@
-package kurtome.dote.web.components.widgets
+package kurtome.dote.web.components.widgets.card
 
-import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.SharedStyles
+import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
-import scala.scalajs.js
-
-object PodcastTile extends LogSupport {
+object PodcastCard extends LogSupport {
 
   object Styles extends StyleSheet.Inline {
     import dsl._
@@ -58,12 +55,7 @@ object PodcastTile extends LogSupport {
                    width: String,
                    disableActions: Boolean,
                    variant: Variant)
-  case class State(imgLoaded: Boolean = false,
-                   hover: Boolean = false,
-                   smileCount: Int = 0,
-                   cryCount: Int = 0,
-                   laughCount: Int = 0,
-                   scowlCount: Int = 0)
+  case class State(hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -88,18 +80,31 @@ object PodcastTile extends LogSupport {
       Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation, style = paperStyle(p))(
         <.div(
           ^.className := Styles.wrapper,
-          ^.width := p.width,
           ^.height := p.width,
+          ^.width := (if (p.variant == Variants.Activity) "unset" else p.width),
           ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
           ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
-          doteRouterCtl.link(detailRoute)(
-            ^.className := Styles.container,
-            EntityImage(dotable = p.dotable, width = p.width)()
-          ),
+          p.variant match {
+            case Variants.Activity =>
+              <.div(
+                ImageWithSummaryCard(
+                  p.dotable,
+                  p.width.replace("px", "").toInt,
+                  caption1 =
+                    epochSecRangeToYearRange(p.dotable.getCommon.publishedEpochSec,
+                                             p.dotable.getCommon.updatedEpochSec).getOrElse("")
+                )()
+              )
+            case _ =>
+              doteRouterCtl.link(detailRoute)(
+                ^.className := Styles.container,
+                PodcastImageCard(dotable = p.dotable, width = p.width)()
+              )
+          },
           if (p.disableActions) {
-            <.div()
+            <.div(^.position := "absolute")
           } else {
-            TileActionShim(p.dotable, s.hover)()
+            CardActionShim(p.dotable, s.hover)()
           }
         )
       )
@@ -109,13 +114,7 @@ object PodcastTile extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => {
-      val dote = p.dotable.getDote
-      State(smileCount = dote.smileCount,
-            cryCount = dote.cryCount,
-            laughCount = dote.laughCount,
-            scowlCount = dote.scowlCount)
-    })
+    .initialState(State())
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build

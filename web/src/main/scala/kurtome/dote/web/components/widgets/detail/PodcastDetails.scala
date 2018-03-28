@@ -14,7 +14,8 @@ import kurtome.dote.web.components.widgets.FlatRoundedButton
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.detail.DetailFieldList._
-import kurtome.dote.web.components.widgets.{ContentFrame, PodcastTile}
+import kurtome.dote.web.components.widgets.ContentFrame
+import kurtome.dote.web.components.widgets.card.PodcastCard
 import kurtome.dote.web.utils.FeedIdRoutes.TagRouteMapper
 import kurtome.dote.web.utils.{BaseBackend, Debounce}
 import org.scalajs.dom
@@ -199,7 +200,7 @@ object PodcastDetails {
               <.div(
                 ^.width := asPxStr(tileContainerWidth),
                 <.div(^.className := tileContainerStyle,
-                      PodcastTile(dotable = p.dotable, width = asPxStr(tileWidth))())
+                      PodcastCard(dotable = p.dotable, width = asPxStr(tileWidth))())
               )
             ),
             Grid(item = true, style = Styles.titleFieldContainer)(

@@ -11,6 +11,7 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.components.widgets.button.ShareButton
+import kurtome.dote.web.components.widgets.card.EpisodeCard
 import kurtome.dote.web.utils.BaseBackend
 import scalacss.internal.mutable.StyleSheet
 
@@ -92,7 +93,7 @@ object EpisodeDetails {
                     alignItems = Grid.AlignItems.FlexStart,
                     style = Styles.detailsHeaderContainer)(
         GridItem(xs = 12)(
-          EpisodeTile(
+          EpisodeCard(
             dotable = p.dotable,
             width = Math.min(500, ContentFrame.innerWidthPx),
             elevation = 2

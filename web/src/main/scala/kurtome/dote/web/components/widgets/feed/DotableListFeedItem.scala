@@ -14,6 +14,8 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
+import kurtome.dote.web.components.widgets.card.EpisodeCard
+import kurtome.dote.web.components.widgets.card.PodcastCard
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.Debounce
 import kurtome.dote.web.utils.FeedIdRoutes
@@ -158,9 +160,9 @@ object DotableListFeedItem extends LogSupport {
               case (dotable, i) =>
                 Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer)(
                   if (dotable.kind == Dotable.Kind.PODCAST) {
-                    PodcastTile(dotable = dotable, width = asPxStr(tileWidthPx))()
+                    PodcastCard(dotable = dotable, width = asPxStr(tileWidthPx))()
                   } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-                    EpisodeTile(dotable = dotable, width = tileWidthPx)()
+                    EpisodeCard(dotable = dotable, width = tileWidthPx)()
                   } else {
                     // Placeholder for correct spacing
                     <.div(^.width := asPxStr(tileWidthPx))

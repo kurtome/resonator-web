@@ -1,21 +1,17 @@
-package kurtome.dote.web.components.widgets
+package kurtome.dote.web.components.widgets.card
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.dotable.Dotable
-import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
-import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.constants.MuiTheme
-import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
 
-object EntityImage extends LogSupport {
+object PodcastImageCard extends LogSupport {
 
   object Styles extends StyleSheet.Inline {
     import dsl._
@@ -27,28 +23,6 @@ object EntityImage extends LogSupport {
     val container = style(
       position.absolute,
       pointerEvents := "auto"
-    )
-
-    val imageContainer = style(
-      )
-
-    val overlayContainer = style(
-      position.absolute,
-      pointerEvents := "none",
-      width(100 %%),
-      height(100 %%)
-    )
-
-    val overlayActionsContainer = style(
-      width(100 %%),
-      height(100 %%)
-    )
-
-    val overlay = style(
-      position.absolute,
-      backgroundColor(rgba(255, 255, 255, 0.4)),
-      width(100 %%),
-      height(100 %%)
     )
 
     val nestedImg = style(
@@ -85,19 +59,6 @@ object EntityImage extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 2000) { () =>
-      val p: Props = bs.props.runNow()
-      val s: State = bs.state.runNow()
-      val f = DoteProtoServer.setDote(
-        SetDoteRequest(p.dotable.id,
-                       Some(
-                         Dote(smileCount = s.smileCount,
-                              laughCount = s.laughCount,
-                              cryCount = s.cryCount,
-                              scowlCount = s.scowlCount))))
-      GlobalLoadingManager.addLoadingFuture(f)
-    }
-
     def render(p: Props, s: State): VdomElement = {
       val id = p.dotable.id
       val slug = p.dotable.slug
@@ -117,7 +78,6 @@ object EntityImage extends LogSupport {
           ^.className := Styles.container,
           ^.width := p.width,
           ^.height := p.width,
-          ^.className := Styles.imageContainer,
           // placeholder div while loading, to fill the space
           <.div(
             ^.className := Styles.placeholder

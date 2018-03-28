@@ -30,14 +30,6 @@ object NavBar extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val title = style(
-      width.unset
-    )
-
-    val titleContainer = style(
-      width.unset
-    )
-
     val actionsContainer = style(
       width.unset
     )
@@ -49,16 +41,14 @@ object NavBar extends LogSupport {
     )
 
     val navWrapper = style(
-      zIndex(1),
+      zIndex(1000),
       position.fixed,
       width(100 %%),
       top(0 px)
     )
 
     val navPaper = style(
-      backgroundColor :=! MuiTheme.theme.palette.primary.dark,
-      width.unset,
-      height.unset
+      backgroundColor :=! MuiTheme.theme.palette.primary.dark
     )
 
     val bottomNavRoot = style(
@@ -176,33 +166,34 @@ object NavBar extends LogSupport {
         ),
         <.div(
           ^.className := Styles.navWrapper,
-          Collapse(in = !s.isCollapsed)(
-            Paper(style = Styles.navPaper)(
-              CenteredMainContent()(
-                GridContainer(justify = Grid.Justify.SpaceBetween, spacing = 0)(
-                  GridItem(hidden = Grid.HiddenProps(xsUp = s.isCollapsed))(SiteTitle()()),
-                  GridItem()(
-                    GridContainer(style = Styles.actionsContainer,
-                                  spacing = 0,
-                                  alignItems = Grid.AlignItems.Center)(
-                      GridItem(hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isLoggedIn))(
-                        Button(style = Styles.actionButton,
-                               onClick = doteRouterCtl.set(LoginRoute))("Log In")),
-                      GridItem(hidden = Grid.HiddenProps(xsUp = p.currentRoute == HomeRoute))(
-                        IconButton(style = Styles.actionButton,
-                                   onClick = doteRouterCtl.set(HomeRoute))(Icons.Home())
-                      ),
-                      GridItem(hidden =
-                        Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(IconButton(
-                        style = Styles.actionButton,
-                        onClick = handleProfileButtonClicked(p))(Icons.AccountCircle())),
-                      GridItem()(
-                        IconButton(style = Styles.actionButton,
-                                   onClick = doteRouterCtl.set(SearchRoute))(Icons.Search()))
-                    )
+          Collapse(in = !s.isCollapsed)(<.div(
+            ^.className := Styles.navPaper,
+            CenteredMainContent()(
+              GridContainer(justify = Grid.Justify.SpaceBetween, spacing = 0)(
+                GridItem(hidden = Grid.HiddenProps(xsUp = s.isCollapsed))(SiteTitle()()),
+                GridItem()(
+                  GridContainer(style = Styles.actionsContainer,
+                                spacing = 0,
+                                alignItems = Grid.AlignItems.Center)(
+                    GridItem(hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isLoggedIn))(
+                      Button(style = Styles.actionButton, onClick = doteRouterCtl.set(LoginRoute))(
+                        "Log In")),
+                    GridItem(hidden = Grid.HiddenProps(xsUp = p.currentRoute == HomeRoute))(
+                      IconButton(style = Styles.actionButton,
+                                 onClick = doteRouterCtl.set(HomeRoute))(Icons.Home())
+                    ),
+                    GridItem(
+                      hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+                      IconButton(style = Styles.actionButton,
+                                 onClick = handleProfileButtonClicked(p))(Icons.AccountCircle())),
+                    GridItem()(
+                      IconButton(style = Styles.actionButton,
+                                 onClick = doteRouterCtl.set(SearchRoute))(Icons.Search()))
                   )
                 )
-              ))),
+              )
+            )
+          )),
           Fader(in = s.isLoading)(LinearProgress()())
         )
       )

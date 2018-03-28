@@ -55,10 +55,10 @@ object SiteTitle extends LogSupport {
         doteRouterCtl.link(HomeRoute)(
           ^.className := Styles.siteTitleAnchor,
           ^.color := MuiTheme.theme.palette.common.white,
-          <.span(^.className := Styles.siteTitleText, StringValues.siteTitle)
-        ),
-        Typography(variant = Typography.Variants.Caption, style = Styles.subtitleText)(
-          "(under construction)")
+          <.span(^.className := Styles.siteTitleText, StringValues.siteTitle),
+          Typography(variant = Typography.Variants.Caption, style = Styles.subtitleText)(
+            "(under construction)")
+        )
       )
     }
   }

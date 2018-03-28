@@ -1,8 +1,8 @@
 package kurtome.dote.web.components.widgets
 
 import kurtome.dote.proto.api.action.search.SearchRequest
-
 import scalacss.internal.mutable.StyleSheet
+
 import scala.scalajs.js._
 import scala.scalajs.js.JSConverters._
 import kurtome.dote.proto.api.dotable.Dotable
@@ -15,6 +15,7 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.lib.AutoSuggest
 import kurtome.dote.web.components.lib.AutoSuggest._
+import kurtome.dote.web.components.widgets.card.PodcastImageCard
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
@@ -190,7 +191,7 @@ object SearchBox {
              spacing = 0,
              justify = Grid.Justify.FlexStart,
              alignItems = Grid.AlignItems.Center)(
-          Grid(item = true)(<.span(EntityImage(suggestion, width = asPxStr(tileWidthPx))())),
+          Grid(item = true)(<.span(PodcastImageCard(suggestion, width = asPxStr(tileWidthPx))())),
           Grid(item = true, style = Styles.suggestTitleContainer)(
             Typography(style = Styles.suggestTitleText(params.isHighlighted),
                        variant = Typography.Variants.SubHeading)(

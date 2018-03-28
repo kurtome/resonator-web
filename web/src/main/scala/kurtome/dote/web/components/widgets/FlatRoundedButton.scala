@@ -20,6 +20,7 @@ object FlatRoundedButton {
     private val paddingSides = 24 px
 
     val rounded = style(
+      minHeight(25 px),
       paddingLeft(paddingSides),
       paddingRight(paddingSides),
       paddingTop(4 px),

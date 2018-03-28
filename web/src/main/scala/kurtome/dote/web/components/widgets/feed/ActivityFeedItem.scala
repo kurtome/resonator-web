@@ -15,6 +15,8 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
+import kurtome.dote.web.components.widgets.card.EpisodeCard
+import kurtome.dote.web.components.widgets.card.PodcastCard
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.Debounce
@@ -60,7 +62,7 @@ object ActivityFeedItem extends LogSupport {
 
     val username = style(
       marginLeft(1.9 em), // left space for account icon
-      lineHeight(1.7 em)
+      lineHeight(1.75 em)
     )
   }
   Styles.addToDocument()
@@ -145,17 +147,17 @@ object ActivityFeedItem extends LogSupport {
                             ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
                         ),
                         if (dotable.kind == Dotable.Kind.PODCAST) {
-                          PodcastTile(dotable = dotable,
+                          PodcastCard(dotable = dotable,
                                       width = "100px",
                                       elevation = 0,
                                       disableActions = true,
-                                      variant = PodcastTile.Variants.Activity)()
+                                      variant = PodcastCard.Variants.Activity)()
                         } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-                          EpisodeTile(dotable = dotable,
+                          EpisodeCard(dotable = dotable,
                                       width = tileWidth,
                                       elevation = 0,
                                       disableActions = true,
-                                      variant = EpisodeTile.Variants.Activity)()
+                                      variant = EpisodeCard.Variants.Activity)()
                         } else {
                           // Placeholder for correct spacing
                           <.div(^.width := asPxStr(tileWidth))

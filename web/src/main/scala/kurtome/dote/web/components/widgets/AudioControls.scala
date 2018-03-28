@@ -10,6 +10,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses
 import kurtome.dote.web.components.ComponentHelpers
+import kurtome.dote.web.components.widgets.card.PodcastImageCard
 import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
 
@@ -161,7 +162,8 @@ object AudioControls extends LogSupport {
                   ^.className := Styles.tileWrapper,
                   doteRouterCtl.link(
                     DetailsRoute(s.playerState.episode.id, s.playerState.episode.slug))(
-                    EntityImage(dotable = s.playerState.episode, width = asPxStr(controlsHeight))()
+                    PodcastImageCard(dotable = s.playerState.episode,
+                                     width = asPxStr(controlsHeight))()
                   )
                 ),
                 <.div(

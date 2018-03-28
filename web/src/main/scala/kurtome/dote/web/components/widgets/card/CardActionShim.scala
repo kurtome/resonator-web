@@ -1,4 +1,4 @@
-package kurtome.dote.web.components.widgets
+package kurtome.dote.web.components.widgets.card
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
@@ -6,10 +6,9 @@ import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.DoteRouterCtl
 import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.Fader
 import kurtome.dote.web.components.widgets.button.emote._
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
@@ -17,7 +16,7 @@ import wvlet.log.LogSupport
 
 import scala.scalajs.js
 
-object TileActionShim extends LogSupport {
+object CardActionShim extends LogSupport {
 
   object Styles extends StyleSheet.Inline {
     import dsl._
