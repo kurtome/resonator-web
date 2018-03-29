@@ -52,7 +52,7 @@ object EpisodeCard extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    def paperStyle(p: Props): StyleA = {
+    def backgroundColor(p: Props): StyleA = {
       p.variant match {
         case Variants.Activity => Styles.activityPaper
         case _ => Styles.defaultPaper
@@ -82,25 +82,24 @@ object EpisodeCard extends LogSupport {
         ^.position := "relative",
         ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
         ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
-        Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation, style = paperStyle(p))(
-          <.div(
-            ^.width := asPxStr(p.width),
-            ^.position := "absolute",
-            ImageWithSummaryCard(
-              p.dotable,
-              width = p.width,
-              caption1 = durationSecToMin(p.dotable.getDetails.getPodcastEpisode.durationSec),
-              imageOverlayCaption = epochSecToDate(p.dotable.getCommon.publishedEpochSec)
-            )()
-          ),
-          if (p.disableActions) {
-            <.div(^.position := "absolute")
-          } else {
-            CardActionShim(p.dotable, s.hover)()
-          },
-          // Fill the space with a div, since the content is absolute positioned
-          <.div(^.width := asPxStr(p.width), ^.height := asPxStr(height))
-        )
+        <.div(
+          ^.className := backgroundColor(p),
+          ^.width := asPxStr(p.width),
+          ^.position := "absolute",
+          ImageWithSummaryCard(
+            p.dotable,
+            width = p.width,
+            caption1 = durationSecToMin(p.dotable.getDetails.getPodcastEpisode.durationSec),
+            imageOverlayCaption = epochSecToDate(p.dotable.getCommon.publishedEpochSec)
+          )()
+        ),
+        if (p.disableActions) {
+          <.div(^.position := "absolute")
+        } else {
+          CardActionShim(p.dotable, s.hover)()
+        },
+        // Fill the space with a div, since the content is absolute positioned
+        <.div(^.width := asPxStr(p.width), ^.height := asPxStr(height))
       )
 
     }

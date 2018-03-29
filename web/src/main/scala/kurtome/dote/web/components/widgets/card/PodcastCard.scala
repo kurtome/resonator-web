@@ -16,20 +16,18 @@ object PodcastCard extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val wrapper = style(
-      position.relative
-    )
-
     val container = style(
       position.absolute,
       pointerEvents := "auto"
     )
 
     val activityPaper = style(
+      position.relative,
       backgroundColor :=! MuiTheme.theme.palette.extras.accentPaperBackground
     )
 
     val defaultPaper = style(
+      position.relative,
       backgroundColor :=! MuiTheme.theme.palette.background.paper
     )
 
@@ -59,7 +57,7 @@ object PodcastCard extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    def paperStyle(p: Props): StyleA = {
+    def backgroundColor(p: Props): StyleA = {
       p.variant match {
         case Variants.Activity => Styles.activityPaper
         case _ => Styles.defaultPaper
@@ -77,36 +75,34 @@ object PodcastCard extends LogSupport {
         p.dotable.getDetails.getPodcast.imageUrl
       }
 
-      Paper(elevation = if (s.hover) p.elevation * 2 else p.elevation, style = paperStyle(p))(
-        <.div(
-          ^.className := Styles.wrapper,
-          ^.height := p.width,
-          ^.width := (if (p.variant == Variants.Activity) "unset" else p.width),
-          ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
-          ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
-          p.variant match {
-            case Variants.Activity =>
-              <.div(
-                ImageWithSummaryCard(
-                  p.dotable,
-                  p.width.replace("px", "").toInt,
-                  caption1 =
-                    epochSecRangeToYearRange(p.dotable.getCommon.publishedEpochSec,
-                                             p.dotable.getCommon.updatedEpochSec).getOrElse("")
-                )()
-              )
-            case _ =>
-              doteRouterCtl.link(detailRoute)(
-                ^.className := Styles.container,
-                PodcastImageCard(dotable = p.dotable, width = p.width)()
-              )
-          },
-          if (p.disableActions) {
-            <.div(^.position := "absolute")
-          } else {
-            CardActionShim(p.dotable, s.hover)()
-          }
-        )
+      <.div(
+        ^.className := backgroundColor(p),
+        ^.height := p.width,
+        ^.width := (if (p.variant == Variants.Activity) "unset" else p.width),
+        ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
+        ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
+        p.variant match {
+          case Variants.Activity =>
+            <.div(
+              ImageWithSummaryCard(
+                p.dotable,
+                p.width.replace("px", "").toInt,
+                caption1 =
+                  epochSecRangeToYearRange(p.dotable.getCommon.publishedEpochSec,
+                                           p.dotable.getCommon.updatedEpochSec).getOrElse("")
+              )()
+            )
+          case _ =>
+            doteRouterCtl.link(detailRoute)(
+              ^.className := Styles.container,
+              PodcastImageCard(dotable = p.dotable, width = p.width)()
+            )
+        },
+        if (p.disableActions) {
+          <.div(^.position := "absolute")
+        } else {
+          CardActionShim(p.dotable, s.hover)()
+        }
       )
 
     }

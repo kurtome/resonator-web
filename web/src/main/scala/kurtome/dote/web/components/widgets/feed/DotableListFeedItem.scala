@@ -160,9 +160,9 @@ object DotableListFeedItem extends LogSupport {
               case (dotable, i) =>
                 Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer)(
                   if (dotable.kind == Dotable.Kind.PODCAST) {
-                    PodcastCard(dotable = dotable, width = asPxStr(tileWidthPx))()
+                    HoverPaper()(PodcastCard(dotable = dotable, width = asPxStr(tileWidthPx))())
                   } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-                    EpisodeCard(dotable = dotable, width = tileWidthPx)()
+                    HoverPaper()(EpisodeCard(dotable = dotable, width = tileWidthPx)())
                   } else {
                     // Placeholder for correct spacing
                     <.div(^.width := asPxStr(tileWidthPx))

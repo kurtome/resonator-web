@@ -15,6 +15,7 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
+import kurtome.dote.web.components.widgets.card.ActivityCard
 import kurtome.dote.web.components.widgets.card.EpisodeCard
 import kurtome.dote.web.components.widgets.card.PodcastCard
 import kurtome.dote.web.constants.MuiTheme
@@ -34,10 +35,6 @@ object ActivityFeedItem extends LogSupport {
 
     val title = style(
       marginBottom(SharedStyles.spacingUnit)
-    )
-
-    val paperWrapper = style(
-      backgroundColor :=! MuiTheme.theme.palette.extras.cardHeader
     )
 
     val headerTextWrapper = style(
@@ -128,41 +125,9 @@ object ActivityFeedItem extends LogSupport {
               visibleActivities.zipWithIndex map {
                 case (activity, i) =>
                   val dotable = activity.getDote.getDotable
-                  val dote = activity.getDote.getDote
-                  val smile = Emojis.smileEmojis.lift(dote.smileCount - 1).getOrElse("")
-                  val cry = Emojis.cryEmojis.lift(dote.cryCount - 1).getOrElse("")
-                  val laugh = Emojis.laughEmojis.lift(dote.laughCount - 1).getOrElse("")
-                  val scowl = Emojis.scowlEmojis.lift(dote.scowlCount - 1).getOrElse("")
-                  val isLastInRow = ((i + 1) % numTilesPerRow) == 0
                   GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
-                    <.div(
-                      ^.width := asPxStr(tileWidth),
-                      Paper(style = Styles.paperWrapper, elevation = 1)(
-                        <.div(
-                          ^.className := Styles.headerTextWrapper,
-                          Typography(style = Styles.accountIcon)(Icons.AccountCircle()),
-                          Typography(noWrap = true, style = Styles.ratingText)(
-                            s"$smile$cry$laugh$scowl"),
-                          Typography(noWrap = true, style = Styles.username)(SiteLink(
-                            ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
-                        ),
-                        if (dotable.kind == Dotable.Kind.PODCAST) {
-                          PodcastCard(dotable = dotable,
-                                      width = "100px",
-                                      elevation = 0,
-                                      disableActions = true,
-                                      variant = PodcastCard.Variants.Activity)()
-                        } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-                          EpisodeCard(dotable = dotable,
-                                      width = tileWidth,
-                                      elevation = 0,
-                                      disableActions = true,
-                                      variant = EpisodeCard.Variants.Activity)()
-                        } else {
-                          // Placeholder for correct spacing
-                          <.div(^.width := asPxStr(tileWidth))
-                        }
-                      )
+                    HoverPaper(variant = HoverPaper.Variants.CardHeader)(
+                      ActivityCard(activity, tileWidth)()
                     )
                   )
               } toVdomArray
