@@ -10,6 +10,7 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.FlatRoundedButton
+import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.FeedIdRoutes.TagRouteMapper
 import scalacss.ScalaCssReact._
@@ -34,17 +35,19 @@ object TagCollectionFeedItem extends LogSupport {
       val collection = p.feedItem.getTagCollection.getTagCollection
       val tags = collection.tags
 
-      GridContainer(spacing = 8)(
-        GridItem(xs = 12)(
-          Typography(variant = Typography.Variants.Title)(collection.title)
-        ),
-        (tags map { tag =>
-          GridItem(key = Some(tag.getId.kind.toString + tag.getId.key))(
-            FlatRoundedButton(
-              variant = FlatRoundedButton.Variants.FillLight,
-              onClick = doteRouterCtl.set(TagRouteMapper.toRoute(tag)))(tag.displayValue)
-          )
-        }) toVdomArray
+      MainContentSection(variant = MainContentSection.Variants.Primary)(
+        GridContainer(spacing = 8)(
+          GridItem(xs = 12)(
+            Typography(variant = Typography.Variants.Title)(collection.title)
+          ),
+          (tags map { tag =>
+            GridItem(key = Some(tag.getId.kind.toString + tag.getId.key))(
+              FlatRoundedButton(
+                variant = FlatRoundedButton.Variants.FillLight,
+                onClick = doteRouterCtl.set(TagRouteMapper.toRoute(tag)))(tag.displayValue)
+            )
+          }) toVdomArray
+        )
       )
     }
   }

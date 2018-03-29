@@ -61,6 +61,10 @@ object ActivityFeedItem extends LogSupport {
       marginLeft(1.9 em), // left space for account icon
       lineHeight(1.75 em)
     )
+
+    val itemsContainer = style(
+      marginBottom(8 px)
+    )
   }
   Styles.addToDocument()
 
@@ -117,20 +121,24 @@ object ActivityFeedItem extends LogSupport {
         // take the number that fit
         .take(numTiles)
 
-      GridContainer(spacing = 0)(
-        GridItem(xs = 12)(
-          renderTitle(p),
-          MuiThemeProvider(MuiTheme.lightTheme)(
-            GridContainer(spacing = 16, justify = Grid.Justify.SpaceBetween)(
-              visibleActivities.zipWithIndex map {
-                case (activity, i) =>
-                  val dotable = activity.getDote.getDotable
-                  GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
-                    HoverPaper(variant = HoverPaper.Variants.CardHeader)(
-                      ActivityCard(activity, tileWidth)()
+      MainContentSection(variant = MainContentSection.Variants.Light)(
+        GridContainer(spacing = 0)(
+          GridItem(xs = 12)(
+            renderTitle(p),
+            MuiThemeProvider(MuiTheme.lightTheme)(
+              GridContainer(spacing = 16,
+                            justify = Grid.Justify.SpaceBetween,
+                            style = Styles.itemsContainer)(
+                visibleActivities.zipWithIndex map {
+                  case (activity, i) =>
+                    val dotable = activity.getDote.getDotable
+                    GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
+                      HoverPaper(variant = HoverPaper.Variants.CardHeader)(
+                        ActivityCard(activity, tileWidth)()
+                      )
                     )
-                  )
-              } toVdomArray
+                } toVdomArray
+              )
             )
           )
         )

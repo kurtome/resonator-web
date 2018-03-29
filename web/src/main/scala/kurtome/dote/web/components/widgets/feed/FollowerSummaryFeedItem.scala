@@ -15,6 +15,7 @@ import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.DoteProtoServer
@@ -39,14 +40,11 @@ object FollowerSummaryFeedItem extends LogSupport {
       padding(SharedStyles.spacingUnit)
     )
 
-    val followCounterContainer = styleF.bool(
-      isFirst =>
-        styleS(
-          display.inlineBlock,
-          borderLeft(if (isFirst) 0 px else 1 px, solid, Color(MuiTheme.theme.palette.divider)),
-          paddingLeft(SharedStyles.spacingUnit * 2),
-          paddingRight(SharedStyles.spacingUnit * 2)
-      ))
+    val followCounterContainer = style(
+      display.inlineBlock,
+      paddingLeft(SharedStyles.spacingUnit * 2),
+      paddingRight(SharedStyles.spacingUnit * 2)
+    )
 
     val tableContainer = style(
       padding(SharedStyles.spacingUnit)
@@ -103,12 +101,12 @@ object FollowerSummaryFeedItem extends LogSupport {
 
     private def counterContainer(p: Props)(vdomElement: VdomElement): VdomElement = {
       FeedIdRoutes.toRoute(p.feedItem.getId) match {
-        case Some(route) => doteRouterCtl.link(route)(vdomElement)
+        case Some(route) => SiteLink(route)(vdomElement)
         case _ => vdomElement
       }
     }
 
-    private def renderPersonSable(title: String, people: Seq[Person]): VdomElement = {
+    private def renderPersonTable(title: String, people: Seq[Person]): VdomElement = {
       if (people.isEmpty) {
         <.div()
       } else {
@@ -141,49 +139,67 @@ object FollowerSummaryFeedItem extends LogSupport {
       val showFollowCheckbox = (LoggedInPersonManager.isNotLoggedIn
         || LoggedInPersonManager.isLoggedInPerson(s.followerSummary.getPerson.username))
 
-      GridContainer(alignItems = Grid.AlignItems.Center)(
-        GridItem()(
-          counterContainer(p)(Paper(style = Styles.root)(
-            <.div(
-              ^.className := Styles.followCounterContainer(true),
-              Typography(variant = Typography.Variants.Headline)(
-                s.followerSummary.following.length),
-              Typography(variant = Typography.Variants.Caption)("Following")
+      val summary = p.feedItem.getFollowerSummary.getSummary
+      val person = summary.getPerson
+      <.div(
+        MainContentSection(variant = MainContentSection.Variants.Light)(
+          GridContainer(spacing = 0,
+                        justify = Grid.Justify.SpaceBetween,
+                        alignItems = Grid.AlignItems.FlexStart)(
+            GridItem()(
+              GridContainer(spacing = 0)(
+                GridItem(xs = 12)(
+                  SiteLink(ProfileRoute(person.username))(
+                    Typography(variant = Typography.Variants.Display2,
+                               color = Typography.Colors.Inherit)(person.username)
+                  )
+                ),
+                GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = showFollowCheckbox))(
+                  GridContainer(spacing = 0)(
+                    GridItem()(FormControlLabel(
+                      control = Checkbox(checked = isFollowing(s),
+                                         name = "follow",
+                                         value = "follow",
+                                         disabled = isFollowPending(s),
+                                         onChange = handleFollowingChanged(s))(),
+                      label = s"Follow"
+                    )()),
+                    GridItem()(
+                      Fade(in = s.setFollowInFlight)(
+                        CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
+                      ))
+                  )
+                )
+              )
             ),
-            <.div(
-              ^.className := Styles.followCounterContainer(false),
-              Typography(variant = Typography.Variants.Headline)(
-                s.followerSummary.followers.length),
-              Typography(variant = Typography.Variants.Caption)("Followers")
+            GridItem()(
+              <.div(
+                ^.className := Styles.followCounterContainer,
+                counterContainer(p)(
+                  Typography(variant = Typography.Variants.Display1,
+                             color = Typography.Colors.Inherit)(s.followerSummary.following.length)
+                ),
+                Typography(variant = Typography.Variants.Caption)("Following")
+              ),
+              <.div(
+                ^.className := Styles.followCounterContainer,
+                counterContainer(p)(
+                  Typography(variant = Typography.Variants.Display1,
+                             color = Typography.Colors.Inherit)(s.followerSummary.followers.length)
+                ),
+                Typography(variant = Typography.Variants.Caption)("Followers")
+              )
             )
-          ))),
-        GridItem()(if (showFollowCheckbox) {
-          <.div()
-        } else {
-          GridContainer(spacing = 0)(
-            GridItem()(
-              FormControlLabel(
-                control = Checkbox(checked = isFollowing(s),
-                                   name = "follow",
-                                   value = "follow",
-                                   disabled = isFollowPending(s),
-                                   onChange = handleFollowingChanged(s))(),
-                label = s"Follow ${s.followerSummary.getPerson.username}"
-              )()),
-            GridItem()(
-              Fade(in = s.setFollowInFlight)(
-                CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
-              ))
           )
-        }),
-        if (p.feedItem.getFollowerSummary.style == FeedFollowerSummary.Style.PRIMARY) {
-          GridItem(xs = 12)(
-            renderPersonSable("Following", s.followerSummary.following),
-            renderPersonSable("Followers", s.followerSummary.followers)
+        ),
+        MainContentSection()(
+          Hidden(xsUp = p.feedItem.getFollowerSummary.style != FeedFollowerSummary.Style.PRIMARY)(
+            GridItem(xs = 12)(
+              renderPersonTable("Following", s.followerSummary.following),
+              renderPersonTable("Followers", s.followerSummary.followers)
+            )
           )
-        } else {
-          <.div()
-        }
+        )
       )
     }
   }

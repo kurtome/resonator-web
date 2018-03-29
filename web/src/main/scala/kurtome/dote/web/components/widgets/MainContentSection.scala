@@ -24,11 +24,11 @@ object MainContentSection {
   }
   type Variant = Variants.Value
 
-  case class Props(variant: Variant)
+  case class Props(variant: Variant, center: Boolean)
 
   class Backend(bs: BackendScope[Props, Unit]) extends BaseBackend(Styles) {
 
-    def color(p: Props): String = {
+    private def color(p: Props): String = {
       p.variant match {
         case Variants.Light => MuiTheme.theme.palette.background.paper
         case Variants.Primary => MuiTheme.theme.palette.primary.main
@@ -36,19 +36,27 @@ object MainContentSection {
       }
     }
 
+    private def renderContent(p: Props, pc: PropsChildren): VdomNode = {
+      if (p.center) {
+        CenteredMainContent()(pc)
+      } else {
+        pc
+      }
+    }
+
     def render(p: Props, pc: PropsChildren): VdomElement = {
       <.div(
-        ^.paddingTop := "16px",
-        ^.paddingBottom := "16px",
+        ^.paddingTop := "8px",
+        ^.paddingBottom := "8px",
         ^.backgroundColor := color(p),
         ^.width := "100%",
         if (p.variant == Variants.Primary) {
           // Use the dark theme so text shows up correctly on the dark background.
           MuiThemeProvider(MuiTheme.darkTheme)(
-            CenteredMainContent()(pc)
+            renderContent(p, pc)
           )
         } else {
-          CenteredMainContent()(pc)
+          renderContent(p, pc)
         }
       )
     }
@@ -60,6 +68,6 @@ object MainContentSection {
     .renderPC((builder, props, pc) => builder.backend.render(props, pc))
     .build
 
-  def apply(variant: Variant = Variants.Default)(c: CtorType.ChildArg*) =
-    component.withChildren(c: _*).withProps(Props(variant))()
+  def apply(variant: Variant = Variants.Default, center: Boolean = true)(c: CtorType.ChildArg*) =
+    component.withChildren(c: _*).withProps(Props(variant, center))()
 }

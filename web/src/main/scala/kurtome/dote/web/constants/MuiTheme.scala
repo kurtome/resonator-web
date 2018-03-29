@@ -234,6 +234,16 @@ object MuiTheme extends LogSupport {
               "backgroundColor" -> primary.light
             )
           ),
+          "MuiCircularProgress" -> l$(
+            "colorPrimary" -> l$(
+              "color" -> primary.light
+            )
+          ),
+          "MuiCheckbox" -> l$(
+            "checked" -> l$(
+              "color" -> primary.light
+            )
+          ),
           "MuiBottomNavigation" -> l$(
             "root" -> l$(
               "backgroundColor" -> (if (light) lightBottomNav else darkBottomNav)

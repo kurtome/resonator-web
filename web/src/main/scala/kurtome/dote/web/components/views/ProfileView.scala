@@ -93,104 +93,56 @@ object ProfileView extends LogSupport {
         Person.defaultInstance
       }
 
-      if (isProfileForLoggedInPerson(p)) {
-        Paper(elevation = 1, style = Styles.accountInfoContainer)(
-          Grid(container = true,
-               justify = Grid.Justify.FlexStart,
-               alignItems = Grid.AlignItems.Center)(
-            Grid(item = true, xs = 12, style = Styles.accountInfoHeaderContainer)(
-              Grid(container = true,
-                   justify = Grid.Justify.SpaceBetween,
-                   alignItems = Grid.AlignItems.Baseline)(
-                Grid(item = true)(
-                  Typography(variant = Typography.Variants.SubHeading)("Your info")
-                ),
-                Grid(item = true)(
-                  Button(onClick = handleLogout)("Logout")
-                )
+      <.div(
+        ^.className := Styles.accountInfoContainer,
+        Grid(container = true,
+             justify = Grid.Justify.FlexStart,
+             alignItems = Grid.AlignItems.Center)(
+          Grid(item = true, xs = 12, style = Styles.accountInfoHeaderContainer)(
+            Grid(container = true,
+                 justify = Grid.Justify.SpaceBetween,
+                 alignItems = Grid.AlignItems.Baseline)(
+              Grid(item = true)(
+                Typography(variant = Typography.Variants.SubHeading)("Your info")
+              ),
+              Grid(item = true)(
+                Button(onClick = handleLogout)("Logout")
               )
-            ),
-            Grid(item = true)(
-              TextField(
-                autoFocus = false,
-                disabled = true,
-                value = loggedInPerson.username,
-                name = "username",
-                label = Typography()("username")
-              )()),
-            Grid(item = true)(
-              TextField(
-                autoFocus = false,
-                disabled = true,
-                value = loggedInPerson.email,
-                inputType = "email",
-                name = "email",
-                label = Typography()("email address")
-              )()
-            ),
-            Grid(item = true, xs = 12)(
-              Typography(variant = Typography.Variants.Caption)(
-                "Only you can see this section, it will not show up on your profile for others."))
-          )
+            )
+          ),
+          Grid(item = true)(
+            TextField(
+              autoFocus = false,
+              disabled = true,
+              value = loggedInPerson.username,
+              name = "username",
+              label = Typography()("username")
+            )()),
+          Grid(item = true)(
+            TextField(
+              autoFocus = false,
+              disabled = true,
+              value = loggedInPerson.email,
+              inputType = "email",
+              name = "email",
+              label = Typography()("email address")
+            )()
+          ),
+          Grid(item = true, xs = 12)(
+            Typography(variant = Typography.Variants.Caption)(
+              "Only you can see this section, it will not show up on your profile for others."))
         )
-      } else {
-        <.div()
-      }
+      )
     }
 
     def render(p: Props, s: State): VdomElement = {
       <.div(
-        MainContentSection()(
-          Grid(container = true, justify = Grid.Justify.Center)(
-            Grid(item = true, xs = 12)(
-              renderAccountInfo(p, s)
-            ),
-            Grid(item = true, xs = 12)(
-              Grid(container = true, justify = Grid.Justify.FlexStart, spacing = 8)(
-                Grid(item = true, xs = 12)(
-                  Typography(variant = Typography.Variants.Headline, style = Styles.profileHeader)(
-                    s"${p.username}'s profile")
-                ),
-                Grid(item = true, xs = 12)(
-                  Announcement(size = Announcement.Sizes.Sm)(
-                    "Profile pages are shareable, text it to a friend or share online.")
-                ),
-                Grid(item = true, xs = 12)(
-                  ShareButton()()
-                )
-              )
-            )
-          ),
-          VerticalFeed(s.feed, s.isFeedLoading)(),
-          MainContentSection()(
-            GridContainer(justify = Grid.Justify.Center)(
-              GridItem(xs = 12)(
-                if (isProfileForLoggedInPerson(p)) {
-                  Announcement(size = Announcement.Sizes.Sm)(
-                    "Your recent activity will show up on your profile. Find something new from the ",
-                    SiteLink(HomeRoute)("popular podcasts"),
-                    " or try ",
-                    SiteLink(SearchRoute)("searching for a podcast"),
-                    " you already love."
-                  )
-                } else if (LoggedInPersonManager.isLoggedIn) {
-                  Announcement(size = Announcement.Sizes.Sm)(
-                    "Checkout your own ",
-                    SiteLink(ProfileRoute(LoggedInPersonManager.person.get.username))(
-                      "profile page"),
-                    "."
-                  )
-                } else { // not logged in
-                  Announcement(size = Announcement.Sizes.Lg)(
-                    SiteLink(LoginRoute)("Login"),
-                    " to start your own profile."
-                  )
-                }
-              )
-            )
-          )
+        VerticalFeed(s.feed, s.isFeedLoading)(),
+        Hidden(xsUp = !isProfileForLoggedInPerson(p))(
+          MainContentSection(variant = MainContentSection.Variants.Light)(renderAccountInfo(p, s))
         )
       )
+
     }
   }
 

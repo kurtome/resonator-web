@@ -34,9 +34,12 @@ object VerticalFeed extends LogSupport {
 
     def render(p: Props): VdomElement = {
       if (p.isLoading) {
-        GridContainer(justify = Grid.Justify.Center)(
+        GridContainer(spacing = 24, justify = Grid.Justify.Center)(
           GridItem()(
-            CircularProgress(variant = CircularProgress.Variant.Indeterminate, size = 60f)()
+            <.div(
+              ^.margin := "16px",
+              CircularProgress(variant = CircularProgress.Variant.Indeterminate, size = 60f)()
+            )
           )
         )
       } else {
@@ -47,39 +50,30 @@ object VerticalFeed extends LogSupport {
                 ^.key := s"$i${item.getDotableList.getList.title}",
                 item.getId.id match {
                   case Id.TagList(_) =>
-                    MainContentSection()(
-                      LazyLoad(once = true,
-                               height = 150,
-                               key = Some(s"$i${item.getDotableList.getList.title}"))(
-                        DotableListFeedItem(item)()
-                      )
+                    LazyLoad(once = true,
+                             height = 150,
+                             key = Some(s"$i${item.getDotableList.getList.title}"))(
+                      DotableListFeedItem(item)()
                     )
                   case Id.ProfileDoteList(_) =>
-                    MainContentSection()(
-                      LazyLoad(once = true,
-                               height = 150,
-                               key = Some(s"$i${item.getDotableList.getList.title}"))(
-                        DotableListFeedItem(item)()
-                      )
+                    LazyLoad(once = true,
+                             height = 150,
+                             key = Some(s"$i${item.getDotableList.getList.title}"))(
+                      DotableListFeedItem(item)()
                     )
                   case Id.FollowerSummary(FollowerSummaryId(username)) =>
-                    MainContentSection()(
-                      LazyLoad(once = true,
-                               height = 100,
-                               key = Some(s"$i-profile-summary-$username"))(
-                        FollowerSummaryFeedItem(item)()
-                      ))
+                    LazyLoad(once = true,
+                             height = 100,
+                             key = Some(s"$i-profile-summary-$username"))(
+                      FollowerSummaryFeedItem(item)()
+                    )
                   case Id.TagCollection(TagCollectionId()) =>
-                    MainContentSection(variant = MainContentSection.Variants.Primary)(
-                      LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
-                        TagCollectionFeedItem(item)()
-                      )
+                    LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
+                      TagCollectionFeedItem(item)()
                     )
                   case Id.Activity(ActivityId()) =>
-                    MainContentSection(variant = MainContentSection.Variants.Light)(
-                      LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
-                        ActivityFeedItem(item)()
-                      )
+                    LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
+                      ActivityFeedItem(item)()
                     )
                   case _ => {
                     warn(s"unexpected kind ${item.getId.id}")

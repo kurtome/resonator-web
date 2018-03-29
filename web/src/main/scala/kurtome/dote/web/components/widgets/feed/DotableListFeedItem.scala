@@ -33,6 +33,10 @@ object DotableListFeedItem extends LogSupport {
     val tileContainer = style(
       marginTop(12 px)
     )
+
+    val itemsContainer = style(
+      marginBottom(16 px)
+    )
   }
   Styles.addToDocument()
 
@@ -98,7 +102,8 @@ object DotableListFeedItem extends LogSupport {
                         justify = Grid.Justify.SpaceBetween,
                         alignItems = Grid.AlignItems.Center)(
             GridItem()(Typography(variant = Typography.Variants.Title)(title)),
-            GridItem()(FlatRoundedButton(onClick = doteRouterCtl.set(titleRoute.get))("See More"))
+            GridItem(hidden = Grid.HiddenProps(xsUp = titleRoute.isEmpty))(FlatRoundedButton(
+              onClick = titleRoute.map(doteRouterCtl.set).getOrElse(Callback.empty))("See More"))
           )
         }
       }
@@ -149,26 +154,29 @@ object DotableListFeedItem extends LogSupport {
         requestedWidth + (leftoverWidthPx / numTilesPerRow)
       }
 
-      Grid(container = true, spacing = 0)(
-        Grid(item = true, xs = 12)(
-          renderTitle(p),
-          Grid(container = true,
-               spacing = 0,
-               alignItems = Grid.AlignItems.FlexStart,
-               justify = Grid.Justify.SpaceBetween)(
-            dotables.zipWithIndex map {
-              case (dotable, i) =>
-                Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer)(
-                  if (dotable.kind == Dotable.Kind.PODCAST) {
-                    HoverPaper()(PodcastCard(dotable = dotable, width = asPxStr(tileWidthPx))())
-                  } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-                    HoverPaper()(EpisodeCard(dotable = dotable, width = tileWidthPx)())
-                  } else {
-                    // Placeholder for correct spacing
-                    <.div(^.width := asPxStr(tileWidthPx))
-                  }
-                )
-            } toVdomArray
+      MainContentSection()(
+        Grid(container = true, spacing = 0)(
+          Grid(item = true, xs = 12)(
+            renderTitle(p),
+            Grid(container = true,
+                 style = Styles.itemsContainer,
+                 spacing = 0,
+                 alignItems = Grid.AlignItems.FlexStart,
+                 justify = Grid.Justify.SpaceBetween)(
+              dotables.zipWithIndex map {
+                case (dotable, i) =>
+                  Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer)(
+                    if (dotable.kind == Dotable.Kind.PODCAST) {
+                      HoverPaper()(PodcastCard(dotable = dotable, width = asPxStr(tileWidthPx))())
+                    } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
+                      HoverPaper()(EpisodeCard(dotable = dotable, width = tileWidthPx)())
+                    } else {
+                      // Placeholder for correct spacing
+                      <.div(^.width := asPxStr(tileWidthPx))
+                    }
+                  )
+              } toVdomArray
+            )
           )
         )
       )
