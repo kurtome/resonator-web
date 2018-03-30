@@ -32,7 +32,7 @@ lazy val server = (project in file("server"))
       postgresJdbcDriver,
       "com.github.tminglei" %% "slick-pg" % "0.15.4",
       "com.github.tminglei" %% "slick-pg_json4s" % "0.15.4",
-      "com.sendgrid" % "sendgrid-java" % "4.1.2",
+      "org.matthicks" %% "mailgun4s" % "1.0.6",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.slf4j" % "slf4j-jdk14" % "1.7.25" // this ensures all logs are sent to airframe-log
     ),

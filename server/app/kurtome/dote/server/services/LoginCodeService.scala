@@ -4,7 +4,6 @@ import java.net.URLEncoder
 import java.time.{Duration, LocalDateTime}
 import javax.inject._
 
-import kurtome.dote.proto.api.person.Person
 import kurtome.dote.server.email.{EmailClient, PendingMessage}
 import kurtome.dote.server.util.RandomString
 import kurtome.dote.slick.db.gen.Tables
@@ -18,7 +17,7 @@ class LoginCodeService @Inject()(
     authTokenService: AuthTokenService)(implicit ec: ExecutionContext) {
 
   private val codeLength = 20
-  private val codeDuration = Duration.ofHours(1)
+  private val codeDuration = Duration.ofHours(6)
 
   /**
     * Creates a login code and sends an email to the person unless they already have a recent login
@@ -33,9 +32,9 @@ class LoginCodeService @Inject()(
     personDbService.readByEmail(personEmail) flatMap {
       case Some(person) =>
         val newCodeCutoff =
-          LocalDateTime.now().plus(codeDuration).minus(Duration.ofMinutes(10))
+          LocalDateTime.now().plus(codeDuration).minus(Duration.ofMinutes(1))
         if (person.loginCodeExpirationTime.isAfter(newCodeCutoff)) {
-          // code is less than 10 minutes old, don't re-send email
+          // code is less than 1 minute old, don't re-send email
           Future(Unit)
         } else {
           writeNewCodeToPerson(person) flatMap { code =>
@@ -45,7 +44,7 @@ class LoginCodeService @Inject()(
               .send(PendingMessage(
                 person,
                 "Login to Resonator",
-                s"Welcome, your username is ${person.username}, please login with this link: $loginLink\n\nThis link will expire in one hour."
+                s"Welcome, your username is ${person.username}, please login with this link: $loginLink\n\nThis link will expire in six hours."
               ))
               .map(_ => Unit)
           }
