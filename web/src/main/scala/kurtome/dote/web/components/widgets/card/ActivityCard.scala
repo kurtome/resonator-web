@@ -82,7 +82,7 @@ object ActivityCard extends LogSupport {
         ),
         if (dotable.kind == Dotable.Kind.PODCAST) {
           PodcastCard(dotable = dotable,
-                      width = "100px",
+                      width = asPxStr(p.width),
                       elevation = 0,
                       disableActions = true,
                       variant = PodcastCard.Variants.Activity)()

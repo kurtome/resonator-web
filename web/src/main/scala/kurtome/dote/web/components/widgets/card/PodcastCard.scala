@@ -77,8 +77,8 @@ object PodcastCard extends LogSupport {
 
       <.div(
         ^.className := backgroundColor(p),
-        ^.height := p.width,
-        ^.width := (if (p.variant == Variants.Activity) "unset" else p.width),
+        ^.width := p.width,
+        ^.height := (if (p.variant == Variants.Activity) "100px" else p.width),
         ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
         ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
         p.variant match {
