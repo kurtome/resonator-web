@@ -16,6 +16,7 @@ import kurtome.dote.proto.api.feed.FeedId.ActivityId
 import kurtome.dote.proto.api.feed.FeedId.TagCollectionId
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.proto.api.feed.FeedId.TagListId
+import kurtome.dote.proto.api.feed.FeedItemCommon
 import kurtome.dote.proto.api.feed.FeedTagCollection
 import kurtome.dote.proto.api.tag
 import kurtome.dote.proto.api.tag.TagCollection
@@ -91,6 +92,15 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
         toActivityListFeedItem("Recent Activity", "", list)
     }
 
+    val recentActivityFromFollowing = personId
+      .map(doteService.recentDotesWithDotableFromFollowing(listLimit, _))
+      .getOrElse(Future(Nil))
+      .map(_.map(pair =>
+        (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
+      list =>
+        toActivityListFeedItem("Recent From Following", "", list)
+    }
+
     val newEpisodes = dotableService
       .readEpisodeTagList(MetadataFlag.Ids.popular, listLimit) map { tagList =>
       toTagListFeedItem("New Episodes",
@@ -115,6 +125,7 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
     val lists = Future.sequence(
       Seq(
         recentActivity,
+        recentActivityFromFollowing,
         newEpisodes,
         popularList,
         creatorsTagCollection,
@@ -160,6 +171,7 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
           items = list.map(pair =>
             Activity().withDote(DoteActivity().withDote(pair._1).withDotable(pair._2))))))
     FeedItem()
+      .withCommon(FeedItemCommon(backgroundColor = FeedItemCommon.BackgroundColor.LIGHT))
       .withId(FeedId().withActivity(ActivityId()))
       .withContent(FeedItem.Content.ActivityList(feedList))
   }
@@ -183,6 +195,7 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
         TagMapper.toProto(Tag(row.kind, row.key, row.name))
       })))
     FeedItem()
+      .withCommon(FeedItemCommon(backgroundColor = FeedItemCommon.BackgroundColor.PRIMARY))
       .withId(FeedId().withTagCollection(TagCollectionId()))
       .withContent(FeedItem.Content.TagCollection(collection))
   }

@@ -37,6 +37,33 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
       } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
     }
 
+    val recentDotesWithDotableByUsername = Compiled {
+      (limit: ConstColumn[Long], personId: Rep[Long]) =>
+        (for {
+          person <- Tables.Person if person.id === personId
+          dote <- Tables.Dote
+            .sortBy(_.doteTime.desc)
+            .take(limit)
+          if dote.personId === person.id
+          (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
+          if d.id === dote.dotableId
+        } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
+    }
+
+    val recentDotesWithDotableFromFollowing = Compiled {
+      (limit: ConstColumn[Long], personId: Rep[Long]) =>
+        (for {
+          follower <- Tables.Follower if follower.followerId === personId
+          person <- Tables.Person if person.id === follower.followeeId
+          dote <- Tables.Dote
+            .sortBy(_.doteTime.desc)
+            .take(limit)
+          if dote.personId === follower.followeeId
+          (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
+          if d.id === dote.dotableId
+        } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
+    }
+
     val mostPopularDotables = Compiled {
       (kind: Rep[DotableKind], maxDoteAge: Rep[LocalDateTime], limit: ConstColumn[Long]) =>
         val dotesForKind = for {
@@ -61,6 +88,14 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
 
   def recentRecentDotesWithDotables(limit: Long) = {
     Queries.recentDotesWithDotable(limit).result
+  }
+
+  def recentDotesWithDotableByUsername(limit: Long, personId: Long) = {
+    Queries.recentDotesWithDotableByUsername(limit, personId).result
+  }
+
+  def recentDotesWithDotableFromFollowing(limit: Long, personId: Long) = {
+    Queries.recentDotesWithDotableFromFollowing(limit, personId).result
   }
 
   def readDote(personId: Long, dotableId: Long) = {

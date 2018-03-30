@@ -154,7 +154,7 @@ object DotableListFeedItem extends LogSupport {
         requestedWidth + (leftoverWidthPx / numTilesPerRow)
       }
 
-      MainContentSection()(
+      MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
         Grid(container = true, spacing = 0)(
           Grid(item = true, xs = 12)(
             renderTitle(p),

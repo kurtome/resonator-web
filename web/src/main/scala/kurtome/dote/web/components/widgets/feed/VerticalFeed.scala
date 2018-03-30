@@ -71,7 +71,7 @@ object VerticalFeed extends LogSupport {
                     LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
                       TagCollectionFeedItem(item)()
                     )
-                  case Id.Activity(ActivityId()) =>
+                  case Id.Activity(ActivityId(_)) =>
                     LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
                       ActivityFeedItem(item)()
                     )

@@ -35,7 +35,7 @@ object TagCollectionFeedItem extends LogSupport {
       val collection = p.feedItem.getTagCollection.getTagCollection
       val tags = collection.tags
 
-      MainContentSection(variant = MainContentSection.Variants.Primary)(
+      MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
         GridContainer(spacing = 8)(
           GridItem(xs = 12)(
             Typography(variant = Typography.Variants.Title)(collection.title)

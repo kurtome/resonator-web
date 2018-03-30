@@ -6,6 +6,7 @@ import kurtome.dote.proto.api.feed.FeedFollowerSummary
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.FollowerSummaryId
 import kurtome.dote.proto.api.feed.FeedItem
+import kurtome.dote.proto.api.feed.FeedItemCommon
 import kurtome.dote.proto.api.follower.FollowerSummary
 import kurtome.dote.server.controllers.follow.FollowApiHelper
 import kurtome.dote.server.services.PersonService
@@ -40,6 +41,7 @@ class FollowerSummaryFeedFetcher @Inject()(
         FollowerSummaryId(username = followerSummary.getPerson.username))
     val content = FeedFollowerSummary(Some(followerSummary), FeedFollowerSummary.Style.PRIMARY)
     FeedItem()
+      .withCommon(FeedItemCommon(backgroundColor = FeedItemCommon.BackgroundColor.PRIMARY))
       .withId(itemId)
       .withContent(FeedItem.Content.FollowerSummary(content))
   }

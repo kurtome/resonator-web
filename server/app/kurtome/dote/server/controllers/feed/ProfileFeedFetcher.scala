@@ -1,19 +1,28 @@
 package kurtome.dote.server.controllers.feed
 
 import javax.inject._
+import kurtome.dote.proto.api.activity.Activity
+import kurtome.dote.proto.api.activity.ActivityList
+import kurtome.dote.proto.api.activity.DoteActivity
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dotable_list.DotableList
+import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.proto.api.feed.Feed
+import kurtome.dote.proto.api.feed.FeedActivityList
 import kurtome.dote.proto.api.feed.FeedDotableList
 import kurtome.dote.proto.api.feed.FeedFollowerSummary
 import kurtome.dote.proto.api.feed.FeedId
+import kurtome.dote.proto.api.feed.FeedId.ActivityId
 import kurtome.dote.proto.api.feed.FeedId.FollowerSummaryId
 import kurtome.dote.proto.api.feed.FeedId.ProfileDoteListId
 import kurtome.dote.proto.api.feed.FeedItem
+import kurtome.dote.proto.api.feed.FeedItemCommon
 import kurtome.dote.proto.api.follower.FollowerSummary
 import kurtome.dote.server.controllers.follow.FollowApiHelper
 import kurtome.dote.server.db.mappers.DotableMapper
+import kurtome.dote.server.db.mappers.DoteMapper
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.server.services.DoteService
 import kurtome.dote.server.services.PersonService
 import kurtome.dote.shared.constants.Emojis
 import kurtome.dote.slick.db.gen.Tables.PersonRow
@@ -25,6 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ProfileFeedFetcher @Inject()(dotableService: DotableService,
+                                   doteService: DoteService,
                                    personService: PersonService,
                                    followApiHelper: FollowApiHelper)(implicit ec: ExecutionContext)
     extends FeedFetcher
@@ -47,96 +57,18 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
 
     val followerSummary = followApiHelper.getSummary(personRow).map(toFollowerSummaryFeedItem)
 
-    val smilePodcasts = dotableService
-      .readPersonSmileList(personRow.id, DotableKinds.Podcast, feedParams.maxItemSize) map {
+    val recentActivity = doteService
+      .recentDotesWithDotableByUsername(feedParams.maxItemSize, personRow.id)
+      .map(_.map(pair =>
+        (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
       list =>
-        toProfileListFeedItem(username,
-                              s"$username's $smileEmojis Podcasts",
-                              ProfileDoteListId.Kind.SMILE,
-                              list,
-                              DotableKinds.Podcast)
-    }
-
-    val smileEpisodes = dotableService
-      .readPersonSmileList(personRow.id, DotableKinds.PodcastEpisode, feedParams.maxItemSize) map {
-      list =>
-        toProfileListFeedItem(username,
-                              s"$username's $smileEmojis Episodes",
-                              ProfileDoteListId.Kind.SMILE,
-                              list,
-                              DotableKinds.PodcastEpisode)
-    }
-
-    val laughPodcasts = dotableService
-      .readPersonLaughList(personRow.id, DotableKinds.Podcast, feedParams.maxItemSize) map {
-      list =>
-        toProfileListFeedItem(username,
-                              s"$username's $laughEmojis Podcasts",
-                              ProfileDoteListId.Kind.LAUGH,
-                              list,
-                              DotableKinds.Podcast)
-    }
-
-    val laughEpisodes = dotableService
-      .readPersonLaughList(personRow.id, DotableKinds.PodcastEpisode, feedParams.maxItemSize) map {
-      list =>
-        toProfileListFeedItem(username,
-                              s"$username's $laughEmojis Episodes",
-                              ProfileDoteListId.Kind.LAUGH,
-                              list,
-                              DotableKinds.PodcastEpisode)
-    }
-
-    val cryPodcasts = dotableService
-      .readPersonCryList(personRow.id, DotableKinds.Podcast, feedParams.maxItemSize) map { list =>
-      toProfileListFeedItem(username,
-                            s"$username's $cryEmojis Podcasts",
-                            ProfileDoteListId.Kind.CRY,
-                            list,
-                            DotableKinds.Podcast)
-    }
-
-    val cryEpisodes = dotableService
-      .readPersonCryList(personRow.id, DotableKinds.PodcastEpisode, feedParams.maxItemSize) map {
-      list =>
-        toProfileListFeedItem(username,
-                              s"$username's $cryEmojis Episodes",
-                              ProfileDoteListId.Kind.CRY,
-                              list,
-                              DotableKinds.PodcastEpisode)
-    }
-
-    val scowlPodcasts = dotableService
-      .readPersonScowlList(personRow.id, DotableKinds.Podcast, feedParams.maxItemSize) map {
-      list =>
-        toProfileListFeedItem(username,
-                              s"$username's $scowlEmojis Podcasts",
-                              ProfileDoteListId.Kind.SCOWL,
-                              list,
-                              DotableKinds.Podcast)
-    }
-
-    val scowlEpisodes = dotableService
-      .readPersonScowlList(personRow.id, DotableKinds.PodcastEpisode, feedParams.maxItemSize) map {
-      list =>
-        toProfileListFeedItem(username,
-                              s"$username's $scowlEmojis Episodes",
-                              ProfileDoteListId.Kind.SCOWL,
-                              list,
-                              DotableKinds.PodcastEpisode)
+        toActivityListFeedItem("Recent Activity", "", list, personRow)
     }
 
     val feedItemsFuture = Future.sequence(
       Seq(
         followerSummary,
-        smilePodcasts,
-        smileEpisodes,
-        cryPodcasts,
-        cryEpisodes,
-        laughPodcasts,
-        laughEpisodes,
-        scowlPodcasts,
-        scowlEpisodes
+        recentActivity
       ))
 
     for {
@@ -152,12 +84,29 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
     } yield Feed(id = Some(feedParams.feedId), items = feedItems)
   }
 
+  private def toActivityListFeedItem(title: String,
+                                     caption: String,
+                                     list: Seq[(Dote, Dotable)],
+                                     profilePerson: PersonRow): FeedItem = {
+    val feedList = FeedActivityList(
+      Some(
+        ActivityList(
+          title = title,
+          caption = caption,
+          items = list.map(pair =>
+            Activity().withDote(DoteActivity().withDote(pair._1).withDotable(pair._2))))))
+    FeedItem()
+      .withId(FeedId().withActivity(ActivityId(profilePerson.username)))
+      .withContent(FeedItem.Content.ActivityList(feedList))
+  }
+
   private def toFollowerSummaryFeedItem(followerSummary: FollowerSummary) = {
     val itemId =
       FeedId().withFollowerSummary(
         FollowerSummaryId(username = followerSummary.getPerson.username))
     val content = FeedFollowerSummary(Some(followerSummary))
     FeedItem()
+      .withCommon(FeedItemCommon(backgroundColor = FeedItemCommon.BackgroundColor.LIGHT))
       .withId(itemId)
       .withContent(FeedItem.Content.FollowerSummary(content))
   }

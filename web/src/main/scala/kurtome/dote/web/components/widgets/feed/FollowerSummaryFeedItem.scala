@@ -142,7 +142,7 @@ object FollowerSummaryFeedItem extends LogSupport {
       val summary = p.feedItem.getFollowerSummary.getSummary
       val person = summary.getPerson
       <.div(
-        MainContentSection(variant = MainContentSection.Variants.Light)(
+        MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
           GridContainer(spacing = 0,
                         justify = Grid.Justify.SpaceBetween,
                         alignItems = Grid.AlignItems.FlexStart)(

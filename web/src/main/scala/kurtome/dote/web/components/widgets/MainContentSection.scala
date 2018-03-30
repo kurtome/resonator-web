@@ -4,6 +4,7 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.feed.FeedItemCommon
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import scalacss.internal.mutable.StyleSheet
@@ -70,4 +71,12 @@ object MainContentSection {
 
   def apply(variant: Variant = Variants.Default, center: Boolean = true)(c: CtorType.ChildArg*) =
     component.withChildren(c: _*).withProps(Props(variant, center))()
+
+  def chooseVariant(common: FeedItemCommon): Variant = {
+    common.backgroundColor match {
+      case FeedItemCommon.BackgroundColor.PRIMARY => Variants.Primary
+      case FeedItemCommon.BackgroundColor.LIGHT => Variants.Light
+      case _ => Variants.Default
+    }
+  }
 }

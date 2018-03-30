@@ -56,7 +56,9 @@ message FeedId {
 
   message ActivityId {
     // empty message indicates recent global activity.
-    // potentially will support username and following filters
+
+    // optional, filter to one user
+    string username = 1;
   }
 }
 
@@ -64,12 +66,23 @@ message FeedId {
 message FeedItem {
   // The detailed view of a feed item can itself be a feed.
   FeedId id = 1;
+  FeedItemCommon common = 2;
 
   oneof content {
-    FeedDotableList dotable_list = 2;
-    FeedFollowerSummary follower_summary = 3;
-    FeedTagCollection tag_collection = 4;
-    FeedActivityList activity_list = 5;
+    FeedDotableList dotable_list = 3;
+    FeedFollowerSummary follower_summary = 4;
+    FeedTagCollection tag_collection = 5;
+    FeedActivityList activity_list = 6;
+  }
+}
+
+message FeedItemCommon {
+  BackgroundColor background_color = 1;
+
+  enum BackgroundColor {
+    DEFAULT = 0;
+    PRIMARY = 1;
+    LIGHT = 2;
   }
 }
 

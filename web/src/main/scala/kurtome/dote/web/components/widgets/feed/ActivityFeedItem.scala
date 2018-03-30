@@ -121,7 +121,7 @@ object ActivityFeedItem extends LogSupport {
         // take the number that fit
         .take(numTiles)
 
-      MainContentSection(variant = MainContentSection.Variants.Light)(
+      MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
         GridContainer(spacing = 0)(
           GridItem(xs = 12)(
             renderTitle(p),
