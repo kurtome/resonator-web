@@ -61,6 +61,7 @@ object ImageWithSummaryCard extends LogSupport {
     )
 
     val imageOverlay = style(
+      pointerEvents := "none",
       position.absolute,
       zIndex(1),
       height(100 px),

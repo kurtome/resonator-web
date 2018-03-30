@@ -58,7 +58,7 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
     val followerSummary = followApiHelper.getSummary(personRow).map(toFollowerSummaryFeedItem)
 
     val recentActivity = doteService
-      .recentDotesWithDotableByUsername(feedParams.maxItemSize, personRow.id)
+      .recentDotesWithDotableByPerson(feedParams.maxItemSize, personRow.id)
       .map(_.map(pair =>
         (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
       list =>
@@ -78,6 +78,10 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
           case FeedItem.Content.DotableList(listContent) => {
             // only include non-empty lists
             listContent.getList.dotables.nonEmpty
+          }
+          case FeedItem.Content.ActivityList(listContent) => {
+            // only include non-empty lists
+            listContent.getActivityList.items.nonEmpty
           }
           case _ => true
       })

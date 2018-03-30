@@ -27,8 +27,6 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
     val recentDotesWithDotable = Compiled { (limit: ConstColumn[Long]) =>
       (for {
         dote <- Tables.Dote
-          .filter(row =>
-            row.smileCount > 0 || row.cryCount > 0 || row.laughCount > 0 || row.scowlCount > 0)
           .sortBy(_.doteTime.desc)
           .take(limit)
         person <- Tables.Person if dote.personId === person.id
@@ -37,14 +35,14 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
       } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
     }
 
-    val recentDotesWithDotableByUsername = Compiled {
+    val recentDotesWithDotableByPerson = Compiled {
       (limit: ConstColumn[Long], personId: Rep[Long]) =>
         (for {
-          person <- Tables.Person if person.id === personId
           dote <- Tables.Dote
+            .filter(_.personId === personId)
             .sortBy(_.doteTime.desc)
             .take(limit)
-          if dote.personId === person.id
+          person <- Tables.Person if dote.personId === person.id
           (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if d.id === dote.dotableId
         } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
@@ -52,13 +50,18 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
 
     val recentDotesWithDotableFromFollowing = Compiled {
       (limit: ConstColumn[Long], personId: Rep[Long]) =>
+        val followingPersonIds =
+          for {
+            follower <- Tables.Follower if follower.followerId === personId
+            person <- Tables.Person if person.id === follower.followeeId
+          } yield person.id
+
         (for {
-          follower <- Tables.Follower if follower.followerId === personId
-          person <- Tables.Person if person.id === follower.followeeId
           dote <- Tables.Dote
+            .filter(_.personId in followingPersonIds)
             .sortBy(_.doteTime.desc)
             .take(limit)
-          if dote.personId === follower.followeeId
+          person <- Tables.Person if dote.personId === person.id
           (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if d.id === dote.dotableId
         } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
@@ -90,8 +93,8 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
     Queries.recentDotesWithDotable(limit).result
   }
 
-  def recentDotesWithDotableByUsername(limit: Long, personId: Long) = {
-    Queries.recentDotesWithDotableByUsername(limit, personId).result
+  def recentDotesWithDotableByPerson(limit: Long, personId: Long) = {
+    Queries.recentDotesWithDotableByPerson(limit, personId).result
   }
 
   def recentDotesWithDotableFromFollowing(limit: Long, personId: Long) = {

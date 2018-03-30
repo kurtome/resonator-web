@@ -41,7 +41,7 @@ class FollowerSummaryFeedFetcher @Inject()(
         FollowerSummaryId(username = followerSummary.getPerson.username))
     val content = FeedFollowerSummary(Some(followerSummary), FeedFollowerSummary.Style.PRIMARY)
     FeedItem()
-      .withCommon(FeedItemCommon(backgroundColor = FeedItemCommon.BackgroundColor.PRIMARY))
+      .withCommon(FeedItemCommon(backgroundColor = FeedItemCommon.BackgroundColor.LIGHT))
       .withId(itemId)
       .withContent(FeedItem.Content.FollowerSummary(content))
   }

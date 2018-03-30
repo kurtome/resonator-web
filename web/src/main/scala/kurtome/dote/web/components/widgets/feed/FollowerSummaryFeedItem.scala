@@ -110,27 +110,25 @@ object FollowerSummaryFeedItem extends LogSupport {
       if (people.isEmpty) {
         <.div()
       } else {
-        Paper(style = Styles.tableContainer)(
-          Table()(
-            TableHead()(
-              TableRow()(
+        Table()(
+          TableHead()(
+            TableRow()(
+              TableCell(style = Styles.tableCell)(
+                Typography(variant = Typography.Variants.Title)(title)))
+          ),
+          TableBody()((people.zipWithIndex map {
+            case (person, i) =>
+              val id = person.id
+              val key: String = if (id.isEmpty) i.toString else id
+              val username = person.username
+              val detailRoute = ProfileRoute(username)
+              TableRow(key = Some(key))(
                 TableCell(style = Styles.tableCell)(
-                  Typography(variant = Typography.Variants.Title)(title)))
-            ),
-            TableBody()((people.zipWithIndex map {
-              case (person, i) =>
-                val id = person.id
-                val key: String = if (id.isEmpty) i.toString else id
-                val username = person.username
-                val detailRoute = ProfileRoute(username)
-                TableRow(key = Some(key))(
-                  TableCell(style = Styles.tableCell)(
-                    Typography(variant = Typography.Variants.Body1, noWrap = true)(
-                      SiteLink(detailRoute)(person.username))
-                  )
+                  Typography(variant = Typography.Variants.Body1, noWrap = true)(
+                    SiteLink(detailRoute)(person.username))
                 )
-            }).toVdomArray)
-          )
+              )
+          }).toVdomArray)
         )
       }
     }

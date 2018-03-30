@@ -131,12 +131,16 @@ object ActivityFeedItem extends LogSupport {
                             style = Styles.itemsContainer)(
                 visibleActivities.zipWithIndex map {
                   case (activity, i) =>
-                    val dotable = activity.getDote.getDotable
-                    GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
-                      HoverPaper(variant = HoverPaper.Variants.CardHeader)(
-                        ActivityCard(activity, tileWidth)()
+                    if (activity.content.isEmpty) {
+                      GridItem(key = Some("empty" + i))()
+                    } else {
+                      val dotable = activity.getDote.getDotable
+                      GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
+                        HoverPaper(variant = HoverPaper.Variants.CardHeader)(
+                          ActivityCard(activity, tileWidth)()
+                        )
                       )
-                    )
+                    }
                 } toVdomArray
               )
             )

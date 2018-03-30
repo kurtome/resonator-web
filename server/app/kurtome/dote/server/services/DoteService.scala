@@ -35,9 +35,9 @@ class DoteService @Inject()(db: BasicBackend#Database, doteDbIo: DoteDbIo)(
     db.run(doteDbIo.recentRecentDotesWithDotables(limit))
   }
 
-  def recentDotesWithDotableByUsername(limit: Long, personId: Long): Future[
+  def recentDotesWithDotableByPerson(limit: Long, personId: Long): Future[
     Seq[(Tables.DoteRow, Tables.PersonRow, Tables.DotableRow, Option[Tables.DotableRow])]] = {
-    db.run(doteDbIo.recentDotesWithDotableByUsername(limit, personId))
+    db.run(doteDbIo.recentDotesWithDotableByPerson(limit, personId))
   }
 
   def recentDotesWithDotableFromFollowing(limit: Long, personId: Long): Future[
