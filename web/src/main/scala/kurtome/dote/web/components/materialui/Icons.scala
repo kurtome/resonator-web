@@ -10,6 +10,11 @@ import scala.scalajs.js
   */
 object Icons {
 
+  @js.native
+  trait IconProps extends js.Object {
+    var style: js.UndefOr[js.Dynamic] = js.native
+  }
+
   @JSImport("mdi-material-ui/Home", JSImport.Default)
   @js.native
   private object HomeRaw extends js.Object {}
@@ -79,4 +84,27 @@ object Icons {
   @js.native
   private object ExpandLessRaw extends js.Object {}
   val ChevronUp = JsComponent[Null, Children.None, Null](ExpandLessRaw)
+
+  @JSImport("mdi-material-ui/ChevronLeft", JSImport.Default)
+  @js.native
+  private object ChevronLeftRaw extends js.Object {}
+  private val ChevronLeftComponent = JsComponent[IconProps, Children.None, Null](ChevronLeftRaw)
+  def ChevronLeft(style: js.UndefOr[js.Dynamic] = js.undefined) = {
+    ChevronLeftComponent.withProps(props(style))()
+  }
+
+  @JSImport("mdi-material-ui/ChevronRight", JSImport.Default)
+  @js.native
+  private object ChevronRightRaw extends js.Object {}
+  private val ChevronRightComponent = JsComponent[IconProps, Children.None, Null](ChevronRightRaw)
+  def ChevronRight(style: js.UndefOr[js.Dynamic] = js.undefined) = {
+    ChevronRightComponent.withProps(props(style))()
+  }
+
+  private def props(style: js.UndefOr[js.Dynamic]): IconProps = {
+    val props = new js.Object().asInstanceOf[IconProps]
+    props.style = style
+    props
+  }
+
 }

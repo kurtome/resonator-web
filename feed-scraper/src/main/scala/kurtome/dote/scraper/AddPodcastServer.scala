@@ -1,6 +1,6 @@
 package kurtome.dote.scraper
 
-import dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
+import kurtome.dote.proto.api.action.add_podcast._
 import kurtome.dote.scraper.ScraperMain.ScraperConfig
 
 import scalaj.http.{Http, HttpOptions}

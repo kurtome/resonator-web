@@ -75,7 +75,7 @@ object HomeView extends LogSupport {
         // get the latest data as well, in case it has changed
         val f = DoteProtoServer.getFeed(GetFeedRequest(
           maxItems = 20,
-          maxItemSize = 10,
+          maxItemSize = 20,
           id = Some(FeedId().withHome(HomeId())))) map { response =>
           bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
         }

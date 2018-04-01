@@ -50,7 +50,6 @@ object MuiTheme extends LogSupport {
     }
   }
 
-
   /**
     * The current theme, can be changed on the theme page and by default updates based on the
     * time of day.
@@ -134,12 +133,17 @@ object MuiTheme extends LogSupport {
   trait PaletteExtras extends js.Object {
     var cardHeader: String = js.native
     var accentPaperBackground: String = js.native
+    var pageButtonFill: String = js.native
+
   }
   object PaletteExtras {
-    def apply(cardHeader: String = "#dce5e3", accentPaperBackground: String = "#edf4f3") = {
+    def apply(cardHeader: String = "#dce5e3",
+              accentPaperBackground: String = "#edf4f3",
+              pageButtonFill: String = "#cae0db") = {
       val extras = new js.Object().asInstanceOf[PaletteExtras]
       extras.cardHeader = cardHeader
       extras.accentPaperBackground = accentPaperBackground
+      extras.pageButtonFill = pageButtonFill
       extras
     }
   }
@@ -241,6 +245,9 @@ object MuiTheme extends LogSupport {
           ),
           "MuiCheckbox" -> l$(
             "checked" -> l$(
+              "color" -> primary.light
+            ),
+            "checkedSecondary" -> l$(
               "color" -> primary.light
             )
           ),

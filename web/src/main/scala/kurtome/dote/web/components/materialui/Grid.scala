@@ -127,6 +127,7 @@ object Grid {
 
 object GridContainer {
   def apply(
+      key: Option[react.Key] = None,
       style: js.UndefOr[js.Dynamic] = js.undefined,
       spacing: js.UndefOr[Int] = js.undefined,
       justify: js.UndefOr[Justify.Value] = js.undefined,
@@ -136,6 +137,7 @@ object GridContainer {
       alignItems: js.UndefOr[AlignItems.Value] = js.undefined
   ): CtorType.Children[Grid.Props, UnmountedWithRawType[Grid.Props, Null, RawMounted]] = {
     Grid(container = true,
+         key = key,
          style = style,
          spacing = spacing,
          justify = justify,

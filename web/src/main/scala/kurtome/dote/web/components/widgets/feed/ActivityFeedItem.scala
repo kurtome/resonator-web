@@ -5,19 +5,16 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.activity.Activity
-import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.feed.FeedItem
-import kurtome.dote.shared.constants.Emojis
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.ProfileRoute
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.lib.SwipeableViews
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
+import kurtome.dote.web.components.widgets.button.PageArrowButton
 import kurtome.dote.web.components.widgets.card.ActivityCard
-import kurtome.dote.web.components.widgets.card.EpisodeCard
-import kurtome.dote.web.components.widgets.card.PodcastCard
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.Debounce
@@ -69,7 +66,7 @@ object ActivityFeedItem extends LogSupport {
   Styles.addToDocument()
 
   case class Props(feedItem: FeedItem)
-  case class State(availableWidthPx: Int)
+  case class State(availableWidthPx: Int, pageIndex: Int = 0)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -97,6 +94,38 @@ object ActivityFeedItem extends LogSupport {
       Typography(variant = Typography.Variants.Title, style = Styles.title)(title)
     }
 
+    private def renderPage(activities: Seq[Activity],
+                           numTilesPerPage: Int,
+                           tileWidth: Int,
+                           pageIndex: Int): VdomNode = {
+      val visibleActivities = activities
+        .drop(numTilesPerPage * pageIndex)
+        // Pad with placeholders to make the list spacing balanced, rendering code below
+        // will handle the placeholders
+        .padTo(numTilesPerPage, Activity.defaultInstance)
+        // take the number that fit
+        .take(numTilesPerPage)
+
+      GridContainer(key = Some("page" + pageIndex),
+                    spacing = 16,
+                    justify = Grid.Justify.SpaceBetween,
+                    style = Styles.itemsContainer)(
+        visibleActivities.zipWithIndex map {
+          case (activity, i) =>
+            if (activity.content.isEmpty) {
+              GridItem(key = Some("empty" + i))()
+            } else {
+              val dotable = activity.getDote.getDotable
+              GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
+                HoverPaper(variant = HoverPaper.Variants.CardHeader)(
+                  ActivityCard(activity, tileWidth)()
+                )
+              )
+            }
+        } toVdomArray
+      ),
+    }
+
     def render(p: Props, s: State): VdomElement = {
       val list = p.feedItem.getActivityList.getActivityList.items
       val activities = list
@@ -105,7 +134,7 @@ object ActivityFeedItem extends LogSupport {
         case "xs" => 1
         case "sm" => 2
         case "md" => 2
-        case _ => 3
+        case _    => 3
       }
       val numRows = if (isBreakpointXs) 3 else 2
 
@@ -114,34 +143,41 @@ object ActivityFeedItem extends LogSupport {
       val numTiles = numRows * numTilesPerRow
       val tileWidth = (s.availableWidthPx - (numTilesPerRow * 16)) / numTilesPerRow
 
-      val visibleActivities = activities
-      // Pad with placeholders to make the list spacing balanced, rendering code below
-      // will handle the placeholders
-        .padTo(numTiles, Activity.defaultInstance)
-        // take the number that fit
-        .take(numTiles)
+      val numPages = activities.size / numTiles
+
+      val canPrevPage = s.pageIndex != 0 && numPages > 0
+      val canNextPage = s.pageIndex != (numPages - 1)
 
       MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
         GridContainer(spacing = 0)(
           GridItem(xs = 12)(
             renderTitle(p),
             MuiThemeProvider(MuiTheme.lightTheme)(
-              GridContainer(spacing = 16,
-                            justify = Grid.Justify.SpaceBetween,
-                            style = Styles.itemsContainer)(
-                visibleActivities.zipWithIndex map {
-                  case (activity, i) =>
-                    if (activity.content.isEmpty) {
-                      GridItem(key = Some("empty" + i))()
-                    } else {
-                      val dotable = activity.getDote.getDotable
-                      GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
-                        HoverPaper(variant = HoverPaper.Variants.CardHeader)(
-                          ActivityCard(activity, tileWidth)()
-                        )
-                      )
-                    }
+              SwipeableViews(index = s.pageIndex)(
+                (0 until numPages) map { pageIndex =>
+                  renderPage(activities, numTiles, tileWidth, pageIndex)
                 } toVdomArray
+              )
+            ),
+            Hidden(xsUp = !(canPrevPage || canNextPage))(
+              GridContainer(justify = Grid.Justify.Center, spacing = 16)(
+                GridItem()(
+                  Fader(in = canPrevPage)(
+                    PageArrowButton(direction = PageArrowButton.Directions.Previous,
+                                    disabled = !canPrevPage,
+                                    onClick = bs.modState(state =>
+                                      state.copy(pageIndex = Math.max(0, state.pageIndex - 1))))()
+                  )),
+                GridItem()(
+                  Fader(in = canNextPage)(
+                    PageArrowButton(
+                      direction = PageArrowButton.Directions.Next,
+                      disabled = !canNextPage,
+                      onClick = bs.modState(state =>
+                        state.copy(pageIndex = Math.min(state.pageIndex + 1, numPages)))
+                    )(Icons.ChevronRight())
+                  )
+                )
               )
             )
           )

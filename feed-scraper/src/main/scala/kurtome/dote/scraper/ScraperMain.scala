@@ -3,8 +3,8 @@ package kurtome.dote.scraper
 import java.io.StringWriter
 import java.net.URL
 
-import dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
-import dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
+import kurtome.dote.proto.api.action.add_podcast.AddPodcastRequest.Extras
+import kurtome.dote.proto.api.action.add_podcast._
 import org.htmlcleaner._
 
 import scala.util.Try
