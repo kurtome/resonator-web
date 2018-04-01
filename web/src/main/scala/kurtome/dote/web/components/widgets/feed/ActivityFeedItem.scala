@@ -34,14 +34,6 @@ object ActivityFeedItem extends LogSupport {
       marginBottom(SharedStyles.spacingUnit)
     )
 
-    val headerTextWrapper = style(
-      width :=! ("calc(100% - 16px)"), // leave space for the padding
-      paddingTop(SharedStyles.spacingUnit),
-      paddingLeft(SharedStyles.spacingUnit),
-      paddingRight(SharedStyles.spacingUnit),
-      display.inlineBlock
-    )
-
     val tileContainer = style(
       marginTop(0 px)
     )
@@ -59,7 +51,17 @@ object ActivityFeedItem extends LogSupport {
       lineHeight(1.75 em)
     )
 
+    val swipeRoot = style(
+      position.relative,
+      width :=! "caclc(100% + 16px)",
+      marginLeft(-8 px),
+      marginRight(-8 px)
+    )
+
     val itemsContainer = style(
+      width(100 %%),
+      marginLeft(0 px),
+      marginRight(0 px),
       marginBottom(8 px)
     )
   }
@@ -123,7 +125,7 @@ object ActivityFeedItem extends LogSupport {
               )
             }
         } toVdomArray
-      ),
+      )
     }
 
     def render(p: Props, s: State): VdomElement = {
@@ -134,7 +136,7 @@ object ActivityFeedItem extends LogSupport {
         case "xs" => 1
         case "sm" => 2
         case "md" => 2
-        case _    => 3
+        case _ => 3
       }
       val numRows = if (isBreakpointXs) 3 else 2
 
@@ -149,35 +151,34 @@ object ActivityFeedItem extends LogSupport {
       val canNextPage = s.pageIndex != (numPages - 1)
 
       MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
-        GridContainer(spacing = 0)(
-          GridItem(xs = 12)(
-            renderTitle(p),
-            MuiThemeProvider(MuiTheme.lightTheme)(
-              SwipeableViews(index = s.pageIndex)(
-                (0 until numPages) map { pageIndex =>
-                  renderPage(activities, numTiles, tileWidth, pageIndex)
-                } toVdomArray
-              )
-            ),
-            Hidden(xsUp = !(canPrevPage || canNextPage))(
-              GridContainer(justify = Grid.Justify.Center, spacing = 16)(
-                GridItem()(
-                  Fader(in = canPrevPage)(
-                    PageArrowButton(direction = PageArrowButton.Directions.Previous,
-                                    disabled = !canPrevPage,
-                                    onClick = bs.modState(state =>
-                                      state.copy(pageIndex = Math.max(0, state.pageIndex - 1))))()
-                  )),
-                GridItem()(
-                  Fader(in = canNextPage)(
-                    PageArrowButton(
-                      direction = PageArrowButton.Directions.Next,
-                      disabled = !canNextPage,
-                      onClick = bs.modState(state =>
-                        state.copy(pageIndex = Math.min(state.pageIndex + 1, numPages)))
-                    )(Icons.ChevronRight())
-                  )
-                )
+        renderTitle(p),
+        MuiThemeProvider(MuiTheme.lightTheme)(
+          <.div(
+            ^.className := Styles.swipeRoot,
+            SwipeableViews(index = s.pageIndex, style = Styles.swipeRoot)(
+              (0 until numPages) map { pageIndex =>
+                renderPage(activities, numTiles, tileWidth, pageIndex)
+              } toVdomArray
+            )
+          )
+        ),
+        Hidden(xsUp = !(canPrevPage || canNextPage))(
+          GridContainer(justify = Grid.Justify.Center, spacing = 16)(
+            GridItem()(
+              Fader(in = canPrevPage)(
+                PageArrowButton(direction = PageArrowButton.Directions.Previous,
+                                disabled = !canPrevPage,
+                                onClick = bs.modState(state =>
+                                  state.copy(pageIndex = Math.max(0, state.pageIndex - 1))))()
+              )),
+            GridItem()(
+              Fader(in = canNextPage)(
+                PageArrowButton(
+                  direction = PageArrowButton.Directions.Next,
+                  disabled = !canNextPage,
+                  onClick = bs.modState(state =>
+                    state.copy(pageIndex = Math.min(state.pageIndex + 1, numPages)))
+                )(Icons.ChevronRight())
               )
             )
           )

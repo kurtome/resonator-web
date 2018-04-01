@@ -28,6 +28,7 @@ object SwipeableViews {
   trait Props extends js.Object {
     var axis: js.UndefOr[String] = js.native
     var index: js.UndefOr[Int] = js.native
+    var style: js.UndefOr[js.Dynamic] = js.native
 
     /**
       * function(index, indexLatest, meta)
@@ -40,12 +41,14 @@ object SwipeableViews {
   def apply(
       axis: js.UndefOr[Axis] = js.undefined,
       index: js.UndefOr[Int] = js.undefined,
+      style: js.UndefOr[js.Dynamic] = js.undefined,
       onIndexChanged: js.UndefOr[js.Function3[Int, Int, js.Dynamic, Unit]] = js.undefined,
   ) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.axis = axis.map(_.toString)
     p.index = index
     p.onChangeIndex = p.onChangeIndex
+    p.style = p.style
 
     component.withProps(p)
   }
