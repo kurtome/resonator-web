@@ -33,7 +33,7 @@ object SwipeableViews {
     /**
       * function(index, indexLatest, meta)
       */
-    var onChangeIndex: js.UndefOr[js.Function3[Int, Int, js.Dynamic, Unit]] = js.native
+    var onChangeIndex: js.Function3[Int, Int, js.Dynamic, Unit] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
@@ -42,12 +42,13 @@ object SwipeableViews {
       axis: js.UndefOr[Axis] = js.undefined,
       index: js.UndefOr[Int] = js.undefined,
       style: js.UndefOr[js.Dynamic] = js.undefined,
-      onIndexChanged: js.UndefOr[js.Function3[Int, Int, js.Dynamic, Unit]] = js.undefined,
+      onIndexChanged: (Int, Int, js.Dynamic) => Callback = (_, _, _) => Callback.empty
   ) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.axis = axis.map(_.toString)
     p.index = index
-    p.onChangeIndex = p.onChangeIndex
+    p.onChangeIndex = (index, indexLatest, meta) =>
+      onIndexChanged(index, indexLatest, meta).runNow()
     p.style = p.style
 
     component.withProps(p)

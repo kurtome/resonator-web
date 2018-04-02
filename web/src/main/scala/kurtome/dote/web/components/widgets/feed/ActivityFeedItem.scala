@@ -23,6 +23,7 @@ import org.scalajs.dom
 import scalacss.ScalaCssReact._
 import wvlet.log.LogSupport
 
+import scala.language.postfixOps
 import scala.scalajs.js
 
 object ActivityFeedItem extends LogSupport {
@@ -64,6 +65,10 @@ object ActivityFeedItem extends LogSupport {
       marginRight(0 px),
       marginBottom(8 px)
     )
+
+    val pageButtonGridContainer = style(
+      height(100 %%)
+    )
   }
   Styles.addToDocument()
 
@@ -74,7 +79,10 @@ object ActivityFeedItem extends LogSupport {
 
     val updateTileSize: Callback = {
       val p = bs.props.runNow()
-      bs.modState(_.copy(availableWidthPx = ContentFrame.innerWidthPx))
+      bs.modState(
+        _.copy(availableWidthPx = ContentFrame.innerWidthPx,
+               // reset to first page since number of pages may have changed
+               pageIndex = 0))
     }
 
     val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
@@ -140,12 +148,11 @@ object ActivityFeedItem extends LogSupport {
       }
       val numRows = if (isBreakpointXs) 3 else 2
 
-      val padding = 16
-
       val numTiles = numRows * numTilesPerRow
       val tileWidth = (s.availableWidthPx - (numTilesPerRow * 16)) / numTilesPerRow
 
-      val numPages = activities.size / numTiles
+      val partialPage = if (activities.size % numTiles > 0) 1 else 0
+      val numPages = (activities.size / numTiles) + partialPage
 
       val canPrevPage = s.pageIndex != 0 && numPages > 0
       val canNextPage = s.pageIndex != (numPages - 1)
@@ -154,31 +161,46 @@ object ActivityFeedItem extends LogSupport {
         renderTitle(p),
         MuiThemeProvider(MuiTheme.lightTheme)(
           <.div(
-            ^.className := Styles.swipeRoot,
-            SwipeableViews(index = s.pageIndex, style = Styles.swipeRoot)(
-              (0 until numPages) map { pageIndex =>
-                renderPage(activities, numTiles, tileWidth, pageIndex)
-              } toVdomArray
-            )
-          )
-        ),
-        Hidden(xsUp = !(canPrevPage || canNextPage))(
-          GridContainer(justify = Grid.Justify.Center, spacing = 16)(
-            GridItem()(
-              Fader(in = canPrevPage)(
-                PageArrowButton(direction = PageArrowButton.Directions.Previous,
-                                disabled = !canPrevPage,
-                                onClick = bs.modState(state =>
-                                  state.copy(pageIndex = Math.max(0, state.pageIndex - 1))))()
-              )),
-            GridItem()(
-              Fader(in = canNextPage)(
-                PageArrowButton(
-                  direction = PageArrowButton.Directions.Next,
-                  disabled = !canNextPage,
-                  onClick = bs.modState(state =>
-                    state.copy(pageIndex = Math.min(state.pageIndex + 1, numPages)))
-                )(Icons.ChevronRight())
+            ^.position := "relative",
+            Hidden(xsDown = true, smUp = !(canPrevPage || canNextPage))(
+              <.div(
+                ^.position := "absolute",
+                ^.marginLeft := "-64px",
+                ^.height := "100%",
+                ^.width := "calc(100% + 128px)",
+                GridContainer(style = Styles.pageButtonGridContainer,
+                              justify = Grid.Justify.SpaceBetween,
+                              alignItems = Grid.AlignItems.Center,
+                              spacing = 0)(
+                  GridItem()(
+                    Fader(in = canPrevPage)(
+                      PageArrowButton(
+                        direction = PageArrowButton.Directions.Previous,
+                        disabled = !canPrevPage,
+                        onClick = bs.modState(state =>
+                          state.copy(pageIndex = Math.max(0, state.pageIndex - 1))))()
+                    )),
+                  GridItem()(
+                    Fader(in = canNextPage)(
+                      PageArrowButton(
+                        direction = PageArrowButton.Directions.Next,
+                        disabled = !canNextPage,
+                        onClick = bs.modState(state =>
+                          state.copy(pageIndex = Math.min(state.pageIndex + 1, numPages)))
+                      )(Icons.ChevronRight())
+                    )
+                  )
+                )
+              )
+            ),
+            <.div(
+              ^.className := Styles.swipeRoot,
+              SwipeableViews(index = s.pageIndex,
+                             onIndexChanged = (index: Int, indexLatest: Int, meta: js.Dynamic) =>
+                               bs.modState(_.copy(pageIndex = index)))(
+                (0 until numPages) map { pageIndex =>
+                  renderPage(activities, numTiles, tileWidth, pageIndex)
+                } toVdomArray
               )
             )
           )

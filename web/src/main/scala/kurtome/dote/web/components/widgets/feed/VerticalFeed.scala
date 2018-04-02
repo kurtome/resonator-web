@@ -37,7 +37,7 @@ object VerticalFeed extends LogSupport {
         GridContainer(spacing = 24, justify = Grid.Justify.Center)(
           GridItem()(
             <.div(
-              ^.margin := "16px",
+              ^.margin := "32px",
               CircularProgress(variant = CircularProgress.Variant.Indeterminate, size = 60f)()
             )
           )

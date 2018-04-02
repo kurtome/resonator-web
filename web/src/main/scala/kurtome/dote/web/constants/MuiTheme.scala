@@ -222,7 +222,7 @@ object MuiTheme extends LogSupport {
             "textTransform" -> "uppercase"
           ),
           "subheading" -> l$(
-            "fontFamily" -> "roboto",
+            "fontFamily" -> "roboto"
           ),
           "button" -> l$(
             "fontFamily" -> "roboto",
@@ -231,10 +231,10 @@ object MuiTheme extends LogSupport {
         ),
         "overrides" -> l$(
           "MuiLinearProgress" -> l$(
-            "primaryColor" -> l$(
+            "colorPrimary" -> l$(
               "backgroundColor" -> "transparent"
             ),
-            "primaryColorBar" -> l$(
+            "barColorPrimary" -> l$(
               "backgroundColor" -> primary.light
             )
           ),
