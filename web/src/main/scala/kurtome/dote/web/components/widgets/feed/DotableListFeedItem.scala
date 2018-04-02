@@ -1,7 +1,6 @@
 package kurtome.dote.web.components.widgets.feed
 
 import kurtome.dote.proto.api.dotable.Dotable
-import kurtome.dote.proto.api.feed.{FeedDotableList => ApiList}
 import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
@@ -35,13 +34,16 @@ object DotableListFeedItem extends LogSupport {
     )
 
     val itemsContainer = style(
-      marginBottom(16 px)
+      width(100 %%),
+      marginLeft(0 px),
+      marginRight(0 px),
+      marginBottom(8 px)
     )
   }
   Styles.addToDocument()
 
   case class Props(feedItem: FeedItem)
-  case class State(tileSizePx: Int, availableWidthPx: Int)
+  case class State(tileSizePx: Int, availableWidthPx: Int, pageIndex: Int)
 
   private val breakpointTileSizes = Map[String, Int](
     "xs" -> 125,
@@ -71,7 +73,9 @@ object DotableListFeedItem extends LogSupport {
     val updateTileSize: Callback = {
       val p = bs.props.runNow()
       bs.modState(
-        _.copy(tileSizePx = currentTileSizePx(p), availableWidthPx = ContentFrame.innerWidthPx))
+        _.copy(tileSizePx = currentTileSizePx(p),
+               availableWidthPx = ContentFrame.innerWidthPx,
+               pageIndex = 0))
     }
 
     val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
@@ -109,6 +113,39 @@ object DotableListFeedItem extends LogSupport {
       }
     }
 
+    private def renderPage(allDotables: Seq[Dotable],
+                           tilesPerPage: Int,
+                           tileWidthPx: Int,
+                           pageIndex: Int): VdomNode = {
+      val dotables = allDotables
+        .drop(pageIndex * tilesPerPage)
+        // Pad with placeholders to make the list spacing balanced, rendering code below
+        // will handle the placeholders
+        .padTo(tilesPerPage, Dotable.defaultInstance)
+        // take the number that fit
+        .take(tilesPerPage)
+
+      Grid(container = true,
+           style = Styles.itemsContainer,
+           spacing = 16,
+           alignItems = Grid.AlignItems.FlexStart,
+           justify = Grid.Justify.SpaceBetween)(
+        dotables.zipWithIndex map {
+          case (dotable, i) =>
+            Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer)(
+              if (dotable.kind == Dotable.Kind.PODCAST) {
+                HoverPaper()(PodcastCard(dotable = dotable, width = asPxStr(tileWidthPx))())
+              } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
+                HoverPaper()(EpisodeCard(dotable = dotable, width = tileWidthPx)())
+              } else {
+                // Placeholder for correct spacing
+                <.div(^.width := asPxStr(tileWidthPx), ^.height := "100px")
+              }
+            )
+        } toVdomArray
+      )
+    }
+
     def render(p: Props, s: State): VdomElement = {
       val requestedWidth = s.tileSizePx
       val list = p.feedItem.getDotableList.getList
@@ -137,13 +174,8 @@ object DotableListFeedItem extends LogSupport {
             }
           }
         }
-      val numTiles = numTilesPerRow * numRows
+
       val dotables = list.dotables
-      // Pad with placeholders to make the list spacing balanced, rendering code below
-      // will handle the placeholders
-        .padTo(numTiles, Dotable.defaultInstance)
-        // take the number that fit
-        .take(numTiles)
 
       val minPaddingPx = 12
       val leftoverWidthPx = s.availableWidthPx - (numTilesPerRow * (requestedWidth + minPaddingPx))
@@ -154,30 +186,17 @@ object DotableListFeedItem extends LogSupport {
         requestedWidth + (leftoverWidthPx / numTilesPerRow)
       }
 
+      val numTilesPerPage = numTilesPerRow * numRows
+      val partialPage = if (dotables.size % numTilesPerPage > 0) 1 else 0
+      val numPages = (dotables.size / numTilesPerPage) + partialPage
+
       MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
-        Grid(container = true, spacing = 0)(
-          Grid(item = true, xs = 12)(
-            renderTitle(p),
-            Grid(container = true,
-                 style = Styles.itemsContainer,
-                 spacing = 0,
-                 alignItems = Grid.AlignItems.FlexStart,
-                 justify = Grid.Justify.SpaceBetween)(
-              dotables.zipWithIndex map {
-                case (dotable, i) =>
-                  Grid(key = Some(dotable.id + i), item = true, style = Styles.tileContainer)(
-                    if (dotable.kind == Dotable.Kind.PODCAST) {
-                      HoverPaper()(PodcastCard(dotable = dotable, width = asPxStr(tileWidthPx))())
-                    } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-                      HoverPaper()(EpisodeCard(dotable = dotable, width = tileWidthPx)())
-                    } else {
-                      // Placeholder for correct spacing
-                      <.div(^.width := asPxStr(tileWidthPx))
-                    }
-                  )
-              } toVdomArray
-            )
-          )
+        renderTitle(p),
+        CompactListPagination(pageIndex = s.pageIndex,
+                              onIndexChanged = (index) => bs.modState(_.copy(pageIndex = index)))(
+          (0 until numPages) map { i =>
+            renderPage(dotables, numTilesPerPage, tileWidthPx, s.pageIndex)
+          } toVdomArray
         )
       )
     }
@@ -185,8 +204,11 @@ object DotableListFeedItem extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p =>
-      State(tileSizePx = currentTileSizePx(p), availableWidthPx = ContentFrame.innerWidthPx))
+    .initialStateFromProps(
+      p =>
+        State(tileSizePx = currentTileSizePx(p),
+              availableWidthPx = ContentFrame.innerWidthPx,
+              pageIndex = 0))
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
     .componentWillUnmount(x => x.backend.handleWillUnmount)

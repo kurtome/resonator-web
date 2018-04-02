@@ -9,11 +9,9 @@ import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.components.lib.SwipeableViews
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
-import kurtome.dote.web.components.widgets.button.PageArrowButton
 import kurtome.dote.web.components.widgets.card.ActivityCard
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
@@ -39,35 +37,11 @@ object ActivityFeedItem extends LogSupport {
       marginTop(0 px)
     )
 
-    val accountIcon = style(
-      float.left
-    )
-
-    val ratingText = style(
-      float.right
-    )
-
-    val username = style(
-      marginLeft(1.9 em), // left space for account icon
-      lineHeight(1.75 em)
-    )
-
-    val swipeRoot = style(
-      position.relative,
-      width :=! "caclc(100% + 16px)",
-      marginLeft(-8 px),
-      marginRight(-8 px)
-    )
-
     val itemsContainer = style(
       width(100 %%),
       marginLeft(0 px),
       marginRight(0 px),
       marginBottom(8 px)
-    )
-
-    val pageButtonGridContainer = style(
-      height(100 %%)
     )
   }
   Styles.addToDocument()
@@ -160,49 +134,12 @@ object ActivityFeedItem extends LogSupport {
       MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
         renderTitle(p),
         MuiThemeProvider(MuiTheme.lightTheme)(
-          <.div(
-            ^.position := "relative",
-            Hidden(xsDown = true, smUp = !(canPrevPage || canNextPage))(
-              <.div(
-                ^.position := "absolute",
-                ^.marginLeft := "-64px",
-                ^.height := "100%",
-                ^.width := "calc(100% + 128px)",
-                GridContainer(style = Styles.pageButtonGridContainer,
-                              justify = Grid.Justify.SpaceBetween,
-                              alignItems = Grid.AlignItems.Center,
-                              spacing = 0)(
-                  GridItem()(
-                    Fader(in = canPrevPage)(
-                      PageArrowButton(
-                        direction = PageArrowButton.Directions.Previous,
-                        disabled = !canPrevPage,
-                        onClick = bs.modState(state =>
-                          state.copy(pageIndex = Math.max(0, state.pageIndex - 1))))()
-                    )),
-                  GridItem()(
-                    Fader(in = canNextPage)(
-                      PageArrowButton(
-                        direction = PageArrowButton.Directions.Next,
-                        disabled = !canNextPage,
-                        onClick = bs.modState(state =>
-                          state.copy(pageIndex = Math.min(state.pageIndex + 1, numPages)))
-                      )(Icons.ChevronRight())
-                    )
-                  )
-                )
-              )
-            ),
-            <.div(
-              ^.className := Styles.swipeRoot,
-              SwipeableViews(index = s.pageIndex,
-                             onIndexChanged = (index: Int, indexLatest: Int, meta: js.Dynamic) =>
-                               bs.modState(_.copy(pageIndex = index)))(
-                (0 until numPages) map { pageIndex =>
-                  renderPage(activities, numTiles, tileWidth, pageIndex)
-                } toVdomArray
-              )
-            )
+          CompactListPagination(
+            pageIndex = s.pageIndex,
+            onIndexChanged = (index) => bs.modState(_.copy(pageIndex = index)))(
+            (0 until numPages) map { pageIndex =>
+              renderPage(activities, numTiles, tileWidth, pageIndex)
+            } toVdomArray
           )
         )
       )
