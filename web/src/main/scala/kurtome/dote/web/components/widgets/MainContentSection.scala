@@ -47,8 +47,8 @@ object MainContentSection {
 
     def render(p: Props, pc: PropsChildren): VdomElement = {
       <.div(
-        ^.paddingTop := "8px",
-        ^.paddingBottom := "8px",
+        ^.paddingTop := "16px",
+        ^.paddingBottom := "16px",
         ^.backgroundColor := color(p),
         ^.width := "100%",
         if (p.variant == Variants.Primary) {

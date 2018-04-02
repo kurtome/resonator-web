@@ -97,7 +97,8 @@ object ActivityFeedItem extends LogSupport {
         visibleActivities.zipWithIndex map {
           case (activity, i) =>
             if (activity.content.isEmpty) {
-              GridItem(key = Some("empty" + i))()
+              GridItem(key = Some("empty" + i))(
+                <.div(^.width := asPxStr(tileWidth), ^.height := "100px"))
             } else {
               val dotable = activity.getDote.getDotable
               GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
