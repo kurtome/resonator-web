@@ -16,10 +16,6 @@ object PodcastImageCard extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val wrapper = style(
-      position.relative
-    )
-
     val container = style(
       position.absolute,
       pointerEvents := "auto"
@@ -32,7 +28,6 @@ object PodcastImageCard extends LogSupport {
     )
 
     val placeholder = style(
-      position.absolute,
       backgroundColor :=! MuiTheme.theme.palette.background.paper,
       width(100 %%),
       // Use padding top to force the height of the div to match the width
@@ -71,27 +66,20 @@ object PodcastImageCard extends LogSupport {
       }
 
       <.div(
-        ^.className := Styles.wrapper,
         ^.width := p.width,
-        ^.height := p.width,
+        if (url.nonEmpty) {
+          <.img(
+            ^.className := Styles.nestedImg,
+            ^.visibility := (if (s.imgLoaded) "visible" else "hidden"),
+            ^.onLoad --> bs.modState(_.copy(imgLoaded = true)),
+            ^.src := url
+          )
+        } else {
+          <.div(^.position := "absolute")
+        },
+        // placeholder div while loading, to fill the space
         <.div(
-          ^.className := Styles.container,
-          ^.width := p.width,
-          ^.height := p.width,
-          // placeholder div while loading, to fill the space
-          <.div(
-            ^.className := Styles.placeholder
-          ),
-          if (url.nonEmpty) {
-            <.img(
-              ^.className := Styles.nestedImg,
-              ^.visibility := (if (s.imgLoaded) "visible" else "hidden"),
-              ^.onLoad --> bs.modState(_.copy(imgLoaded = true)),
-              ^.src := url
-            )
-          } else {
-            <.div()
-          }
+          ^.className := Styles.placeholder
         )
       )
 

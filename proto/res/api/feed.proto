@@ -59,6 +59,9 @@ message FeedId {
 
     // optional, filter to one user
     string username = 1;
+
+    // optional, filter to one kind
+    Dotable.Kind dotable_kind = 2;
   }
 }
 

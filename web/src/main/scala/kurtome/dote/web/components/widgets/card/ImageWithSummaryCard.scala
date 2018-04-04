@@ -47,14 +47,12 @@ object ImageWithSummaryCard extends LogSupport {
     )
 
     val mainTextWrapper = style(
-      marginTop(SharedStyles.spacingUnit / 2),
-      marginLeft(SharedStyles.spacingUnit),
-      marginRight(SharedStyles.spacingUnit),
-      display.inlineBlock,
-      position.absolute
+      position.absolute,
+      display.inlineBlock
     )
 
     val titleLine = style(
+      marginTop(SharedStyles.spacingUnit),
       marginLeft(SharedStyles.spacingUnit),
       marginRight(SharedStyles.spacingUnit / 2),
       marginBottom(SharedStyles.spacingUnit / 2)
@@ -89,7 +87,6 @@ object ImageWithSummaryCard extends LogSupport {
   type Variant = Variants.Value
 
   case class Props(dotable: Dotable,
-                   width: Int,
                    caption1: String,
                    caption2: String,
                    imageOverlayCaption: String)
@@ -109,9 +106,6 @@ object ImageWithSummaryCard extends LogSupport {
       val podcastRoute = DetailsRoute(id = podcast.id, slug = podcast.slug)
 
       val height = 100
-      val imageSize = height
-      val textMargins = 16
-      val titleWidth = p.width - (imageSize + textMargins)
 
       <.div(
         ^.className := Styles.wrapper,
@@ -141,11 +135,14 @@ object ImageWithSummaryCard extends LogSupport {
                 ^.height := "calc(100px - 1.5em)"),
           <.div(
             ^.className := Styles.mainTextWrapper,
-            ^.width := asPxStr(titleWidth),
-            Typography(variant = Typography.Variants.Body1, noWrap = true)(
-              p.dotable.getCommon.title),
-            Typography(variant = Typography.Variants.Caption, noWrap = true)(p.caption1),
-            Typography(variant = Typography.Variants.Caption, noWrap = true)(p.caption2)
+            ^.width := "calc(100% - 100px)",
+            <.div(
+              ^.padding := "4px",
+              Typography(variant = Typography.Variants.Body1, noWrap = true)(
+                p.dotable.getCommon.title),
+              Typography(variant = Typography.Variants.Caption, noWrap = true)(p.caption1),
+              Typography(variant = Typography.Variants.Caption, noWrap = true)(p.caption2)
+            )
           )
         )
       )
@@ -161,9 +158,8 @@ object ImageWithSummaryCard extends LogSupport {
     .build
 
   def apply(dotable: Dotable,
-            width: Int = 300,
             caption1: String = "",
             caption2: String = "",
             imageOverlayCaption: String = "") =
-    component.withProps(Props(dotable, width, caption1, caption2, imageOverlayCaption))
+    component.withProps(Props(dotable, caption1, caption2, imageOverlayCaption))
 }

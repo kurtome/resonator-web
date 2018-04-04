@@ -4,12 +4,9 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.proto.api.feed.FeedId.ActivityId
 import kurtome.dote.proto.api.feed.FeedId.FollowerSummaryId
 import kurtome.dote.proto.api.feed.FeedId.Id
-import kurtome.dote.proto.api.feed.FeedId.ProfileDoteListId
 import kurtome.dote.proto.api.feed.FeedId.TagCollectionId
-import kurtome.dote.proto.api.feed.FeedId.TagListId
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.proto.api.feed._
@@ -18,7 +15,6 @@ import kurtome.dote.web.components.materialui.CircularProgress
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
-import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
 
@@ -71,7 +67,7 @@ object VerticalFeed extends LogSupport {
                     LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
                       TagCollectionFeedItem(item)()
                     )
-                  case Id.Activity(ActivityId(_)) =>
+                  case Id.Activity(_) =>
                     LazyLoad(once = true, height = 100, key = Some(s"$i-tag-collection"))(
                       ActivityFeedItem(item)()
                     )

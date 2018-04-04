@@ -200,7 +200,9 @@ object PodcastDetails {
               <.div(
                 ^.width := asPxStr(tileContainerWidth),
                 <.div(^.className := tileContainerStyle,
-                      PodcastCard(dotable = p.dotable, width = asPxStr(tileWidth))())
+                      <.div(^.position := "relative",
+                            ^.width := asPxStr(tileWidth),
+                            PodcastCard(dotable = p.dotable)()))
               )
             ),
             Grid(item = true, style = Styles.titleFieldContainer)(

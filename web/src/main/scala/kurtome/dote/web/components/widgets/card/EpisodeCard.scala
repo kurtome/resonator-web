@@ -43,11 +43,7 @@ object EpisodeCard extends LogSupport {
   }
   type Variant = Variants.Value
 
-  case class Props(dotable: Dotable,
-                   elevation: Int,
-                   width: Int,
-                   disableActions: Boolean,
-                   variant: Variant)
+  case class Props(dotable: Dotable, elevation: Int, disableActions: Boolean, variant: Variant)
   case class State(hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -76,7 +72,6 @@ object EpisodeCard extends LogSupport {
       val height = 100
       val imageSize = height
       val textMargins = 16
-      val titleWidth = p.width - (imageSize + textMargins)
 
       <.div(
         ^.position := "relative",
@@ -84,11 +79,10 @@ object EpisodeCard extends LogSupport {
         ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
         <.div(
           ^.className := backgroundColor(p),
-          ^.width := asPxStr(p.width),
+          ^.width := "100%",
           ^.position := "absolute",
           ImageWithSummaryCard(
             p.dotable,
-            width = p.width,
             caption1 = durationSecToMin(p.dotable.getDetails.getPodcastEpisode.durationSec),
             imageOverlayCaption = epochSecToDate(p.dotable.getCommon.publishedEpochSec)
           )()
@@ -99,7 +93,7 @@ object EpisodeCard extends LogSupport {
           CardActionShim(p.dotable, s.hover)()
         },
         // Fill the space with a div, since the content is absolute positioned
-        <.div(^.width := asPxStr(p.width), ^.height := asPxStr(height))
+        <.div(^.width := "100%", ^.height := "100px")
       )
 
     }
@@ -114,8 +108,7 @@ object EpisodeCard extends LogSupport {
 
   def apply(dotable: Dotable,
             elevation: Int = 5,
-            width: Int = 300,
             disableActions: Boolean = false,
             variant: Variant = Variants.Default) =
-    component.withProps(Props(dotable, elevation, width, disableActions, variant))
+    component.withProps(Props(dotable, elevation, disableActions, variant))
 }

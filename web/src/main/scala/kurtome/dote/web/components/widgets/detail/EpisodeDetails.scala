@@ -93,11 +93,14 @@ object EpisodeDetails {
                     alignItems = Grid.AlignItems.FlexStart,
                     style = Styles.detailsHeaderContainer)(
         GridItem(xs = 12)(
-          EpisodeCard(
-            dotable = p.dotable,
-            width = Math.min(500, ContentFrame.innerWidthPx),
-            elevation = 2
-          )(),
+          <.div(
+            ^.position := "relative",
+            ^.width := asPxStr(Math.min(500, ContentFrame.innerWidthPx)),
+            EpisodeCard(
+              dotable = p.dotable,
+              elevation = 2
+            )()
+          ),
           Typography(variant = Typography.Variants.Body1)(
             <.strong(
               s"from ",

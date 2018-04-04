@@ -58,7 +58,7 @@ object ActivityCard extends LogSupport {
   }
   Styles.addToDocument()
 
-  case class Props(activity: Activity, width: Int)
+  case class Props(activity: Activity)
   case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -72,7 +72,7 @@ object ActivityCard extends LogSupport {
       val laugh = Emojis.laughEmojis.lift(dote.laughCount - 1).getOrElse("")
       val scowl = Emojis.scowlEmojis.lift(dote.scowlCount - 1).getOrElse("")
       <.div(
-        ^.width := asPxStr(p.width),
+        ^.width := "100%",
         <.div(
           ^.className := Styles.headerTextWrapper,
           Typography(style = Styles.accountIcon)(Icons.AccountCircle()),
@@ -82,19 +82,17 @@ object ActivityCard extends LogSupport {
         ),
         if (dotable.kind == Dotable.Kind.PODCAST) {
           PodcastCard(dotable = dotable,
-                      width = asPxStr(p.width),
                       elevation = 0,
                       disableActions = true,
                       variant = PodcastCard.Variants.Activity)()
         } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
           EpisodeCard(dotable = dotable,
-                      width = p.width,
                       elevation = 0,
                       disableActions = true,
                       variant = EpisodeCard.Variants.Activity)()
         } else {
           // Placeholder for correct spacing
-          <.div(^.width := asPxStr(p.width))
+          <.div(^.width := "100%")
         }
       )
     }
@@ -107,9 +105,9 @@ object ActivityCard extends LogSupport {
     .renderPS((builder, props, state) => builder.backend.render(props, state))
     .build
 
-  def apply(activity: Activity, width: Int) = {
+  def apply(activity: Activity) = {
     assert(activity.content.isDote)
-    component.withProps(Props(activity, width))
+    component.withProps(Props(activity))
   }
 
 }

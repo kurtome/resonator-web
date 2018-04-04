@@ -22,6 +22,7 @@ object CardActionShim extends LogSupport {
     import dsl._
 
     val overlayContainer = style(
+      zIndex(100),
       position.absolute,
       pointerEvents := "none",
       width(100 %%),

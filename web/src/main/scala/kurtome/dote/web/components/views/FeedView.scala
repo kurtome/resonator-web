@@ -42,7 +42,7 @@ object FeedView extends LogSupport {
     def fetchFeed(p: Props) = {
       // get the latest data as well, in case it has changed
       val f = DoteProtoServer.getFeed(
-        GetFeedRequest(maxItems = 10, maxItemSize = 30, id = Some(p.feedId))) map { response =>
+        GetFeedRequest(maxItems = 10, maxItemSize = 15, id = Some(p.feedId))) map { response =>
         bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
       }
       GlobalLoadingManager.addLoadingFuture(f)

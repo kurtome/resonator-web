@@ -33,10 +33,6 @@ object ActivityFeedItem extends LogSupport {
       marginBottom(SharedStyles.spacingUnit)
     )
 
-    val tileContainer = style(
-      marginTop(0 px)
-    )
-
     val itemsContainer = style(
       width(100 %%),
       marginLeft(0 px),
@@ -80,7 +76,7 @@ object ActivityFeedItem extends LogSupport {
 
     private def renderPage(activities: Seq[Activity],
                            numTilesPerPage: Int,
-                           tileWidth: Int,
+                           tilesPerRow: Int,
                            pageIndex: Int): VdomNode = {
       val visibleActivities = activities
         .drop(numTilesPerPage * pageIndex)
@@ -90,6 +86,8 @@ object ActivityFeedItem extends LogSupport {
         // take the number that fit
         .take(numTilesPerPage)
 
+      val widthPercent = 100.0 / tilesPerRow
+
       GridContainer(key = Some("page" + pageIndex),
                     spacing = 16,
                     justify = Grid.Justify.SpaceBetween,
@@ -97,13 +95,15 @@ object ActivityFeedItem extends LogSupport {
         visibleActivities.zipWithIndex map {
           case (activity, i) =>
             if (activity.content.isEmpty) {
-              GridItem(key = Some("empty" + i))(
-                <.div(^.width := asPxStr(tileWidth), ^.height := "100px"))
+              GridItem(key = Some("empty" + i),
+                       style = js.Dynamic.literal("width" -> s"$widthPercent%"))(
+                <.div(^.width := "100%", ^.height := "100px"))
             } else {
               val dotable = activity.getDote.getDotable
-              GridItem(key = Some(dotable.id + i), style = Styles.tileContainer)(
+              GridItem(key = Some(dotable.id + i),
+                       style = js.Dynamic.literal("width" -> s"$widthPercent%"))(
                 HoverPaper(variant = HoverPaper.Variants.CardHeader)(
-                  ActivityCard(activity, tileWidth)()
+                  ActivityCard(activity)()
                 )
               )
             }
@@ -124,7 +124,6 @@ object ActivityFeedItem extends LogSupport {
       val numRows = if (isBreakpointXs) 3 else 2
 
       val numTiles = numRows * numTilesPerRow
-      val tileWidth = (s.availableWidthPx - (numTilesPerRow * 16)) / numTilesPerRow
 
       val partialPage = if (activities.size % numTiles > 0) 1 else 0
       val numPages = (activities.size / numTiles) + partialPage
@@ -139,7 +138,7 @@ object ActivityFeedItem extends LogSupport {
             pageIndex = s.pageIndex,
             onIndexChanged = (index) => bs.modState(_.copy(pageIndex = index)))(
             (0 until numPages) map { pageIndex =>
-              renderPage(activities, numTiles, tileWidth, pageIndex)
+              renderPage(activities, numTiles, numTilesPerRow, pageIndex)
             } toVdomArray
           )
         )

@@ -17,7 +17,6 @@ object PodcastCard extends LogSupport {
     import dsl._
 
     val container = style(
-      position.absolute,
       pointerEvents := "auto"
     )
 
@@ -48,11 +47,7 @@ object PodcastCard extends LogSupport {
   }
   type Variant = Variants.Value
 
-  case class Props(dotable: Dotable,
-                   elevation: Int,
-                   width: String,
-                   disableActions: Boolean,
-                   variant: Variant)
+  case class Props(dotable: Dotable, elevation: Int, disableActions: Boolean, variant: Variant)
   case class State(hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -77,16 +72,19 @@ object PodcastCard extends LogSupport {
 
       <.div(
         ^.className := backgroundColor(p),
-        ^.width := p.width,
-        ^.height := (if (p.variant == Variants.Activity) "100px" else p.width),
+        ^.width := "100%",
         ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
         ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
+        if (p.disableActions) {
+          <.div(^.position := "absolute")
+        } else {
+          CardActionShim(p.dotable, s.hover)()
+        },
         p.variant match {
           case Variants.Activity =>
             <.div(
               ImageWithSummaryCard(
                 p.dotable,
-                p.width.replace("px", "").toInt,
                 caption1 =
                   epochSecRangeToYearRange(p.dotable.getCommon.publishedEpochSec,
                                            p.dotable.getCommon.updatedEpochSec).getOrElse("")
@@ -95,13 +93,8 @@ object PodcastCard extends LogSupport {
           case _ =>
             doteRouterCtl.link(detailRoute)(
               ^.className := Styles.container,
-              PodcastImageCard(dotable = p.dotable, width = p.width)()
+              PodcastImageCard(dotable = p.dotable, width = "100%")()
             )
-        },
-        if (p.disableActions) {
-          <.div(^.position := "absolute")
-        } else {
-          CardActionShim(p.dotable, s.hover)()
         }
       )
 
@@ -117,8 +110,7 @@ object PodcastCard extends LogSupport {
 
   def apply(dotable: Dotable,
             elevation: Int = 5,
-            width: String = "175px",
             disableActions: Boolean = false,
             variant: Variant = Variants.Default) =
-    component.withProps(Props(dotable, elevation, width, disableActions, variant))
+    component.withProps(Props(dotable, elevation, disableActions, variant))
 }
