@@ -4,25 +4,17 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.proto.api.activity.Activity
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
-import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.components.materialui.Grid
-import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.components.widgets.card.ActivityCard
-import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
-import kurtome.dote.web.utils.Debounce
 import kurtome.dote.web.utils.FeedIdRoutes
-import org.scalajs.dom
 import scalacss.ScalaCssReact._
 import wvlet.log.LogSupport
 
 import scala.language.postfixOps
-import scala.scalajs.js
 
 object ActivityFeedItem extends LogSupport {
 
@@ -43,104 +35,28 @@ object ActivityFeedItem extends LogSupport {
   Styles.addToDocument()
 
   case class Props(feedItem: FeedItem)
-  case class State(availableWidthPx: Int, pageIndex: Int = 0)
+  case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val updateTileSize: Callback = {
-      val p = bs.props.runNow()
-      bs.modState(
-        _.copy(availableWidthPx = ContentFrame.innerWidthPx,
-               // reset to first page since number of pages may have changed
-               pageIndex = 0))
-    }
-
-    val resizeListener: js.Function1[js.Dynamic, Unit] = Debounce.debounce1(waitMs = 200) {
-      (e: js.Dynamic) =>
-        updateTileSize.runNow()
-    }
-    dom.window.addEventListener("resize", resizeListener)
-
-    val handleWillUnmount: Callback = Callback {
-      dom.window.removeEventListener("resize", resizeListener)
-    }
-
-    private def renderTitle(p: Props): VdomElement = {
-      val list = p.feedItem.getActivityList.getActivityList
-      val title = list.title
-      val caption = list.caption
-
-      val titleRoute = FeedIdRoutes.toRoute(p.feedItem.getId)
-      Typography(variant = Typography.Variants.Title, style = Styles.title)(title)
-    }
-
-    private def renderPage(activities: Seq[Activity],
-                           numTilesPerPage: Int,
-                           tilesPerRow: Int,
-                           pageIndex: Int): VdomNode = {
-      val visibleActivities = activities
-        .drop(numTilesPerPage * pageIndex)
-        // Pad with placeholders to make the list spacing balanced, rendering code below
-        // will handle the placeholders
-        .padTo(numTilesPerPage, Activity.defaultInstance)
-        // take the number that fit
-        .take(numTilesPerPage)
-
-      val widthPercent = 100.0 / tilesPerRow
-
-      GridContainer(key = Some("page" + pageIndex),
-                    spacing = 16,
-                    justify = Grid.Justify.SpaceBetween,
-                    style = Styles.itemsContainer)(
-        visibleActivities.zipWithIndex map {
-          case (activity, i) =>
-            if (activity.content.isEmpty) {
-              GridItem(key = Some("empty" + i),
-                       style = js.Dynamic.literal("width" -> s"$widthPercent%"))(
-                <.div(^.width := "100%", ^.height := "100px"))
-            } else {
-              val dotable = activity.getDote.getDotable
-              GridItem(key = Some(dotable.id + i),
-                       style = js.Dynamic.literal("width" -> s"$widthPercent%"))(
-                HoverPaper(variant = HoverPaper.Variants.CardHeader)(
-                  ActivityCard(activity)()
-                )
-              )
-            }
-        } toVdomArray
-      )
-    }
-
     def render(p: Props, s: State): VdomElement = {
-      val list = p.feedItem.getActivityList.getActivityList.items
-      val activities = list
+      val activities = p.feedItem.getActivityList.getActivityList.items
 
-      val numTilesPerRow: Int = currentBreakpointString match {
-        case "xs" => 1
-        case "sm" => 2
-        case "md" => 2
-        case _ => 3
-      }
-      val numRows = if (isBreakpointXs) 3 else 2
-
-      val numTiles = numRows * numTilesPerRow
-
-      val partialPage = if (activities.size % numTiles > 0) 1 else 0
-      val numPages = (activities.size / numTiles) + partialPage
-
-      val canPrevPage = s.pageIndex != 0 && numPages > 0
-      val canNextPage = s.pageIndex != (numPages - 1)
+      val tilesPerRow = Map(
+        "xs" -> 1,
+        "sm" -> 2,
+        "md" -> 2,
+        "lg" -> 3,
+        "xl" -> 3
+      )
 
       MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
-        renderTitle(p),
-        MuiThemeProvider(MuiTheme.lightTheme)(
-          CompactListPagination(
-            pageIndex = s.pageIndex,
-            onIndexChanged = (index) => bs.modState(_.copy(pageIndex = index)))(
-            (0 until numPages) map { pageIndex =>
-              renderPage(activities, numTiles, numTilesPerRow, pageIndex)
-            } toVdomArray
-          )
+        CompactItemList(title = p.feedItem.getActivityList.getActivityList.title,
+                        moreRoute = FeedIdRoutes.toRoute(p.feedItem.getId),
+                        itemsPerRowBreakpoints = tilesPerRow)(
+          activities map { activity =>
+            HoverPaper(variant = HoverPaper.Variants.CardHeader)(ActivityCard(activity)())
+          } toVdomArray
         )
       )
     }
@@ -148,10 +64,9 @@ object ActivityFeedItem extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => State(availableWidthPx = ContentFrame.innerWidthPx))
+    .initialState(State())
     .backend(new Backend(_))
     .renderPS((builder, props, state) => builder.backend.render(props, state))
-    .componentWillUnmount(x => x.backend.handleWillUnmount)
     .build
 
   def apply(feedItem: FeedItem, key: Option[String] = None) = {
