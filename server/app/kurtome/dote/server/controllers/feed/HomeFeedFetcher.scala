@@ -102,7 +102,7 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
     }
 
     val newEpisodes = dotableService
-      .readEpisodeTagList(MetadataFlag.Ids.popular, listLimit) map { tagList =>
+      .readEpisodeTagList(MetadataFlag.Ids.popular, 0, listLimit) map { tagList =>
       toTagListFeedItem("New Episodes",
                         "From Popular Podcasts",
                         tagList.tag,
@@ -111,7 +111,7 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
     }
 
     val popularList = dotableService
-      .readPodcastTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, listLimit, personId)
+      .readPodcastTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, 0, listLimit, personId)
       .map(toListFeedItem)
 
     val creatorsTagCollection = tagService

@@ -56,7 +56,6 @@ object HoverPaper extends LogSupport {
         ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
         Paper(style = paperStyle(p), elevation = if (s.hover) p.elevation + 2 else p.elevation)(pc)
       )
-
     }
   }
 
@@ -67,6 +66,6 @@ object HoverPaper extends LogSupport {
     .renderPCS((builder, p, pc, s) => builder.backend.render(p, s, pc))
     .build
 
-  def apply(elevation: Int = 3, variant: Variant = Variants.Default) =
+  def apply(elevation: Int = 0, variant: Variant = Variants.Default) =
     component.withProps(Props(elevation, variant))
 }

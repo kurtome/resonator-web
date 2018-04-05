@@ -20,6 +20,7 @@ import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Try
 
 object FeedView extends LogSupport {
 
@@ -37,12 +38,12 @@ object FeedView extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val handleDidMount = (p: Props) => Callback { fetchFeed(p) }
+    val handleDidUpdate = (p: Props) => Callback { fetchFeed(p) }
 
     def fetchFeed(p: Props) = {
       // get the latest data as well, in case it has changed
       val f = DoteProtoServer.getFeed(
-        GetFeedRequest(maxItems = 10, maxItemSize = 15, id = Some(p.feedId))) map { response =>
+        GetFeedRequest(maxItems = 10, maxItemSize = 24, id = Some(p.feedId))) map { response =>
         bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
       }
       GlobalLoadingManager.addLoadingFuture(f)
@@ -58,7 +59,9 @@ object FeedView extends LogSupport {
     .initialState(State())
     .backend(new Backend(_))
     .render(x => x.backend.render(x.props, x.state))
-    .componentDidMount(x => x.backend.handleDidMount(x.props))
+//    .componentWillReceiveProps(x => x.backend.handleDidUpdate(x.currentProps))
+    .componentDidMount(x => x.backend.handleDidUpdate(x.props))
+    .componentWillReceiveProps(x => x.backend.handleDidUpdate(x.nextProps))
     .build
 
   def apply(route: TagRoute) = {
@@ -67,8 +70,11 @@ object FeedView extends LogSupport {
     } else {
       Dotable.Kind.PODCAST
     }
+
+    val pageIndex = Try(route.queryParams.getOrElse("page", "0").toInt).getOrElse(0)
     val tag = TagMapper.toProto(Tag(TagKindUrlMapper.fromUrl(route.kind), route.key, route.key))
-    val id = FeedId().withTagList(TagListId().withTag(tag).withDotableKind(dotableKind))
+    val id = FeedId().withTagList(
+      TagListId().withTag(tag).withDotableKind(dotableKind).withPageIndex(pageIndex))
     component.withProps(Props(id))
   }
 

@@ -45,19 +45,21 @@ class DotableService @Inject()(db: BasicBackend#Database,
       (kind: Rep[DotableKind],
        tagKind: Rep[TagKind],
        tagKey: Rep[String],
+       offset: ConstColumn[Long],
        limit: ConstColumn[Long]) =>
         (for {
           tags <- Tables.Tag.filter(row => row.kind === tagKind && row.key === tagKey)
           dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
           (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if dotables.id === dotableTags.dotableId && dotables.kind === kind
-        } yield (dotables, parents)).sortBy(_._1.contentEditedTime.desc).take(limit)
+        } yield (dotables, parents)).sortBy(_._1.contentEditedTime.desc).drop(offset).take(limit)
     }
 
     val personTagListDotes = Compiled {
       (kind: Rep[DotableKind],
        tagKind: Rep[TagKind],
        tagKey: Rep[String],
+       offset: ConstColumn[Long],
        listLimit: ConstColumn[Long],
        personId: Rep[Long]) =>
         val dotablesQuery = (for {
@@ -65,7 +67,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
           dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
           dotables <- Tables.Dotable
           if dotables.id === dotableTags.dotableId && dotables.kind === kind
-        } yield dotables).sortBy(_.contentEditedTime.desc).take(listLimit)
+        } yield dotables).sortBy(_.contentEditedTime.desc).drop(offset).take(listLimit)
 
         for {
           dotables <- dotablesQuery
@@ -74,7 +76,10 @@ class DotableService @Inject()(db: BasicBackend#Database,
     }
 
     val recentEpisodesFromPodcastTagList = Compiled {
-      (tagKind: Rep[TagKind], tagKey: Rep[String], limit: ConstColumn[Long]) =>
+      (tagKind: Rep[TagKind],
+       tagKey: Rep[String],
+       offset: ConstColumn[Long],
+       limit: ConstColumn[Long]) =>
         (for {
           tags <- Tables.Tag.filter(row => row.kind === tagKind && row.key === tagKey)
           dotableTags <- Tables.DotableTag if dotableTags.tagId === tags.id
@@ -84,6 +89,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
           if episodes.parentId === podcasts.id && episodes.kind === DotableKinds.PodcastEpisode
         } yield (episodes, podcasts))
           .sortBy(_._1.contentEditedTime.desc)
+          .drop(offset)
           .take(limit)
     }
 
@@ -298,16 +304,20 @@ class DotableService @Inject()(db: BasicBackend#Database,
 
   def readPodcastTagList(kind: DotableKinds.Value,
                          tagId: TagId,
+                         offset: Long,
                          limit: Long,
                          personId: Option[Long] = None): Future[TagList] = {
     val tagQuery = for {
       tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
     } yield tags
 
-    val dotablesQuery = Queries.tagList(kind, tagId.kind, tagId.key, limit)
+    val dotablesQuery = Queries.tagList(kind, tagId.kind, tagId.key, offset, limit)
 
     val dotesFuture: Future[Seq[Tables.DoteRow]] = if (personId.isDefined) {
-      db.run(Queries.personTagListDotes(kind, tagId.kind, tagId.key, limit, personId.get).result)
+      db.run(
+        Queries
+          .personTagListDotes(kind, tagId.kind, tagId.key, offset, limit, personId.get)
+          .result)
     } else {
       Future(Nil)
     }
@@ -393,9 +403,9 @@ class DotableService @Inject()(db: BasicBackend#Database,
     db.run(podcastFeedIngestionDbIo.readNextIngestionRows(limit))
   }
 
-  def readEpisodeTagList(tagId: TagId, limit: Int): Future[TagList] = {
+  def readEpisodeTagList(tagId: TagId, offset: Int, limit: Int): Future[TagList] = {
     val q = Queries
-      .recentEpisodesFromPodcastTagList(tagId.kind, tagId.key, limit)
+      .recentEpisodesFromPodcastTagList(tagId.kind, tagId.key, offset, limit)
       .result
       .map(list =>
         list map {

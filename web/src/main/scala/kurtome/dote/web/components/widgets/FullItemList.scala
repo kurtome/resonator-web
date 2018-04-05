@@ -7,6 +7,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.materialui
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.utils.BaseBackend
@@ -38,7 +39,9 @@ object FullItemList extends LogSupport {
   case class Props(itemsPerRowBreakpoints: Map[String, Int],
                    title: String,
                    caption: String,
-                   moreRoute: Option[DoteRoute])
+                   pageIndex: Int = 0,
+                   prevPageRoute: Option[DoteRoute],
+                   nextPageRoute: Option[DoteRoute])
   case class State(breakpoint: String, pageIndex: Int)
 
   private def fallbackItemsPerRow(breakpoint: String): Int = {
@@ -71,6 +74,28 @@ object FullItemList extends LogSupport {
       dom.window.removeEventListener("resize", resizeListener)
     }
 
+    private def renderPagination(p: Props): VdomElement = {
+      if (p.prevPageRoute.isDefined || p.nextPageRoute.isDefined)
+        GridContainer(alignItems = Grid.AlignItems.Center)(
+          GridItem()(if (p.prevPageRoute.isDefined) {
+            SiteLink(p.prevPageRoute.get)(Icons.ChevronLeft())
+          } else {
+            <.span()
+          }),
+          GridItem()(
+            Typography(component = "span", variant = Typography.Variants.Body1)(
+              s"Page ${p.pageIndex + 1}")),
+          GridItem()(if (p.nextPageRoute.isDefined) {
+            SiteLink(p.nextPageRoute.get)(Icons.ChevronRight())
+          } else {
+            <.span()
+          })
+        )
+      else {
+        <.div()
+      }
+    }
+
     private def renderTitle(p: Props): VdomElement = {
       <.div(
         ^.marginBottom := "8px",
@@ -82,8 +107,7 @@ object FullItemList extends LogSupport {
               Typography(variant = Typography.Variants.Title)(p.title),
               Typography(variant = Typography.Variants.Caption)(p.caption)
             )),
-          // TODO - add real pagination buttons
-          GridItem()(Typography(variant = Typography.Variants.Body1)("Page 1"))
+          GridItem()(renderPagination(p))
         )
       )
     }
@@ -122,7 +146,8 @@ object FullItemList extends LogSupport {
         CompactListPagination(pageIndex = s.pageIndex,
                               onIndexChanged = (index) => bs.modState(_.copy(pageIndex = index)))(
           renderPage(p, items, numTilesPerRow)
-        )
+        ),
+        GridContainer(justify = Grid.Justify.Center)(GridItem()(renderPagination(p)))
       )
     }
   }
@@ -138,8 +163,11 @@ object FullItemList extends LogSupport {
   def apply(itemsPerRowBreakpoints: Map[String, Int] = Map.empty,
             title: String = "",
             caption: String = "",
-            moreRoute: Option[DoteRoute] = None) = {
-    component.withProps(Props(itemsPerRowBreakpoints, title, caption, moreRoute))
+            pageIndex: Int = 0,
+            prevPageRoute: Option[DoteRoute] = None,
+            nextPageRoute: Option[DoteRoute] = None) = {
+    component.withProps(
+      Props(itemsPerRowBreakpoints, title, caption, pageIndex, prevPageRoute, nextPageRoute))
   }
 
 }

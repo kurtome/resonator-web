@@ -72,9 +72,14 @@ object DotableListFeedItem extends LogSupport {
       MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
         p.feedItem.getDotableList.style match {
           case FeedDotableList.Style.PRIMARY => {
-            FullItemList(title = p.feedItem.getDotableList.getList.title,
-                         caption = p.feedItem.getDotableList.getList.caption,
-                         itemsPerRowBreakpoints = calcTilesPerRowMap(p, s))(
+            FullItemList(
+              title = p.feedItem.getDotableList.getList.title,
+              caption = p.feedItem.getDotableList.getList.caption,
+              pageIndex = FeedIdRoutes.pageIndex(p.feedItem.getId),
+              prevPageRoute = FeedIdRoutes.prevPageRoute(p.feedItem.getId),
+              nextPageRoute = FeedIdRoutes.nextPageRoute(p.feedItem.getId),
+              itemsPerRowBreakpoints = calcTilesPerRowMap(p, s)
+            )(
               dotables map { dotable =>
                 if (dotable.kind == Dotable.Kind.PODCAST) {
                   HoverPaper()(PodcastCard(dotable = dotable)())

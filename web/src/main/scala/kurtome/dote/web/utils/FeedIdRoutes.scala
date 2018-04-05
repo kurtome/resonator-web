@@ -23,23 +23,60 @@ object FeedIdRoutes {
     feedId.id match {
       case Id.Home(_) => Some(HomeRoute)
       case Id.Profile(ProfileId(username)) => Some(ProfileRoute(username))
-      case Id.TagList(TagListId(Some(tag), kind)) => {
-        Some(TagRouteMapper.toRoute(tag, kind))
+      case Id.TagList(TagListId(Some(tag), kind, pageIndex)) => {
+        Some(TagRouteMapper.toRoute(tag, kind, pageIndex))
       }
       case Id.FollowerSummary(FollowerSummaryId(username)) => Some(FollowersRoute(username))
       case _ => None
     }
   }
 
+  def pageIndex(feedId: FeedId): Int = {
+    feedId.id match {
+      case Id.TagList(TagListId(Some(tag), kind, pageIndex)) => pageIndex
+      case _ => 0
+    }
+  }
+
+  def prevPageRoute(feedId: FeedId): Option[DoteRoute] = {
+    feedId.id match {
+      case Id.TagList(TagListId(Some(tag), kind, pageIndex)) => {
+        if (pageIndex > 0) {
+          Some(TagRouteMapper.toRoute(tag, kind, pageIndex - 1))
+        } else {
+          None
+        }
+      }
+      case _ => None
+    }
+  }
+
+  def nextPageRoute(feedId: FeedId): Option[DoteRoute] = {
+    feedId.id match {
+      case Id.TagList(TagListId(Some(tag), kind, pageIndex)) => {
+        Some(TagRouteMapper.toRoute(tag, kind, pageIndex + 1))
+      }
+      case _ => None
+    }
+  }
+
   object TagRouteMapper {
 
-    def toRoute(tag: Tag, kind: Dotable.Kind = Dotable.Kind.PODCAST): DoteRoute = {
+    def toRoute(tag: Tag,
+                kind: Dotable.Kind = Dotable.Kind.PODCAST,
+                pageIndex: Int = 0): DoteRoute = {
       val urlKind = FeedIdRoutes.TagKindUrlMapper.toUrl(tag.getId.kind)
+
+      val params: Map[String, String] = if (pageIndex > 0) {
+        Map("page" -> pageIndex.toString)
+      } else {
+        Map.empty
+      }
 
       kind match {
         case Dotable.Kind.PODCAST_EPISODE =>
-          TagRoute(urlKind, tag.getId.key, Map("dk" -> "episode"))
-        case _ => TagRoute(urlKind, tag.getId.key)
+          TagRoute(urlKind, tag.getId.key, params + ("dk" -> "episode"))
+        case _ => TagRoute(urlKind, tag.getId.key, params)
       }
     }
 
