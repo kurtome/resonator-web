@@ -251,6 +251,11 @@ object MuiTheme extends LogSupport {
               "color" -> primary.light
             )
           ),
+          "MuiButton" -> l$(
+            "flatPrimary" -> l$(
+              "color" -> primary.light
+            )
+          ),
           "MuiBottomNavigation" -> l$(
             "root" -> l$(
               "backgroundColor" -> (if (light) lightBottomNav else darkBottomNav)

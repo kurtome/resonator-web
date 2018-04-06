@@ -27,10 +27,6 @@ object FeedView extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val announcementWrapper = style(
-      marginTop(24 px),
-      marginBottom(24 px)
-    )
   }
 
   case class Props(feedId: FeedId)
@@ -59,7 +55,6 @@ object FeedView extends LogSupport {
     .initialState(State())
     .backend(new Backend(_))
     .render(x => x.backend.render(x.props, x.state))
-//    .componentWillReceiveProps(x => x.backend.handleDidUpdate(x.currentProps))
     .componentDidMount(x => x.backend.handleDidUpdate(x.props))
     .componentWillReceiveProps(x => x.backend.handleDidUpdate(x.nextProps))
     .build
@@ -71,7 +66,7 @@ object FeedView extends LogSupport {
       Dotable.Kind.PODCAST
     }
 
-    val pageIndex = Try(route.queryParams.getOrElse("page", "0").toInt).getOrElse(0)
+    val pageIndex = Try(route.queryParams.getOrElse("index", "0").toInt).getOrElse(0)
     val tag = TagMapper.toProto(Tag(TagKindUrlMapper.fromUrl(route.kind), route.key, route.key))
     val id = FeedId().withTagList(
       TagListId().withTag(tag).withDotableKind(dotableKind).withPageIndex(pageIndex))

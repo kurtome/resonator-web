@@ -68,7 +68,7 @@ object FeedIdRoutes {
       val urlKind = FeedIdRoutes.TagKindUrlMapper.toUrl(tag.getId.kind)
 
       val params: Map[String, String] = if (pageIndex > 0) {
-        Map("page" -> pageIndex.toString)
+        Map("index" -> pageIndex.toString)
       } else {
         Map.empty
       }

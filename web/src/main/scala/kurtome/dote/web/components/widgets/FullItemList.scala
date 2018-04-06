@@ -33,6 +33,10 @@ object FullItemList extends LogSupport {
       marginRight(0 px),
       marginBottom(8 px)
     )
+
+    val pageNumText = style(
+      lineHeight(1.5 em)
+    )
   }
   Styles.addToDocument()
 
@@ -76,20 +80,27 @@ object FullItemList extends LogSupport {
 
     private def renderPagination(p: Props): VdomElement = {
       if (p.prevPageRoute.isDefined || p.nextPageRoute.isDefined)
-        GridContainer(alignItems = Grid.AlignItems.Center)(
-          GridItem()(if (p.prevPageRoute.isDefined) {
-            SiteLink(p.prevPageRoute.get)(Icons.ChevronLeft())
-          } else {
-            <.span()
-          }),
+        GridContainer(spacing = 8, alignItems = Grid.AlignItems.Center)(
           GridItem()(
-            Typography(component = "span", variant = Typography.Variants.Body1)(
-              s"Page ${p.pageIndex + 1}")),
-          GridItem()(if (p.nextPageRoute.isDefined) {
-            SiteLink(p.nextPageRoute.get)(Icons.ChevronRight())
-          } else {
-            <.span()
-          })
+            Fade(in = p.prevPageRoute.isDefined)(
+              Button(onClick = p.prevPageRoute.map(doteRouterCtl.set).getOrElse(Callback.empty),
+                     color = Button.Colors.Primary)(
+                Icons.ChevronLeft(),
+                "Previous"
+              )
+            )),
+          GridItem()(
+            Typography(component = "span",
+                       variant = Typography.Variants.Body1,
+                       style = Styles.pageNumText)(s"${p.pageIndex + 1}")),
+          GridItem()(
+            Fade(in = p.nextPageRoute.isDefined)(
+              Button(onClick = p.nextPageRoute.map(doteRouterCtl.set).getOrElse(Callback.empty),
+                     color = Button.Colors.Primary)(
+                "Next",
+                Icons.ChevronRight()
+              )
+            ))
         )
       else {
         <.div()
@@ -107,7 +118,7 @@ object FullItemList extends LogSupport {
               Typography(variant = Typography.Variants.Title)(p.title),
               Typography(variant = Typography.Variants.Caption)(p.caption)
             )),
-          GridItem()(renderPagination(p))
+          GridItem(hidden = Grid.HiddenProps(xsDown = true))(renderPagination(p))
         )
       )
     }

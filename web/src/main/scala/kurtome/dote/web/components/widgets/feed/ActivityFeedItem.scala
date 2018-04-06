@@ -21,16 +21,6 @@ object ActivityFeedItem extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val title = style(
-      marginBottom(SharedStyles.spacingUnit)
-    )
-
-    val itemsContainer = style(
-      width(100 %%),
-      marginLeft(0 px),
-      marginRight(0 px),
-      marginBottom(8 px)
-    )
   }
   Styles.addToDocument()
 

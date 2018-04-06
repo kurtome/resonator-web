@@ -27,12 +27,15 @@ object Grid {
     */
   @js.native
   trait HiddenProps extends js.Object {
-    var xsUp: Boolean = js.native
+    var xsUp: js.UndefOr[Boolean] = js.native
+    var xsDown: js.UndefOr[Boolean] = js.native
   }
   object HiddenProps {
-    def apply(xsUp: Boolean): HiddenProps = {
+    def apply(xsUp: js.UndefOr[Boolean] = js.undefined,
+              xsDown: js.UndefOr[Boolean] = js.undefined): HiddenProps = {
       val p = new js.Object().asInstanceOf[HiddenProps]
       p.xsUp = xsUp
+      p.xsDown = xsDown
       p
     }
   }

@@ -13,9 +13,7 @@ import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.components.widgets.card.EpisodeCard
 import kurtome.dote.web.components.widgets.card.PodcastCard
 import kurtome.dote.web.utils.BaseBackend
-import kurtome.dote.web.utils.Debounce
 import kurtome.dote.web.utils.FeedIdRoutes
-import org.scalajs.dom
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
@@ -26,16 +24,6 @@ object DotableListFeedItem extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val tileContainer = style(
-      marginTop(12 px)
-    )
-
-    val itemsContainer = style(
-      width(100 %%),
-      marginLeft(0 px),
-      marginRight(0 px),
-      marginBottom(8 px)
-    )
   }
   Styles.addToDocument()
 
