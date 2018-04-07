@@ -66,7 +66,7 @@ object DotableListFeedItem extends LogSupport {
               pageIndex = FeedIdRoutes.pageIndex(p.feedItem.getId),
               prevPageRoute = FeedIdRoutes.prevPageRoute(p.feedItem.getId),
               nextPageRoute =
-                if (dotables.size < p.feedItem.getId.getActivity.getPaginationInfo.pageSize) None
+                if (dotables.size < p.feedItem.getId.getTagList.getPaginationInfo.pageSize) None
                 else FeedIdRoutes.nextPageRoute(p.feedItem.getId),
               itemsPerRowBreakpoints = calcTilesPerRowMap(p, s)
             )(
