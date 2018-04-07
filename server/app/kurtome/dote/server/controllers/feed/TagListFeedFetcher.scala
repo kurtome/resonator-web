@@ -8,11 +8,10 @@ import kurtome.dote.proto.api.feed.FeedDotableList
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.TagListId
 import kurtome.dote.proto.api.feed.FeedItem
-import kurtome.dote.server.db.mappers.DotableMapper
 import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.shared.mapper.PaginationInfoMapper
 import kurtome.dote.shared.mapper.TagMapper
-import kurtome.dote.shared.model.Tag
 import kurtome.dote.shared.model.TagList
 import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotableKinds
@@ -38,19 +37,17 @@ class TagListFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: 
     val tagId = TagMapper.fromProto(tagListId.getTag).id
     val listLimit = params.maxItemSize
     val personId = params.loggedInUser.map(_.id)
-    val offset = tagListId.pageIndex * listLimit
 
-    debug(offset)
-
+    val paginationInfo = PaginationInfoMapper.fromProto(tagListId.getPaginationInfo)
     tagListId.dotableKind match {
       case Dotable.Kind.PODCAST_EPISODE => {
         dotableService
-          .readEpisodeTagList(tagId, offset, listLimit)
+          .readEpisodeTagList(tagId, paginationInfo)
           .map(toListFeedItem(DotableKinds.PodcastEpisode, tagListId))
       }
       case _ => {
         dotableService
-          .readPodcastTagList(DotableKinds.Podcast, tagId, offset, listLimit, personId)
+          .readPodcastTagList(DotableKinds.Podcast, tagId, paginationInfo, personId)
           .map(toListFeedItem(DotableKinds.Podcast, tagListId))
       }
     }

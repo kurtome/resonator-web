@@ -4,6 +4,7 @@ import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.db.dotable.ExternalUrls
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.feed.FeedId.TagListId
 import kurtome.dote.proto.api.tag.Tag
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
@@ -111,7 +112,8 @@ object PodcastDetails {
             GridItem(key = Some(keyword.getId.kind.toString + keyword.getId.key))(
               FlatRoundedButton(
                 variant = FlatRoundedButton.Variants.FillLight,
-                onClick = doteRouterCtl.set(TagRouteMapper.toRoute(keyword)))(keyword.displayValue)
+                onClick = doteRouterCtl.set(TagRouteMapper.toRoute(TagListId().withTag(keyword))))(
+                keyword.displayValue)
             )
           }) toVdomArray
         )
@@ -120,7 +122,7 @@ object PodcastDetails {
   }
 
   private def renderCreator(creator: Tag): VdomElement = {
-    SiteLink(TagRouteMapper.toRoute(creator))(creator.displayValue)
+    SiteLink(TagRouteMapper.toRoute(TagListId().withTag(creator)))(creator.displayValue)
   }
 
   def creatorFromTags(dotable: Dotable): Option[Tag] = {

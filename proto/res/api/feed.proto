@@ -32,7 +32,7 @@ message FeedId {
   message TagListId {
     Tag tag = 1;
     Dotable.Kind dotable_kind = 2;
-    int32 page_index = 3;
+    PaginationInfo pagination_info = 3;
   }
 
   message TagCollectionId {}
@@ -56,14 +56,24 @@ message FeedId {
   }
 
   message ActivityId {
-    // empty message indicates recent global activity.
+    PaginationInfo pagination_info = 1;
 
-    // optional, filter to one user
-    string username = 1;
+    // if none of the filters are set, it's assumed to be all activity
+
+    // optional, filter to one person's activity
+    string username = 2;
 
     // optional, filter to one kind
-    Dotable.Kind dotable_kind = 2;
+    Dotable.Kind dotable_kind = 3;
+
+    // optional, filter to the current user's following
+    bool following_only = 4;
   }
+}
+
+message PaginationInfo {
+  int32 page_index = 1;
+  int32 page_size = 2;
 }
 
 
@@ -128,4 +138,13 @@ message FeedTagCollection {
 
 message FeedActivityList {
   ActivityList activity_list = 1;
+  Style style = 2;
+
+  enum Style {
+    UNKNOWN_STYLE = 0;
+    // Used when there are many lists or items beind displayed one after anothjer
+    SUMMARY = 1;
+    // Used when this list is meant to be the primary display on the page
+    PRIMARY = 2;
+  }
 }

@@ -28,6 +28,7 @@ import kurtome.dote.server.services.DotableService
 import kurtome.dote.server.services.DoteService
 import kurtome.dote.server.services.TagService
 import kurtome.dote.shared.mapper.TagMapper
+import kurtome.dote.shared.model.PaginationInfo
 import kurtome.dote.shared.model.Tag
 import kurtome.dote.shared.model.TagId
 import kurtome.dote.shared.model.TagList
@@ -84,8 +85,10 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
     val listLimit = params.maxItemSize
     val personId = params.loggedInUser.map(_.id)
 
+    val paginationInfo = PaginationInfo(listLimit)
+
     val recentActivity = doteService
-      .readRecentDotesWithDotables(listLimit)
+      .readRecentDotesWithDotables(paginationInfo)
       .map(_.map(pair =>
         (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
       list =>
@@ -93,16 +96,16 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
     }
 
     val recentActivityFromFollowing = personId
-      .map(doteService.recentDotesWithDotableFromFollowing(listLimit, _))
+      .map(doteService.recentDotesWithDotableFromFollowing(paginationInfo, _))
       .getOrElse(Future(Nil))
       .map(_.map(pair =>
         (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
       list =>
-        toActivityListFeedItem("Recent From Following", "", list)
+        toActivityListFeedItem("Recent From Following", "", list, true)
     }
 
     val newEpisodes = dotableService
-      .readEpisodeTagList(MetadataFlag.Ids.popular, 0, listLimit) map { tagList =>
+      .readEpisodeTagList(MetadataFlag.Ids.popular, paginationInfo) map { tagList =>
       toTagListFeedItem("New Episodes",
                         "From Popular Podcasts",
                         tagList.tag,
@@ -111,7 +114,7 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
     }
 
     val popularList = dotableService
-      .readPodcastTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, 0, listLimit, personId)
+      .readPodcastTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, paginationInfo, personId)
       .map(toListFeedItem)
 
     val creatorsTagCollection = tagService
@@ -138,20 +141,6 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
     }
   }
 
-  private def validFeedItem(feedItem: FeedItem): Boolean = {
-    feedItem.content match {
-      case FeedItem.Content.DotableList(feedDotableList) => {
-        feedDotableList.getList.dotables.nonEmpty
-      }
-      case FeedItem.Content.TagCollection(feedTagCollection) => {
-        feedTagCollection.getTagCollection.tags.nonEmpty
-      }
-      case FeedItem.Content.ActivityList(activityList) => {
-        activityList.getActivityList.items.nonEmpty
-      }
-    }
-  }
-
   private def toListFeedItem(tagList: TagList): FeedItem = {
     toTagListFeedItem(tagList.tag.name,
                       "Ordered by Newest Episode",
@@ -162,7 +151,8 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
 
   private def toActivityListFeedItem(title: String,
                                      caption: String,
-                                     list: Seq[(Dote, Dotable)]): FeedItem = {
+                                     list: Seq[(Dote, Dotable)],
+                                     followingOnly: Boolean = false): FeedItem = {
     val feedList = FeedActivityList(
       Some(
         ActivityList(
@@ -172,7 +162,7 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
             Activity().withDote(DoteActivity().withDote(pair._1).withDotable(pair._2))))))
     FeedItem()
       .withCommon(FeedItemCommon(backgroundColor = FeedItemCommon.BackgroundColor.LIGHT))
-      .withId(FeedId().withActivity(ActivityId()))
+      .withId(FeedId().withActivity(ActivityId(followingOnly = followingOnly)))
       .withContent(FeedItem.Content.ActivityList(feedList))
   }
 

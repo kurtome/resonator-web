@@ -4,6 +4,7 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.feed.FeedId.TagListId
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
@@ -44,7 +45,8 @@ object TagCollectionFeedItem extends LogSupport {
             GridItem(key = Some(tag.getId.kind.toString + tag.getId.key))(
               FlatRoundedButton(
                 variant = FlatRoundedButton.Variants.FillLight,
-                onClick = doteRouterCtl.set(TagRouteMapper.toRoute(tag)))(tag.displayValue)
+                onClick = doteRouterCtl.set(TagRouteMapper.toRoute(TagListId().withTag(tag))))(
+                tag.displayValue)
             )
           }) toVdomArray
         )

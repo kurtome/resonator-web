@@ -1,10 +1,11 @@
 package kurtome.dote.server.services
 
 import java.time.{Duration, LocalDateTime}
-import javax.inject._
 
+import javax.inject._
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.server.db.DoteDbIo
+import kurtome.dote.shared.model.PaginationInfo
 import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.gen.Tables
 import slick.basic.BasicBackend
@@ -30,18 +31,18 @@ class DoteService @Inject()(db: BasicBackend#Database, doteDbIo: DoteDbIo)(
     db.run(doteDbIo.mostPopularDotables(kind, LocalDateTime.now.minus(popularAge), limit))
   }
 
-  def readRecentDotesWithDotables(limit: Long): Future[
+  def readRecentDotesWithDotables(paginationInfo: PaginationInfo): Future[
     Seq[(Tables.DoteRow, Tables.PersonRow, Tables.DotableRow, Option[Tables.DotableRow])]] = {
-    db.run(doteDbIo.recentRecentDotesWithDotables(limit))
+    db.run(doteDbIo.recentRecentDotesWithDotables(paginationInfo))
   }
 
-  def recentDotesWithDotableByPerson(limit: Long, personId: Long): Future[
+  def recentDotesWithDotableByPerson(paginationInfo: PaginationInfo, personId: Long): Future[
     Seq[(Tables.DoteRow, Tables.PersonRow, Tables.DotableRow, Option[Tables.DotableRow])]] = {
-    db.run(doteDbIo.recentDotesWithDotableByPerson(limit, personId))
+    db.run(doteDbIo.recentDotesWithDotableByPerson(paginationInfo, personId))
   }
 
-  def recentDotesWithDotableFromFollowing(limit: Long, personId: Long): Future[
+  def recentDotesWithDotableFromFollowing(paginationInfo: PaginationInfo, personId: Long): Future[
     Seq[(Tables.DoteRow, Tables.PersonRow, Tables.DotableRow, Option[Tables.DotableRow])]] = {
-    db.run(doteDbIo.recentDotesWithDotableFromFollowing(limit, personId))
+    db.run(doteDbIo.recentDotesWithDotableFromFollowing(paginationInfo, personId))
   }
 }

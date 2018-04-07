@@ -3,12 +3,17 @@ package kurtome.dote.web.utils
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId._
+import kurtome.dote.proto.api.feed.PaginationInfo
 import kurtome.dote.proto.api.tag.Tag
+import kurtome.dote.shared.constants.QueryParamKeys
 import kurtome.dote.shared.constants.TagKinds
 import kurtome.dote.shared.mapper.TagMapper
+import kurtome.dote.web.DoteRoutes.AllActivityRoute
 import kurtome.dote.web.DoteRoutes.DoteRoute
 import kurtome.dote.web.DoteRoutes.FollowersRoute
+import kurtome.dote.web.DoteRoutes.FollowingActivityRoute
 import kurtome.dote.web.DoteRoutes.HomeRoute
+import kurtome.dote.web.DoteRoutes.ProfileActivityRoute
 import kurtome.dote.web.DoteRoutes.ProfileRoute
 import kurtome.dote.web.DoteRoutes.TagRoute
 
@@ -23,26 +28,40 @@ object FeedIdRoutes {
     feedId.id match {
       case Id.Home(_) => Some(HomeRoute)
       case Id.Profile(ProfileId(username)) => Some(ProfileRoute(username))
-      case Id.TagList(TagListId(Some(tag), kind, pageIndex)) => {
-        Some(TagRouteMapper.toRoute(tag, kind, pageIndex))
+      case Id.TagList(tagListId) => {
+        Some(TagRouteMapper.toRoute(tagListId))
       }
       case Id.FollowerSummary(FollowerSummaryId(username)) => Some(FollowersRoute(username))
+      case Id.Activity(activityId) => Some(ActivityRouteMapper.toRoute(activityId))
       case _ => None
     }
   }
 
   def pageIndex(feedId: FeedId): Int = {
     feedId.id match {
-      case Id.TagList(TagListId(Some(tag), kind, pageIndex)) => pageIndex
+      case Id.TagList(TagListId(_, _, Some(paginationInfo))) => paginationInfo.pageIndex
+      case Id.Activity(ActivityId(Some(paginationInfo), _, _, _)) => paginationInfo.pageIndex
       case _ => 0
     }
   }
 
   def prevPageRoute(feedId: FeedId): Option[DoteRoute] = {
     feedId.id match {
-      case Id.TagList(TagListId(Some(tag), kind, pageIndex)) => {
-        if (pageIndex > 0) {
-          Some(TagRouteMapper.toRoute(tag, kind, pageIndex - 1))
+      case Id.TagList(tagListId) => {
+        val info = tagListId.getPaginationInfo
+        if (info.pageIndex > 0) {
+          Some(
+            TagRouteMapper.toRoute(
+              tagListId.withPaginationInfo(prevPage(tagListId.getPaginationInfo))))
+        } else {
+          None
+        }
+      }
+      case Id.Activity(activityId) => {
+        if (activityId.getPaginationInfo.pageIndex > 0) {
+          Some(
+            ActivityRouteMapper.toRoute(
+              activityId.withPaginationInfo(prevPage(activityId.getPaginationInfo))))
         } else {
           None
         }
@@ -51,32 +70,69 @@ object FeedIdRoutes {
     }
   }
 
+  private def prevPage(paginationInfo: PaginationInfo): PaginationInfo = {
+    paginationInfo.withPageIndex(paginationInfo.pageIndex - 1)
+  }
+
+  private def nextPage(paginationInfo: PaginationInfo): PaginationInfo = {
+    paginationInfo.withPageIndex(paginationInfo.pageIndex + 1)
+  }
+
   def nextPageRoute(feedId: FeedId): Option[DoteRoute] = {
     feedId.id match {
-      case Id.TagList(TagListId(Some(tag), kind, pageIndex)) => {
-        Some(TagRouteMapper.toRoute(tag, kind, pageIndex + 1))
+      case Id.TagList(tagListId) => {
+        Some(
+          TagRouteMapper.toRoute(
+            tagListId.withPaginationInfo(nextPage(tagListId.getPaginationInfo))))
+      }
+      case Id.Activity(activityId) => {
+        Some(
+          ActivityRouteMapper.toRoute(
+            activityId.withPaginationInfo(nextPage(activityId.getPaginationInfo))))
       }
       case _ => None
     }
   }
 
+  object ActivityRouteMapper {
+
+    def toRoute(activityId: ActivityId): DoteRoute = {
+      val params: Map[String, String] = if (activityId.getPaginationInfo.pageIndex > 0) {
+        Map(QueryParamKeys.pageIndex -> activityId.getPaginationInfo.pageIndex.toString)
+      } else {
+        Map.empty
+      } ++ (activityId.dotableKind match {
+        case Dotable.Kind.PODCAST_EPISODE => Map(QueryParamKeys.dotableKind -> "episode")
+        case _ => Map.empty
+      })
+
+      if (activityId.followingOnly) {
+        FollowingActivityRoute(params)
+      } else if (activityId.username.nonEmpty) {
+        ProfileActivityRoute(activityId.username, params)
+      } else {
+        AllActivityRoute(params)
+      }
+    }
+  }
+
   object TagRouteMapper {
 
-    def toRoute(tag: Tag,
-                kind: Dotable.Kind = Dotable.Kind.PODCAST,
-                pageIndex: Int = 0): DoteRoute = {
-      val urlKind = FeedIdRoutes.TagKindUrlMapper.toUrl(tag.getId.kind)
+    def toRoute(tagListId: TagListId): DoteRoute = {
+      val urlKind = FeedIdRoutes.TagKindUrlMapper.toUrl(tagListId.getTag.getId.kind)
 
-      val params: Map[String, String] = if (pageIndex > 0) {
-        Map("index" -> pageIndex.toString)
+      val params: Map[String, String] = if (tagListId.getPaginationInfo.pageIndex > 0) {
+        Map(QueryParamKeys.pageIndex -> tagListId.getPaginationInfo.pageIndex.toString)
       } else {
         Map.empty
       }
 
-      kind match {
+      tagListId.dotableKind match {
         case Dotable.Kind.PODCAST_EPISODE =>
-          TagRoute(urlKind, tag.getId.key, params + ("dk" -> "episode"))
-        case _ => TagRoute(urlKind, tag.getId.key, params)
+          TagRoute(urlKind,
+                   tagListId.getTag.getId.key,
+                   params + (QueryParamKeys.dotableKind -> "episode"))
+        case _ => TagRoute(urlKind, tagListId.getTag.getId.key, params)
       }
     }
 

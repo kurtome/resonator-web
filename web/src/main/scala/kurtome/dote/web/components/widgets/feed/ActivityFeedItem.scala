@@ -4,6 +4,7 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.feed.FeedActivityList
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
@@ -41,13 +42,32 @@ object ActivityFeedItem extends LogSupport {
       )
 
       MainContentSection(variant = MainContentSection.chooseVariant(p.feedItem.getCommon))(
-        CompactItemList(title = p.feedItem.getActivityList.getActivityList.title,
-                        moreRoute = FeedIdRoutes.toRoute(p.feedItem.getId),
-                        itemsPerRowBreakpoints = tilesPerRow)(
-          activities map { activity =>
-            HoverPaper(variant = HoverPaper.Variants.CardHeader)(ActivityCard(activity)())
-          } toVdomArray
-        )
+        p.feedItem.getActivityList.style match {
+          case FeedActivityList.Style.PRIMARY => {
+            FullItemList(
+              title = p.feedItem.getActivityList.getActivityList.title,
+              caption = p.feedItem.getActivityList.getActivityList.caption,
+              pageIndex = FeedIdRoutes.pageIndex(p.feedItem.getId),
+              prevPageRoute = FeedIdRoutes.prevPageRoute(p.feedItem.getId),
+              nextPageRoute =
+                if (activities.size < p.feedItem.getId.getActivity.getPaginationInfo.pageSize) None
+                else FeedIdRoutes.nextPageRoute(p.feedItem.getId),
+              itemsPerRowBreakpoints = tilesPerRow
+            )(
+              activities map { activity =>
+                HoverPaper(variant = HoverPaper.Variants.CardHeader)(ActivityCard(activity)())
+              } toVdomArray
+            )
+          }
+          case _ =>
+            CompactItemList(title = p.feedItem.getActivityList.getActivityList.title,
+                            moreRoute = FeedIdRoutes.toRoute(p.feedItem.getId),
+                            itemsPerRowBreakpoints = tilesPerRow)(
+              activities map { activity =>
+                HoverPaper(variant = HoverPaper.Variants.CardHeader)(ActivityCard(activity)())
+              } toVdomArray
+            )
+        }
       )
     }
   }

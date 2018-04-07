@@ -34,6 +34,11 @@ object FullItemList extends LogSupport {
       marginBottom(8 px)
     )
 
+    val emptyItemsContainer = style(
+      width(100 %%),
+      minHeight(200 px)
+    )
+
     val pageNumText = style(
       lineHeight(1.5 em)
     )
@@ -124,18 +129,25 @@ object FullItemList extends LogSupport {
     }
 
     private def renderPage(p: Props, allItems: Seq[raw.ReactNode], tilesPerRow: Int): VdomNode = {
-      val widthPercent = 100.0 / tilesPerRow
-
-      GridContainer(style = Styles.itemsContainer,
-                    spacing = 16,
-                    alignItems = Grid.AlignItems.FlexStart,
-                    justify = Grid.Justify.SpaceBetween)(
-        allItems.zipWithIndex map {
-          case (item, i) =>
-            GridItem(key = Some(s"item-$i"),
-                     style = js.Dynamic.literal("width" -> s"$widthPercent%"))(item)
-        } toVdomArray
-      )
+      if (allItems.nonEmpty) {
+        val widthPercent = 100.0 / tilesPerRow
+        GridContainer(style = Styles.itemsContainer,
+                      spacing = 16,
+                      alignItems = Grid.AlignItems.FlexStart,
+                      justify = Grid.Justify.FlexStart)(
+          allItems.zipWithIndex map {
+            case (item, i) =>
+              GridItem(key = Some(s"item-$i"),
+                       style = js.Dynamic.literal("width" -> s"$widthPercent%"))(item)
+          } toVdomArray
+        )
+      } else {
+        GridContainer(style = Styles.emptyItemsContainer,
+                      alignItems = Grid.AlignItems.Center,
+                      justify = Grid.Justify.Center)(
+          GridItem()(Typography(variant = Typography.Variants.Display1)("No results."))
+        )
+      }
     }
 
     def render(p: Props, pc: PropsChildren, s: State): VdomElement = {

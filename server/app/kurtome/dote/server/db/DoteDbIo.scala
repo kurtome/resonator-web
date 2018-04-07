@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 
 import javax.inject._
 import kurtome.dote.proto.api.dote.Dote
+import kurtome.dote.shared.model.PaginationInfo
 import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.slick.db.gen.Tables
@@ -24,23 +25,26 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
       Tables.Dote.filter(row => row.personId === personId)
     }
 
-    val recentDotesWithDotable = Compiled { (limit: ConstColumn[Long]) =>
-      (for {
-        dote <- Tables.Dote
-          .sortBy(_.doteTime.desc)
-          .take(limit)
-        person <- Tables.Person if dote.personId === person.id
-        (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
-        if d.id === dote.dotableId
-      } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
+    val recentDotesWithDotable = Compiled {
+      (offset: ConstColumn[Long], limit: ConstColumn[Long]) =>
+        (for {
+          dote <- Tables.Dote
+            .sortBy(_.doteTime.desc)
+            .drop(offset)
+            .take(limit)
+          person <- Tables.Person if dote.personId === person.id
+          (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
+          if d.id === dote.dotableId
+        } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
     }
 
     val recentDotesWithDotableByPerson = Compiled {
-      (limit: ConstColumn[Long], personId: Rep[Long]) =>
+      (offset: ConstColumn[Long], limit: ConstColumn[Long], personId: Rep[Long]) =>
         (for {
           dote <- Tables.Dote
             .filter(_.personId === personId)
             .sortBy(_.doteTime.desc)
+            .drop(offset)
             .take(limit)
           person <- Tables.Person if dote.personId === person.id
           (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
@@ -49,7 +53,7 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
     }
 
     val recentDotesWithDotableFromFollowing = Compiled {
-      (limit: ConstColumn[Long], personId: Rep[Long]) =>
+      (offset: ConstColumn[Long], limit: ConstColumn[Long], personId: Rep[Long]) =>
         val followingPersonIds =
           for {
             follower <- Tables.Follower if follower.followerId === personId
@@ -60,6 +64,7 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
           dote <- Tables.Dote
             .filter(_.personId in followingPersonIds)
             .sortBy(_.doteTime.desc)
+            .drop(offset)
             .take(limit)
           person <- Tables.Person if dote.personId === person.id
           (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
@@ -89,16 +94,22 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
     Queries.mostPopularDotables(kind, maxDoteAge, limit).result
   }
 
-  def recentRecentDotesWithDotables(limit: Long) = {
-    Queries.recentDotesWithDotable(limit).result
+  def recentRecentDotesWithDotables(paginationInfo: PaginationInfo) = {
+    Queries.recentDotesWithDotable(paginationInfo.offset, paginationInfo.pageSize).result
   }
 
-  def recentDotesWithDotableByPerson(limit: Long, personId: Long) = {
-    Queries.recentDotesWithDotableByPerson(limit, personId).result
+  def recentDotesWithDotableByPerson(paginationInfo: PaginationInfo, personId: Long) = {
+    Queries
+      .recentDotesWithDotableByPerson(paginationInfo.offset, paginationInfo.pageSize, personId)
+      .result
   }
 
-  def recentDotesWithDotableFromFollowing(limit: Long, personId: Long) = {
-    Queries.recentDotesWithDotableFromFollowing(limit, personId).result
+  def recentDotesWithDotableFromFollowing(paginationInfo: PaginationInfo, personId: Long) = {
+    Queries
+      .recentDotesWithDotableFromFollowing(paginationInfo.offset,
+                                           paginationInfo.pageSize,
+                                           personId)
+      .result
   }
 
   def readDote(personId: Long, dotableId: Long) = {

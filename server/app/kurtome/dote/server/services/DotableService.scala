@@ -19,6 +19,7 @@ import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.shared.constants.TagKinds
 import kurtome.dote.shared.constants.TagKinds.TagKind
 import kurtome.dote.shared.mapper.TagMapper
+import kurtome.dote.shared.model.PaginationInfo
 import kurtome.dote.shared.model.Tag
 import kurtome.dote.shared.model.TagId
 import kurtome.dote.shared.model.TagList
@@ -304,19 +305,24 @@ class DotableService @Inject()(db: BasicBackend#Database,
 
   def readPodcastTagList(kind: DotableKinds.Value,
                          tagId: TagId,
-                         offset: Long,
-                         limit: Long,
+                         paginationInfo: PaginationInfo,
                          personId: Option[Long] = None): Future[TagList] = {
     val tagQuery = for {
       tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
     } yield tags
 
-    val dotablesQuery = Queries.tagList(kind, tagId.kind, tagId.key, offset, limit)
+    val dotablesQuery =
+      Queries.tagList(kind, tagId.kind, tagId.key, paginationInfo.offset, paginationInfo.pageSize)
 
     val dotesFuture: Future[Seq[Tables.DoteRow]] = if (personId.isDefined) {
       db.run(
         Queries
-          .personTagListDotes(kind, tagId.kind, tagId.key, offset, limit, personId.get)
+          .personTagListDotes(kind,
+                              tagId.kind,
+                              tagId.key,
+                              paginationInfo.offset,
+                              paginationInfo.pageSize,
+                              personId.get)
           .result)
     } else {
       Future(Nil)
@@ -403,9 +409,12 @@ class DotableService @Inject()(db: BasicBackend#Database,
     db.run(podcastFeedIngestionDbIo.readNextIngestionRows(limit))
   }
 
-  def readEpisodeTagList(tagId: TagId, offset: Int, limit: Int): Future[TagList] = {
+  def readEpisodeTagList(tagId: TagId, paginationInfo: PaginationInfo): Future[TagList] = {
     val q = Queries
-      .recentEpisodesFromPodcastTagList(tagId.kind, tagId.key, offset, limit)
+      .recentEpisodesFromPodcastTagList(tagId.kind,
+                                        tagId.key,
+                                        paginationInfo.offset,
+                                        paginationInfo.pageSize)
       .result
       .map(list =>
         list map {

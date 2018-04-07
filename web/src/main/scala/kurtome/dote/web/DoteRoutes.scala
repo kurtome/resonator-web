@@ -37,6 +37,13 @@ object DoteRoutes extends LogSupport {
 
   case class FollowersRoute(username: String) extends DoteRoute
 
+  case class AllActivityRoute(queryParams: Map[String, String] = Map()) extends DoteRoute
+
+  case class FollowingActivityRoute(queryParams: Map[String, String] = Map()) extends DoteRoute
+
+  case class ProfileActivityRoute(username: String, queryParams: Map[String, String] = Map())
+      extends DoteRoute
+
   case class TagRoute(kind: String, key: String, queryParams: Map[String, String] = Map())
       extends DoteRoute
 
@@ -123,6 +130,18 @@ object DoteRoutes extends LogSupport {
         | dynamicRouteCT("/profile" ~ ("/" ~ slug ~ "/followers")
           .caseClass[FollowersRoute]) ~> dynRenderR(
           (page: FollowersRoute, routerCtl) => FeedView(page)())
+
+        | dynamicRouteCT(("/activity" ~ query)
+          .caseClass[AllActivityRoute]) ~> dynRenderR(
+          (page: AllActivityRoute, routerCtl) => FeedView(page)())
+
+        | dynamicRouteCT(("/activity/following" ~ query)
+          .caseClass[FollowingActivityRoute]) ~> dynRenderR(
+          (page: FollowingActivityRoute, routerCtl) => FeedView(page)())
+
+        | dynamicRouteCT(("/profile/" ~ slug ~ "/activity" ~ query)
+          .caseClass[ProfileActivityRoute]) ~> dynRenderR(
+          (page: ProfileActivityRoute, routerCtl) => FeedView(page)())
 
         | staticRoute("/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))

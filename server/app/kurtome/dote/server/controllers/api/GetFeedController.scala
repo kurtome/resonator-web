@@ -2,7 +2,10 @@ package kurtome.dote.server.controllers.api
 
 import javax.inject._
 import kurtome.dote.proto.api.action.get_feed._
+import kurtome.dote.proto.api.feed.Feed
 import kurtome.dote.proto.api.feed.FeedId.Id
+import kurtome.dote.server.controllers.feed.ActivityFeedFetcher
+import kurtome.dote.server.controllers.feed.FeedFetcher
 import kurtome.dote.server.controllers.feed.FeedParams
 import kurtome.dote.server.controllers.feed.FollowerSummaryFeedFetcher
 import kurtome.dote.server.controllers.feed.HomeFeedFetcher
@@ -24,6 +27,7 @@ class GetFeedController @Inject()(
     profileFeedFetcher: ProfileFeedFetcher,
     tagListFeedFetcher: TagListFeedFetcher,
     followerSummaryFeedFetcher: FollowerSummaryFeedFetcher,
+    activityFeedFetcher: ActivityFeedFetcher,
     authTokenService: AuthTokenService)(implicit ec: ExecutionContext)
     extends ProtobufController[GetFeedRequest, GetFeedResponse](cc)
     with LogSupport {
@@ -33,49 +37,33 @@ class GetFeedController @Inject()(
 
   override def action(request: Request[GetFeedRequest]) = {
     authTokenService.simplifiedRead(request) flatMap { loggedInPerson =>
-      // TODO: refactor this so it's easier to use the logged in person's ID
       val personId = loggedInPerson.map(_.id)
 
       val feedId = request.body.getId
       val feedParams = FeedParams(loggedInPerson, request.body.maxItemSize, feedId)
 
       debug(s"fetching $feedId")
-      val fetch = feedId.id match {
-        case Id.Home(_) => fetchHomeFeed _
-        case Id.Profile(_) => fetchProfileFeed _
-        case Id.TagList(_) => fetchTagList _
-        case Id.FollowerSummary(_) => fetchFollowerSummaryFeed _
-        case _ => noFeed _
+      val fetcher = feedId.id match {
+        case Id.Home(_) => homeFeedFetcher
+        case Id.Profile(_) => profileFeedFetcher
+        case Id.TagList(_) => tagListFeedFetcher
+        case Id.FollowerSummary(_) => followerSummaryFeedFetcher
+        case Id.Activity(_) => activityFeedFetcher
+        case _ =>
+          new FeedFetcher with LogSupport {
+            override def fetch(params: FeedParams): Future[Feed] = {
+              warn("fetching non-existent feed")
+              Future(Feed.defaultInstance)
+            }
+          }
       }
-      fetch(feedParams)
+      fetchFeed(fetcher, feedParams)
     }
   }
 
-  private def noFeed(feedParams: FeedParams) = {
-    warn("fetching non-existent feed")
-    Future(GetFeedResponse.defaultInstance)
-  }
-
-  private def fetchHomeFeed(feedParams: FeedParams) = {
-    homeFeedFetcher.fetch(feedParams) map { feed =>
-      GetFeedResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(feed))
-    }
-  }
-
-  private def fetchProfileFeed(feedParams: FeedParams) = {
-    profileFeedFetcher.fetch(feedParams) map { feed =>
-      GetFeedResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(feed))
-    }
-  }
-
-  private def fetchTagList(feedParams: FeedParams) = {
-    tagListFeedFetcher.fetch(feedParams) map { feed =>
-      GetFeedResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(feed))
-    }
-  }
-
-  private def fetchFollowerSummaryFeed(feedParams: FeedParams) = {
-    followerSummaryFeedFetcher.fetch(feedParams) map { feed =>
+  private def fetchFeed(feedFetcher: FeedFetcher,
+                        feedParams: FeedParams): Future[GetFeedResponse] = {
+    feedFetcher.fetch(feedParams) map { feed =>
       GetFeedResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(feed))
     }
   }

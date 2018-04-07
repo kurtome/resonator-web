@@ -25,6 +25,8 @@ import kurtome.dote.server.services.DotableService
 import kurtome.dote.server.services.DoteService
 import kurtome.dote.server.services.PersonService
 import kurtome.dote.shared.constants.Emojis
+import kurtome.dote.shared.mapper.PaginationInfoMapper
+import kurtome.dote.shared.model.PaginationInfo
 import kurtome.dote.slick.db.gen.Tables.PersonRow
 import kurtome.dote.slick.db.DotableKinds
 import kurtome.dote.slick.db.DotableKinds.DotableKind
@@ -57,12 +59,13 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
 
     val followerSummary = followApiHelper.getSummary(personRow).map(toFollowerSummaryFeedItem)
 
+    val paginationInfo = PaginationInfo(feedParams.maxItemSize)
     val recentActivity = doteService
-      .recentDotesWithDotableByPerson(feedParams.maxItemSize, personRow.id)
+      .recentDotesWithDotableByPerson(paginationInfo, personRow.id)
       .map(_.map(pair =>
         (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
       list =>
-        toActivityListFeedItem("Recent Activity", "", list, personRow)
+        toActivityListFeedItem(paginationInfo, "Recently Rated", "", list, personRow)
     }
 
     val feedItemsFuture = Future.sequence(
@@ -72,23 +75,12 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
       ))
 
     for {
-      lists <- feedItemsFuture
-      feedItems = lists.filter(item =>
-        item.content match {
-          case FeedItem.Content.DotableList(listContent) => {
-            // only include non-empty lists
-            listContent.getList.dotables.nonEmpty
-          }
-          case FeedItem.Content.ActivityList(listContent) => {
-            // only include non-empty lists
-            listContent.getActivityList.items.nonEmpty
-          }
-          case _ => true
-      })
+      feedItems <- feedItemsFuture
     } yield Feed(id = Some(feedParams.feedId), items = feedItems)
   }
 
-  private def toActivityListFeedItem(title: String,
+  private def toActivityListFeedItem(paginationInfo: PaginationInfo,
+                                     title: String,
                                      caption: String,
                                      list: Seq[(Dote, Dotable)],
                                      profilePerson: PersonRow): FeedItem = {
@@ -100,7 +92,11 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
           items = list.map(pair =>
             Activity().withDote(DoteActivity().withDote(pair._1).withDotable(pair._2))))))
     FeedItem()
-      .withId(FeedId().withActivity(ActivityId(profilePerson.username)))
+      .withId(
+        FeedId().withActivity(
+          ActivityId()
+            .withPaginationInfo(PaginationInfoMapper.toProto(paginationInfo))
+            .withUsername(profilePerson.username)))
       .withContent(FeedItem.Content.ActivityList(feedList))
   }
 
@@ -115,18 +111,4 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
       .withContent(FeedItem.Content.FollowerSummary(content))
   }
 
-  private def toProfileListFeedItem(username: String,
-                                    title: String,
-                                    listKind: ProfileDoteListId.Kind,
-                                    list: Seq[Dotable],
-                                    kind: DotableKind = DotableKinds.Podcast): FeedItem = {
-    val feedList = FeedDotableList(Some(DotableList(title = title, dotables = list)))
-    FeedItem()
-      .withId(
-        FeedId().withProfileDoteList(
-          ProfileDoteListId(username = username,
-                            listKind = listKind,
-                            dotableKind = DotableMapper.mapKind(kind))))
-      .withContent(FeedItem.Content.DotableList(feedList))
-  }
 }

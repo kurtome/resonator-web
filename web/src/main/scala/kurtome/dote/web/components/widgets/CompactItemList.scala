@@ -102,7 +102,7 @@ object CompactItemList extends LogSupport {
                     style = Styles.itemsContainer,
                     spacing = 16,
                     alignItems = Grid.AlignItems.FlexStart,
-                    justify = Grid.Justify.SpaceBetween)(
+                    justify = Grid.Justify.FlexStart)(
         pageItems.zipWithIndex map {
           case (item, i) =>
             GridItem(key = Some(s"page-$pageIndex-item-$i"),
