@@ -66,6 +66,7 @@ object PodcastImageCard extends LogSupport {
       }
 
       <.div(
+        ^.position.relative,
         ^.width := p.width,
         if (url.nonEmpty) {
           <.img(
