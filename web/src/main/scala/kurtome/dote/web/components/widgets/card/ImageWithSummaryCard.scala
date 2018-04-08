@@ -15,7 +15,6 @@ import wvlet.log.LogSupport
 
 object ImageWithSummaryCard extends LogSupport {
 
-//  private val imageHeight = "calc(100px - 1.5em)"
   private val imageHeight = "100px"
 
   private object Animations extends StyleSheet.Inline {
@@ -62,8 +61,10 @@ object ImageWithSummaryCard extends LogSupport {
       pointerEvents := "none",
       position.absolute,
       zIndex(1),
-      height(100 px),
-      width(100 px)
+      height(100 %%),
+      // for some reason this had a small gap with width=100%
+      // the overflow=hidden on the parent hides the excess
+      width(101 %%)
     )
 
     val fromPodcastText = style(
@@ -114,25 +115,29 @@ object ImageWithSummaryCard extends LogSupport {
         doteRouterCtl.link(detailRoute)(
           ^.height := "100%",
           ^.className := Styles.container,
-          <.div(^.className := Styles.imgWrapper,
-                PodcastImageCard(dotable = p.dotable, width = imageHeight)()),
-          Hidden(xsUp = p.imageOverlayCaption.isEmpty)(<.div(
-            ^.className := Styles.imageOverlay,
-            <.div(
-              ^.width := "100px",
-              ^.height := "calc(100px - 1.5em)"
-            ),
-            <.div(
-              ^.className := Styles.overlayText,
-              ^.backgroundColor := MuiTheme.theme.palette.background.paper,
-              Typography(style = Styles.fromPodcastText,
-                         variant = Typography.Variants.Caption,
-                         noWrap = true)(p.imageOverlayCaption)
-            )
-          )),
-          <.div(^.display := "inline-block",
-                ^.width := "100px",
-                ^.height := "calc(100px - 1.5em)"),
+          <.div(
+            ^.position.relative,
+            ^.display.`inline-block`,
+            ^.overflow.hidden,
+            ^.width := "100px",
+            ^.height := "100%",
+            <.div(^.className := Styles.imgWrapper,
+                  PodcastImageCard(dotable = p.dotable, width = imageHeight)()),
+            Hidden(xsUp = p.imageOverlayCaption.isEmpty)(<.div(
+              ^.className := Styles.imageOverlay,
+              <.div(
+                ^.width := "100%",
+                ^.height := "calc(100% - 1.5em)"
+              ),
+              <.div(
+                ^.className := Styles.overlayText,
+                ^.backgroundColor := MuiTheme.theme.palette.background.paper,
+                Typography(style = Styles.fromPodcastText,
+                           variant = Typography.Variants.Caption,
+                           noWrap = true)(p.imageOverlayCaption)
+              )
+            ))
+          ),
           <.div(
             ^.className := Styles.mainTextWrapper,
             ^.width := "calc(100% - 100px)",
