@@ -85,7 +85,9 @@ object FullItemList extends LogSupport {
 
     private def renderPagination(p: Props): VdomElement = {
       if (p.prevPageRoute.isDefined || p.nextPageRoute.isDefined)
-        GridContainer(spacing = 8, alignItems = Grid.AlignItems.Center)(
+        GridContainer(spacing = 8,
+                      justify = Grid.Justify.SpaceBetween,
+                      alignItems = Grid.AlignItems.Center)(
           GridItem()(
             Fade(in = p.prevPageRoute.isDefined)(
               Button(onClick = p.prevPageRoute.map(doteRouterCtl.set).getOrElse(Callback.empty),
@@ -94,10 +96,10 @@ object FullItemList extends LogSupport {
                 "Previous"
               )
             )),
-          GridItem()(
-            Typography(component = "span",
-                       variant = Typography.Variants.Body1,
-                       style = Styles.pageNumText)(s"${p.pageIndex + 1}")),
+//          GridItem()(
+//            Typography(component = "span",
+//                       variant = Typography.Variants.Body1,
+//                       style = Styles.pageNumText)(s"${p.pageIndex + 1}")),
           GridItem()(
             Fade(in = p.nextPageRoute.isDefined)(
               Button(onClick = p.nextPageRoute.map(doteRouterCtl.set).getOrElse(Callback.empty),
@@ -170,7 +172,7 @@ object FullItemList extends LogSupport {
                               onIndexChanged = (index) => bs.modState(_.copy(pageIndex = index)))(
           renderPage(p, items, numTilesPerRow)
         ),
-        GridContainer(justify = Grid.Justify.Center)(GridItem()(renderPagination(p)))
+        GridContainer()(GridItem(xs = 12)(renderPagination(p)))
       )
     }
   }

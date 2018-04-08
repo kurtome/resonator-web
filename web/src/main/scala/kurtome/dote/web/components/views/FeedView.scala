@@ -13,6 +13,7 @@ import kurtome.dote.shared.constants.QueryParamKeys
 import kurtome.dote.shared.mapper.TagMapper
 import kurtome.dote.shared.model.Tag
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.DoteRoutes.AllActivityRoute
 import kurtome.dote.web.DoteRoutes.FollowersRoute
 import kurtome.dote.web.DoteRoutes.FollowingActivityRoute
@@ -29,7 +30,10 @@ import scala.util.Try
 
 object FeedView extends LogSupport {
 
-  val defaultPageSize = 24
+  lazy val defaultPageSize: Int = currentBreakpointString match {
+    case "xs" => 12
+    case _ => 24
+  }
 
   object Styles extends StyleSheet.Inline {
     import dsl._
