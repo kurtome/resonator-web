@@ -3,6 +3,8 @@ package kurtome.dote.web.components.widgets.detail
 import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
+import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
@@ -11,9 +13,16 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.components.widgets.button.ShareButton
+import kurtome.dote.web.components.widgets.button.emote.DoteEmoteButton
+import kurtome.dote.web.components.widgets.button.emote.SmileButton
 import kurtome.dote.web.components.widgets.card.EpisodeCard
+import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.BaseBackend
+import kurtome.dote.web.utils.Debounce
+import kurtome.dote.web.utils.GlobalLoadingManager
 import scalacss.internal.mutable.StyleSheet
+
+import scala.scalajs.js
 
 object EpisodeDetails {
 
@@ -98,7 +107,8 @@ object EpisodeDetails {
             ^.width := asPxStr(Math.min(500, ContentFrame.innerWidthPx)),
             EpisodeCard(
               dotable = p.dotable,
-              elevation = 2
+              elevation = 2,
+              disableActions = true
             )()
           ),
           Typography(variant = Typography.Variants.Body1)(
@@ -109,11 +119,10 @@ object EpisodeDetails {
         GridItem(xs = 12)(
           GridContainer(style = Styles.actionsContainer)(
             GridItem()(ShareButton()()),
-            GridItem()(
-              <.div(
-                ^.display := (if (AudioPlayer.canPlay(p.dotable)) "block" else "none"),
-                Button(onClick = playAudio)("Play", Icons.PlayArrow())
-              ))
+            GridItem()(DoteEmoteButton(p.dotable)()),
+            GridItem(hidden = Grid.HiddenProps(xsUp = !AudioPlayer.canPlay(p.dotable)))(
+              IconButton(onClick = playAudio)(Icons.PlayArrow())
+            )
           )
         ),
         GridItem(xs = 12)(

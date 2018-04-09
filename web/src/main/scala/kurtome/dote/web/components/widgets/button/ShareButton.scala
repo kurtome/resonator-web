@@ -2,28 +2,32 @@ package kurtome.dote.web.components.widgets.button
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.web.components.materialui.Button
+import kurtome.dote.web.components.materialui.IconButton
+import kurtome.dote.web.components.materialui.Icons
 import kurtome.dote.web.utils.CopyToClipboard
 import kurtome.dote.web.utils.GlobalNotificationManager
 import org.scalajs.dom
 
 object ShareButton {
 
-  case class Props(copiedMessage: String)
+  case class Props(shareUrl: String, copiedMessage: String)
 
   class Backend(bs: BackendScope[Props, Unit]) {
 
     val handleShare = (p: Props) =>
       Callback {
-        val url = dom.document.location.href
+        val url =
+          if (p.shareUrl.nonEmpty) {
+            p.shareUrl
+          } else {
+            dom.document.location.href
+          }
         CopyToClipboard.copyTextToClipboard(url)
         GlobalNotificationManager.displayMessage(p.copiedMessage)
     }
 
     def render(p: Props): VdomElement = {
-      Button(variant = Button.Variants.Raised,
-             color = Button.Colors.Secondary,
-             onClick = handleShare(p))("Share")
+      IconButton(onClick = handleShare(p))(Icons.Share())
     }
   }
 
@@ -33,6 +37,6 @@ object ShareButton {
     .renderP((builder, p) => builder.backend.render(p))
     .build
 
-  def apply(copiedMessage: String = "Link copied to your clipboard.") =
-    component.withProps(Props(copiedMessage))
+  def apply(shareUrl: String = "", copiedMessage: String = "Link copied to your clipboard.") =
+    component.withProps(Props(shareUrl, copiedMessage))
 }

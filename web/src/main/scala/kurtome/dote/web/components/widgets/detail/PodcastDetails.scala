@@ -16,6 +16,7 @@ import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.detail.DetailFieldList._
 import kurtome.dote.web.components.widgets.ContentFrame
+import kurtome.dote.web.components.widgets.button.emote.DoteEmoteButton
 import kurtome.dote.web.components.widgets.card.PodcastCard
 import kurtome.dote.web.utils.FeedIdRoutes.TagRouteMapper
 import kurtome.dote.web.utils.{BaseBackend, Debounce}
@@ -204,14 +205,14 @@ object PodcastDetails {
                 <.div(^.className := tileContainerStyle,
                       <.div(^.position := "relative",
                             ^.width := asPxStr(tileWidth),
-                            PodcastCard(dotable = p.dotable)()))
+                            PodcastCard(dotable = p.dotable, disableActions = true)()))
               )
             ),
             Grid(item = true, style = Styles.titleFieldContainer)(
               <.div(
                 ^.width := asPxStr(detailsWidth),
-                Grid(container = true)(
-                  Grid(item = true, xs = 12)(
+                GridContainer()(
+                  GridItem(xs = 12)(
                     Typography(style = Styles.titleText, variant = Typography.Variants.Headline)(
                       fields.title),
                     if (p.dotable.getRelatives.childrenFetched) {
@@ -225,20 +226,21 @@ object PodcastDetails {
                     Typography(variant = Typography.Variants.Body1)(fields.subtitle)
                   ),
                   GridItem(xs = 12)(
-                    GridContainer()(
-                      GridItem()(ShareButton()())
+                    GridContainer(spacing = 0)(
+                      GridItem()(ShareButton()()),
+                      GridItem()(DoteEmoteButton(p.dotable)())
                     )
                   ),
                   GridItem(xs = 12)(
                     Typography(variant = Typography.Variants.Body1,
                                dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
                   ),
-                  Grid(item = true, xs = 12)(Divider()()),
-                  Grid(item = true, xs = 12)(
+                  GridItem(xs = 12)(Divider()()),
+                  GridItem(xs = 12)(
                     DetailFieldList(detailFields)()
                   ),
-                  Grid(item = true, xs = 12)(Divider()()),
-                  Grid(item = true, xs = 12)(
+                  GridItem(xs = 12)(Divider()()),
+                  GridItem(xs = 12)(
                     renderTags(p.dotable)
                   )
                 )

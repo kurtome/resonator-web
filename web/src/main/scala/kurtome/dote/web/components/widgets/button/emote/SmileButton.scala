@@ -11,7 +11,7 @@ object SmileButton {
   class Backend(bs: BackendScope[Props, Unit]) {
     def render(p: Props): VdomElement = {
       import Emojis._
-      EmoteButton(emojis = smileEmojis,
+      EmoteButton(emojis = Seq(heart),
                   initialValue = p.initialValue,
                   onValueChanged = p.onValueChanged)()
     }

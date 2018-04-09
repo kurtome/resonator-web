@@ -15,9 +15,10 @@ object Emojis {
   val angryFace = "\uD83D\uDE20"
   val poutingFace = "\uD83D\uDE21"
   val faceWithSymbolsOnMouth = "\uD83E\uDD2C"
+  val heart = "❤️"
 
 
-  val smileEmojis = Seq(slightlySmilingFace, grinningFace, heartEyes)
+  val smileEmojis = Seq(heart, grinningFace, heartEyes)
 
   val laughEmojis = Seq(grinningSquintingFace, faceWithTearsOfJoy, rollingOnTheFloorLaughing)
 

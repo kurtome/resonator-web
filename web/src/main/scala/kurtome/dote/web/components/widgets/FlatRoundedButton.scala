@@ -6,6 +6,7 @@ import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.materialui.Button
+import kurtome.dote.web.components.materialui.MuiThemeProvider
 import kurtome.dote.web.components.materialui.Typography
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
@@ -82,9 +83,11 @@ object FlatRoundedButton {
     }
 
     def render(p: Props, pc: PropsChildren): VdomElement = {
-      <.div(
-        ^.className := buttonStyle(p),
-        Button(style = Styles.rounded, onClick = p.onClick)(Typography(style = textStyle(p))(pc))
+      MuiThemeProvider(MuiTheme.lightTheme)(
+        <.div(
+          ^.className := buttonStyle(p),
+          Button(style = Styles.rounded, onClick = p.onClick)(Typography(style = textStyle(p))(pc))
+        )
       )
     }
   }

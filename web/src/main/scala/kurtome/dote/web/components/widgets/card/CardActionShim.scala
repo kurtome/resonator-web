@@ -9,9 +9,11 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.Fader
+import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.button.emote._
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
+import org.scalajs.dom
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
@@ -30,7 +32,6 @@ object CardActionShim extends LogSupport {
     )
 
     val overlayActionsContainer = style(
-      position.absolute,
       width(100 %%),
       height(100 %%)
     )
@@ -67,9 +68,7 @@ object CardActionShim extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val shouldClickToShowActions = IsMobile.value
-
-    val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 500) { () =>
+    val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 200) { () =>
       val p: Props = bs.props.runNow()
       val s: State = bs.state.runNow()
 
@@ -112,12 +111,7 @@ object CardActionShim extends LogSupport {
     val handleInterceptorClicked = bs.modState(_.copy(clicked = true))
 
     def render(p: Props, s: State): VdomElement = {
-
-      val showActions = if (shouldClickToShowActions) {
-        s.clicked && LoggedInPersonManager.isLoggedIn
-      } else {
-        p.hover && LoggedInPersonManager.isLoggedIn
-      }
+      val showActions = p.hover && LoggedInPersonManager.isLoggedIn
 
       <.div(
         ^.className := Styles.overlayContainer,
@@ -126,33 +120,22 @@ object CardActionShim extends LogSupport {
             ^.className := Styles.overlayActionsContainer,
             ^.className := SharedStyles.plainAnchor,
             <.div(^.className := Styles.overlay),
-            Grid(container = true,
-                 direction = Grid.Direction.Column,
-                 justify = Grid.Justify.SpaceBetween,
-                 spacing = 0,
-                 style = Styles.overlayActionsContainer)(
-              Grid(item = true)(
-                Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                  Grid(item = true)(
-                    SmileButton(s.smileCount, onValueChanged = handleLikeValueChanged)()),
-                  Grid(item = true)(
-                    CryButton(s.cryCount, onValueChanged = handleCryValueChanged)())
-                )),
-              Grid(item = true)(
-                Grid(container = true, spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                  Grid(item = true)(
-                    LaughButton(s.laughCount, onValueChanged = handleLaughValueChanged)()),
-                  Grid(item = true)(
-                    ScowlButton(s.scowlCount, onValueChanged = handleScowlValueChanged)())
-                ))
+            GridContainer(justify = Grid.Justify.FlexEnd,
+                          spacing = 0,
+                          style = Styles.overlayActionsContainer)(
+              GridItem()(
+                GridContainer(style = Styles.overlayActionsContainer,
+                              direction = Grid.Direction.Column,
+                              spacing = 0,
+                              justify = Grid.Justify.SpaceBetween)(
+                  GridItem()(ShareButton(
+                    s"${dom.document.domain}/details/${p.dotable.id}/${p.dotable.slug}")()),
+                  GridItem()(
+                    DoteEmoteButton(p.dotable)()
+                  )
+                )
+              )
             )
-          ),
-          <.div(
-            ^.className :=
-              (if (shouldClickToShowActions && !s.clicked && LoggedInPersonManager.isLoggedIn)
-                 Styles.clickInterceptor
-               else Styles.clickIgnore),
-            ^.onClick --> handleInterceptorClicked
           )
         )
       )
