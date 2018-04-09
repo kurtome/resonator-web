@@ -6,6 +6,7 @@ import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.activity.Activity
 import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dote.Dote.EmoteKind
 import kurtome.dote.shared.constants.Emojis
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.ProfileRoute
@@ -67,16 +68,20 @@ object ActivityCard extends LogSupport {
       val activity = p.activity
       val dotable = activity.getDote.getDotable
       val dote = activity.getDote.getDote
-      val smile = Emojis.smileEmojis.lift(dote.smileCount - 1).getOrElse("")
-      val cry = Emojis.cryEmojis.lift(dote.cryCount - 1).getOrElse("")
-      val laugh = Emojis.laughEmojis.lift(dote.laughCount - 1).getOrElse("")
-      val scowl = Emojis.scowlEmojis.lift(dote.scowlCount - 1).getOrElse("")
+      import EmoteKind._
+      val emoji = dote.emoteKind match {
+        case HEART => Emojis.heart
+        case LAUGH => Emojis.grinningSquintingFace
+        case CRY => Emojis.cryingFace
+        case SCOWL => Emojis.angryFace
+        case _ => ""
+      }
       <.div(
         ^.width := "100%",
         <.div(
           ^.className := Styles.headerTextWrapper,
           Typography(style = Styles.accountIcon)(Icons.AccountCircle()),
-          Typography(noWrap = true, style = Styles.ratingText)(s"$smile$cry$laugh$scowl"),
+          Typography(noWrap = true, style = Styles.ratingText)(emoji),
           Typography(noWrap = true, style = Styles.username)(
             SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
         ),

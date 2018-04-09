@@ -47,7 +47,8 @@ object DoteEmoteButton extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
-      SmileButton(s.smileCount, onValueChanged = handleLikeValueChanged)()
+      SmileButton(if (s.emoteKind == EmoteKind.HEART) 1 else 0,
+                  onValueChanged = handleLikeValueChanged)()
     }
   }
 
@@ -55,7 +56,7 @@ object DoteEmoteButton extends LogSupport {
     .builder[Props](this.getClass.getSimpleName)
     .initialStateFromProps(p => {
       val dote = p.dotable.getDote
-      State(smileCount = dote.smileCount)
+      State(smileCount = dote.smileCount, emoteKind = dote.emoteKind)
     })
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))

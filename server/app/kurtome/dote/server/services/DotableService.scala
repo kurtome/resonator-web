@@ -94,41 +94,6 @@ class DotableService @Inject()(db: BasicBackend#Database,
           .take(limit)
     }
 
-    val smileList = Compiled {
-      (personId: Rep[Long], kind: Rep[DotableKind], listLimit: ConstColumn[Long]) =>
-        (for {
-          dotes <- Tables.Dote.filter(row => row.personId === personId && row.smileCount > 0)
-          (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
-          if dotables.id === dotes.dotableId && dotables.kind === kind
-        } yield (dotables, parents, dotes)).sortBy(_._3.doteTime.desc).take(listLimit)
-    }
-
-    val laughList = Compiled {
-      (personId: Rep[Long], kind: Rep[DotableKind], listLimit: ConstColumn[Long]) =>
-        (for {
-          dotes <- Tables.Dote.filter(row => row.personId === personId && row.laughCount > 0)
-          (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
-          if dotables.id === dotes.dotableId && dotables.kind === kind
-        } yield (dotables, parents, dotes)).sortBy(_._3.doteTime.desc).take(listLimit)
-    }
-
-    val cryList = Compiled {
-      (personId: Rep[Long], kind: Rep[DotableKind], listLimit: ConstColumn[Long]) =>
-        (for {
-          dotes <- Tables.Dote.filter(row => row.personId === personId && row.cryCount > 0)
-          (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
-          if dotables.id === dotes.dotableId && dotables.kind === kind
-        } yield (dotables, parents, dotes)).sortBy(_._3.doteTime.desc).take(listLimit)
-    }
-
-    val scowlList = Compiled {
-      (personId: Rep[Long], kind: Rep[DotableKind], listLimit: ConstColumn[Long]) =>
-        (for {
-          dotes <- Tables.Dote.filter(row => row.personId === personId && row.scowlCount > 0)
-          (dotables, parents) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
-          if dotables.id === dotes.dotableId && dotables.kind === kind
-        } yield (dotables, parents, dotes)).sortBy(_._3.doteTime.desc).take(listLimit)
-    }
   }
 
   lazy val popularTagDbId: Future[Long] =
@@ -211,30 +176,6 @@ class DotableService @Inject()(db: BasicBackend#Database,
             .withStatementParameters(statementInit = _.setQueryTimeout(30)))
         .map(_ => podcastId)
     }
-  }
-
-  def readPersonSmileList(personId: Long,
-                          kind: DotableKinds.Value,
-                          maxItemSize: Int): Future[Seq[Dotable]] = {
-    db.run(Queries.smileList(personId, kind, maxItemSize).result).map(combineListResults)
-  }
-
-  def readPersonLaughList(personId: Long,
-                          kind: DotableKinds.Value,
-                          maxItemSize: Int): Future[Seq[Dotable]] = {
-    db.run(Queries.laughList(personId, kind, maxItemSize).result).map(combineListResults)
-  }
-
-  def readPersonCryList(personId: Long,
-                        kind: DotableKinds.Value,
-                        maxItemSize: Int): Future[Seq[Dotable]] = {
-    db.run(Queries.cryList(personId, kind, maxItemSize).result).map(combineListResults)
-  }
-
-  def readPersonScowlList(personId: Long,
-                          kind: DotableKinds.Value,
-                          maxItemSize: Int): Future[Seq[Dotable]] = {
-    db.run(Queries.scowlList(personId, kind, maxItemSize).result).map(combineListResults)
   }
 
   private def combineListResults(

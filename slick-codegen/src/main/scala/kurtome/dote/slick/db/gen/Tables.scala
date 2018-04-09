@@ -238,64 +238,38 @@ trait Tables {
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
     *  @param dotableId Database column dotable_id SqlType(int8)
     *  @param personId Database column person_id SqlType(int8)
-    *  @param smileCount Database column smile_count SqlType(int4), Default(0)
-    *  @param scowlCount Database column scowl_count SqlType(int4), Default(0)
-    *  @param cryCount Database column cry_count SqlType(int4), Default(0)
-    *  @param laughCount Database column laugh_count SqlType(int4), Default(0)
     *  @param doteTime Database column dote_time SqlType(timestamp)
     *  @param emoteKind Database column emote_kind SqlType(emotekind) */
   case class DoteRow(id: Long,
                      dotableId: Long,
                      personId: Long,
-                     smileCount: Int = 0,
-                     scowlCount: Int = 0,
-                     cryCount: Int = 0,
-                     laughCount: Int = 0,
                      doteTime: java.time.LocalDateTime,
                      emoteKind: Option[kurtome.dote.shared.constants.EmoteKinds.Value])
 
   /** GetResult implicit for fetching DoteRow objects using plain SQL queries */
   implicit def GetResultDoteRow(
       implicit e0: GR[Long],
-      e1: GR[Int],
-      e2: GR[java.time.LocalDateTime],
-      e3: GR[Option[kurtome.dote.shared.constants.EmoteKinds.Value]]): GR[DoteRow] = GR { prs =>
+      e1: GR[java.time.LocalDateTime],
+      e2: GR[Option[kurtome.dote.shared.constants.EmoteKinds.Value]]): GR[DoteRow] = GR { prs =>
     import prs._
     DoteRow.tupled(
       (<<[Long],
        <<[Long],
        <<[Long],
-       <<[Int],
-       <<[Int],
-       <<[Int],
-       <<[Int],
        <<[java.time.LocalDateTime],
        <<?[kurtome.dote.shared.constants.EmoteKinds.Value]))
   }
 
   /** Table description of table dote. Objects of this class serve as prototypes for rows in queries. */
   class Dote(_tableTag: slick.lifted.Tag) extends profile.api.Table[DoteRow](_tableTag, "dote") {
-    def * =
-      (id, dotableId, personId, smileCount, scowlCount, cryCount, laughCount, doteTime, emoteKind) <> (DoteRow.tupled, DoteRow.unapply)
+    def * = (id, dotableId, personId, doteTime, emoteKind) <> (DoteRow.tupled, DoteRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(id),
-       Rep.Some(dotableId),
-       Rep.Some(personId),
-       Rep.Some(smileCount),
-       Rep.Some(scowlCount),
-       Rep.Some(cryCount),
-       Rep.Some(laughCount),
-       Rep.Some(doteTime),
-       emoteKind).shaped.<>(
-        { r =>
-          import r._;
-          _1.map(_ =>
-            DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9)))
-        },
-        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
-      )
+      (Rep.Some(id), Rep.Some(dotableId), Rep.Some(personId), Rep.Some(doteTime), emoteKind).shaped
+        .<>({ r =>
+          import r._; _1.map(_ => DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5)))
+        }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -305,18 +279,6 @@ trait Tables {
 
     /** Database column person_id SqlType(int8) */
     val personId: Rep[Long] = column[Long]("person_id")
-
-    /** Database column smile_count SqlType(int4), Default(0) */
-    val smileCount: Rep[Int] = column[Int]("smile_count", O.Default(0))
-
-    /** Database column scowl_count SqlType(int4), Default(0) */
-    val scowlCount: Rep[Int] = column[Int]("scowl_count", O.Default(0))
-
-    /** Database column cry_count SqlType(int4), Default(0) */
-    val cryCount: Rep[Int] = column[Int]("cry_count", O.Default(0))
-
-    /** Database column laugh_count SqlType(int4), Default(0) */
-    val laughCount: Rep[Int] = column[Int]("laugh_count", O.Default(0))
 
     /** Database column dote_time SqlType(timestamp) */
     val doteTime: Rep[java.time.LocalDateTime] = column[java.time.LocalDateTime]("dote_time")
