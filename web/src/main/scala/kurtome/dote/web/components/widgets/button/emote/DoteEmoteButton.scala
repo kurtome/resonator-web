@@ -5,6 +5,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dote.Dote
+import kurtome.dote.proto.api.dote.Dote.EmoteKind
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
@@ -19,7 +20,7 @@ object DoteEmoteButton extends LogSupport {
   }
 
   case class Props(dotable: Dotable)
-  case class State(smileCount: Int = 0)
+  case class State(smileCount: Int = 0, emoteKind: EmoteKind = EmoteKind.UNKNOWN_KIND)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -29,13 +30,19 @@ object DoteEmoteButton extends LogSupport {
 
       val f =
         DoteProtoServer.setDote(
-          SetDoteRequest(p.dotable.id, Some(Dote(smileCount = s.smileCount))))
+          SetDoteRequest(p.dotable.id,
+                         Some(Dote(smileCount = s.smileCount, emoteKind = s.emoteKind))))
       GlobalLoadingManager.addLoadingFuture(f)
     }
 
     val handleLikeValueChanged = (value: Int) =>
       Callback {
-        bs.modState(s => s.copy(smileCount = value)).runNow()
+        val emote = if (value > 0) {
+          EmoteKind.HEART
+        } else {
+          EmoteKind.UNKNOWN_KIND
+        }
+        bs.modState(s => s.copy(smileCount = value, emoteKind = emote)).runNow()
         sendDoteToServer()
     }
 

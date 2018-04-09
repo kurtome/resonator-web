@@ -251,6 +251,11 @@ object MuiTheme extends LogSupport {
               "color" -> primary.light
             )
           ),
+          "MuiIconButton" -> l$(
+            "colorPrimary" -> l$(
+              "color" -> primary.light
+            )
+          ),
           "MuiButton" -> l$(
             "flatPrimary" -> l$(
               "color" -> primary.light

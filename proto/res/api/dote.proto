@@ -11,4 +11,13 @@ message Dote {
   int32 scowl_count = 4;
 
   Person person = 5;
+  EmoteKind emote_kind = 6;
+
+  enum EmoteKind {
+    UNKNOWN_KIND = 0;
+    HEART = 1;
+    LAUGH = 2;
+    CRY = 3;
+    SCOWL = 4;
+  }
 }

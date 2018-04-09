@@ -27,7 +27,7 @@ object ShareButton {
     }
 
     def render(p: Props): VdomElement = {
-      IconButton(onClick = handleShare(p))(Icons.Share())
+      IconButton(onClick = handleShare(p), color = IconButton.Colors.Primary)(Icons.Share())
     }
   }
 

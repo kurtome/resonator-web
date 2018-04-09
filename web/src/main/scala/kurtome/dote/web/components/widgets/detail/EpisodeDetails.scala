@@ -117,11 +117,11 @@ object EpisodeDetails {
               SiteLink(DetailsRoute(podcast.id, podcast.slug))(s"${podcast.getCommon.title}")))
         ),
         GridItem(xs = 12)(
-          GridContainer(style = Styles.actionsContainer)(
+          GridContainer(spacing = 0, style = Styles.actionsContainer)(
             GridItem()(ShareButton()()),
             GridItem()(DoteEmoteButton(p.dotable)()),
             GridItem(hidden = Grid.HiddenProps(xsUp = !AudioPlayer.canPlay(p.dotable)))(
-              IconButton(onClick = playAudio)(Icons.PlayArrow())
+              IconButton(onClick = playAudio, color = IconButton.Colors.Primary)(Icons.PlayArrow())
             )
           )
         ),

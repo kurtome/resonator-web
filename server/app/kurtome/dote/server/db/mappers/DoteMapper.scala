@@ -2,6 +2,7 @@ package kurtome.dote.server.db.mappers
 
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.server.controllers.mappers.PersonMapper
+import kurtome.dote.shared.mapper.EmoteKindMapper
 import kurtome.dote.slick.db.gen.Tables
 
 object DoteMapper {
@@ -11,7 +12,8 @@ object DoteMapper {
       cryCount = row.cryCount,
       laughCount = row.laughCount,
       scowlCount = row.scowlCount,
-      person = person.map(PersonMapper)
+      person = person.map(PersonMapper),
+      emoteKind = EmoteKindMapper.toProto(row.emoteKind)
     )
   }
 }

@@ -31,28 +31,18 @@ object CardActionShim extends LogSupport {
       height(100 %%)
     )
 
-    val overlayActionsContainer = style(
-      width(100 %%),
-      height(100 %%)
+    val actionsContainerWrapper = style(
+      marginLeft(4 px),
+      marginRight(4 px)
+    )
+
+    val actionsContainer = style(
+      backgroundColor(rgba(255, 255, 255, 0.8)),
+      borderRadius(5 px)
     )
 
     val overlay = style(
       position.absolute,
-      backgroundColor(rgba(255, 255, 255, 0.4)),
-      width(100 %%),
-      height(100 %%)
-    )
-
-    val clickInterceptor = style(
-      position.absolute,
-      pointerEvents := "auto",
-      width(100 %%),
-      height(100 %%)
-    )
-
-    val clickIgnore = style(
-      position.absolute,
-      pointerEvents := "none",
       width(100 %%),
       height(100 %%)
     )
@@ -119,24 +109,20 @@ object CardActionShim extends LogSupport {
 
       <.div(
         ^.className := Styles.overlayContainer,
-        Fader(in = showActions, width = "100%", height = "100%")(
-          <.div(
-            ^.className := Styles.overlayActionsContainer,
-            ^.className := SharedStyles.plainAnchor,
-            <.div(^.className := Styles.overlay),
-            GridContainer(justify = Grid.Justify.FlexEnd,
-                          spacing = 0,
-                          style = Styles.overlayActionsContainer)(
-              GridItem()(
-                GridContainer(style = Styles.overlayActionsContainer,
-                              direction = Grid.Direction.Column,
-                              spacing = 0,
-                              justify = Grid.Justify.SpaceBetween)(
-                  GridItem(style = Styles.buttonItem)(ShareButton(
-                    s"${dom.document.domain}/details/${p.dotable.id}/${p.dotable.slug}")()),
-                  GridItem(style = Styles.buttonItem)(
-                    DoteEmoteButton(p.dotable)()
-                  )
+        Fader(in = showActions)(
+          GridContainer(justify = Grid.Justify.FlexEnd,
+                        alignItems = Grid.AlignItems.Center,
+                        spacing = 0,
+                        style = Styles.overlay)(
+            GridItem(style = Styles.actionsContainerWrapper)(
+              GridContainer(style = Styles.actionsContainer,
+                            direction = Grid.Direction.Column,
+                            spacing = 0,
+                            justify = Grid.Justify.SpaceBetween)(
+                GridItem(style = Styles.buttonItem)(ShareButton(
+                  s"${dom.document.domain}/details/${p.dotable.id}/${p.dotable.slug}")()),
+                GridItem(style = Styles.buttonItem)(
+                  DoteEmoteButton(p.dotable)()
                 )
               )
             )

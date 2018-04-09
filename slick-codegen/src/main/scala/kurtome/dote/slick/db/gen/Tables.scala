@@ -242,7 +242,8 @@ trait Tables {
     *  @param scowlCount Database column scowl_count SqlType(int4), Default(0)
     *  @param cryCount Database column cry_count SqlType(int4), Default(0)
     *  @param laughCount Database column laugh_count SqlType(int4), Default(0)
-    *  @param doteTime Database column dote_time SqlType(timestamp) */
+    *  @param doteTime Database column dote_time SqlType(timestamp)
+    *  @param emoteKind Database column emote_kind SqlType(emotekind) */
   case class DoteRow(id: Long,
                      dotableId: Long,
                      personId: Long,
@@ -250,12 +251,15 @@ trait Tables {
                      scowlCount: Int = 0,
                      cryCount: Int = 0,
                      laughCount: Int = 0,
-                     doteTime: java.time.LocalDateTime)
+                     doteTime: java.time.LocalDateTime,
+                     emoteKind: Option[kurtome.dote.shared.constants.EmoteKinds.Value])
 
   /** GetResult implicit for fetching DoteRow objects using plain SQL queries */
-  implicit def GetResultDoteRow(implicit e0: GR[Long],
-                                e1: GR[Int],
-                                e2: GR[java.time.LocalDateTime]): GR[DoteRow] = GR { prs =>
+  implicit def GetResultDoteRow(
+      implicit e0: GR[Long],
+      e1: GR[Int],
+      e2: GR[java.time.LocalDateTime],
+      e3: GR[Option[kurtome.dote.shared.constants.EmoteKinds.Value]]): GR[DoteRow] = GR { prs =>
     import prs._
     DoteRow.tupled(
       (<<[Long],
@@ -265,13 +269,14 @@ trait Tables {
        <<[Int],
        <<[Int],
        <<[Int],
-       <<[java.time.LocalDateTime]))
+       <<[java.time.LocalDateTime],
+       <<?[kurtome.dote.shared.constants.EmoteKinds.Value]))
   }
 
   /** Table description of table dote. Objects of this class serve as prototypes for rows in queries. */
   class Dote(_tableTag: slick.lifted.Tag) extends profile.api.Table[DoteRow](_tableTag, "dote") {
     def * =
-      (id, dotableId, personId, smileCount, scowlCount, cryCount, laughCount, doteTime) <> (DoteRow.tupled, DoteRow.unapply)
+      (id, dotableId, personId, smileCount, scowlCount, cryCount, laughCount, doteTime, emoteKind) <> (DoteRow.tupled, DoteRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
@@ -282,11 +287,12 @@ trait Tables {
        Rep.Some(scowlCount),
        Rep.Some(cryCount),
        Rep.Some(laughCount),
-       Rep.Some(doteTime)).shaped.<>(
+       Rep.Some(doteTime),
+       emoteKind).shaped.<>(
         { r =>
           import r._;
           _1.map(_ =>
-            DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get)))
+            DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get, _7.get, _8.get, _9)))
         },
         (_: Any) => throw new Exception("Inserting into ? projection not supported.")
       )
@@ -314,6 +320,10 @@ trait Tables {
 
     /** Database column dote_time SqlType(timestamp) */
     val doteTime: Rep[java.time.LocalDateTime] = column[java.time.LocalDateTime]("dote_time")
+
+    /** Database column emote_kind SqlType(emotekind) */
+    val emoteKind: Rep[Option[kurtome.dote.shared.constants.EmoteKinds.Value]] =
+      column[Option[kurtome.dote.shared.constants.EmoteKinds.Value]]("emote_kind")
 
     /** Foreign key referencing Dotable (database name dote_dotable_id_fkey) */
     lazy val dotableFk = foreignKey("dote_dotable_id_fkey", dotableId, Dotable)(
