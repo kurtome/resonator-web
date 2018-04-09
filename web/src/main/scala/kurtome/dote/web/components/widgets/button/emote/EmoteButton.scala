@@ -54,7 +54,7 @@ object EmoteButton extends LogSupport {
     }
 
     def pickEmoji(p: Props, s: State): String = {
-      val index = Math.max(0, s.valueCount - 1)
+      val index = Math.min(Math.max(0, s.valueCount - 1), p.emojis.size - 1)
       p.emojis(index)
     }
 

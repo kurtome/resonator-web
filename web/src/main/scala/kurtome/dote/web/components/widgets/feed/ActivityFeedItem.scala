@@ -4,6 +4,7 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.activity.Activity
 import kurtome.dote.proto.api.feed.FeedActivityList
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.web.CssSettings._
@@ -30,6 +31,15 @@ object ActivityFeedItem extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
+    private def renderItems(activities: Seq[Activity]) = {
+      activities.zipWithIndex map {
+        case (activity, i) =>
+          val key = s"${activity.getDote.getDotable.id}-$i"
+          HoverPaper(variant = HoverPaper.Variants.CardHeader)
+            .withKey(key)(ActivityCard(activity)())
+      } toVdomArray
+    }
+
     def render(p: Props, s: State): VdomElement = {
       val activities = p.feedItem.getActivityList.getActivityList.items
 
@@ -53,20 +63,12 @@ object ActivityFeedItem extends LogSupport {
                 if (activities.size < p.feedItem.getId.getActivity.getPaginationInfo.pageSize) None
                 else FeedIdRoutes.nextPageRoute(p.feedItem.getId),
               itemsPerRowBreakpoints = tilesPerRow
-            )(
-              activities map { activity =>
-                HoverPaper(variant = HoverPaper.Variants.CardHeader)(ActivityCard(activity)())
-              } toVdomArray
-            )
+            )(renderItems(activities))
           }
           case _ =>
             CompactItemList(title = p.feedItem.getActivityList.getActivityList.title,
                             moreRoute = FeedIdRoutes.toRoute(p.feedItem.getId),
-                            itemsPerRowBreakpoints = tilesPerRow)(
-              activities map { activity =>
-                HoverPaper(variant = HoverPaper.Variants.CardHeader)(ActivityCard(activity)())
-              } toVdomArray
-            )
+                            itemsPerRowBreakpoints = tilesPerRow)(renderItems(activities))
         }
       )
     }

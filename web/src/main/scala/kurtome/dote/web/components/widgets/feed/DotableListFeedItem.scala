@@ -69,32 +69,28 @@ object DotableListFeedItem extends LogSupport {
                 if (dotables.size < p.feedItem.getId.getTagList.getPaginationInfo.pageSize) None
                 else FeedIdRoutes.nextPageRoute(p.feedItem.getId),
               itemsPerRowBreakpoints = calcTilesPerRowMap(p, s)
-            )(
-              dotables map { dotable =>
-                if (dotable.kind == Dotable.Kind.PODCAST) {
-                  HoverPaper()(PodcastCard(dotable = dotable)())
-                } else {
-                  HoverPaper()(EpisodeCard(dotable = dotable)())
-                }
-              } toVdomArray
-            )
+            )(renderItems(dotables))
           }
           case _ =>
             CompactItemList(
               title = p.feedItem.getDotableList.getList.title,
               moreRoute = FeedIdRoutes.toRoute(p.feedItem.getId),
               itemsPerRowBreakpoints = calcTilesPerRowMap(p, s)
-            )(
-              dotables map { dotable =>
-                if (dotable.kind == Dotable.Kind.PODCAST) {
-                  HoverPaper()(PodcastCard(dotable = dotable)())
-                } else {
-                  HoverPaper()(EpisodeCard(dotable = dotable)())
-                }
-              } toVdomArray
-            )
+            )(renderItems(dotables))
         }
       )
+    }
+
+    private def renderItems(dotables: Seq[Dotable]) = {
+      dotables.zipWithIndex map {
+        case (dotable, i) =>
+          val key = s"${dotable.id}-$i"
+          if (dotable.kind == Dotable.Kind.PODCAST) {
+            HoverPaper().withKey(key)(PodcastCard(dotable = dotable)())
+          } else {
+            HoverPaper().withKey(key)(EpisodeCard(dotable = dotable)())
+          }
+      } toVdomArray
     }
   }
 

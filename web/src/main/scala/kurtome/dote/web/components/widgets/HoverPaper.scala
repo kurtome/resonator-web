@@ -1,5 +1,6 @@
 package kurtome.dote.web.components.widgets
 
+import japgolly.scalajs.react
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.dotable.Dotable

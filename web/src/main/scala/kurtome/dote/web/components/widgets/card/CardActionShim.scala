@@ -57,6 +57,10 @@ object CardActionShim extends LogSupport {
       height(100 %%)
     )
 
+    val buttonItem = style(
+      pointerEvents := "auto"
+    )
+
   }
 
   case class Props(dotable: Dotable, hover: Boolean = false)
@@ -128,9 +132,9 @@ object CardActionShim extends LogSupport {
                               direction = Grid.Direction.Column,
                               spacing = 0,
                               justify = Grid.Justify.SpaceBetween)(
-                  GridItem()(ShareButton(
+                  GridItem(style = Styles.buttonItem)(ShareButton(
                     s"${dom.document.domain}/details/${p.dotable.id}/${p.dotable.slug}")()),
-                  GridItem()(
+                  GridItem(style = Styles.buttonItem)(
                     DoteEmoteButton(p.dotable)()
                   )
                 )
