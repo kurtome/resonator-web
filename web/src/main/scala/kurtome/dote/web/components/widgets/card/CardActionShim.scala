@@ -54,56 +54,9 @@ object CardActionShim extends LogSupport {
   }
 
   case class Props(dotable: Dotable, hover: Boolean = false)
-  case class State(clicked: Boolean = false,
-                   smileCount: Int = 0,
-                   cryCount: Int = 0,
-                   laughCount: Int = 0,
-                   scowlCount: Int = 0)
+  case class State(clicked: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
-
-    val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 200) { () =>
-      val p: Props = bs.props.runNow()
-      val s: State = bs.state.runNow()
-
-      debug(s"sending $s")
-
-      val f = DoteProtoServer.setDote(
-        SetDoteRequest(p.dotable.id,
-                       Some(
-                         Dote(smileCount = s.smileCount,
-                              laughCount = s.laughCount,
-                              cryCount = s.cryCount,
-                              scowlCount = s.scowlCount))))
-      GlobalLoadingManager.addLoadingFuture(f)
-    }
-
-    val handleLikeValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(smileCount = value)).runNow()
-        sendDoteToServer()
-    }
-
-    val handleCryValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(cryCount = value)).runNow()
-        sendDoteToServer()
-    }
-
-    val handleLaughValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(laughCount = value)).runNow()
-        sendDoteToServer()
-    }
-
-    val handleScowlValueChanged = (value: Int) =>
-      Callback {
-        bs.modState(s => s.copy(scowlCount = value)).runNow()
-        sendDoteToServer()
-    }
-
-    val handleInterceptorClicked = bs.modState(_.copy(clicked = true))
-
     def render(p: Props, s: State): VdomElement = {
       val showActions = p.hover && LoggedInPersonManager.isLoggedIn
 
@@ -129,19 +82,13 @@ object CardActionShim extends LogSupport {
           )
         )
       )
-
     }
+
   }
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => {
-      val dote = p.dotable.getDote
-      State(smileCount = dote.smileCount,
-            cryCount = dote.cryCount,
-            laughCount = dote.laughCount,
-            scowlCount = dote.scowlCount)
-    })
+    .initialState(State())
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build

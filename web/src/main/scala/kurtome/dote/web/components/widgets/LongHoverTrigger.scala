@@ -50,6 +50,11 @@ object LongHoverTrigger {
       }
     }
 
+    val handleUnmount = Callback {
+      triggerTimeout.foreach(id => dom.window.clearTimeout(id))
+      finishTimeout.foreach(id => dom.window.clearTimeout(id))
+    }
+
     private def trigger(p: Props) = {
       p.onTrigger.runNow()
       bs.modState(_.copy(hoverState = HoverStates.Triggered)).runNow()
@@ -62,6 +67,7 @@ object LongHoverTrigger {
 
     def render(p: Props, pc: PropsChildren, s: State): VdomElement = {
       <.div(
+        ^.pointerEvents.auto,
         ^.onMouseDown --> onMouseEnter(p, s),
         ^.onMouseEnter --> onMouseEnter(p, s),
         ^.onMouseLeave --> onMouseLeave(p, s),
@@ -76,6 +82,7 @@ object LongHoverTrigger {
     .initialState(State())
     .backend(new Backend(_))
     .renderPCS((builder, p, pc, s) => builder.backend.render(p, pc, s))
+    .componentWillUnmount(x => x.backend.handleUnmount)
     .build
 
   def apply(onTrigger: Callback = Callback.empty,

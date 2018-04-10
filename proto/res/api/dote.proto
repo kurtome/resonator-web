@@ -5,13 +5,8 @@ package kurtome.dote.proto.api;
 import "api/person.proto";
 
 message Dote {
-  int32 smile_count = 1;
-  int32 cry_count = 2;
-  int32 laugh_count = 3;
-  int32 scowl_count = 4;
-
-  Person person = 5;
-  EmoteKind emote_kind = 6;
+  Person person = 1;
+  EmoteKind emote_kind = 2;
 
   enum EmoteKind {
     UNKNOWN_KIND = 0;

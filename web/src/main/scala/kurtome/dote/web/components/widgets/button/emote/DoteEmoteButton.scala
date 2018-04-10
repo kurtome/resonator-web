@@ -7,11 +7,14 @@ import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.proto.api.dote.Dote.EmoteKind
+import kurtome.dote.shared.constants.Emojis
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.components.materialui.Grid
+import kurtome.dote.web.components.materialui.GridContainer
+import kurtome.dote.web.components.materialui.GridItem
+import kurtome.dote.web.components.materialui.Grow
+import kurtome.dote.web.components.materialui.Hidden
 import kurtome.dote.web.components.materialui.Paper
-import kurtome.dote.web.components.materialui.Popover
-import kurtome.dote.web.components.materialui.Popover.HorizontalOrigins
-import kurtome.dote.web.components.materialui.Popover.VerticalOrigins
 import kurtome.dote.web.components.widgets.LongHoverTrigger
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
@@ -26,13 +29,23 @@ object DoteEmoteButton extends LogSupport {
     import dsl._
 
     val popoverContent = style(
+      zIndex(10),
+      position.absolute,
+      marginTop(-48 px),
+      marginLeft(-48 * 1.5 px),
+      height(48 px),
+      width(48 * 4 px),
       padding(4 px)
+    )
+
+    val popupActionsContainer = style(
+      width(100 %%),
+      height(100 %%)
     )
   }
 
   case class Props(dotable: Dotable)
-  case class State(smileCount: Int = 0,
-                   emoteKind: EmoteKind = EmoteKind.UNKNOWN_KIND,
+  case class State(emoteKind: EmoteKind = EmoteKind.UNKNOWN_KIND,
                    popoverOpen: Boolean = false,
                    buttonDomNode: dom.Element = null)
 
@@ -43,43 +56,63 @@ object DoteEmoteButton extends LogSupport {
       val s: State = bs.state.runNow()
 
       val f =
-        DoteProtoServer.setDote(
-          SetDoteRequest(p.dotable.id,
-                         Some(Dote(smileCount = s.smileCount, emoteKind = s.emoteKind))))
+        DoteProtoServer.setDote(SetDoteRequest(p.dotable.id, Some(Dote(emoteKind = s.emoteKind))))
       GlobalLoadingManager.addLoadingFuture(f)
     }
 
-    val handleLikeValueChanged = (value: Int) =>
+    val handleLikeValueChanged = (value: Boolean) =>
       Callback {
-        val emote = if (value > 0) {
+        val emote = if (value) {
           EmoteKind.HEART
         } else {
           EmoteKind.UNKNOWN_KIND
         }
-        bs.modState(s => s.copy(smileCount = value, emoteKind = emote)).runNow()
+        bs.modState(s => s.copy(emoteKind = emote)).runNow()
         sendDoteToServer()
     }
 
-    val buttonRef = ScalaComponent.mutableRefTo(SmileButton.component)
-
-    val handleDidMount: Callback = bs.modState(_.copy(buttonDomNode = buttonRef.value.getDOMNode))
+    def popupStyle(p: Props, s: State): StyleA = {
+      Styles.popoverContent
+    }
 
     def render(p: Props, s: State): VdomElement = {
-
-      LongHoverTrigger(onTrigger = bs.modState(_.copy(popoverOpen = true)))(
-        Popover(
-          open = s.popoverOpen,
-          onClose = bs.modState(_.copy(popoverOpen = false)),
-          anchorEl = s.buttonDomNode,
-          PaperProps = Paper.Props(elevation = 4, style = Styles.popoverContent),
-          anchorOrigin = Popover.Origin(VerticalOrigins.Top, HorizontalOrigins.Center),
-          transformOrigin = Popover.Origin(VerticalOrigins.Bottom, HorizontalOrigins.Center)
-        )("Like"),
-        buttonRef.component(
-          SmileButton.Props(
-            if (s.emoteKind == EmoteKind.HEART) 1 else 0,
-            onValueChanged = handleLikeValueChanged
-          ))
+      LongHoverTrigger(onTrigger = bs.modState(_.copy(popoverOpen = true)),
+                       onFinish = bs.modState(_.copy(popoverOpen = false)))(
+        Grow(in = s.popoverOpen)(
+          Paper(elevation = 4, style = popupStyle(p, s))(
+            <.div(
+              ^.position.relative,
+              GridContainer(alignItems = Grid.AlignItems.Center,
+                            justify = Grid.Justify.Center,
+                            style = Styles.popupActionsContainer)(
+                GridItem()(
+                  EmoteButton(emoji = Emojis.heart,
+                              initialValue = false,
+                              onValueChanged = handleLikeValueChanged)()
+                ),
+                GridItem()(
+                  EmoteButton(emoji = Emojis.grinningSquintingFace,
+                              initialValue = false,
+                              onValueChanged = handleLikeValueChanged)()
+                ),
+                GridItem()(
+                  EmoteButton(emoji = Emojis.cryingFace,
+                              initialValue = false,
+                              onValueChanged = handleLikeValueChanged)()
+                ),
+                GridItem()(
+                  EmoteButton(emoji = Emojis.angryFace,
+                              initialValue = false,
+                              onValueChanged = handleLikeValueChanged)()
+                )
+              )
+            )
+          )
+        ),
+        SmileButton(
+          s.emoteKind == EmoteKind.HEART,
+          onValueChanged = handleLikeValueChanged
+        )()
       )
     }
   }
@@ -88,11 +121,10 @@ object DoteEmoteButton extends LogSupport {
     .builder[Props](this.getClass.getSimpleName)
     .initialStateFromProps(p => {
       val dote = p.dotable.getDote
-      State(smileCount = dote.smileCount, emoteKind = dote.emoteKind)
+      State(emoteKind = dote.emoteKind)
     })
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
-    .componentDidMount(x => x.backend.handleDidMount)
     .build
 
   def apply(dotable: Dotable) =

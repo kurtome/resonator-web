@@ -54,6 +54,12 @@ object Popover {
     var PaperProps: js.UndefOr[Paper.Props] = js.native
     var anchorOrigin: js.UndefOr[Origin] = js.native
     var transformOrigin: js.UndefOr[Origin] = js.native
+    var disableAutoFocus: js.UndefOr[Boolean] = js.native
+    var disableEnforceFocus: js.UndefOr[Boolean] = js.native
+    var disableRestoreFocus: js.UndefOr[Boolean] = js.native
+    var disableBackdropClick: js.UndefOr[Boolean] = js.native
+    var disableEscapeKeyDown: js.UndefOr[Boolean] = js.native
+    var hideBackdrop: js.UndefOr[Boolean] = js.native
     var onClose: js.Function0[Unit] = js.native
   }
 
@@ -65,6 +71,12 @@ object Popover {
             PaperProps: js.UndefOr[Paper.Props] = js.undefined,
             anchorOrigin: js.UndefOr[Origin] = js.undefined,
             transformOrigin: js.UndefOr[Origin] = js.undefined,
+            disableAutoFocus: js.UndefOr[Boolean] = js.undefined,
+            disableEnforceFocus: js.UndefOr[Boolean] = js.undefined,
+            disableRestoreFocus: js.UndefOr[Boolean] = js.undefined,
+            disableBackdropClick: js.UndefOr[Boolean] = js.undefined,
+            disableEscapeKeyDown: js.UndefOr[Boolean] = js.undefined,
+            hideBackdrop: js.UndefOr[Boolean] = js.undefined,
             onClose: Callback = Callback.empty) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.style = style
@@ -73,6 +85,12 @@ object Popover {
     p.anchorEl = anchorEl
     p.anchorOrigin = anchorOrigin
     p.transformOrigin = transformOrigin
+    p.disableAutoFocus = disableAutoFocus
+    p.disableEnforceFocus = disableEnforceFocus
+    p.disableRestoreFocus = disableRestoreFocus
+    p.disableBackdropClick = disableBackdropClick
+    p.disableEscapeKeyDown = disableEscapeKeyDown
+    p.hideBackdrop = hideBackdrop
     p.onClose = onClose.toJsFn
     component.withProps(p)
   }

@@ -6,12 +6,11 @@ import kurtome.dote.shared.constants.Emojis
 
 object CryButton {
 
-  case class Props(initialValue: Int, onValueChanged: (Int) => Callback)
+  case class Props(initialValue: Boolean, onValueChanged: (Boolean) => Callback)
 
   class Backend(bs: BackendScope[Props, Unit]) {
     def render(p: Props): VdomElement = {
-      import Emojis._
-      EmoteButton(emojis = cryEmojis,
+      EmoteButton(emoji = Emojis.cryingFace,
                   initialValue = p.initialValue,
                   onValueChanged = p.onValueChanged)()
     }
@@ -23,6 +22,6 @@ object CryButton {
     .renderP((builder, p) => builder.backend.render(p))
     .build
 
-  def apply(initialValue: Int, onValueChanged: (Int) => Callback) =
+  def apply(initialValue: Boolean, onValueChanged: (Boolean) => Callback) =
     component.withProps(Props(initialValue, onValueChanged))
 }

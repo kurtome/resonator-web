@@ -16,11 +16,6 @@ object PodcastImageCard extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val container = style(
-      position.absolute,
-      pointerEvents := "auto"
-    )
-
     val nestedImg = style(
       position.absolute,
       animation := s"${Animations.fadeInImage.name.value} 1s",
@@ -45,12 +40,7 @@ object PodcastImageCard extends LogSupport {
   Animations.addToDocument()
 
   case class Props(dotable: Dotable, width: String = "175px")
-  case class State(imgLoaded: Boolean = false,
-                   hover: Boolean = false,
-                   smileCount: Int = 0,
-                   cryCount: Int = 0,
-                   laughCount: Int = 0,
-                   scowlCount: Int = 0)
+  case class State(imgLoaded: Boolean = false, hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -89,13 +79,7 @@ object PodcastImageCard extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => {
-      val dote = p.dotable.getDote
-      State(smileCount = dote.smileCount,
-            cryCount = dote.cryCount,
-            laughCount = dote.laughCount,
-            scowlCount = dote.scowlCount)
-    })
+    .initialState(State())
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
