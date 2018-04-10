@@ -1,7 +1,10 @@
 package kurtome.dote.web.utils
 
+import japgolly.scalajs.react.component.Js.UnmountedSimple
 import japgolly.scalajs.react.vdom.Attr
 import japgolly.scalajs.react.vdom.Attr.ValueType
+import japgolly.scalajs.react.vdom.VdomElement
+import japgolly.scalajs.react.vdom.VdomNode
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
 import wvlet.log.LogSupport
@@ -21,6 +24,11 @@ abstract class BaseBackend(val styleSheet: StyleSheet.Inline) extends LogSupport
   implicit def richStyle(style: StyleA) = styleMap(style.htmlClass)
 
   implicit def richStyleOrUndef(style: StyleA) = js.UndefOr.any2undefOrA(styleMap(style.htmlClass))
+
+  implicit def vdomNodeOrUndef(node: VdomNode) = js.UndefOr.any2undefOrA(node)
+
+  implicit def vdomElementOrUndef(node: UnmountedSimple[_, _]): js.UndefOr[VdomElement] =
+    js.UndefOr.any2undefOrA(node.vdomElement)
 
   implicit val style2value: Attr.ValueType[StyleA, String] =
     ValueType((fn, style: StyleA) => fn(style.htmlClass))

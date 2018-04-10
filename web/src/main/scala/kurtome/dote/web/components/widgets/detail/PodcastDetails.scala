@@ -59,6 +59,11 @@ object PodcastDetails {
       display.grid
     )
 
+    val divider = style(
+      marginTop(8 px),
+      marginBottom(8 px)
+    )
+
   }
 
   case class Props(dotable: Dotable, episodeTablePage: Int)
@@ -211,7 +216,7 @@ object PodcastDetails {
             Grid(item = true, style = Styles.titleFieldContainer)(
               <.div(
                 ^.width := asPxStr(detailsWidth),
-                GridContainer()(
+                GridContainer(spacing = 0)(
                   GridItem(xs = 12)(
                     Typography(style = Styles.titleText, variant = Typography.Variants.Headline)(
                       fields.title),
@@ -235,11 +240,11 @@ object PodcastDetails {
                     Typography(variant = Typography.Variants.Body1,
                                dangerouslySetInnerHTML = linkifyAndSanitize(fields.summary))()
                   ),
-                  GridItem(xs = 12)(Divider()()),
+                  GridItem(xs = 12)(Divider(style = Styles.divider)()),
                   GridItem(xs = 12)(
                     DetailFieldList(detailFields)()
                   ),
-                  GridItem(xs = 12)(Divider()()),
+                  GridItem(xs = 12)(Divider(style = Styles.divider)()),
                   GridItem(xs = 12)(
                     renderTags(p.dotable)
                   )

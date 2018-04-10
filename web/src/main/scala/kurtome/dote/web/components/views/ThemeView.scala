@@ -7,6 +7,7 @@ import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.WebMain
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.MainContentSection
+import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.constants.MuiTheme.PaletteColor
 import kurtome.dote.web.utils.BaseBackend

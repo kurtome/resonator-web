@@ -1,6 +1,7 @@
 package kurtome.dote.web.components.materialui
 
 import japgolly.scalajs.react._
+import japgolly.scalajs.react.vdom.VdomNode
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
@@ -29,8 +30,8 @@ object TextField {
     var error: js.UndefOr[Boolean] = js.native
     var fullWidth: js.UndefOr[Boolean] = js.native
     var placeholder: js.UndefOr[String] = js.native
-    var label: js.UndefOr[raw.ReactElement] = js.native
-    var helperText: js.UndefOr[raw.ReactElement] = js.native
+    var label: js.UndefOr[raw.ReactNode] = js.native
+    var helperText: js.UndefOr[raw.ReactNode] = js.native
     var id: js.UndefOr[String] = js.native
     var margin: js.UndefOr[String] = js.native
     var `type`: js.UndefOr[String] = js.native
@@ -50,8 +51,8 @@ object TextField {
             value: js.UndefOr[String] = js.undefined,
             name: js.UndefOr[String] = js.undefined,
             placeholder: js.UndefOr[String] = js.undefined,
-            label: js.UndefOr[GenericComponent.Unmounted[_, _]] = js.undefined,
-            helperText: js.UndefOr[GenericComponent.Unmounted[_, _]] = js.undefined,
+            label: js.UndefOr[VdomNode] = js.undefined,
+            helperText: js.UndefOr[VdomNode] = js.undefined,
             inputType: js.UndefOr[String] = js.undefined,
             inputRef: js.UndefOr[js.Any] = js.undefined,
             onChange: ReactEventFromInput => Callback = _ => Callback.empty,
@@ -67,8 +68,8 @@ object TextField {
     p.required = required
     p.error = error
     p.placeholder = placeholder
-    p.label = label.map(_.raw)
-    p.helperText = helperText.map(_.raw)
+    p.label = label.map(_.rawNode)
+    p.helperText = helperText.map(_.rawNode)
     p.className = className
     p.margin = margin
     p.fullWidth = fullWidth

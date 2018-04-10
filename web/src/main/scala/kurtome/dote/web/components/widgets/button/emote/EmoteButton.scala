@@ -16,25 +16,24 @@ object EmoteButton extends LogSupport {
     import dsl._
 
     val wrapper = style(
-      pointerEvents := auto,
-      display.inline
+      pointerEvents := auto
     )
 
     val inactiveIcon = style(
       color.black,
-      fontSize(1.5 rem),
+      fontSize(1.1 rem),
       opacity(0.4)
     )
 
     val inactiveHoverIcon = style(
       color.black,
-      fontSize(1.5 rem),
-      opacity(0.6),
+      fontSize(1.1 rem),
+      opacity(0.6)
     )
 
     val activeIcon = style(
       color.black,
-      fontSize(1.5 rem),
+      fontSize(1.1 rem),
       opacity(1)
     )
   }
