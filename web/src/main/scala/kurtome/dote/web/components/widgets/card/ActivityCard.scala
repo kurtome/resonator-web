@@ -68,20 +68,12 @@ object ActivityCard extends LogSupport {
       val activity = p.activity
       val dotable = activity.getDote.getDotable
       val dote = activity.getDote.getDote
-      import EmoteKind._
-      val emoji = dote.emoteKind match {
-        case HEART => Emojis.heart
-        case LAUGH => Emojis.grinningSquintingFace
-        case CRY => Emojis.cryingFace
-        case SCOWL => Emojis.angryFace
-        case _ => ""
-      }
       <.div(
         ^.width := "100%",
         <.div(
           ^.className := Styles.headerTextWrapper,
           Typography(style = Styles.accountIcon)(Icons.AccountCircle()),
-          Typography(noWrap = true, style = Styles.ratingText)(emoji),
+          Typography(noWrap = true, style = Styles.ratingText)(Emojis.pickEmoji(dote.emoteKind)),
           Typography(noWrap = true, style = Styles.username)(
             SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
         ),

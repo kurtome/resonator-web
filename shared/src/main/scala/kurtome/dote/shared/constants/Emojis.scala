@@ -1,5 +1,7 @@
 package kurtome.dote.shared.constants
 
+import kurtome.dote.proto.api.dote.Dote.EmoteKind
+
 object Emojis {
   val cryingFace = "\uD83D\uDE22"
   val heartEyes = "\uD83D\uDE0D"
@@ -25,4 +27,15 @@ object Emojis {
   val cryEmojis = Seq(disappointedFace, cryingFace, loudlyCryingFace)
 
   val scowlEmojis = Seq(angryFace, poutingFace, faceWithSymbolsOnMouth)
+
+  def pickEmoji(emoteKind: EmoteKind, default: String = ""): String = {
+    import EmoteKind._
+    emoteKind match {
+      case HEART => heart
+      case LAUGH => grinningSquintingFace
+      case CRY => cryingFace
+      case SCOWL => angryFace
+      case _ => default
+    }
+  }
 }

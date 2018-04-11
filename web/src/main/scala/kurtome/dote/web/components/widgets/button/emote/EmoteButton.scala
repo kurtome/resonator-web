@@ -4,8 +4,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.components.ComponentHelpers._
-import kurtome.dote.web.utils.{IsMobile, BaseBackend}
+import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
@@ -38,20 +37,13 @@ object EmoteButton extends LogSupport {
     )
   }
 
-  case class Props(emoji: String, initialValue: Boolean, onValueChanged: (Boolean) => Callback)
-  case class State(value: Boolean, hover: Boolean = false)
+  case class Props(emoji: String, active: Boolean, onToggle: Callback)
+  case class State(hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val handleClick = (p: Props, s: State) =>
-      Callback {
-        val newValue = !s.value
-        bs.modState(s => s.copy(value = newValue)).runNow()
-        p.onValueChanged(newValue).runNow()
-    }
-
-    def pickStyle(s: State): js.Dynamic = {
-      if (s.value) {
+    def pickStyle(p: Props, s: State): js.Dynamic = {
+      if (p.active) {
         Styles.activeIcon
       } else {
         if (s.hover) {
@@ -67,7 +59,7 @@ object EmoteButton extends LogSupport {
         ^.className := Styles.wrapper,
         ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
         ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
-        IconButton(onClick = handleClick(p, s), style = pickStyle(s))(
+        IconButton(onClick = p.onToggle, style = pickStyle(p, s))(
           p.emoji
         )
       )
@@ -76,12 +68,12 @@ object EmoteButton extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => State(value = p.initialValue))
+    .initialStateFromProps(p => State(p.active))
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(emoji: String, initialValue: Boolean, onValueChanged: (Boolean) => Callback) =
-    component.withProps(Props(emoji, initialValue, onValueChanged))
+  def apply(emoji: String, active: Boolean = false, onToggle: Callback) =
+    component.withProps(Props(emoji, active, onToggle))
 
 }

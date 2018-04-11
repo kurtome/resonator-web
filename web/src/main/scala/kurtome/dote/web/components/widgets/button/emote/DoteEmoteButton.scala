@@ -1,7 +1,6 @@
 package kurtome.dote.web.components.widgets.button.emote
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.Attr.Ref
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.dotable.Dotable
@@ -13,7 +12,6 @@ import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
 import kurtome.dote.web.components.materialui.Grow
-import kurtome.dote.web.components.materialui.Hidden
 import kurtome.dote.web.components.materialui.Paper
 import kurtome.dote.web.components.widgets.LongHoverTrigger
 import kurtome.dote.web.rpc.DoteProtoServer
@@ -60,16 +58,20 @@ object DoteEmoteButton extends LogSupport {
       GlobalLoadingManager.addLoadingFuture(f)
     }
 
-    val handleLikeValueChanged = (value: Boolean) =>
+    def handleEmoteValueChanged(s: State, emoteKind: EmoteKind, shouldToggleOff: Boolean = false) =
       Callback {
-        val emote = if (value) {
-          EmoteKind.HEART
-        } else {
-          EmoteKind.UNKNOWN_KIND
-        }
-        bs.modState(s => s.copy(emoteKind = emote)).runNow()
+        val isActive = s.emoteKind != EmoteKind.UNKNOWN_KIND
+        val emote =
+          if (shouldToggleOff && isActive) {
+            EmoteKind.UNKNOWN_KIND
+          } else if (!shouldToggleOff && s.emoteKind == emoteKind) {
+            EmoteKind.UNKNOWN_KIND
+          } else {
+            emoteKind
+          }
+        bs.modState(s => s.copy(popoverOpen = false, emoteKind = emote)).runNow()
         sendDoteToServer()
-    }
+      }
 
     def popupStyle(p: Props, s: State): StyleA = {
       Styles.popoverContent
@@ -87,31 +89,32 @@ object DoteEmoteButton extends LogSupport {
                             style = Styles.popupActionsContainer)(
                 GridItem()(
                   EmoteButton(emoji = Emojis.heart,
-                              initialValue = false,
-                              onValueChanged = handleLikeValueChanged)()
-                ),
-                GridItem()(
-                  EmoteButton(emoji = Emojis.grinningSquintingFace,
-                              initialValue = false,
-                              onValueChanged = handleLikeValueChanged)()
+                              active = s.emoteKind == EmoteKind.HEART,
+                              onToggle = handleEmoteValueChanged(s, EmoteKind.HEART))()
                 ),
                 GridItem()(
                   EmoteButton(emoji = Emojis.cryingFace,
-                              initialValue = false,
-                              onValueChanged = handleLikeValueChanged)()
+                              active = s.emoteKind == EmoteKind.CRY,
+                              onToggle = handleEmoteValueChanged(s, EmoteKind.CRY))()
+                ),
+                GridItem()(
+                  EmoteButton(emoji = Emojis.grinningSquintingFace,
+                              active = s.emoteKind == EmoteKind.LAUGH,
+                              onToggle = handleEmoteValueChanged(s, EmoteKind.LAUGH))()
                 ),
                 GridItem()(
                   EmoteButton(emoji = Emojis.angryFace,
-                              initialValue = false,
-                              onValueChanged = handleLikeValueChanged)()
+                              active = s.emoteKind == EmoteKind.SCOWL,
+                              onToggle = handleEmoteValueChanged(s, EmoteKind.SCOWL))()
                 )
               )
             )
           )
         ),
-        SmileButton(
-          s.emoteKind == EmoteKind.HEART,
-          onValueChanged = handleLikeValueChanged
+        EmoteButton(
+          emoji = Emojis.pickEmoji(s.emoteKind, default = Emojis.heart),
+          active = s.emoteKind != EmoteKind.UNKNOWN_KIND,
+          onToggle = handleEmoteValueChanged(s, EmoteKind.HEART, shouldToggleOff = true)
         )()
       )
     }

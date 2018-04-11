@@ -14,7 +14,6 @@ import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.button.emote.DoteEmoteButton
-import kurtome.dote.web.components.widgets.button.emote.SmileButton
 import kurtome.dote.web.components.widgets.card.EpisodeCard
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.BaseBackend
