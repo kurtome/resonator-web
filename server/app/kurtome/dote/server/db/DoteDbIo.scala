@@ -123,6 +123,10 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
     Queries.filterByPersonAndDotableId(personId, dotableId).result.headOption
   }
 
+  def delete(personId: Long, dotableId: Long) = {
+    Tables.Dote.filter(row => row.personId === personId && row.dotableId === dotableId).delete
+  }
+
   def upsert(personId: Long, dotableId: Long, dote: Dote) = {
     val emoteKind: Option[EmoteKinds.Value] = EmoteKindMapper.fromProto(dote.emoteKind)
     sqlu"""INSERT INTO dote AS d

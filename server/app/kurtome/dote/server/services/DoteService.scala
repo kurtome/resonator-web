@@ -4,6 +4,7 @@ import java.time.{Duration, LocalDateTime}
 
 import javax.inject._
 import kurtome.dote.proto.api.dote.Dote
+import kurtome.dote.proto.api.dote.Dote.EmoteKind
 import kurtome.dote.server.db.DoteDbIo
 import kurtome.dote.shared.model.PaginationInfo
 import kurtome.dote.slick.db.DotableKinds.DotableKind
@@ -20,7 +21,11 @@ class DoteService @Inject()(db: BasicBackend#Database, doteDbIo: DoteDbIo)(
   val trendingAge = Duration.ofDays(3)
 
   def writeDote(personId: Long, dotableId: Long, dote: Dote): Future[Unit] = {
-    db.run(doteDbIo.upsert(personId, dotableId, dote)).map(_ => Unit)
+    if (dote.emoteKind == EmoteKind.UNKNOWN_KIND) {
+      db.run(doteDbIo.delete(personId, dotableId)).map(_ => Unit)
+    } else {
+      db.run(doteDbIo.upsert(personId, dotableId, dote)).map(_ => Unit)
+    }
   }
 
   def readDote(personId: Long, dotableId: Long): Future[Option[Tables.DoteRow]] = {
