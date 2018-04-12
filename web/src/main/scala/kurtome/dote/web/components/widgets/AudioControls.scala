@@ -12,27 +12,36 @@ import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.widgets.card.PodcastImageCard
 import kurtome.dote.web.utils.BaseBackend
+import org.scalajs.dom
 import wvlet.log.LogSupport
 
 object AudioControls extends LogSupport {
+
+  val fullWidth = currentBreakpointString == "xs"
+
+  val controlsWidth =
+    if (fullWidth) dom.window.document.body.offsetWidth.toInt
+    else Math.min(400, ContentFrame.innerWidthPx)
+
+  val edgeMargin = if (fullWidth) 0 else 16
 
   object Styles extends StyleSheet.Inline {
     import dsl._
 
     val playerWrapper = style(
       width(100 %%),
-      bottom(bottomNavHeight + 16 px),
+      bottom(edgeMargin px),
       position.fixed
     )
 
     val progressWrapper = style(
       width(controlsWidth px),
-      marginLeft(16 px)
+      marginLeft(edgeMargin px)
     )
 
     val playerRoot = style(
       width(controlsWidth px),
-      marginLeft(16 px),
+      marginLeft(edgeMargin px),
       height(controlsHeight px)
     )
 
@@ -97,9 +106,7 @@ object AudioControls extends LogSupport {
 
   }
 
-  val bottomNavHeight = 56
   val controlsHeight = 80
-  val controlsWidth = Math.min(400, ContentFrame.innerWidthPx)
 
   case class Props()
   case class State(playerState: AudioPlayer.State)
@@ -148,6 +155,7 @@ object AudioControls extends LogSupport {
         <.div()
       } else {
         Grid(container = true,
+             spacing = 0,
              style = Styles.playerWrapper,
              justify = if (shouldCenter) Grid.Justify.Center else Grid.Justify.FlexStart)(
           Grid(item = true)(
