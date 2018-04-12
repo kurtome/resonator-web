@@ -34,8 +34,10 @@ object ActivityFeedItem extends LogSupport {
     private def renderItems(activities: Seq[Activity]) = {
       activities.zipWithIndex map {
         case (activity, i) =>
-          val key = s"${activity.getDote.getDotable.id}-$i"
-          HoverPaper(variant = HoverPaper.Variants.CardHeader)
+          val dotable = activity.getDote.getDotable.withDote(activity.getDote.getDote)
+          val key = s"${dotable.id}-$i"
+          DotableActionsCardWrapper(variant = DotableActionsCardWrapper.Variants.CardHeader,
+                                    dotable = dotable)
             .withKey(key)(ActivityCard(activity)())
       } toVdomArray
     }

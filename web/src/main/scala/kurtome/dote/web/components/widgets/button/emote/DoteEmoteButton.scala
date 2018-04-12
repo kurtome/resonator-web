@@ -34,35 +34,39 @@ object DoteEmoteButton extends LogSupport {
     )
   }
 
-  case class Props(dotable: Dotable, showAllOptions: Boolean)
-  case class State(emoteKind: EmoteKind = EmoteKind.UNKNOWN_KIND,
-                   popoverOpen: Boolean = false,
-                   buttonDomNode: dom.Element = null)
+  case class Props(dotable: Dotable, showAllOptions: Boolean, onDoteChanged: (Dote) => Callback)
+  case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val sendDoteToServer: js.Function0[Unit] = Debounce.debounce0(waitMs = 200) { () =>
-      val p: Props = bs.props.runNow()
-      val s: State = bs.state.runNow()
+    val sendDoteToServer: js.Function1[EmoteKind, Unit] = Debounce.debounce1(waitMs = 200) {
+      (emoteKind: EmoteKind) =>
+        val p: Props = bs.props.runNow()
+        val s: State = bs.state.runNow()
 
-      val f =
-        DoteProtoServer.setDote(SetDoteRequest(p.dotable.id, Some(Dote(emoteKind = s.emoteKind))))
-      GlobalLoadingManager.addLoadingFuture(f)
+        val dote = Dote(emoteKind = emoteKind)
+
+        p.onDoteChanged(dote).runNow()
+
+        val f =
+          DoteProtoServer.setDote(SetDoteRequest(p.dotable.id, Some(dote)))
+        GlobalLoadingManager.addLoadingFuture(f)
     }
 
-    def handleEmoteValueChanged(s: State, emoteKind: EmoteKind, shouldToggleOff: Boolean = false) =
+    def handleEmoteValueChanged(p: Props,
+                                buttonKind: EmoteKind,
+                                shouldToggleOff: Boolean = false) =
       Callback {
-        val isActive = s.emoteKind != EmoteKind.UNKNOWN_KIND
-        val emote =
+        val isActive = p.dotable.getDote.emoteKind != EmoteKind.UNKNOWN_KIND
+        val newEmoteKind =
           if (shouldToggleOff && isActive) {
             EmoteKind.UNKNOWN_KIND
-          } else if (!shouldToggleOff && s.emoteKind == emoteKind) {
+          } else if (!shouldToggleOff && p.dotable.getDote.emoteKind == buttonKind) {
             EmoteKind.UNKNOWN_KIND
           } else {
-            emoteKind
+            buttonKind
           }
-        bs.modState(s => s.copy(popoverOpen = false, emoteKind = emote)).runNow()
-        sendDoteToServer()
+        sendDoteToServer(newEmoteKind)
       }
 
     def popupStyle(p: Props, s: State): StyleA = {
@@ -70,34 +74,35 @@ object DoteEmoteButton extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
+      val kind = p.dotable.getDote.emoteKind
       if (p.showAllOptions) {
         GridContainer(alignItems = Grid.AlignItems.Center)(
           GridItem()(
             EmoteButton(emoji = Emojis.heart,
-                        active = s.emoteKind == EmoteKind.HEART,
-                        onToggle = handleEmoteValueChanged(s, EmoteKind.HEART))()
+                        active = kind == EmoteKind.HEART,
+                        onToggle = handleEmoteValueChanged(p, EmoteKind.HEART))()
           ),
           GridItem()(
             EmoteButton(emoji = Emojis.cryingFace,
-                        active = s.emoteKind == EmoteKind.CRY,
-                        onToggle = handleEmoteValueChanged(s, EmoteKind.CRY))()
+                        active = kind == EmoteKind.CRY,
+                        onToggle = handleEmoteValueChanged(p, EmoteKind.CRY))()
           ),
           GridItem()(
             EmoteButton(emoji = Emojis.grinningSquintingFace,
-                        active = s.emoteKind == EmoteKind.LAUGH,
-                        onToggle = handleEmoteValueChanged(s, EmoteKind.LAUGH))()
+                        active = kind == EmoteKind.LAUGH,
+                        onToggle = handleEmoteValueChanged(p, EmoteKind.LAUGH))()
           ),
           GridItem()(
             EmoteButton(emoji = Emojis.angryFace,
-                        active = s.emoteKind == EmoteKind.SCOWL,
-                        onToggle = handleEmoteValueChanged(s, EmoteKind.SCOWL))()
+                        active = kind == EmoteKind.SCOWL,
+                        onToggle = handleEmoteValueChanged(p, EmoteKind.SCOWL))()
           )
         )
       } else {
         EmoteButton(
-          emoji = Emojis.pickEmoji(s.emoteKind, default = Emojis.heart),
-          active = s.emoteKind != EmoteKind.UNKNOWN_KIND,
-          onToggle = handleEmoteValueChanged(s, EmoteKind.HEART, shouldToggleOff = true)
+          emoji = Emojis.pickEmoji(kind, default = Emojis.heart),
+          active = kind != EmoteKind.UNKNOWN_KIND,
+          onToggle = handleEmoteValueChanged(p, EmoteKind.HEART, shouldToggleOff = true)
         )()
       }
     }
@@ -105,14 +110,13 @@ object DoteEmoteButton extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => {
-      val dote = p.dotable.getDote
-      State(emoteKind = dote.emoteKind)
-    })
+    .initialState(State())
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable, showAllOptions: Boolean = false) =
-    component.withProps(Props(dotable, showAllOptions))
+  def apply(dotable: Dotable,
+            showAllOptions: Boolean = false,
+            onDoteChanged: (Dote) => Callback = _ => Callback.empty) =
+    component.withProps(Props(dotable, showAllOptions, onDoteChanged))
 }

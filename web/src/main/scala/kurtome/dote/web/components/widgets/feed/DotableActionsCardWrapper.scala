@@ -4,34 +4,28 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.proto.api.activity.Activity
 import kurtome.dote.proto.api.dotable.Dotable
-import kurtome.dote.proto.api.feed.FeedActivityList
-import kurtome.dote.proto.api.feed.FeedItem
+import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.materialui.Collapse
 import kurtome.dote.web.components.materialui.Divider
-import kurtome.dote.web.components.materialui.Fade
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
-import kurtome.dote.web.components.materialui.Hidden
 import kurtome.dote.web.components.materialui.IconButton
 import kurtome.dote.web.components.materialui.Icons
 import kurtome.dote.web.components.materialui.Paper
 import kurtome.dote.web.components.materialui.Typography
-import kurtome.dote.web.components.widgets._
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.button.emote.DoteEmoteButton
-import kurtome.dote.web.components.widgets.card.ActivityCard
 import kurtome.dote.web.components.widgets.card.CardActionShim
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
-import kurtome.dote.web.utils.FeedIdRoutes
+import kurtome.dote.web.utils.LoggedInPersonManager
 import org.scalajs.dom
-import scalacss.ScalaCssReact._
 import wvlet.log.LogSupport
 
 import scala.language.postfixOps
@@ -80,7 +74,7 @@ object DotableActionsCardWrapper extends LogSupport {
   type Variant = Variants.Value
 
   case class Props(dotable: Dotable, elevation: Int, variant: Variant, alwaysExpanded: Boolean)
-  case class State(hover: Boolean = false, expanded: Boolean = false)
+  case class State(dotable: Dotable, hover: Boolean = false, expanded: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -120,37 +114,50 @@ object DotableActionsCardWrapper extends LogSupport {
       collapseTimer.foreach(id => dom.window.clearTimeout(id))
     }
 
+    def handleDoteChanged(dote: Dote) =
+      bs.modState(s => s.copy(dotable = s.dotable.withDote(dote)))
+
     def render(p: Props, s: State, pc: PropsChildren): VdomElement = {
+      val dotable = s.dotable
+
       <.div(
         ^.position.relative,
         ^.onMouseEnter --> onMouseEnter,
         ^.onMouseLeave --> onMouseLeave,
         Paper(style = paperStyle(p), elevation = if (s.hover) p.elevation + 2 else p.elevation)(
-          CardActionShim(p.dotable, s.hover && !s.expanded)(),
+          CardActionShim(dotable,
+                         active = s.hover && !s.expanded,
+                         onDoteChanged = handleDoteChanged)(),
           pc,
           Collapse(in = s.expanded, style = Styles.actionsCollapseContainer)(
             Divider()(),
             GridContainer()(
-              GridItem(xs = 12)(
+              GridItem(xs = 12,
+                       hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
                 GridContainer(justify = Grid.Justify.Center)(
-                  GridItem()(DoteEmoteButton(p.dotable, showAllOptions = true)())
+                  GridItem()(
+                    DoteEmoteButton(dotable,
+                                    showAllOptions = true,
+                                    onDoteChanged = handleDoteChanged)())
                 )
               ),
-              GridItem(xs = 12)(Divider()()),
+              GridItem(xs = 12,
+                       hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+                Divider()()),
               GridItem(xs = 12)(
                 GridContainer(justify = Grid.Justify.Center, alignItems = Grid.AlignItems.Center)(
                   GridItem()(Typography()("Share")),
-                  GridItem()(ShareButton(dotableUrl(p.dotable))())
+                  GridItem()(ShareButton(dotableUrl(dotable))())
                 )
               ),
-              GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = !AudioPlayer.canPlay(p.dotable)))(
+              GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = !AudioPlayer.canPlay(dotable)))(
                 Divider()()
               ),
-              GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = !AudioPlayer.canPlay(p.dotable)))(
+              GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = !AudioPlayer.canPlay(dotable)))(
                 GridContainer(justify = Grid.Justify.Center, alignItems = Grid.AlignItems.Center)(
                   GridItem()(Typography()("Play")),
                   GridItem()(
-                    IconButton(onClick = Callback(AudioPlayer.startPlayingEpisode(p.dotable)),
+                    IconButton(onClick = Callback(AudioPlayer.startPlayingEpisode(dotable)),
                                color = IconButton.Colors.Primary)(Icons.PlayArrow()))
                 )
               )
@@ -163,7 +170,7 @@ object DotableActionsCardWrapper extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => State(expanded = p.alwaysExpanded))
+    .initialStateFromProps(p => State(p.dotable, expanded = p.alwaysExpanded))
     .backend(new Backend(_))
     .renderPCS((builder, p, pc, s) => builder.backend.render(p, s, pc))
     .componentWillUnmount(x => x.backend.handleUnmount)

@@ -54,7 +54,7 @@ object CardActionShim extends LogSupport {
 
   }
 
-  case class Props(dotable: Dotable, hover: Boolean = false)
+  case class Props(dotable: Dotable, hover: Boolean = false, onDoteChanged: (Dote) => Callback)
   case class State(clicked: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -75,7 +75,7 @@ object CardActionShim extends LogSupport {
                             justify = Grid.Justify.SpaceBetween)(
                 GridItem(style = Styles.buttonItem)(ShareButton(dotableUrl(p.dotable))()),
                 GridItem(style = Styles.buttonItem)(
-                  DoteEmoteButton(p.dotable)()
+                  DoteEmoteButton(p.dotable, onDoteChanged = p.onDoteChanged)()
                 )
               )
             )
@@ -93,6 +93,8 @@ object CardActionShim extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable, active: Boolean) =
-    component.withProps(Props(dotable, active))
+  def apply(dotable: Dotable,
+            active: Boolean,
+            onDoteChanged: (Dote) => Callback = _ => Callback.empty) =
+    component.withProps(Props(dotable, active, onDoteChanged))
 }
