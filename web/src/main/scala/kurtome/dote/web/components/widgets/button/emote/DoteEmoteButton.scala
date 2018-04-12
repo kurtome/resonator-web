@@ -71,7 +71,7 @@ object DoteEmoteButton extends LogSupport {
 
     def render(p: Props, s: State): VdomElement = {
       if (p.showAllOptions) {
-        GridContainer(alignItems = Grid.AlignItems.Center, justify = Grid.Justify.Center)(
+        GridContainer(alignItems = Grid.AlignItems.Center)(
           GridItem()(
             EmoteButton(emoji = Emojis.heart,
                         active = s.emoteKind == EmoteKind.HEART,
