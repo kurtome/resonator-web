@@ -11,9 +11,6 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
-import kurtome.dote.web.components.materialui.Grow
-import kurtome.dote.web.components.materialui.Paper
-import kurtome.dote.web.components.widgets.LongHoverTrigger
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils._
 import org.scalajs.dom
@@ -35,14 +32,9 @@ object DoteEmoteButton extends LogSupport {
       width(48 * 4 px),
       padding(4 px)
     )
-
-    val popupActionsContainer = style(
-      width(100 %%),
-      height(100 %%)
-    )
   }
 
-  case class Props(dotable: Dotable)
+  case class Props(dotable: Dotable, showAllOptions: Boolean)
   case class State(emoteKind: EmoteKind = EmoteKind.UNKNOWN_KIND,
                    popoverOpen: Boolean = false,
                    buttonDomNode: dom.Element = null)
@@ -78,45 +70,36 @@ object DoteEmoteButton extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
-      LongHoverTrigger(onTrigger = bs.modState(_.copy(popoverOpen = true)),
-                       onFinish = bs.modState(_.copy(popoverOpen = false)))(
-        Grow(in = s.popoverOpen)(
-          Paper(elevation = 4, style = popupStyle(p, s))(
-            <.div(
-              ^.position.relative,
-              GridContainer(alignItems = Grid.AlignItems.Center,
-                            justify = Grid.Justify.Center,
-                            style = Styles.popupActionsContainer)(
-                GridItem()(
-                  EmoteButton(emoji = Emojis.heart,
-                              active = s.emoteKind == EmoteKind.HEART,
-                              onToggle = handleEmoteValueChanged(s, EmoteKind.HEART))()
-                ),
-                GridItem()(
-                  EmoteButton(emoji = Emojis.cryingFace,
-                              active = s.emoteKind == EmoteKind.CRY,
-                              onToggle = handleEmoteValueChanged(s, EmoteKind.CRY))()
-                ),
-                GridItem()(
-                  EmoteButton(emoji = Emojis.grinningSquintingFace,
-                              active = s.emoteKind == EmoteKind.LAUGH,
-                              onToggle = handleEmoteValueChanged(s, EmoteKind.LAUGH))()
-                ),
-                GridItem()(
-                  EmoteButton(emoji = Emojis.angryFace,
-                              active = s.emoteKind == EmoteKind.SCOWL,
-                              onToggle = handleEmoteValueChanged(s, EmoteKind.SCOWL))()
-                )
-              )
-            )
+      if (p.showAllOptions) {
+        GridContainer(alignItems = Grid.AlignItems.Center, justify = Grid.Justify.Center)(
+          GridItem()(
+            EmoteButton(emoji = Emojis.heart,
+                        active = s.emoteKind == EmoteKind.HEART,
+                        onToggle = handleEmoteValueChanged(s, EmoteKind.HEART))()
+          ),
+          GridItem()(
+            EmoteButton(emoji = Emojis.cryingFace,
+                        active = s.emoteKind == EmoteKind.CRY,
+                        onToggle = handleEmoteValueChanged(s, EmoteKind.CRY))()
+          ),
+          GridItem()(
+            EmoteButton(emoji = Emojis.grinningSquintingFace,
+                        active = s.emoteKind == EmoteKind.LAUGH,
+                        onToggle = handleEmoteValueChanged(s, EmoteKind.LAUGH))()
+          ),
+          GridItem()(
+            EmoteButton(emoji = Emojis.angryFace,
+                        active = s.emoteKind == EmoteKind.SCOWL,
+                        onToggle = handleEmoteValueChanged(s, EmoteKind.SCOWL))()
           )
-        ),
+        )
+      } else {
         EmoteButton(
           emoji = Emojis.pickEmoji(s.emoteKind, default = Emojis.heart),
           active = s.emoteKind != EmoteKind.UNKNOWN_KIND,
           onToggle = handleEmoteValueChanged(s, EmoteKind.HEART, shouldToggleOff = true)
         )()
-      )
+      }
     }
   }
 
@@ -130,6 +113,6 @@ object DoteEmoteButton extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable) =
-    component.withProps(Props(dotable))
+  def apply(dotable: Dotable, showAllOptions: Boolean = false) =
+    component.withProps(Props(dotable, showAllOptions))
 }

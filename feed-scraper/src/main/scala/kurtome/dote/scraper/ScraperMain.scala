@@ -60,7 +60,7 @@ object ScraperMain {
 
     opt[Unit]("ingestAllPodcasts")
       .action((_, c) => {
-        c.copy(prod = true)
+        c.copy(ingestAllPodcasts = true)
       })
       .text(
         s"ingest every podcast link found, instead of just the top $topCount. this is automatically on if --deepCrawl is enabled")
@@ -91,9 +91,11 @@ object ScraperMain {
     val podcastLinks = results.flatMap(_.discoveredPodcastLinks)
     val popularLinks: Set[String] = Set(results.flatMap(_.popularPodcastLinks): _*)
 
-    podcastLinks
-      .foreach(podcastUrl => {
-        println(s"\tAdding $podcastUrl")
+    val totalCount = podcastLinks.size
+
+    podcastLinks.zipWithIndex foreach {
+      case (podcastUrl: String, i: Int) =>
+        println(s"\t[$i of $totalCount] Adding $podcastUrl")
         Try {
           val popular = popularLinks.contains(podcastUrl)
           AddPodcastServer.addPodcast(
@@ -105,7 +107,8 @@ object ScraperMain {
             t.printStackTrace
             println(s"\t\tFailed adding $podcastUrl: ${t.getMessage}")
         }
-      })
+    }
+
     println("done")
   }
 

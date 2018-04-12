@@ -47,8 +47,8 @@ object PodcastCard extends LogSupport {
   }
   type Variant = Variants.Value
 
-  case class Props(dotable: Dotable, elevation: Int, disableActions: Boolean, variant: Variant)
-  case class State(hover: Boolean = false)
+  case class Props(dotable: Dotable, variant: Variant)
+  case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -70,24 +70,20 @@ object PodcastCard extends LogSupport {
         p.dotable.getDetails.getPodcast.imageUrl
       }
 
+      val yearRange: String =
+        epochSecRangeToYearRange(p.dotable.getCommon.publishedEpochSec,
+                                 p.dotable.getCommon.updatedEpochSec).getOrElse("")
+
       <.div(
         ^.className := backgroundColor(p),
         ^.width := "100%",
-        ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
-        ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
-        if (p.disableActions) {
-          <.div(^.position := "absolute")
-        } else {
-          CardActionShim(p.dotable, s.hover)()
-        },
         p.variant match {
           case Variants.Activity =>
             <.div(
               ImageWithSummaryCard(
                 p.dotable,
                 caption1 =
-                  epochSecRangeToYearRange(p.dotable.getCommon.publishedEpochSec,
-                                           p.dotable.getCommon.updatedEpochSec).getOrElse("")
+                  Typography(variant = Typography.Variants.Caption, noWrap = true)(yearRange)
               )()
             )
           case _ =>
@@ -108,9 +104,6 @@ object PodcastCard extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable,
-            elevation: Int = 5,
-            disableActions: Boolean = false,
-            variant: Variant = Variants.Default) =
-    component.withProps(Props(dotable, elevation, disableActions, variant))
+  def apply(dotable: Dotable, variant: Variant = Variants.Default) =
+    component.withProps(Props(dotable, variant))
 }

@@ -2,6 +2,7 @@ package kurtome.dote.web.components
 
 import japgolly.scalajs.react.vdom.Attr
 import japgolly.scalajs.react.vdom.Attr.ValueType
+import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.web.utils.Linkify
 
 import scala.scalajs.js
@@ -18,6 +19,10 @@ import scalacss.internal.{Css, CssEntry, Renderer, Style}
 import scalacss.internal.mutable.StyleSheet
 
 object ComponentHelpers {
+
+  def dotableUrl(dotable: Dotable): String = {
+    s"${dom.document.domain}/details/${dotable.id}/${dotable.slug}"
+  }
 
   def epochSecToDate(epochSec: Long): String = {
     if (epochSec > 0) {

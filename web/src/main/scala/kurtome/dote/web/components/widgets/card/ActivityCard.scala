@@ -78,15 +78,9 @@ object ActivityCard extends LogSupport {
             SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
         ),
         if (dotable.kind == Dotable.Kind.PODCAST) {
-          PodcastCard(dotable = dotable,
-                      elevation = 0,
-                      disableActions = true,
-                      variant = PodcastCard.Variants.Activity)()
+          PodcastCard(dotable = dotable, variant = PodcastCard.Variants.Activity)()
         } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-          EpisodeCard(dotable = dotable,
-                      elevation = 0,
-                      disableActions = true,
-                      variant = EpisodeCard.Variants.Activity)()
+          EpisodeCard(dotable = dotable, variant = EpisodeCard.Variants.Activity)()
         } else {
           // Placeholder for correct spacing
           <.div(^.width := "100%")

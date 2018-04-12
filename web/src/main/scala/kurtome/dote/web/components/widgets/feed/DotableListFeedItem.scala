@@ -86,9 +86,9 @@ object DotableListFeedItem extends LogSupport {
         case (dotable, i) =>
           val key = s"${dotable.id}-$i"
           if (dotable.kind == Dotable.Kind.PODCAST) {
-            HoverPaper().withKey(key)(PodcastCard(dotable = dotable)())
+            DotableActionsCardWrapper(dotable).withKey(key)(PodcastCard(dotable = dotable)())
           } else {
-            HoverPaper().withKey(key)(EpisodeCard(dotable = dotable)())
+            DotableActionsCardWrapper(dotable).withKey(key)(EpisodeCard(dotable = dotable)())
           }
       } toVdomArray
     }

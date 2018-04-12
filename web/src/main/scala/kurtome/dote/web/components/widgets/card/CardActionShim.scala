@@ -8,6 +8,7 @@ import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.widgets.Fader
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.button.emote._
@@ -72,8 +73,7 @@ object CardActionShim extends LogSupport {
                             direction = Grid.Direction.Column,
                             spacing = 0,
                             justify = Grid.Justify.SpaceBetween)(
-                GridItem(style = Styles.buttonItem)(ShareButton(
-                  s"${dom.document.domain}/details/${p.dotable.id}/${p.dotable.slug}")()),
+                GridItem(style = Styles.buttonItem)(ShareButton(dotableUrl(p.dotable))()),
                 GridItem(style = Styles.buttonItem)(
                   DoteEmoteButton(p.dotable)()
                 )
@@ -93,6 +93,6 @@ object CardActionShim extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable, hover: Boolean) =
-    component.withProps(Props(dotable, hover))
+  def apply(dotable: Dotable, active: Boolean) =
+    component.withProps(Props(dotable, active))
 }

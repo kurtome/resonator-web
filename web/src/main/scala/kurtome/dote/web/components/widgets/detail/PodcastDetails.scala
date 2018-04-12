@@ -18,6 +18,7 @@ import kurtome.dote.web.components.widgets.detail.DetailFieldList._
 import kurtome.dote.web.components.widgets.ContentFrame
 import kurtome.dote.web.components.widgets.button.emote.DoteEmoteButton
 import kurtome.dote.web.components.widgets.card.PodcastCard
+import kurtome.dote.web.components.widgets.feed.DotableActionsCardWrapper
 import kurtome.dote.web.utils.FeedIdRoutes.TagRouteMapper
 import kurtome.dote.web.utils.{BaseBackend, Debounce}
 import org.scalajs.dom
@@ -207,10 +208,13 @@ object PodcastDetails {
             Grid(item = true)(
               <.div(
                 ^.width := asPxStr(tileContainerWidth),
-                <.div(^.className := tileContainerStyle,
-                      <.div(^.position := "relative",
-                            ^.width := asPxStr(tileWidth),
-                            PodcastCard(dotable = p.dotable, disableActions = true)()))
+                <.div(
+                  ^.className := tileContainerStyle,
+                  <.div(^.position := "relative",
+                        ^.width := asPxStr(tileWidth),
+                        DotableActionsCardWrapper(p.dotable, alwaysExpanded = true)(
+                          PodcastCard(dotable = p.dotable)()))
+                )
               )
             ),
             Grid(item = true, style = Styles.titleFieldContainer)(
@@ -229,12 +233,6 @@ object PodcastDetails {
                       <.div()
                     },
                     Typography(variant = Typography.Variants.Body1)(fields.subtitle)
-                  ),
-                  GridItem(xs = 12)(
-                    GridContainer(spacing = 0)(
-                      GridItem()(ShareButton()()),
-                      GridItem()(DoteEmoteButton(p.dotable)())
-                    )
                   ),
                   GridItem(xs = 12)(
                     Typography(variant = Typography.Variants.Body1,

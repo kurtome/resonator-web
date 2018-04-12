@@ -73,7 +73,10 @@ object Icons {
   @JSImport("mdi-material-ui/ChevronDown", JSImport.Default)
   @js.native
   private object ChevronDownRaw extends js.Object {}
-  val ChevronDown = JsComponent[Null, Children.None, Null](ChevronDownRaw)
+  private val ChevronDownComponent = JsComponent[IconProps, Children.None, Null](ChevronDownRaw)
+  def ChevronDown(style: js.UndefOr[js.Dynamic] = js.undefined) = {
+    ChevronDownComponent.withProps(props(style))()
+  }
 
   @JSImport("mdi-material-ui/ChevronUp", JSImport.Default)
   @js.native
@@ -101,12 +104,47 @@ object Icons {
   private object ShareRaw extends js.Object {}
   val Share = JsComponent[Null, Children.None, Null](ShareRaw)
 
+  @JSImport("mdi-material-ui/HeartOutline", JSImport.Default)
+  @js.native
+  private object HeartOutlineRaw extends js.Object {}
+  val HeartOutline = JsComponent[Null, Children.None, Null](HeartOutlineRaw)
+
+  @JSImport("mdi-material-ui/Heart", JSImport.Default)
+  @js.native
+  private object HeartRaw extends js.Object {}
+  val Heart = JsComponent[Null, Children.None, Null](HeartRaw)
+
+  @JSImport("mdi-material-ui/StarOutline", JSImport.Default)
+  @js.native
+  private object StarOutlineRaw extends js.Object {}
+  val StarOutline = JsComponent[Null, Children.None, Null](StarOutlineRaw)
+
+  @JSImport("mdi-material-ui/StarHalf", JSImport.Default)
+  @js.native
+  private object StarHalfRaw extends js.Object {}
+  val StarHalf = JsComponent[Null, Children.None, Null](StarHalfRaw)
+
+  @JSImport("mdi-material-ui/Star", JSImport.Default)
+  @js.native
+  private object StarRaw extends js.Object {}
+  val Star = JsComponent[Null, Children.None, Null](StarRaw)
+
+  @JSImport("mdi-material-ui/DotsHorizontal", JSImport.Default)
+  @js.native
+  private object DotsHorizontalRaw extends js.Object {}
+  val DotsHorizontal = JsComponent[Null, Children.None, Null](DotsHorizontalRaw)
+
+  @JSImport("mdi-material-ui/DotsVertical", JSImport.Default)
+  @js.native
+  private object DotsVerticalRaw extends js.Object {}
+  val DotsVertical = JsComponent[Null, Children.None, Null](DotsVerticalRaw)
+
   @js.native
   trait IconProps extends js.Object {
     var style: js.UndefOr[js.Dynamic] = js.native
   }
 
-  private def props(style: js.UndefOr[js.Dynamic]): IconProps = {
+  def props(style: js.UndefOr[js.Dynamic] = js.undefined) = {
     val props = new js.Object().asInstanceOf[IconProps]
     props.style = style
     props

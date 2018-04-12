@@ -7,6 +7,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -43,7 +44,7 @@ object EpisodeCard extends LogSupport {
   }
   type Variant = Variants.Value
 
-  case class Props(dotable: Dotable, elevation: Int, disableActions: Boolean, variant: Variant)
+  case class Props(dotable: Dotable, variant: Variant)
   case class State(hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -74,28 +75,17 @@ object EpisodeCard extends LogSupport {
       val textMargins = 16
 
       <.div(
-        ^.position := "relative",
-        ^.onMouseEnter --> bs.modState(_.copy(hover = true)),
-        ^.onMouseLeave --> bs.modState(_.copy(hover = false)),
-        <.div(
-          ^.className := backgroundColor(p),
-          ^.width := "100%",
-          ^.position := "absolute",
-          ImageWithSummaryCard(
-            p.dotable,
-            caption1 = durationSecToMin(p.dotable.getDetails.getPodcastEpisode.durationSec),
-            imageOverlayCaption = epochSecToDate(p.dotable.getCommon.publishedEpochSec)
-          )()
-        ),
-        if (p.disableActions) {
-          <.div(^.position := "absolute")
-        } else {
-          CardActionShim(p.dotable, s.hover)()
-        },
-        // Fill the space with a div, since the content is absolute positioned
-        <.div(^.width := "100%", ^.height := "100px")
+        ^.className := backgroundColor(p),
+        ImageWithSummaryCard(
+          p.dotable,
+          caption1 = Typography(variant = Typography.Variants.Caption, noWrap = true)(
+            durationSecToMin(p.dotable.getDetails.getPodcastEpisode.durationSec)),
+          caption2 = Typography(variant = Typography.Variants.Caption, noWrap = true)(
+            "from ",
+            SiteLink(podcastRoute)(podcast.getCommon.title)),
+          imageOverlayCaption = epochSecToDate(p.dotable.getCommon.publishedEpochSec)
+        )()
       )
-
     }
   }
 
@@ -106,9 +96,6 @@ object EpisodeCard extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable,
-            elevation: Int = 5,
-            disableActions: Boolean = false,
-            variant: Variant = Variants.Default) =
-    component.withProps(Props(dotable, elevation, disableActions, variant))
+  def apply(dotable: Dotable, variant: Variant = Variants.Default) =
+    component.withProps(Props(dotable, variant))
 }

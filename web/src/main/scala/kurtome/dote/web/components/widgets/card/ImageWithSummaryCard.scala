@@ -88,8 +88,8 @@ object ImageWithSummaryCard extends LogSupport {
   type Variant = Variants.Value
 
   case class Props(dotable: Dotable,
-                   caption1: String,
-                   caption2: String,
+                   caption1: VdomNode,
+                   caption2: VdomNode,
                    imageOverlayCaption: String)
   case class State(smileCount: Int = 0,
                    cryCount: Int = 0,
@@ -145,8 +145,8 @@ object ImageWithSummaryCard extends LogSupport {
               ^.padding := "4px",
               Typography(variant = Typography.Variants.Body1, noWrap = true)(
                 p.dotable.getCommon.title),
-              Typography(variant = Typography.Variants.Caption, noWrap = true)(p.caption1),
-              Typography(variant = Typography.Variants.Caption, noWrap = true)(p.caption2)
+              p.caption1,
+              p.caption2
             )
           )
         )
@@ -163,8 +163,8 @@ object ImageWithSummaryCard extends LogSupport {
     .build
 
   def apply(dotable: Dotable,
-            caption1: String = "",
-            caption2: String = "",
+            caption1: VdomNode = "",
+            caption2: VdomNode = "",
             imageOverlayCaption: String = "") =
     component.withProps(Props(dotable, caption1, caption2, imageOverlayCaption))
 }
