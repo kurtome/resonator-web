@@ -11,7 +11,9 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
-import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
+import kurtome.dote.web.rpc.CachedValue
+import kurtome.dote.web.rpc.EmptyCachedValue
+import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.GlobalLoadingManager
 import scalacss.internal.mutable.StyleSheet
@@ -26,6 +28,8 @@ object DotableDetailView extends LogSupport {
     import dsl._
   }
 
+  var cachedDotable: CachedValue[Dotable] = EmptyCachedValue
+
   case class Props(id: String, queryParams: Map[String, String])
 
   case class State(response: GetDotableDetailsResponse = GetDotableDetailsResponse.defaultInstance,
@@ -39,40 +43,19 @@ object DotableDetailView extends LogSupport {
       val id = p.id
 
       if (s.requestedId != id) {
-        LocalCache
-          .getObj(LocalCache.ObjectKinds.DotableDetails, id)
-          .map(_.map(Dotable.parseFrom)) map { cachedDetails =>
-          if (cachedDetails.isDefined) {
-            // Use cached
-            bs.modState(
-                _.copy(
-                  response = GetDotableDetailsResponse(responseStatus =
-                                                         Some(ActionStatus(success = true)),
-                                                       dotable = cachedDetails)))
-              .runNow()
-            fetchFromServer(p)
-          } else {
-            // Use shallow cached copy if available
-            LocalCache
-              .getObj(LocalCache.ObjectKinds.DotableShallow, id)
-              .map(_.map(Dotable.parseFrom)) map { cachedShallow =>
-              val s = bs.state.runNow()
-              if (cachedShallow.isDefined) {
-                bs.modState(
-                    _.copy(requestInFlight = true,
-                           requestedId = id,
-                           response = GetDotableDetailsResponse(
-                             responseStatus = Some(ActionStatus(success = true)),
-                             cachedShallow)))
-                  .runNow()
-              }
-
-              // Request from server regardless, to get latest
-              fetchFromServer(p)
-            }
-          }
+        val cached = cachedDotable.get
+        if (cached.isDefined && cached.get.id == id) {
+          bs.modState(
+              _.copy(requestInFlight = true,
+                     requestedId = id,
+                     response = GetDotableDetailsResponse(responseStatus =
+                                                            Some(ActionStatus(success = true)),
+                                                          cached)))
+            .runNow()
         }
 
+        // Request from server regardless, to get latest
+        fetchFromServer(p)
       }
     }
 

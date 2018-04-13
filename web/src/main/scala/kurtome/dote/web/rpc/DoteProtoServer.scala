@@ -52,9 +52,6 @@ object DoteProtoServer {
 
       override def parseResponse(r: Array[Byte]) = GetDotableDetailsResponse.parseFrom(r)
     })(request) map { response =>
-      response.dotable foreach { dotable =>
-        LocalCacheWorkerManager.put(LocalCache.ObjectKinds.DotableDetails, dotable.id, dotable)
-      }
       response
     }
 
@@ -67,11 +64,6 @@ object DoteProtoServer {
 
       override def parseResponse(r: Array[Byte]) = GetFeedResponse.parseFrom(r)
     })(request) map { response =>
-      PerfTime.debugTime("cache-feed-response")(
-        LocalCacheWorkerManager.put(LocalCache.ObjectKinds.Feed,
-                                    response.getFeed.getId.toString,
-                                    response.getFeed)
-      )
       response
     }
 
@@ -84,8 +76,6 @@ object DoteProtoServer {
 
       override def parseResponse(r: Array[Byte]) = SearchResponse.parseFrom(r)
     })(request) map { response =>
-      response.dotables.foreach(d =>
-        LocalCacheWorkerManager.put(LocalCache.ObjectKinds.DotableShallow, d.id, d))
       response
     }
 

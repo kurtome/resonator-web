@@ -5,7 +5,6 @@ import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom
 import CssSettings._
 import kurtome.dote.web.constants.MuiTheme
-import kurtome.dote.web.rpc.LocalCacheWorkerManager
 import org.scalajs.dom.html.Meta
 import org.scalajs.dom.html.Style
 import wvlet.log._
@@ -23,8 +22,6 @@ object WebMain extends LogSupport {
 
   @JSExport
   def main(): Unit = {
-    LocalCacheWorkerManager.initWorker()
-
     Logger.setDefaultHandler(new JSConsoleLogHandler())
     if (LinkingInfo.productionMode) {
       Logger.setDefaultLogLevel(LogLevel.WARN)

@@ -7,6 +7,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.lib.LazyLoad
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.utils.BaseBackend
@@ -87,10 +88,15 @@ object CompactItemList extends LogSupport {
                            allItems: Seq[raw.ReactNode],
                            tilesPerPage: Int,
                            tilesPerRow: Int,
+                           selectedPageIndex: Int,
                            pageIndex: Int): VdomNode = {
       val widthPercent = 100.0 / tilesPerRow
 
-      val pageItems: Seq[raw.ReactNode] = allItems
+      // Don't render the actual items if this page isn't visible. This is a hack to
+      // speed up the render time of the page.
+      val items = if (selectedPageIndex == pageIndex) allItems else Nil
+
+      val pageItems: Seq[raw.ReactNode] = items
         .drop(pageIndex * tilesPerPage)
         // Pad with placeholders to make the list spacing balanced, rendering code below
         // will handle the placeholders
@@ -134,7 +140,7 @@ object CompactItemList extends LogSupport {
         CompactListPagination(pageIndex = s.pageIndex,
                               onIndexChanged = (index) => bs.modState(_.copy(pageIndex = index)))(
           (0 until numPages) map { i =>
-            renderPage(p, items, numTilesPerPage, numTilesPerRow, i)
+            renderPage(p, items, numTilesPerPage, numTilesPerRow, s.pageIndex, i)
           } toVdomArray
         )
       )

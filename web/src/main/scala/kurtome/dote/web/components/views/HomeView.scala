@@ -6,24 +6,25 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.HomeId
-import kurtome.dote.web.rpc.{DoteProtoServer, LocalCache}
+import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.components.materialui.Button
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
 import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.FlatRoundedButton
 import kurtome.dote.web.components.widgets.MainContentSection
-import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.feed.VerticalFeed
 import kurtome.dote.web.constants.MuiTheme
-import kurtome.dote.web.rpc.LocalCache.ObjectKinds
+import kurtome.dote.web.rpc.CachedValue
+import kurtome.dote.web.rpc.EmptyCachedValue
+import kurtome.dote.web.rpc.TimeCachedValue
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.scalajs.js.Date
 
 object HomeView extends LogSupport {
 
@@ -48,6 +49,8 @@ object HomeView extends LogSupport {
   case class Props()
   case class State(feed: Feed = Feed.defaultInstance, isFeedLoading: Boolean = true)
 
+  var cachedHomeFeed: CachedValue[Feed] = EmptyCachedValue
+
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     val handleDidMount = Callback {
@@ -65,23 +68,19 @@ object HomeView extends LogSupport {
     }
 
     def fetchHomeData() = {
-      LocalCache
-        .getObj(ObjectKinds.Feed, FeedId().withHome(HomeId.defaultInstance).toString)
-        .map(_.map(Feed.parseFrom)) map { cachedFeed =>
-        if (cachedFeed.isDefined) {
-          bs.modState(_.copy(feed = cachedFeed.get, isFeedLoading = false)).runNow()
-        }
-
-        // get the latest data as well, in case it has changed
+      val cachedFeed = cachedHomeFeed.get
+      if (cachedFeed.isDefined) {
+        bs.modState(_.copy(feed = cachedFeed.get, isFeedLoading = false)).runNow()
+      } else {
         val f = DoteProtoServer.getFeed(GetFeedRequest(
           maxItems = 20,
           maxItemSize = 20,
           id = Some(FeedId().withHome(HomeId())))) map { response =>
+          cachedHomeFeed = TimeCachedValue(Date.now() + 1000 * 60 * 2, response.getFeed)
           bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
         }
         GlobalLoadingManager.addLoadingFuture(f)
       }
-
     }
 
     def render(p: Props, s: State): VdomElement = {

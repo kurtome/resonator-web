@@ -7,9 +7,13 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.views.DotableDetailView
 import kurtome.dote.web.constants.MuiTheme
+import kurtome.dote.web.rpc.TimeCachedValue
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
+
+import scala.scalajs.js.Date
 
 object PodcastCard extends LogSupport {
 
@@ -87,7 +91,12 @@ object PodcastCard extends LogSupport {
               )()
             )
           case _ =>
-            doteRouterCtl.link(detailRoute)(
+            <.div(
+              ^.cursor.pointer,
+              ^.onClick --> Callback(
+                DotableDetailView.cachedDotable =
+                  TimeCachedValue(Date.now() + (1000 * 60), p.dotable)) *> doteRouterCtl.set(
+                detailRoute),
               ^.className := Styles.container,
               PodcastImageCard(dotable = p.dotable, width = "100%")()
             )

@@ -80,7 +80,6 @@ object EpisodeTable {
     }
 
     def render(p: Props, s: State): VdomElement = {
-      debug(p.initialPage + " " + s.page)
       val episodes = episodesByRecency(p.dotable)
 
       val pageStartIndex = p.rowsPerPage * s.page

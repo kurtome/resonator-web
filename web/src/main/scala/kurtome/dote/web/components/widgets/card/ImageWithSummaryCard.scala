@@ -8,10 +8,14 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.views.DotableDetailView
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.constants.MuiTheme
+import kurtome.dote.web.rpc.TimeCachedValue
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
+
+import scala.scalajs.js.Date
 
 object ImageWithSummaryCard extends LogSupport {
 
@@ -112,7 +116,11 @@ object ImageWithSummaryCard extends LogSupport {
         ^.className := Styles.wrapper,
         ^.width := "100%",
         ^.height := asPxStr(height),
-        doteRouterCtl.link(detailRoute)(
+        <.div(
+          ^.cursor.pointer,
+          ^.onClick --> Callback(DotableDetailView.cachedDotable =
+            TimeCachedValue(Date.now() + (1000 * 60), p.dotable)) *> doteRouterCtl.set(
+            detailRoute),
           ^.height := "100%",
           ^.className := Styles.container,
           <.div(
