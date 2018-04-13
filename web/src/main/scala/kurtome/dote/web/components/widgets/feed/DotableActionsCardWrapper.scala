@@ -202,7 +202,8 @@ object DotableActionsCardWrapper extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => State(p.dotable, expanded = p.alwaysExpanded))
+    .initialStateFromProps(p =>
+      State(p.dotable, expanded = p.alwaysExpanded, hasHovered = p.alwaysExpanded))
     .backend(new Backend(_))
     .renderPCS((builder, p, pc, s) => builder.backend.render(p, s, pc))
     .componentWillUnmount(x => x.backend.handleUnmount)
