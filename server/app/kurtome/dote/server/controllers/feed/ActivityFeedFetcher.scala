@@ -14,6 +14,7 @@ import kurtome.dote.server.db.mappers.DotableMapper
 import kurtome.dote.server.db.mappers.DoteMapper
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.server.services.DoteService
+import kurtome.dote.server.services.PersonService
 import kurtome.dote.server.services.TagService
 import kurtome.dote.shared.mapper.PaginationInfoMapper
 import wvlet.log.LogSupport
@@ -22,7 +23,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 @Singleton
-class ActivityFeedFetcher @Inject()(doteService: DoteService,
+class ActivityFeedFetcher @Inject()(personService: PersonService,
+                                    doteService: DoteService,
                                     dotableService: DotableService,
                                     tagService: TagService)(implicit ec: ExecutionContext)
     extends FeedFetcher
@@ -31,14 +33,14 @@ class ActivityFeedFetcher @Inject()(doteService: DoteService,
   override def fetch(params: FeedParams): Future[Feed] = {
     assert(params.feedId.id.isActivity)
     val listLimit = params.maxItemSize
-    val personId = params.loggedInUser.map(_.id)
+    val loggedInPersonId = params.loggedInUser.map(_.id)
     val activityId = params.feedId.getActivity
 
     val paginationInfo = PaginationInfoMapper.fromProto(activityId.getPaginationInfo)
 
     val list =
       if (activityId.followingOnly) {
-        personId
+        loggedInPersonId
           .map(doteService.recentDotesWithDotableFromFollowing(paginationInfo, _))
           .getOrElse(Future(Nil))
           .map(_.map(pair =>
@@ -46,14 +48,17 @@ class ActivityFeedFetcher @Inject()(doteService: DoteService,
           list =>
             toActivityListFeedItem(params, "Recent From Following", "", list)
         }
-      } else if (activityId.username.nonEmpty && params.loggedInUser.isDefined) {
-        val personRow = params.loggedInUser.get
-        doteService
-          .recentDotesWithDotableByPerson(paginationInfo, personRow.id)
-          .map(_.map(pair =>
-            (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
-          list =>
-            toActivityListFeedItem(params, "Recently Rated", "", list, personRow.username)
+      } else if (activityId.username.nonEmpty) {
+        (personService.readByUsername(activityId.username) flatMap {
+          case Some(personRow) => {
+            doteService
+              .recentDotesWithDotableByPerson(paginationInfo, personRow.id)
+              .map(_.map(pair =>
+                (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4))))
+          }
+          case _ => Future(Nil)
+        }) map { list =>
+          toActivityListFeedItem(params, "Recently Rated", "", list, activityId.username)
         }
       } else {
         doteService
