@@ -8,6 +8,10 @@ message Dote {
   Person person = 1;
   EmoteKind emote_kind = 2;
 
+  // 0 indicates unset
+  // 1-10 is the valid range for stars, 9 being 4.5 stars etc.
+  int32 half_stars = 3;
+
   enum EmoteKind {
     UNKNOWN_KIND = 0;
     HEART = 1;

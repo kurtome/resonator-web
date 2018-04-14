@@ -6,6 +6,7 @@ import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.activity.Activity
 import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.proto.api.dote.Dote.EmoteKind
 import kurtome.dote.shared.constants.Emojis
 import kurtome.dote.web.CssSettings._
@@ -48,13 +49,22 @@ object ActivityCard extends LogSupport {
       float.left
     )
 
-    val ratingText = style(
+    val rating = style(
+      width.unset,
       float.right
     )
 
     val username = style(
       marginLeft(1.9 em), // left space for account icon
       lineHeight(1.75 em)
+    )
+
+    val star = style(
+      fontSize(16 px)
+    )
+
+    val starsWrapper = style(
+      marginRight(8 px)
     )
   }
   Styles.addToDocument()
@@ -63,6 +73,33 @@ object ActivityCard extends LogSupport {
   case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
+
+    def renderStar(halfStars: Int, starPosition: Int) = {
+      if (halfStars < ((starPosition * 2) - 1)) {
+        Icons.StarOutline(style = Styles.star)
+      } else if (halfStars == ((starPosition * 2) - 1)) {
+        Icons.StarHalf(style = Styles.star)
+      } else {
+        Icons.Star(style = Styles.star)
+      }
+    }
+
+    def renderStars(dote: Dote): VdomNode = {
+      val halfStars = dote.halfStars
+      if (halfStars > 0) {
+        Typography(component = "span",
+                   variant = Typography.Variants.Caption,
+                   style = Styles.starsWrapper)(
+          renderStar(halfStars, 1),
+          renderStar(halfStars, 2),
+          renderStar(halfStars, 3),
+          renderStar(halfStars, 4),
+          renderStar(halfStars, 5)
+        )
+      } else {
+        <.div()
+      }
+    }
 
     def render(p: Props, s: State): VdomElement = {
       val activity = p.activity
@@ -73,7 +110,13 @@ object ActivityCard extends LogSupport {
         <.div(
           ^.className := Styles.headerTextWrapper,
           Typography(style = Styles.accountIcon)(Icons.AccountCircle()),
-          Typography(noWrap = true, style = Styles.ratingText)(Emojis.pickEmoji(dote.emoteKind)),
+          GridContainer(wrap = Grid.Wrap.NoWrap,
+                        style = Styles.rating,
+                        alignItems = Grid.AlignItems.Center)(
+            GridItem()(renderStars(dote)),
+            GridItem()(
+              Typography(component = "span", noWrap = true)(Emojis.pickEmoji(dote.emoteKind)))
+          ),
           Typography(noWrap = true, style = Styles.username)(
             SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
         ),

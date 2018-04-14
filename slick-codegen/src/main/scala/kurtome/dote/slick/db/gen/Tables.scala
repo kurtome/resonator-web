@@ -239,37 +239,48 @@ trait Tables {
     *  @param dotableId Database column dotable_id SqlType(int8)
     *  @param personId Database column person_id SqlType(int8)
     *  @param doteTime Database column dote_time SqlType(timestamp)
-    *  @param emoteKind Database column emote_kind SqlType(emotekind) */
+    *  @param emoteKind Database column emote_kind SqlType(emotekind)
+    *  @param halfStars Database column half_stars SqlType(int4), Default(0) */
   case class DoteRow(id: Long,
                      dotableId: Long,
                      personId: Long,
                      doteTime: java.time.LocalDateTime,
-                     emoteKind: Option[kurtome.dote.shared.constants.EmoteKinds.Value])
+                     emoteKind: Option[kurtome.dote.shared.constants.EmoteKinds.Value],
+                     halfStars: Int = 0)
 
   /** GetResult implicit for fetching DoteRow objects using plain SQL queries */
-  implicit def GetResultDoteRow(
-      implicit e0: GR[Long],
-      e1: GR[java.time.LocalDateTime],
-      e2: GR[Option[kurtome.dote.shared.constants.EmoteKinds.Value]]): GR[DoteRow] = GR { prs =>
+  implicit def GetResultDoteRow(implicit e0: GR[Long],
+                                e1: GR[java.time.LocalDateTime],
+                                e2: GR[Option[kurtome.dote.shared.constants.EmoteKinds.Value]],
+                                e3: GR[Int]): GR[DoteRow] = GR { prs =>
     import prs._
     DoteRow.tupled(
       (<<[Long],
        <<[Long],
        <<[Long],
        <<[java.time.LocalDateTime],
-       <<?[kurtome.dote.shared.constants.EmoteKinds.Value]))
+       <<?[kurtome.dote.shared.constants.EmoteKinds.Value],
+       <<[Int]))
   }
 
   /** Table description of table dote. Objects of this class serve as prototypes for rows in queries. */
   class Dote(_tableTag: slick.lifted.Tag) extends profile.api.Table[DoteRow](_tableTag, "dote") {
-    def * = (id, dotableId, personId, doteTime, emoteKind) <> (DoteRow.tupled, DoteRow.unapply)
+    def * =
+      (id, dotableId, personId, doteTime, emoteKind, halfStars) <> (DoteRow.tupled, DoteRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(id), Rep.Some(dotableId), Rep.Some(personId), Rep.Some(doteTime), emoteKind).shaped
-        .<>({ r =>
-          import r._; _1.map(_ => DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5)))
-        }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+      (Rep.Some(id),
+       Rep.Some(dotableId),
+       Rep.Some(personId),
+       Rep.Some(doteTime),
+       emoteKind,
+       Rep.Some(halfStars)).shaped.<>(
+        { r =>
+          import r._; _1.map(_ => DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6.get)))
+        },
+        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+      )
 
     /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -286,6 +297,9 @@ trait Tables {
     /** Database column emote_kind SqlType(emotekind) */
     val emoteKind: Rep[Option[kurtome.dote.shared.constants.EmoteKinds.Value]] =
       column[Option[kurtome.dote.shared.constants.EmoteKinds.Value]]("emote_kind")
+
+    /** Database column half_stars SqlType(int4), Default(0) */
+    val halfStars: Rep[Int] = column[Int]("half_stars", O.Default(0))
 
     /** Foreign key referencing Dotable (database name dote_dotable_id_fkey) */
     lazy val dotableFk = foreignKey("dote_dotable_id_fkey", dotableId, Dotable)(

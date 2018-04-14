@@ -24,6 +24,7 @@ import kurtome.dote.web.components.materialui.Paper
 import kurtome.dote.web.components.materialui.Typography
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.button.emote.DoteEmoteButton
+import kurtome.dote.web.components.widgets.button.emote.DoteStarsButton
 import kurtome.dote.web.components.widgets.card.CardActionShim
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
@@ -91,9 +92,9 @@ object DotableActionsCardWrapper extends LogSupport {
 
     def paperStyle(p: Props): StyleA = {
       p.variant match {
-        case Variants.Accent => Styles.accent
+        case Variants.Accent     => Styles.accent
         case Variants.CardHeader => Styles.cardHeader
-        case _ => Styles.default
+        case _                   => Styles.default
       }
     }
 
@@ -174,9 +175,19 @@ object DotableActionsCardWrapper extends LogSupport {
                 GridItem(xs = 12,
                          hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
                   Divider()()),
+                GridContainer()(
+                  GridItem(xs = 12,
+                           hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+                    GridContainer(justify = Grid.Justify.Center)(
+                      GridItem()(DoteStarsButton(dotable, onDoteChanged = handleDoteChanged)())
+                    )
+                  ),
+                ),
+                GridItem(xs = 12,
+                         hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+                  Divider()()),
                 GridItem(xs = 12)(
-                  GridContainer(justify = Grid.Justify.Center,
-                                alignItems = Grid.AlignItems.Center)(
+                  GridContainer(justify = Grid.Justify.Center, alignItems = Grid.AlignItems.Center)(
                     GridItem()(Typography()("Share")),
                     GridItem()(ShareButton(dotableUrl(dotable))())
                   )
@@ -185,8 +196,7 @@ object DotableActionsCardWrapper extends LogSupport {
                   Divider()()
                 ),
                 GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = !AudioPlayer.canPlay(dotable)))(
-                  GridContainer(justify = Grid.Justify.Center,
-                                alignItems = Grid.AlignItems.Center)(
+                  GridContainer(justify = Grid.Justify.Center, alignItems = Grid.AlignItems.Center)(
                     GridItem()(Typography()("Play")),
                     GridItem()(
                       IconButton(onClick = Callback(AudioPlayer.startPlayingEpisode(dotable)),

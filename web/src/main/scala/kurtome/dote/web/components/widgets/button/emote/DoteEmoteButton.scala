@@ -23,15 +23,6 @@ object DoteEmoteButton extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val popoverContent = style(
-      zIndex(10),
-      position.absolute,
-      marginTop(-48 px),
-      marginLeft(-48 * 1.5 px),
-      height(48 px),
-      width(48 * 4 px),
-      padding(4 px)
-    )
   }
 
   case class Props(dotable: Dotable, showAllOptions: Boolean, onDoteChanged: (Dote) => Callback)
@@ -44,7 +35,7 @@ object DoteEmoteButton extends LogSupport {
         val p: Props = bs.props.runNow()
         val s: State = bs.state.runNow()
 
-        val dote = Dote(emoteKind = emoteKind)
+        val dote = p.dotable.getDote.withEmoteKind(emoteKind)
 
         p.onDoteChanged(dote).runNow()
 
@@ -68,10 +59,6 @@ object DoteEmoteButton extends LogSupport {
           }
         sendDoteToServer(newEmoteKind)
       }
-
-    def popupStyle(p: Props, s: State): StyleA = {
-      Styles.popoverContent
-    }
 
     def render(p: Props, s: State): VdomElement = {
       val kind = p.dotable.getDote.emoteKind

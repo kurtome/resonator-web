@@ -21,7 +21,7 @@ class DoteService @Inject()(db: BasicBackend#Database, doteDbIo: DoteDbIo)(
   val trendingAge = Duration.ofDays(3)
 
   def writeDote(personId: Long, dotableId: Long, dote: Dote): Future[Unit] = {
-    if (dote.emoteKind == EmoteKind.UNKNOWN_KIND) {
+    if (dote.emoteKind == EmoteKind.UNKNOWN_KIND && dote.halfStars == 0) {
       db.run(doteDbIo.delete(personId, dotableId)).map(_ => Unit)
     } else {
       db.run(doteDbIo.upsert(personId, dotableId, dote)).map(_ => Unit)

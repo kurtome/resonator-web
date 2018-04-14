@@ -1,11 +1,12 @@
 package kurtome.dote.server.controllers.api
 
 import javax.inject._
-
 import kurtome.dote.proto.api.action.add_podcast._
 import kurtome.dote.server.ingestion.{ItunesEntityFetcher, PodcastFeedIngester}
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.shared.mapper.StatusMapper
 import kurtome.dote.shared.util.result.ProduceAction
+import kurtome.dote.shared.util.result.SuccessStatus
 import play.api.Configuration
 import play.api.mvc._
 
@@ -34,7 +35,16 @@ class AddPodcastController @Inject()(
   override def action(request: Request[AddPodcastRequest]) = {
     val itunesIdStr = request.body.itunesUrl.split('/').last.substring(2).replaceAll("\\?.*", "")
     val itunesId = itunesIdStr.toLong
-    fetchFromItunesAndIngest(request.body, itunesId)
+    dotableDbService.getPodcastIngestionRowByItunesId(itunesId) flatMap {
+      case Some(row) => {
+        if (request.body.ingestLater) {
+          Future(AddPodcastResponse().withResponseStatus(StatusMapper.toProto(SuccessStatus)))
+        } else {
+          fetchFromItunesAndIngest(request.body, itunesId)
+        }
+      }
+      case None => fetchFromItunesAndIngest(request.body, itunesId)
+    }
   }
 
   private def readIngestedPodcasts(podcastIds: ProduceAction[Seq[Long]]) = {

@@ -9,6 +9,7 @@ object DoteMapper {
   def toProto(row: Tables.DoteRow, person: Option[Tables.PersonRow] = None): Dote = {
     Dote(
       person = person.map(PersonMapper),
+      halfStars = row.halfStars,
       emoteKind = EmoteKindMapper.toProto(row.emoteKind)
     )
   }

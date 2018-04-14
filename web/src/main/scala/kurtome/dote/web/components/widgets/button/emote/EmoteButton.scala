@@ -20,18 +20,21 @@ object EmoteButton extends LogSupport {
 
     val inactiveIcon = style(
       color.black,
+      width(30 px),
       fontSize(1.1 rem),
       opacity(0.4)
     )
 
     val inactiveHoverIcon = style(
       color.black,
+      width(30 px),
       fontSize(1.1 rem),
       opacity(0.6)
     )
 
     val activeIcon = style(
       color.black,
+      width(30 px),
       fontSize(1.1 rem),
       opacity(1)
     )

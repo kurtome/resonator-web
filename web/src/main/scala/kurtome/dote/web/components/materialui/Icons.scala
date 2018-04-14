@@ -117,17 +117,26 @@ object Icons {
   @JSImport("mdi-material-ui/StarOutline", JSImport.Default)
   @js.native
   private object StarOutlineRaw extends js.Object {}
-  val StarOutline = JsComponent[Null, Children.None, Null](StarOutlineRaw)
+  private val StarOutlineComponent = JsComponent[IconProps, Children.None, Null](StarOutlineRaw)
+  def StarOutline(style: js.UndefOr[js.Dynamic] = js.undefined) = {
+    StarOutlineComponent.withProps(props(style))()
+  }
 
   @JSImport("mdi-material-ui/StarHalf", JSImport.Default)
   @js.native
   private object StarHalfRaw extends js.Object {}
-  val StarHalf = JsComponent[Null, Children.None, Null](StarHalfRaw)
+  private val StarHalfComponent = JsComponent[IconProps, Children.None, Null](StarHalfRaw)
+  def StarHalf(style: js.UndefOr[js.Dynamic] = js.undefined) = {
+    StarHalfComponent.withProps(props(style))()
+  }
 
   @JSImport("mdi-material-ui/Star", JSImport.Default)
   @js.native
   private object StarRaw extends js.Object {}
-  val Star = JsComponent[Null, Children.None, Null](StarRaw)
+  private val StarComponent = JsComponent[IconProps, Children.None, Null](StarRaw)
+  def Star(style: js.UndefOr[js.Dynamic] = js.undefined) = {
+    StarComponent.withProps(props(style))()
+  }
 
   @JSImport("mdi-material-ui/DotsHorizontal", JSImport.Default)
   @js.native

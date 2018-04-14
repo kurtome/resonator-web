@@ -129,12 +129,14 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
 
   def upsert(personId: Long, dotableId: Long, dote: Dote) = {
     val emoteKind: Option[EmoteKinds.Value] = EmoteKindMapper.fromProto(dote.emoteKind)
+    val halfStars: Int = dote.halfStars
     sqlu"""INSERT INTO dote AS d
-           (person_id, dotable_id, emote_kind, dote_time)
+           (person_id, dotable_id, emote_kind, half_stars, dote_time)
            VALUES
-           ($personId, $dotableId, $emoteKind, now())
+           ($personId, $dotableId, $emoteKind, $halfStars, now())
            ON CONFLICT (person_id, dotable_id)
            DO UPDATE SET emote_kind = $emoteKind,
+                         half_stars = $halfStars,
                          dote_time = now()
            WHERE d.person_id = $personId AND d.dotable_id = $dotableId"""
   }
