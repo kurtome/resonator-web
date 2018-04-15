@@ -10,11 +10,11 @@ import kurtome.dote.proto.api.feed.FeedId.TagListId
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.shared.mapper.PaginationInfoMapper
 import kurtome.dote.shared.mapper.TagMapper
 import kurtome.dote.shared.model.TagList
-import kurtome.dote.slick.db.DotableKinds.DotableKind
-import kurtome.dote.slick.db.DotableKinds
+import kurtome.dote.shared.constants.DotableKinds.DotableKind
 import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext

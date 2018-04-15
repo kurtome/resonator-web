@@ -1,4 +1,6 @@
 package kurtome.dote.slick.db.gen
+
+import kurtome.dote.shared.constants.DotableKinds
 // AUTO-GENERATED Slick data model
 /** Stand-alone Slick data model for immediate use */
 object Tables extends {
@@ -111,7 +113,7 @@ trait Tables {
     *  @param data Database column data SqlType(jsonb)
     *  @param contentEditedTime Database column content_edited_time SqlType(timestamp) */
   case class DotableRow(id: Long,
-                        kind: kurtome.dote.slick.db.DotableKinds.Value,
+                        kind: DotableKinds.Value,
                         title: Option[String],
                         parentId: Option[Long],
                         data: org.json4s.JsonAST.JValue,
@@ -119,7 +121,7 @@ trait Tables {
 
   /** GetResult implicit for fetching DotableRow objects using plain SQL queries */
   implicit def GetResultDotableRow(implicit e0: GR[Long],
-                                   e1: GR[kurtome.dote.slick.db.DotableKinds.Value],
+                                   e1: GR[DotableKinds.Value],
                                    e2: GR[Option[String]],
                                    e3: GR[Option[Long]],
                                    e4: GR[org.json4s.JsonAST.JValue],
@@ -127,7 +129,7 @@ trait Tables {
     import prs._
     DotableRow.tupled(
       (<<[Long],
-       <<[kurtome.dote.slick.db.DotableKinds.Value],
+       <<[DotableKinds.Value],
        <<?[String],
        <<?[Long],
        <<[org.json4s.JsonAST.JValue],
@@ -154,8 +156,8 @@ trait Tables {
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
 
     /** Database column kind SqlType(dotablekind) */
-    val kind: Rep[kurtome.dote.slick.db.DotableKinds.Value] =
-      column[kurtome.dote.slick.db.DotableKinds.Value]("kind")
+    val kind: Rep[DotableKinds.Value] =
+      column[DotableKinds.Value]("kind")
 
     /** Database column title SqlType(text), Length(2147483647,true) */
     val title: Rep[Option[String]] =

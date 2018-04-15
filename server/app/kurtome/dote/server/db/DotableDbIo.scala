@@ -7,15 +7,14 @@ import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.db.dotable._
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.server.util.{Slug, UrlIds}
-import kurtome.dote.slick.db.DotableKinds
 import kurtome.dote.slick.db.gen.Tables
 import kurtome.dote.slick.db.gen.Tables.DotableRow
 import org.json4s.JValue
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import javax.inject._
-
 import kurtome.dote.server.util.UrlIds.IdKinds
-import kurtome.dote.slick.db.DotableKinds.DotableKind
+import kurtome.dote.shared.constants.DotableKinds
+import kurtome.dote.shared.constants.DotableKinds.DotableKind
 
 import scala.concurrent.ExecutionContext
 

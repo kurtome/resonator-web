@@ -5,8 +5,8 @@ import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.db.dotable.DotableData
 import kurtome.dote.server.util.{Slug, UrlIds}
 import kurtome.dote.server.util.UrlIds.IdKinds
-import kurtome.dote.slick.db.DotableKinds
-import kurtome.dote.slick.db.DotableKinds.DotableKind
+import kurtome.dote.shared.constants.DotableKinds
+import kurtome.dote.shared.constants.DotableKinds.DotableKind
 import kurtome.dote.slick.db.gen.Tables
 
 object DotableMapper extends ((Tables.DotableRow, Option[Tables.DotableRow]) => Dotable) {

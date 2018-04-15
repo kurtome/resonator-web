@@ -1,12 +1,11 @@
 package kurtome.dote.server.controllers.api
 
 import javax.inject._
-
 import kurtome.dote.proto.api.action.search._
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.shared.mapper.StatusMapper
 import kurtome.dote.shared.util.result.SuccessStatus
-import kurtome.dote.slick.db.DotableKinds
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext

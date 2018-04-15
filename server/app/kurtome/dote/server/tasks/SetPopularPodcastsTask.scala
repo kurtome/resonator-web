@@ -1,12 +1,11 @@
 package kurtome.dote.server.tasks
 
 import javax.inject._
-
 import akka.actor.{Actor, ActorRef, ActorSystem}
 import kurtome.dote.server.ingestion.PodcastFeedIngester
 import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.services.{DotableService, DoteService}
-import kurtome.dote.slick.db.DotableKinds
+import kurtome.dote.shared.constants.DotableKinds
 import wvlet.log.LogSupport
 
 import scala.concurrent.duration._

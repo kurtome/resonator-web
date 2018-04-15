@@ -27,13 +27,13 @@ import kurtome.dote.server.model.MetadataFlag
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.server.services.DoteService
 import kurtome.dote.server.services.TagService
+import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.shared.mapper.TagMapper
 import kurtome.dote.shared.model.PaginationInfo
 import kurtome.dote.shared.model.Tag
 import kurtome.dote.shared.model.TagId
 import kurtome.dote.shared.model.TagList
-import kurtome.dote.slick.db.DotableKinds.DotableKind
-import kurtome.dote.slick.db.DotableKinds
+import kurtome.dote.shared.constants.DotableKinds.DotableKind
 import kurtome.dote.slick.db.gen.Tables
 import wvlet.log.LogSupport
 

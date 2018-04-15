@@ -7,7 +7,7 @@ import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.proto.api.dote.Dote.EmoteKind
 import kurtome.dote.server.db.DoteDbIo
 import kurtome.dote.shared.model.PaginationInfo
-import kurtome.dote.slick.db.DotableKinds.DotableKind
+import kurtome.dote.shared.constants.DotableKinds.DotableKind
 import kurtome.dote.slick.db.gen.Tables
 import slick.basic.BasicBackend
 

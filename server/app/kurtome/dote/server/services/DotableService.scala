@@ -12,9 +12,9 @@ import kurtome.dote.server.db.DotableDbIo
 import kurtome.dote.server.db.mappers.{DotableMapper, DoteMapper}
 import kurtome.dote.server.ingestion.{RssFetchedEpisode, RssFetchedPodcast}
 import kurtome.dote.server.model.MetadataFlag
+import kurtome.dote.shared.constants.DotableKinds
+import kurtome.dote.shared.constants.DotableKinds.DotableKind
 import kurtome.dote.shared.model
-import kurtome.dote.slick.db.DotableKinds
-import kurtome.dote.slick.db.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.shared.constants.TagKinds
 import kurtome.dote.shared.constants.TagKinds.TagKind

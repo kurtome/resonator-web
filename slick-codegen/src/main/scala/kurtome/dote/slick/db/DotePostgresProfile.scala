@@ -6,6 +6,7 @@ import java.time._
 import kurtome.dote.shared.constants.TagKinds
 import com.github.tminglei.slickpg._
 import com.github.tminglei.slickpg.enums.PgEnumExtensions
+import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.shared.constants.EmoteKinds
 import org.json4s.{JValue, JsonMethods}
 import slick.driver.JdbcProfile
@@ -16,12 +17,6 @@ import slick.profile.Capability
 
 import scala.concurrent.ExecutionContext
 import scala.reflect.classTag
-
-object DotableKinds extends Enumeration {
-  type DotableKind = Value
-  val Podcast = Value("podcast")
-  val PodcastEpisode = Value("podcast_episode")
-}
 
 trait DotePostgresProfile
     extends ExPostgresProfile

@@ -24,12 +24,11 @@ import kurtome.dote.server.db.mappers.DoteMapper
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.server.services.DoteService
 import kurtome.dote.server.services.PersonService
+import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.shared.constants.Emojis
 import kurtome.dote.shared.mapper.PaginationInfoMapper
 import kurtome.dote.shared.model.PaginationInfo
 import kurtome.dote.slick.db.gen.Tables.PersonRow
-import kurtome.dote.slick.db.DotableKinds
-import kurtome.dote.slick.db.DotableKinds.DotableKind
 import wvlet.log.LogSupport
 
 import scala.concurrent.{ExecutionContext, Future}

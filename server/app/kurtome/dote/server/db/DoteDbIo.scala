@@ -7,7 +7,7 @@ import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.shared.constants.EmoteKinds
 import kurtome.dote.shared.mapper.EmoteKindMapper
 import kurtome.dote.shared.model.PaginationInfo
-import kurtome.dote.slick.db.DotableKinds.DotableKind
+import kurtome.dote.shared.constants.DotableKinds.DotableKind
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.shared.constants.EmoteKinds.EmoteKind
 import kurtome.dote.slick.db.gen.Tables
