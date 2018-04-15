@@ -83,6 +83,7 @@ object DotableActionsCardWrapper extends LogSupport {
 
   case class Props(dotable: Dotable, elevation: Int, variant: Variant, alwaysExpanded: Boolean)
   case class State(dotable: Dotable,
+                   loggedInUserDote: Dote,
                    hover: Boolean = false,
                    expanded: Boolean = false,
                    hasHovered: Boolean = false,
@@ -92,9 +93,9 @@ object DotableActionsCardWrapper extends LogSupport {
 
     def paperStyle(p: Props): StyleA = {
       p.variant match {
-        case Variants.Accent     => Styles.accent
+        case Variants.Accent => Styles.accent
         case Variants.CardHeader => Styles.cardHeader
-        case _                   => Styles.default
+        case _ => Styles.default
       }
     }
 
@@ -145,7 +146,7 @@ object DotableActionsCardWrapper extends LogSupport {
     }
 
     def handleDoteChanged(dote: Dote) =
-      bs.modState(s => s.copy(dotable = s.dotable.withDote(dote)))
+      bs.modState(s => s.copy(loggedInUserDote = dote))
 
     def render(p: Props, s: State, pc: PropsChildren): VdomElement = {
       val dotable = s.dotable
@@ -167,7 +168,7 @@ object DotableActionsCardWrapper extends LogSupport {
                 GridItem(xs = 12,
                          hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
                   GridContainer(justify = Grid.Justify.Center)(
-                    GridItem()(DoteEmoteButton(dotable,
+                    GridItem()(DoteEmoteButton(dotable.withDote(s.loggedInUserDote),
                                                showAllOptions = true,
                                                onDoteChanged = handleDoteChanged)())
                   )
@@ -179,15 +180,17 @@ object DotableActionsCardWrapper extends LogSupport {
                   GridItem(xs = 12,
                            hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
                     GridContainer(justify = Grid.Justify.Center)(
-                      GridItem()(DoteStarsButton(dotable, onDoteChanged = handleDoteChanged)())
+                      GridItem()(DoteStarsButton(dotable.withDote(s.loggedInUserDote),
+                                                 onDoteChanged = handleDoteChanged)())
                     )
-                  ),
+                  )
                 ),
                 GridItem(xs = 12,
                          hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
                   Divider()()),
                 GridItem(xs = 12)(
-                  GridContainer(justify = Grid.Justify.Center, alignItems = Grid.AlignItems.Center)(
+                  GridContainer(justify = Grid.Justify.Center,
+                                alignItems = Grid.AlignItems.Center)(
                     GridItem()(Typography()("Share")),
                     GridItem()(ShareButton(dotableUrl(dotable))())
                   )
@@ -196,7 +199,8 @@ object DotableActionsCardWrapper extends LogSupport {
                   Divider()()
                 ),
                 GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = !AudioPlayer.canPlay(dotable)))(
-                  GridContainer(justify = Grid.Justify.Center, alignItems = Grid.AlignItems.Center)(
+                  GridContainer(justify = Grid.Justify.Center,
+                                alignItems = Grid.AlignItems.Center)(
                     GridItem()(Typography()("Play")),
                     GridItem()(
                       IconButton(onClick = Callback(AudioPlayer.startPlayingEpisode(dotable)),
@@ -212,8 +216,21 @@ object DotableActionsCardWrapper extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p =>
-      State(p.dotable, expanded = p.alwaysExpanded, hasHovered = p.alwaysExpanded))
+    .initialStateFromProps(p => {
+      val doteUsername = p.dotable.getDote.getPerson.username
+      val loggedInUserDote =
+        if (doteUsername.isEmpty || doteUsername != LoggedInPersonManager.person
+              .map(_.username)
+              .getOrElse("")) {
+          Dote.defaultInstance
+        } else {
+          p.dotable.getDote
+        }
+      State(p.dotable,
+            loggedInUserDote,
+            expanded = p.alwaysExpanded,
+            hasHovered = p.alwaysExpanded)
+    })
     .backend(new Backend(_))
     .renderPCS((builder, p, pc, s) => builder.backend.render(p, s, pc))
     .componentWillUnmount(x => x.backend.handleUnmount)
