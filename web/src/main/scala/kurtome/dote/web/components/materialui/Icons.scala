@@ -148,6 +148,14 @@ object Icons {
   private object DotsVerticalRaw extends js.Object {}
   val DotsVertical = JsComponent[Null, Children.None, Null](DotsVerticalRaw)
 
+  @JSImport("mdi-material-ui/MessageDraw", JSImport.Default)
+  @js.native
+  private object MessageDrawRaw extends js.Object {}
+  private val MessageDrawComponent = JsComponent[IconProps, Children.None, Null](MessageDrawRaw)
+  def MessageDraw(style: js.UndefOr[js.Dynamic] = js.undefined) = {
+    MessageDrawComponent.withProps(props(style))()
+  }
+
   @js.native
   trait IconProps extends js.Object {
     var style: js.UndefOr[js.Dynamic] = js.native

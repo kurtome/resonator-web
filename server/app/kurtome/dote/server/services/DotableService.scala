@@ -37,6 +37,7 @@ import scala.util.Random
 class DotableService @Inject()(db: BasicBackend#Database,
                                dotableDbIo: DotableDbIo,
                                doteService: DoteService,
+                               personService: PersonService,
                                podcastFeedIngestionDbIo: PodcastFeedIngestionDbIo,
                                tagDbIo: DotableTagDbIo)(implicit ec: ExecutionContext)
     extends LogSupport {
@@ -178,13 +179,6 @@ class DotableService @Inject()(db: BasicBackend#Database,
     }
   }
 
-  private def combineListResults(
-      list: Seq[(DotableRow, Option[DotableRow], DoteRow)]): Seq[Dotable] = {
-    val dotables = list.map(tup => tup._1 -> tup._2)
-    val dotes = list.map(_._3)
-    setDotes(dotables, dotes)
-  }
-
   private def ingestExistingPodcast(itunesId: Long,
                                     podcast: RssFetchedPodcast,
                                     episodes: Seq[RssFetchedEpisode],
@@ -247,7 +241,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
   def readPodcastTagList(kind: DotableKinds.Value,
                          tagId: TagId,
                          paginationInfo: PaginationInfo,
-                         personId: Option[Long] = None): Future[TagList] = {
+                         person: Option[Tables.PersonRow] = None): Future[TagList] = {
     val tagQuery = for {
       tags <- Tables.Tag.filter(row => row.kind === tagId.kind && row.key === tagId.key)
     } yield tags
@@ -255,7 +249,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
     val dotablesQuery =
       Queries.tagList(kind, tagId.kind, tagId.key, paginationInfo.offset, paginationInfo.pageSize)
 
-    val dotesFuture: Future[Seq[Tables.DoteRow]] = if (personId.isDefined) {
+    val dotesFuture: Future[Seq[Tables.DoteRow]] = if (person.isDefined) {
       db.run(
         Queries
           .personTagListDotes(kind,
@@ -263,7 +257,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
                               tagId.key,
                               paginationInfo.offset,
                               paginationInfo.pageSize,
-                              personId.get)
+                              person.get.id)
           .result)
     } else {
       Future(Nil)
@@ -271,7 +265,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
 
     db.run(dotablesQuery.result) flatMap { dotables =>
       dotesFuture flatMap { dotes =>
-        val combined = setDotes(dotables, dotes)
+        val combined = setDotes(dotables, dotes, person)
         db.run(tagQuery.result.headOption.map(t =>
           model.TagList(Tag(t.get.kind, t.get.key, t.get.name), combined)))
       }
@@ -304,7 +298,6 @@ class DotableService @Inject()(db: BasicBackend#Database,
     val parentQuery = dotableDbIo.readByChildId(DotableKinds.Podcast, id)
     val tagsQuery = tagDbIo.readByDotableId(id)
 
-    val pendingDote = doteService.readDote(personId.getOrElse(0), id)
     val op = for {
       dotableOpt <- dotableDbIo.readHeadById(id)
       children <- childrenQuery
@@ -328,8 +321,9 @@ class DotableService @Inject()(db: BasicBackend#Database,
 
     for {
       dotable <- db.run(op)
-      dote <- pendingDote
-    } yield dotable.map(_.copy(dote = dote.map(DoteMapper.toProto(_))))
+      dote <- doteService.readDote(personId.getOrElse(0), id)
+      person <- personService.readById(personId.getOrElse(0))
+    } yield dotable.map(_.copy(dote = dote.map(DoteMapper.toProto(_, person))))
 
   }
 
@@ -394,14 +388,15 @@ class DotableService @Inject()(db: BasicBackend#Database,
   }
 
   private def setDotes(dotables: Seq[(Tables.DotableRow, Option[Tables.DotableRow])],
-                       dotes: Seq[Tables.DoteRow]): Seq[Dotable] = {
+                       dotes: Seq[Tables.DoteRow],
+                       person: Option[Tables.PersonRow]): Seq[Dotable] = {
     val dotablesById = dotables map {
       case (d, parent) => (d.id, DotableMapper(d, parent))
     }
     val dotesByDoteableId = dotes.map(d => (d.dotableId, d)).toMap
     dotablesById map {
       case (dotableId, dotable) => {
-        val dote = dotesByDoteableId.get(dotableId).map(DoteMapper.toProto(_))
+        val dote = dotesByDoteableId.get(dotableId).map(DoteMapper.toProto(_, person))
         dotable.copy(dote = dote)
       }
     }

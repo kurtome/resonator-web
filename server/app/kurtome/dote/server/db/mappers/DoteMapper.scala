@@ -6,7 +6,7 @@ import kurtome.dote.shared.mapper.EmoteKindMapper
 import kurtome.dote.slick.db.gen.Tables
 
 object DoteMapper {
-  def toProto(row: Tables.DoteRow, person: Option[Tables.PersonRow] = None): Dote = {
+  def toProto(row: Tables.DoteRow, person: Option[Tables.PersonRow]): Dote = {
     Dote(
       person = person.map(PersonMapper),
       halfStars = row.halfStars,

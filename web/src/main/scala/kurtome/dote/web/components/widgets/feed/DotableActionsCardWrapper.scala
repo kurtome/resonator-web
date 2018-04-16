@@ -127,6 +127,8 @@ object DotableActionsCardWrapper extends LogSupport {
       collapseTimer.foreach(id => dom.window.clearTimeout(id))
     }
 
+    val openReview = Callback {}
+
     private var outerRef: Option[html.Element] = None
 
     // on mobile, treat centered as if it hovered
@@ -185,6 +187,21 @@ object DotableActionsCardWrapper extends LogSupport {
                     )
                   )
                 ),
+//                GridItem(xs = 12,
+//                         hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+//                  Divider()()),
+//                GridContainer()(
+//                  GridItem(xs = 12,
+//                           hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+//                    GridContainer(justify = Grid.Justify.Center,
+//                                  alignItems = Grid.AlignItems.Center)(
+//                      GridItem()(Typography()("Review")),
+//                      GridItem()(
+//                        IconButton(onClick = openReview, color = IconButton.Colors.Primary)(
+//                          Icons.MessageDraw()))
+//                    )
+//                  )
+//                ),
                 GridItem(xs = 12,
                          hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
                   Divider()()),

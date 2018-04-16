@@ -47,7 +47,7 @@ class TagListFeedFetcher @Inject()(dotableService: DotableService)(implicit ec: 
       }
       case _ => {
         dotableService
-          .readPodcastTagList(DotableKinds.Podcast, tagId, paginationInfo, personId)
+          .readPodcastTagList(DotableKinds.Podcast, tagId, paginationInfo, params.loggedInUser)
           .map(toListFeedItem(DotableKinds.Podcast, tagListId))
       }
     }

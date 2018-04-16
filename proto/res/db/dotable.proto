@@ -50,6 +50,10 @@ message DotableDetails {
       int64 size_bytes = 3;
     }
   }
+
+  message Review {
+    string body = 1;
+  }
 }
 
 // URLs to access the same content on third party sites.

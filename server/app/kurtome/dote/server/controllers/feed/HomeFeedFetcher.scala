@@ -114,7 +114,10 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
     }
 
     val popularList = dotableService
-      .readPodcastTagList(DotableKinds.Podcast, MetadataFlag.Ids.popular, paginationInfo, personId)
+      .readPodcastTagList(DotableKinds.Podcast,
+                          MetadataFlag.Ids.popular,
+                          paginationInfo,
+                          params.loggedInUser)
       .map(toListFeedItem)
 
     val creatorsTagCollection = tagService

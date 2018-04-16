@@ -199,6 +199,8 @@ object PodcastDetails {
         tileWidth + 24
       }
 
+      debug(p.dotable.getDote)
+
       Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
         Grid(item = true, xs = 12)(
           Grid(container = true,
