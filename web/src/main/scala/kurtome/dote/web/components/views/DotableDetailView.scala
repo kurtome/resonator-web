@@ -62,8 +62,8 @@ object DotableDetailView extends LogSupport {
 
     def fetchFromServer(p: Props): Unit = {
       val request = GetDotableDetailsRequest(p.id)
-      val f = DoteProtoServer.getDotableDetails(request) flatMap { response =>
-        bs.modState(_.copy(response = response, requestInFlight = false)).toFuture
+      val f = DoteProtoServer.getDotableDetails(request) map { response =>
+        bs.modState(_.copy(response = response, requestInFlight = false)).runNow()
       }
       GlobalLoadingManager.addLoadingFuture(f)
     }

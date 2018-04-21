@@ -257,6 +257,7 @@ object DotableActionsCardWrapper extends LogSupport {
     .renderPCS((builder, p, pc, s) => builder.backend.render(p, s, pc))
     .componentWillUnmount(x => x.backend.handleUnmount)
     .componentWillReceiveProps(x => x.backend.handleWillReceiveProps(x.nextProps))
+    .componentWillMount(x => x.backend.handleWillReceiveProps(x.props))
     .build
 
   def apply(dotable: Dotable,

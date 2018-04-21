@@ -131,7 +131,6 @@ object ReviewDialog extends LogSupport {
           // Change was successful, let callers know
           p.onDoteChanged(s.editedDote).runNow()
           p.onClose.runNow()
-          bs.modState(_.copy(submitInFlight = false)).runNow()
         }
         GlobalLoadingManager.addLoadingFuture(f)
       }
@@ -201,6 +200,7 @@ object ReviewDialog extends LogSupport {
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .componentWillReceiveProps(x => x.backend.handleWillReceiveProps(x.nextProps))
+    .componentWillMount(x => x.backend.handleWillReceiveProps(x.props))
     .build
 
   def apply(dotable: Dotable,
