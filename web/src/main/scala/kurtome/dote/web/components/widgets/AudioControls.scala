@@ -30,7 +30,9 @@ object AudioControls extends LogSupport {
 
     val playerWrapper = style(
       width(100 %%),
-      bottom(edgeMargin px),
+      // leave some space at the bottom even when fullWidth since iOS has OS buttons that overlay
+      // the bottom of the screen
+      bottom(16 px),
       position.fixed
     )
 

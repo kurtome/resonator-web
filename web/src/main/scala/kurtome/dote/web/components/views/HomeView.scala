@@ -94,7 +94,7 @@ object HomeView extends LogSupport {
                   ^.color := "white",
                   Announcement()(
                     "Keep track of your favorite podcasts, " +
-                      "and see what you friends are listening to."
+                      "and see what your friends are listening to."
                   )
                 )
               ),
