@@ -68,7 +68,6 @@ class ActivityFeedFetcher @Inject()(personService: PersonService,
                                  "Recently Rated",
                                  "",
                                  list,
-                                 activityId.username,
                                  style = FeedActivityList.Style.PRIMARY)
         }
       } else {
@@ -98,7 +97,6 @@ object ActivityFeedFetcher {
                              title: String,
                              caption: String,
                              list: Seq[(Dote, Dotable, Option[Dotable])],
-                             username: String = "",
                              style: FeedActivityList.Style = FeedActivityList.Style.SUMMARY,
                              backgroundColor: FeedItemCommon.BackgroundColor =
                                FeedItemCommon.BackgroundColor.DEFAULT): FeedItem = {

@@ -29,13 +29,19 @@ object Grid {
   trait HiddenProps extends js.Object {
     var xsUp: js.UndefOr[Boolean] = js.native
     var xsDown: js.UndefOr[Boolean] = js.native
+    var smUp: js.UndefOr[Boolean] = js.native
+    var smDown: js.UndefOr[Boolean] = js.native
   }
   object HiddenProps {
     def apply(xsUp: js.UndefOr[Boolean] = js.undefined,
-              xsDown: js.UndefOr[Boolean] = js.undefined): HiddenProps = {
+              xsDown: js.UndefOr[Boolean] = js.undefined,
+              smUp: js.UndefOr[Boolean] = js.undefined,
+              smDown: js.UndefOr[Boolean] = js.undefined): HiddenProps = {
       val p = new js.Object().asInstanceOf[HiddenProps]
       p.xsUp = xsUp
       p.xsDown = xsDown
+      p.smUp = smUp
+      p.smDown = smDown
       p
     }
   }

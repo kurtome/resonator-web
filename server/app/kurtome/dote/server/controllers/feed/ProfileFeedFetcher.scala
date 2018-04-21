@@ -61,10 +61,12 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
     val paginationInfo = PaginationInfo(feedParams.maxItemSize)
     val recentActivity = doteService
       .recentDotesWithDotableByPerson(paginationInfo, personRow.id)
-      .map(_.map(pair =>
-        (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
-      list =>
-        toActivityListFeedItem(paginationInfo, "Recently Rated", "", list, personRow)
+      .map(_.map(ActivityFeedFetcher.mapActivityData)) map { list =>
+      ActivityFeedFetcher.toActivityListFeedItem(
+        FeedId().withActivity(FeedId.ActivityId().withUsername(username)),
+        "Recently Rated",
+        "",
+        list)
     }
 
     val feedItemsFuture = Future.sequence(
@@ -76,27 +78,6 @@ class ProfileFeedFetcher @Inject()(dotableService: DotableService,
     for {
       feedItems <- feedItemsFuture
     } yield Feed(id = Some(feedParams.feedId), items = feedItems)
-  }
-
-  private def toActivityListFeedItem(paginationInfo: PaginationInfo,
-                                     title: String,
-                                     caption: String,
-                                     list: Seq[(Dote, Dotable)],
-                                     profilePerson: PersonRow): FeedItem = {
-    val feedList = FeedActivityList(
-      Some(
-        ActivityList(
-          title = title,
-          caption = caption,
-          items = list.map(pair =>
-            Activity().withDote(DoteActivity().withDote(pair._1).withDotable(pair._2))))))
-    FeedItem()
-      .withId(
-        FeedId().withActivity(
-          ActivityId()
-            .withPaginationInfo(PaginationInfoMapper.toProto(paginationInfo))
-            .withUsername(profilePerson.username)))
-      .withContent(FeedItem.Content.ActivityList(feedList))
   }
 
   private def toFollowerSummaryFeedItem(followerSummary: FollowerSummary) = {
