@@ -135,8 +135,10 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
 
   val readByChildIdRaw = Compiled { (childId: Rep[Long]) =>
     for {
-      (p, c) <- table join table.filter(_.id === childId) on (_.id === _.parentId)
-    } yield p
+      c <- table.filter(_.id === childId)
+      (g, p) <- table joinRight table on (_.id === _.parentId)
+      if p.id === c.parentId
+    } yield (p, g)
   }
 
   def readHeadByParentId(kind: DotableKind, parentId: Long) = {
@@ -147,8 +149,12 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     readByParentIdRaw(parentId, kind).result.map(_.map(protoRowMapper(kind)))
   }
 
-  def readByChildId(kind: DotableKind, childId: Long) = {
-    readByChildIdRaw(childId).result.headOption.map(_.map(protoRowMapper(kind)))
+  def readParentAndGrandparent(childId: Long) = {
+    readByChildIdRaw(childId).result.headOption map { results =>
+      val parent = results.map(_._1)
+      val grandparent = results.flatMap(_._2)
+      (parent.map(protoRowMapper), grandparent.map(protoRowMapper))
+    }
   }
 
   def protoRowMapper(kind: DotableKind)(row: DotableRow): Dotable = {

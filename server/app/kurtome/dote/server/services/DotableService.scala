@@ -293,29 +293,30 @@ class DotableService @Inject()(db: BasicBackend#Database,
 
   def readDotableDetails(id: Long, personId: Option[Long]): Future[Option[Dotable]] = {
     val childrenQuery = dotableDbIo.readByParentId(DotableKinds.PodcastEpisode, id)
-    val parentQuery = dotableDbIo.readByChildId(DotableKinds.Podcast, id)
+    val parentQuery = dotableDbIo.readParentAndGrandparent(id)
     val tagsQuery = tagDbIo.readByDotableId(id)
 
     val op = for {
       dotableOpt <- dotableDbIo.readHeadById(id)
       children <- childrenQuery
-      parentOpt <- parentQuery
+      (parentOpt, grandParentOpt) <- parentQuery
       tags <- tagsQuery
     } yield
       dotableOpt.map(
-        _.withRelatives(
-          Dotable.Relatives(parent = parentOpt,
-                            parentFetched = true,
-                            children = children,
-                            childrenFetched = true))
-          .withTagCollection(TagCollection(tagsFetched = true, tags = tags map { tagRow =>
-            TagMapper.toProto(
-              Tag(
-                kind = tagRow.kind,
-                key = tagRow.key,
-                name = tagRow.name
-              ))
-          })))
+        _.withRelatives(Dotable.Relatives(
+          parent = parentOpt.map(
+            _.withRelatives(Dotable.Relatives(parent = grandParentOpt, parentFetched = true))),
+          parentFetched = true,
+          children = children,
+          childrenFetched = true
+        )).withTagCollection(TagCollection(tagsFetched = true, tags = tags map { tagRow =>
+          TagMapper.toProto(
+            Tag(
+              kind = tagRow.kind,
+              key = tagRow.key,
+              name = tagRow.name
+            ))
+        })))
     for {
       dotable <- db.run(op)
       dote <- doteService.readDote(personId.getOrElse(0), id)
