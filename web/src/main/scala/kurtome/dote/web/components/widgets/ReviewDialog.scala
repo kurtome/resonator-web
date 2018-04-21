@@ -68,6 +68,8 @@ object ReviewDialog extends LogSupport {
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def handleWillReceiveProps(newProps: Props) = Callback {
+      bs.modState(_.copy(editedDote = newProps.dotable.getDote)).runNow()
+
       val reviewId = newProps.dotable.getDote.reviewId
       if (reviewId.nonEmpty) {
         bs.modState(_.copy(submitInFlight = true)).runNow()
@@ -195,7 +197,7 @@ object ReviewDialog extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => State(editedDote = p.dotable.getDote))
+    .initialState(State())
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .componentWillReceiveProps(x => x.backend.handleWillReceiveProps(x.nextProps))
