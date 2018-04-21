@@ -1,6 +1,4 @@
 package kurtome.dote.slick.db.gen
-
-import kurtome.dote.shared.constants.DotableKinds
 // AUTO-GENERATED Slick data model
 /** Stand-alone Slick data model for immediate use */
 object Tables extends {
@@ -113,7 +111,7 @@ trait Tables {
     *  @param data Database column data SqlType(jsonb)
     *  @param contentEditedTime Database column content_edited_time SqlType(timestamp) */
   case class DotableRow(id: Long,
-                        kind: DotableKinds.Value,
+                        kind: kurtome.dote.shared.constants.DotableKinds.Value,
                         title: Option[String],
                         parentId: Option[Long],
                         data: org.json4s.JsonAST.JValue,
@@ -121,7 +119,7 @@ trait Tables {
 
   /** GetResult implicit for fetching DotableRow objects using plain SQL queries */
   implicit def GetResultDotableRow(implicit e0: GR[Long],
-                                   e1: GR[DotableKinds.Value],
+                                   e1: GR[kurtome.dote.shared.constants.DotableKinds.Value],
                                    e2: GR[Option[String]],
                                    e3: GR[Option[Long]],
                                    e4: GR[org.json4s.JsonAST.JValue],
@@ -129,7 +127,7 @@ trait Tables {
     import prs._
     DotableRow.tupled(
       (<<[Long],
-       <<[DotableKinds.Value],
+       <<[kurtome.dote.shared.constants.DotableKinds.Value],
        <<?[String],
        <<?[Long],
        <<[org.json4s.JsonAST.JValue],
@@ -156,8 +154,8 @@ trait Tables {
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
 
     /** Database column kind SqlType(dotablekind) */
-    val kind: Rep[DotableKinds.Value] =
-      column[DotableKinds.Value]("kind")
+    val kind: Rep[kurtome.dote.shared.constants.DotableKinds.Value] =
+      column[kurtome.dote.shared.constants.DotableKinds.Value]("kind")
 
     /** Database column title SqlType(text), Length(2147483647,true) */
     val title: Rep[Option[String]] =
@@ -242,19 +240,22 @@ trait Tables {
     *  @param personId Database column person_id SqlType(int8)
     *  @param doteTime Database column dote_time SqlType(timestamp)
     *  @param emoteKind Database column emote_kind SqlType(emotekind)
-    *  @param halfStars Database column half_stars SqlType(int4), Default(0) */
+    *  @param halfStars Database column half_stars SqlType(int4), Default(0)
+    *  @param reviewDotableId Database column review_dotable_id SqlType(int8) */
   case class DoteRow(id: Long,
                      dotableId: Long,
                      personId: Long,
                      doteTime: java.time.LocalDateTime,
                      emoteKind: Option[kurtome.dote.shared.constants.EmoteKinds.Value],
-                     halfStars: Int = 0)
+                     halfStars: Int = 0,
+                     reviewDotableId: Option[Long])
 
   /** GetResult implicit for fetching DoteRow objects using plain SQL queries */
   implicit def GetResultDoteRow(implicit e0: GR[Long],
                                 e1: GR[java.time.LocalDateTime],
                                 e2: GR[Option[kurtome.dote.shared.constants.EmoteKinds.Value]],
-                                e3: GR[Int]): GR[DoteRow] = GR { prs =>
+                                e3: GR[Int],
+                                e4: GR[Option[Long]]): GR[DoteRow] = GR { prs =>
     import prs._
     DoteRow.tupled(
       (<<[Long],
@@ -262,13 +263,14 @@ trait Tables {
        <<[Long],
        <<[java.time.LocalDateTime],
        <<?[kurtome.dote.shared.constants.EmoteKinds.Value],
-       <<[Int]))
+       <<[Int],
+       <<?[Long]))
   }
 
   /** Table description of table dote. Objects of this class serve as prototypes for rows in queries. */
   class Dote(_tableTag: slick.lifted.Tag) extends profile.api.Table[DoteRow](_tableTag, "dote") {
     def * =
-      (id, dotableId, personId, doteTime, emoteKind, halfStars) <> (DoteRow.tupled, DoteRow.unapply)
+      (id, dotableId, personId, doteTime, emoteKind, halfStars, reviewDotableId) <> (DoteRow.tupled, DoteRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
@@ -277,9 +279,10 @@ trait Tables {
        Rep.Some(personId),
        Rep.Some(doteTime),
        emoteKind,
-       Rep.Some(halfStars)).shaped.<>(
+       Rep.Some(halfStars),
+       reviewDotableId).shaped.<>(
         { r =>
-          import r._; _1.map(_ => DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6.get)))
+          import r._; _1.map(_ => DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6.get, _7)))
         },
         (_: Any) => throw new Exception("Inserting into ? projection not supported.")
       )
@@ -303,9 +306,18 @@ trait Tables {
     /** Database column half_stars SqlType(int4), Default(0) */
     val halfStars: Rep[Int] = column[Int]("half_stars", O.Default(0))
 
+    /** Database column review_dotable_id SqlType(int8) */
+    val reviewDotableId: Rep[Option[Long]] = column[Option[Long]]("review_dotable_id")
+
     /** Foreign key referencing Dotable (database name dote_dotable_id_fkey) */
-    lazy val dotableFk = foreignKey("dote_dotable_id_fkey", dotableId, Dotable)(
+    lazy val dotableFk1 = foreignKey("dote_dotable_id_fkey", dotableId, Dotable)(
       r => r.id,
+      onUpdate = ForeignKeyAction.NoAction,
+      onDelete = ForeignKeyAction.NoAction)
+
+    /** Foreign key referencing Dotable (database name dote_review_dotable_id_fkey) */
+    lazy val dotableFk2 = foreignKey("dote_review_dotable_id_fkey", reviewDotableId, Dotable)(
+      r => Rep.Some(r.id),
       onUpdate = ForeignKeyAction.NoAction,
       onDelete = ForeignKeyAction.NoAction)
 
@@ -317,6 +329,9 @@ trait Tables {
 
     /** Uniqueness Index over (dotableId,personId) (database name dote_dotable_person_index) */
     val index1 = index("dote_dotable_person_index", (dotableId, personId), unique = true)
+
+    /** Uniqueness Index over (reviewDotableId) (database name dote_review_dotable_id) */
+    val index2 = index("dote_review_dotable_id", reviewDotableId, unique = true)
   }
 
   /** Collection-like TableQuery object for table Dote */

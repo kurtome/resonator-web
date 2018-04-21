@@ -118,9 +118,15 @@ object ImageWithSummaryCard extends LogSupport {
         ^.height := asPxStr(height),
         <.div(
           ^.cursor.pointer,
-          ^.onClick --> Callback(DotableDetailView.cachedDotable =
-            TimeCachedValue(Date.now() + (1000 * 60), p.dotable)) *> doteRouterCtl.set(
-            detailRoute),
+          ^.onClick ==> ((e: ReactMouseEvent) =>
+            Callback {
+              // Don't hijack clicks on anchor links
+              if (e.target.nodeName.toLowerCase != "a") {
+                DotableDetailView.cachedDotable =
+                  TimeCachedValue(Date.now() + (1000 * 60), p.dotable)
+                doteRouterCtl.set(detailRoute).runNow()
+              }
+            }),
           ^.height := "100%",
           ^.className := Styles.container,
           <.div(

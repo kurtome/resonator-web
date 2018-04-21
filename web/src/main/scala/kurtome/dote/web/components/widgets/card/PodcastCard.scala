@@ -1,6 +1,7 @@
 package kurtome.dote.web.components.widgets.card
 
 import japgolly.scalajs.react._
+import japgolly.scalajs.react.vdom.DomCallbackResult
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.web.CssSettings._
@@ -93,10 +94,15 @@ object PodcastCard extends LogSupport {
           case _ =>
             <.div(
               ^.cursor.pointer,
-              ^.onClick --> Callback(
-                DotableDetailView.cachedDotable =
-                  TimeCachedValue(Date.now() + (1000 * 60), p.dotable)) *> doteRouterCtl.set(
-                detailRoute),
+              ^.onClick ==> ((e: ReactMouseEvent) =>
+                Callback {
+                  // Don't hijack clicks on anchor links
+                  if (e.target.nodeName.toLowerCase != "a") {
+                    DotableDetailView.cachedDotable =
+                      TimeCachedValue(Date.now() + (1000 * 60), p.dotable)
+                    doteRouterCtl.set(detailRoute).runNow()
+                  }
+                }),
               ^.className := Styles.container,
               PodcastImageCard(dotable = p.dotable, width = "100%")()
             )

@@ -4,7 +4,7 @@ import slick.codegen.{OutputHelpers, SourceCodeGenerator}
 import slick.{model => m}
 
 /**
-  * Copied from {@link slick.codegen.SourceCodeGenerator} to add support for more types
+  * Copied from [[slick.codegen.SourceCodeGenerator]] to add support for more types
   */
 class RichSourceCodeGenerator(model: m.Model)
     extends SourceCodeGenerator(model)

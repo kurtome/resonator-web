@@ -10,6 +10,7 @@ import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.proto.api.dote.Dote.EmoteKind
 import kurtome.dote.shared.constants.Emojis
 import kurtome.dote.web.CssSettings._
+import kurtome.dote.web.DoteRoutes.DetailsRoute
 import kurtome.dote.web.DoteRoutes.ProfileRoute
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
@@ -46,7 +47,19 @@ object ActivityCard extends LogSupport {
     )
 
     val accountIcon = style(
-      float.left
+      display.inlineFlex,
+      marginRight(4 px)
+    )
+
+    val reviewSnippet = style(
+      paddingLeft(8 px),
+      paddingRight(8 px),
+      paddingBottom(4 px)
+    )
+
+    val reviewSnippetItem = style(
+      paddingRight(4 px),
+      maxWidth(100 %%)
     )
 
     val rating = style(
@@ -55,6 +68,7 @@ object ActivityCard extends LogSupport {
     )
 
     val username = style(
+      display.inline,
       marginLeft(1.9 em), // left space for account icon
       lineHeight(1.75 em)
     )
@@ -105,29 +119,57 @@ object ActivityCard extends LogSupport {
       val activity = p.activity
       val dotable = activity.getDote.getDotable
       val dote = activity.getDote.getDote
+      val review = activity.getDote.review
+      val reviewBody = review.map(_.getCommon.description).getOrElse("")
       <.div(
         ^.width := "100%",
-        <.div(
-          ^.className := Styles.headerTextWrapper,
-          Typography(style = Styles.accountIcon)(Icons.AccountCircle()),
-          GridContainer(wrap = Grid.Wrap.NoWrap,
-                        style = Styles.rating,
-                        alignItems = Grid.AlignItems.Center)(
-            GridItem()(renderStars(dote)),
-            GridItem()(
-              Typography(component = "span", noWrap = true)(Emojis.pickEmoji(dote.emoteKind)))
+        GridContainer(spacing = 0)(
+          GridItem(xs = 12)(
+            <.div(
+              ^.className := Styles.headerTextWrapper,
+              GridContainer(spacing = 0, justify = Grid.Justify.SpaceBetween)(
+                GridItem()(
+                  GridContainer(wrap = Grid.Wrap.NoWrap, alignItems = Grid.AlignItems.Center)(
+                    GridItem(style = Styles.accountIcon)(Icons.AccountCircle()),
+                    GridItem()(Typography(component = "span", noWrap = true)(
+                      SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username)))
+                  )
+                ),
+                GridItem()(
+                  GridContainer(wrap = Grid.Wrap.NoWrap, alignItems = Grid.AlignItems.Center)(
+                    GridItem()(renderStars(dote)),
+                    GridItem()(Typography(component = "span", noWrap = true)(
+                      Emojis.pickEmoji(dote.emoteKind)))
+                  )
+                )
+              )
+            )
           ),
-          Typography(noWrap = true, style = Styles.username)(
-            SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username))
-        ),
-        if (dotable.kind == Dotable.Kind.PODCAST) {
-          PodcastCard(dotable = dotable, variant = PodcastCard.Variants.Activity)()
-        } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-          EpisodeCard(dotable = dotable, variant = EpisodeCard.Variants.Activity)()
-        } else {
-          // Placeholder for correct spacing
-          <.div(^.width := "100%")
-        }
+          GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = review.isEmpty))(
+            GridContainer(alignItems = Grid.AlignItems.Center, style = Styles.reviewSnippet)(
+              GridItem(style = Styles.reviewSnippetItem)(
+                Typography(variant = Typography.Variants.Caption, noWrap = true)(
+                  s""""$reviewBody""""
+                )
+              ),
+              GridItem()(
+                Typography(variant = Typography.Variants.Caption)(
+                  SiteLink(DetailsRoute(review.map(_.id).getOrElse(""), "review"))("See Review")
+                )
+              )
+            )
+          ),
+          GridItem(xs = 12)(
+            if (dotable.kind == Dotable.Kind.PODCAST) {
+              PodcastCard(dotable = dotable, variant = PodcastCard.Variants.Activity)()
+            } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
+              EpisodeCard(dotable = dotable, variant = EpisodeCard.Variants.Activity)()
+            } else {
+              // Placeholder for correct spacing
+              <.div(^.width := "100%")
+            }
+          )
+        )
       )
     }
   }

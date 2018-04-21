@@ -19,10 +19,19 @@ message Dotable {
   // Dote for the currently logged in person
   api.Dote dote = 8;
 
+  // Dote for the currently logged in person
+  api.Dote review_dote = 9;
+
+  // Details that aren't stored in the the same database row as the dotable.details
+  oneof extras {
+    ReviewExtras review = 10;
+  }
+
   enum Kind {
     UNKNOWN_KIND = 0;
     PODCAST = 1;
     PODCAST_EPISODE = 2;
+    REVIEW = 3;
   }
 
   message Relatives {
@@ -32,5 +41,9 @@ message Dotable {
     // fetch may be preferred.
     repeated Dotable children = 3;
     bool children_fetched = 4;
+  }
+
+  message ReviewExtras {
+    api.Dote dote = 1;
   }
 }

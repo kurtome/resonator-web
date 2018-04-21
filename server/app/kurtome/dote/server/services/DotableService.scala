@@ -24,8 +24,6 @@ import kurtome.dote.shared.model.Tag
 import kurtome.dote.shared.model.TagId
 import kurtome.dote.shared.model.TagList
 import kurtome.dote.slick.db.gen.Tables
-import kurtome.dote.slick.db.gen.Tables.DotableRow
-import kurtome.dote.slick.db.gen.Tables.DoteRow
 import kurtome.dote.slick.db.gen.Tables.PodcastEpisodeIngestionRow
 import slick.basic.BasicBackend
 import wvlet.log.LogSupport
@@ -294,7 +292,7 @@ class DotableService @Inject()(db: BasicBackend#Database,
   }
 
   def readDotableDetails(id: Long, personId: Option[Long]): Future[Option[Dotable]] = {
-    val childrenQuery = dotableDbIo.readByParentId(id)
+    val childrenQuery = dotableDbIo.readByParentId(DotableKinds.PodcastEpisode, id)
     val parentQuery = dotableDbIo.readByChildId(DotableKinds.Podcast, id)
     val tagsQuery = tagDbIo.readByDotableId(id)
 
@@ -318,13 +316,28 @@ class DotableService @Inject()(db: BasicBackend#Database,
                 name = tagRow.name
               ))
           })))
-
     for {
       dotable <- db.run(op)
       dote <- doteService.readDote(personId.getOrElse(0), id)
       person <- personService.readById(personId.getOrElse(0))
-    } yield dotable.map(_.copy(dote = dote.map(DoteMapper.toProto(_, person))))
+      extras <- getExtras(id, dotable.map(_.kind))
+    } yield dotable.map(_.copy(dote = dote.map(DoteMapper.toProto(_, person))).withExtras(extras))
+  }
 
+  private def getExtras(id: Long, kind: Option[Dotable.Kind]): Future[Dotable.Extras] = {
+    kind match {
+      case Some(Dotable.Kind.REVIEW) => {
+        val pendingDote = for {
+          reviewDote <- doteService.doteForReview(id)
+          person <- personService.readById(reviewDote.map(_.personId).getOrElse(0))
+        } yield reviewDote.map(DoteMapper.toProto(_, person))
+
+        pendingDote.map(opt => {
+          Dotable.Extras.Review(Dotable.ReviewExtras(opt))
+        })
+      }
+      case _ => Future(Dotable.Extras.Empty)
+    }
   }
 
   def readDotableShallow(id: Long): Future[Option[Dotable]] = {

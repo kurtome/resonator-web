@@ -28,6 +28,7 @@ object DotableMapper extends ((Tables.DotableRow, Option[Tables.DotableRow]) => 
     rowKind match {
       case DotableKinds.Podcast => Dotable.Kind.PODCAST
       case DotableKinds.PodcastEpisode => Dotable.Kind.PODCAST_EPISODE
+      case DotableKinds.Review => Dotable.Kind.REVIEW
       case _ => throw new IllegalStateException("unexpected type " + rowKind)
     }
   }

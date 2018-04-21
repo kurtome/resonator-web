@@ -20,7 +20,7 @@ object ShareButton {
           if (p.shareUrl.nonEmpty) {
             p.shareUrl
           } else {
-            dom.document.location.href
+            dom.document.location.protocol + dom.document.location.href
           }
         CopyToClipboard.copyTextToClipboard(url)
         GlobalNotificationManager.displayMessage(p.copiedMessage)

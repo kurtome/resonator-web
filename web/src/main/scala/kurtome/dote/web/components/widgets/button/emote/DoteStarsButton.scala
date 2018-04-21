@@ -28,12 +28,12 @@ object DoteStarsButton extends LogSupport {
 
   }
 
-  case class Props(dotable: Dotable, onDoteChanged: (Dote) => Callback)
+  case class Props(dotable: Dotable, onDoteChanged: (Dote) => Callback, sendToServer: Boolean)
   case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val sendDoteToServer: js.Function1[Int, Unit] = Debounce.debounce1(waitMs = 200) {
+    val updateDote: js.Function1[Int, Unit] = Debounce.debounce1(waitMs = 200) {
       (numHalfStars: Int) =>
         val p: Props = bs.props.runNow()
 
@@ -41,9 +41,11 @@ object DoteStarsButton extends LogSupport {
 
         p.onDoteChanged(dote).runNow()
 
-        val f =
-          DoteProtoServer.setDote(SetDoteRequest(p.dotable.id, Some(dote)))
-        GlobalLoadingManager.addLoadingFuture(f)
+        if (p.sendToServer) {
+          val f =
+            DoteProtoServer.setDote(SetDoteRequest(p.dotable.id, Some(dote)))
+          GlobalLoadingManager.addLoadingFuture(f)
+        }
     }
 
     def handleStarValueChanged(p: Props, starPosition: Int) =
@@ -55,7 +57,7 @@ object DoteStarsButton extends LogSupport {
         } else {
           (starPosition * 2) - 1
         }
-        sendDoteToServer(newNumHalfStars)
+        updateDote(newNumHalfStars)
       }
 
     private def renderStarButton(p: Props, starPosition: Int) = {
@@ -99,6 +101,8 @@ object DoteStarsButton extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable, onDoteChanged: (Dote) => Callback = _ => Callback.empty) =
-    component.withProps(Props(dotable, onDoteChanged))
+  def apply(dotable: Dotable,
+            onDoteChanged: (Dote) => Callback = _ => Callback.empty,
+            sendToServer: Boolean = true) =
+    component.withProps(Props(dotable, onDoteChanged, sendToServer))
 }

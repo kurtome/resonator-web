@@ -9,7 +9,9 @@ import kurtome.dote.proto.api.dotable_list.DotableList
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.proto.api.feed.Feed
 import kurtome.dote.proto.api.feed.FeedActivityList
+import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedItem
+import kurtome.dote.proto.api.feed.FeedItemCommon
 import kurtome.dote.server.db.mappers.DotableMapper
 import kurtome.dote.server.db.mappers.DoteMapper
 import kurtome.dote.server.services.DotableService
@@ -17,6 +19,7 @@ import kurtome.dote.server.services.DoteService
 import kurtome.dote.server.services.PersonService
 import kurtome.dote.server.services.TagService
 import kurtome.dote.shared.mapper.PaginationInfoMapper
+import kurtome.dote.slick.db.gen.Tables
 import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext
@@ -29,6 +32,8 @@ class ActivityFeedFetcher @Inject()(personService: PersonService,
                                     tagService: TagService)(implicit ec: ExecutionContext)
     extends FeedFetcher
     with LogSupport {
+
+  import ActivityFeedFetcher._
 
   override def fetch(params: FeedParams): Future[Feed] = {
     assert(params.feedId.id.isActivity)
@@ -43,30 +48,38 @@ class ActivityFeedFetcher @Inject()(personService: PersonService,
         loggedInPersonId
           .map(doteService.recentDotesWithDotableFromFollowing(paginationInfo, _))
           .getOrElse(Future(Nil))
-          .map(_.map(pair =>
-            (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
-          list =>
-            toActivityListFeedItem(params, "Recent From Following", "", list)
+          .map(_.map(mapActivityData)) map { list =>
+          toActivityListFeedItem(params.feedId,
+                                 "Recent From Following",
+                                 "",
+                                 list,
+                                 style = FeedActivityList.Style.PRIMARY)
         }
       } else if (activityId.username.nonEmpty) {
         (personService.readByUsername(activityId.username) flatMap {
           case Some(personRow) => {
             doteService
               .recentDotesWithDotableByPerson(paginationInfo, personRow.id)
-              .map(_.map(pair =>
-                (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4))))
+              .map(_.map(mapActivityData))
           }
           case _ => Future(Nil)
         }) map { list =>
-          toActivityListFeedItem(params, "Recently Rated", "", list, activityId.username)
+          toActivityListFeedItem(params.feedId,
+                                 "Recently Rated",
+                                 "",
+                                 list,
+                                 activityId.username,
+                                 style = FeedActivityList.Style.PRIMARY)
         }
       } else {
         doteService
           .readRecentDotesWithDotables(paginationInfo)
-          .map(_.map(pair =>
-            (DoteMapper.toProto(pair._1, Some(pair._2)), DotableMapper(pair._3, pair._4)))) map {
-          list =>
-            toActivityListFeedItem(params, "Recent Activity", "", list)
+          .map(_.map(mapActivityData)) map { list =>
+          toActivityListFeedItem(params.feedId,
+                                 "Recent Activity",
+                                 "",
+                                 list,
+                                 style = FeedActivityList.Style.PRIMARY)
         }
       }
 
@@ -77,21 +90,40 @@ class ActivityFeedFetcher @Inject()(personService: PersonService,
     }
   }
 
-  private def toActivityListFeedItem(feedParams: FeedParams,
-                                     title: String,
-                                     caption: String,
-                                     list: Seq[(Dote, Dotable)],
-                                     username: String = ""): FeedItem = {
+}
+
+object ActivityFeedFetcher {
+
+  def toActivityListFeedItem(feedId: FeedId,
+                             title: String,
+                             caption: String,
+                             list: Seq[(Dote, Dotable, Option[Dotable])],
+                             username: String = "",
+                             style: FeedActivityList.Style = FeedActivityList.Style.SUMMARY,
+                             backgroundColor: FeedItemCommon.BackgroundColor =
+                               FeedItemCommon.BackgroundColor.DEFAULT): FeedItem = {
     val feedList = FeedActivityList()
-      .withStyle(FeedActivityList.Style.PRIMARY)
+      .withStyle(style)
       .withActivityList(
-        ActivityList(
-          title = title,
-          caption = caption,
-          items = list.map(pair =>
-            Activity().withDote(DoteActivity().withDote(pair._1).withDotable(pair._2)))))
+        ActivityList(title = title,
+                     caption = caption,
+                     items = list.map(pair =>
+                       Activity().withDote(
+                         DoteActivity(review = pair._3).withDote(pair._1).withDotable(pair._2)))))
     FeedItem()
-      .withId(feedParams.feedId)
+      .withCommon(FeedItemCommon().withBackgroundColor(backgroundColor))
+      .withId(feedId)
       .withContent(FeedItem.Content.ActivityList(feedList))
+  }
+
+  def mapActivityData(
+      pair: (Tables.DoteRow,
+             Tables.PersonRow,
+             Tables.DotableRow,
+             Option[Tables.DotableRow],
+             Option[Tables.DotableRow])) = {
+    (DoteMapper.toProto(pair._1, Some(pair._2)),
+     DotableMapper(pair._3, pair._4),
+     pair._5.map(DotableMapper(_, None)))
   }
 }

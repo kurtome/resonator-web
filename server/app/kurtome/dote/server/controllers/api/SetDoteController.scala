@@ -29,8 +29,9 @@ class SetDoteController @Inject()(
       case SuccessData(Some(person)) =>
         doteService.writeDote(person.id,
                               UrlIds.decode(UrlIds.IdKinds.Dotable, request.body.dotableId),
-                              request.body.getDote) map { _ =>
-          response(SuccessStatus)
+                              request.body.getDote,
+                              request.body.review.map(_.body)) map { status =>
+          response(status)
         }
       case FailedData(_, error) => Future(response(error))
       case _ => Future(response(UnknownErrorStatus))

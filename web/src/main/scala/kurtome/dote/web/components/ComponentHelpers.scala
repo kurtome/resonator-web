@@ -21,7 +21,7 @@ import scalacss.internal.mutable.StyleSheet
 object ComponentHelpers {
 
   def dotableUrl(dotable: Dotable): String = {
-    s"${dom.document.domain}/details/${dotable.id}/${dotable.slug}"
+    s"${dom.document.location.protocol}//${dom.document.location.host}/details/${dotable.id}/${dotable.slug}"
   }
 
   def epochSecToDate(epochSec: Long): String = {

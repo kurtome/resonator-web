@@ -22,6 +22,7 @@ import kurtome.dote.web.components.materialui.IconButton
 import kurtome.dote.web.components.materialui.Icons
 import kurtome.dote.web.components.materialui.Paper
 import kurtome.dote.web.components.materialui.Typography
+import kurtome.dote.web.components.widgets.ReviewDialog
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.button.emote.DoteEmoteButton
 import kurtome.dote.web.components.widgets.button.emote.DoteStarsButton
@@ -82,12 +83,13 @@ object DotableActionsCardWrapper extends LogSupport {
   type Variant = Variants.Value
 
   case class Props(dotable: Dotable, elevation: Int, variant: Variant, alwaysExpanded: Boolean)
-  case class State(dotable: Dotable,
-                   loggedInUserDote: Dote,
+  case class State(dotable: Dotable = Dotable.defaultInstance,
+                   loggedInUserDote: Dote = Dote.defaultInstance,
                    hover: Boolean = false,
                    expanded: Boolean = false,
                    hasHovered: Boolean = false,
-                   boundingClientRect: Option[ClientRect] = None)
+                   boundingClientRect: Option[ClientRect] = None,
+                   reviewOpen: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -127,7 +129,23 @@ object DotableActionsCardWrapper extends LogSupport {
       collapseTimer.foreach(id => dom.window.clearTimeout(id))
     }
 
-    val openReview = Callback {}
+    def handleWillReceiveProps(nextProps: Props) = Callback {
+      val doteUsername = nextProps.dotable.getDote.getPerson.username
+      val loggedInUserDote =
+        if (doteUsername.isEmpty || doteUsername != LoggedInPersonManager.person
+              .map(_.username)
+              .getOrElse("")) {
+          Dote.defaultInstance
+        } else {
+          nextProps.dotable.getDote
+        }
+      bs.modState(
+          _.copy(nextProps.dotable,
+                 loggedInUserDote,
+                 expanded = nextProps.alwaysExpanded,
+                 hasHovered = nextProps.alwaysExpanded))
+        .runNow()
+    }
 
     private var outerRef: Option[html.Element] = None
 
@@ -158,9 +176,6 @@ object DotableActionsCardWrapper extends LogSupport {
         ^.onMouseEnter --> onMouseEnter,
         ^.onMouseLeave --> onMouseLeave,
         Paper(style = paperStyle(p), elevation = if (s.hover) p.elevation + 2 else p.elevation)(
-//          CardActionShim(dotable,
-//                         active = s.hover && !s.expanded,
-//                         onDoteChanged = handleDoteChanged)(),
           pc,
           // hide the menu until as late a possible to avoid rendering it on every card on the page
           Hidden(xsUp = !s.hasHovered)(
@@ -187,21 +202,21 @@ object DotableActionsCardWrapper extends LogSupport {
                     )
                   )
                 ),
-//                GridItem(xs = 12,
-//                         hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
-//                  Divider()()),
-//                GridContainer()(
-//                  GridItem(xs = 12,
-//                           hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
-//                    GridContainer(justify = Grid.Justify.Center,
-//                                  alignItems = Grid.AlignItems.Center)(
-//                      GridItem()(Typography()("Review")),
-//                      GridItem()(
-//                        IconButton(onClick = openReview, color = IconButton.Colors.Primary)(
-//                          Icons.MessageDraw()))
-//                    )
-//                  )
-//                ),
+                GridItem(xs = 12,
+                         hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+                  Divider()()),
+                GridContainer()(
+                  GridItem(xs = 12,
+                           hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+                    GridContainer(justify = Grid.Justify.Center,
+                                  alignItems = Grid.AlignItems.Center)(
+                      GridItem()(Typography()("Review")),
+                      GridItem()(
+                        IconButton(onClick = bs.modState(_.copy(reviewOpen = true)),
+                                   color = IconButton.Colors.Primary)(Icons.MessageDraw()))
+                    )
+                  )
+                ),
                 GridItem(xs = 12,
                          hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
                   Divider()()),
@@ -226,31 +241,22 @@ object DotableActionsCardWrapper extends LogSupport {
                 )
               )
             ))
-        )
+        ),
+        ReviewDialog(p.dotable.withDote(s.loggedInUserDote),
+                     s.reviewOpen,
+                     onClose = bs.modState(_.copy(reviewOpen = false)),
+                     onDoteChanged = handleDoteChanged)()
       ).ref(el => outerRef = Some(el))
     }
   }
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(p => {
-      val doteUsername = p.dotable.getDote.getPerson.username
-      val loggedInUserDote =
-        if (doteUsername.isEmpty || doteUsername != LoggedInPersonManager.person
-              .map(_.username)
-              .getOrElse("")) {
-          Dote.defaultInstance
-        } else {
-          p.dotable.getDote
-        }
-      State(p.dotable,
-            loggedInUserDote,
-            expanded = p.alwaysExpanded,
-            hasHovered = p.alwaysExpanded)
-    })
+    .initialState(State())
     .backend(new Backend(_))
     .renderPCS((builder, p, pc, s) => builder.backend.render(p, s, pc))
     .componentWillUnmount(x => x.backend.handleUnmount)
+    .componentWillReceiveProps(x => x.backend.handleWillReceiveProps(x.nextProps))
     .build
 
   def apply(dotable: Dotable,

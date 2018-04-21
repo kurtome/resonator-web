@@ -10,6 +10,7 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.MainContentSection
+import kurtome.dote.web.components.widgets.detail.ReviewDetails
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
 import kurtome.dote.web.rpc.CachedValue
 import kurtome.dote.web.rpc.EmptyCachedValue
@@ -77,6 +78,7 @@ object DotableDetailView extends LogSupport {
           case Kind.PODCAST =>
             PodcastDetails(PodcastDetails.Props(dotable, episodeTablePage))()
           case Kind.PODCAST_EPISODE => EpisodeDetails(EpisodeDetails.Props(dotable))()
+          case Kind.REVIEW => ReviewDetails(ReviewDetails.Props(dotable))()
           case _ => {
             // Waiting for data
             GridContainer(justify = Grid.Justify.Center)(

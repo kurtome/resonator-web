@@ -12,6 +12,8 @@ message Dote {
   // 1-10 is the valid range for stars, 9 being 4.5 stars etc.
   int32 half_stars = 3;
 
+  string review_id = 4;
+
   enum EmoteKind {
     UNKNOWN_KIND = 0;
     HEART = 1;

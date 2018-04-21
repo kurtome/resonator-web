@@ -24,6 +24,10 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
       Tables.Dote.filter(row => row.personId === personId && row.dotableId === dotableId)
     }
 
+    val readByReviewDotableId = Compiled { (reviewDotableId: Rep[Long]) =>
+      Tables.Dote.filter(row => row.reviewDotableId === reviewDotableId)
+    }
+
     val filterByPersonId = Compiled { (personId: Rep[Long]) =>
       Tables.Dote.filter(row => row.personId === personId)
     }
@@ -31,28 +35,28 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
     val recentDotesWithDotable = Compiled {
       (offset: ConstColumn[Long], limit: ConstColumn[Long]) =>
         (for {
-          dote <- Tables.Dote
+          (dote, r) <- Tables.Dote
             .sortBy(_.doteTime.desc)
             .drop(offset)
-            .take(limit)
+            .take(limit) joinLeft Tables.Dotable on (_.reviewDotableId === _.id)
           person <- Tables.Person if dote.personId === person.id
           (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if d.id === dote.dotableId
-        } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
+        } yield (dote, person, d, p, r)).sortBy(_._1.doteTime.desc)
     }
 
     val recentDotesWithDotableByPerson = Compiled {
       (offset: ConstColumn[Long], limit: ConstColumn[Long], personId: Rep[Long]) =>
         (for {
-          dote <- Tables.Dote
+          (dote, r) <- Tables.Dote
             .filter(_.personId === personId)
             .sortBy(_.doteTime.desc)
             .drop(offset)
-            .take(limit)
+            .take(limit) joinLeft Tables.Dotable on (_.reviewDotableId === _.id)
           person <- Tables.Person if dote.personId === person.id
           (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if d.id === dote.dotableId
-        } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
+        } yield (dote, person, d, p, r)).sortBy(_._1.doteTime.desc)
     }
 
     val recentDotesWithDotableFromFollowing = Compiled {
@@ -64,15 +68,15 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
           } yield person.id
 
         (for {
-          dote <- Tables.Dote
+          (dote, r) <- Tables.Dote
             .filter(_.personId in followingPersonIds)
             .sortBy(_.doteTime.desc)
             .drop(offset)
-            .take(limit)
+            .take(limit) joinLeft Tables.Dotable on (_.reviewDotableId === _.id)
           person <- Tables.Person if dote.personId === person.id
           (d, p) <- Tables.Dotable joinLeft Tables.Dotable on (_.parentId === _.id)
           if d.id === dote.dotableId
-        } yield (dote, person, d, p)).sortBy(_._1.doteTime.desc)
+        } yield (dote, person, d, p, r)).sortBy(_._1.doteTime.desc)
     }
 
     val mostPopularDotables = Compiled {
@@ -123,21 +127,34 @@ class DoteDbIo @Inject()(implicit executionContext: ExecutionContext) {
     Queries.filterByPersonAndDotableId(personId, dotableId).result.headOption
   }
 
+  def readByReviewDotableId(reviewDotableId: Long) = {
+    Queries.readByReviewDotableId(reviewDotableId).result.headOption
+  }
+
+  def lockDoteRow(personId: Long, dotableId: Long) = {
+    Tables.Dote
+      .filter(row => row.personId === personId && row.dotableId === dotableId)
+      .forUpdate
+      .result
+      .headOption
+  }
+
   def delete(personId: Long, dotableId: Long) = {
     Tables.Dote.filter(row => row.personId === personId && row.dotableId === dotableId).delete
   }
 
-  def upsert(personId: Long, dotableId: Long, dote: Dote) = {
+  def upsert(personId: Long, dotableId: Long, dote: Dote, reviewId: Option[Long]) = {
     val emoteKind: Option[EmoteKinds.Value] = EmoteKindMapper.fromProto(dote.emoteKind)
     val halfStars: Int = dote.halfStars
     sqlu"""INSERT INTO dote AS d
-           (person_id, dotable_id, emote_kind, half_stars, dote_time)
+           (person_id, dotable_id, emote_kind, half_stars, dote_time, review_dotable_id)
            VALUES
-           ($personId, $dotableId, $emoteKind, $halfStars, now())
+           ($personId, $dotableId, $emoteKind, $halfStars, now(), $reviewId)
            ON CONFLICT (person_id, dotable_id)
            DO UPDATE SET emote_kind = $emoteKind,
                          half_stars = $halfStars,
-                         dote_time = now()
+                         dote_time = now(),
+                         review_dotable_id = $reviewId
            WHERE d.person_id = $personId AND d.dotable_id = $dotableId"""
   }
 

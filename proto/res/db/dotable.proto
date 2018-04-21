@@ -22,6 +22,7 @@ message DotableDetails {
   oneof details {
     Podcast podcast = 1;
     PodcastEpisode podcast_episode = 2;
+    Review review = 3;
   }
 
   message Podcast {
@@ -52,7 +53,7 @@ message DotableDetails {
   }
 
   message Review {
-    string body = 1;
+    // Review body is common.desription so that it is fetched on shallow gets from the server
   }
 }
 

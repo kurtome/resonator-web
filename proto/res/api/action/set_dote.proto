@@ -9,6 +9,15 @@ import "api/common.proto";
 message SetDoteRequest {
   string dotable_id = 1;
   api.Dote dote = 2;
+
+  // optionally set the review as well, if this is field is not present do not alter any existing
+  // review
+  SetReview review = 3;
+
+  message SetReview {
+    string body = 1;
+    // TODO: add delete flag
+  }
 }
 
 message SetDoteResponse {

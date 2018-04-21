@@ -32,6 +32,9 @@ object TextField {
     var placeholder: js.UndefOr[String] = js.native
     var label: js.UndefOr[raw.ReactNode] = js.native
     var helperText: js.UndefOr[raw.ReactNode] = js.native
+    var multiline: js.UndefOr[Boolean] = js.native
+    var rows: js.UndefOr[Int] = js.native
+    var rowsMax: js.UndefOr[Int] = js.native
     var id: js.UndefOr[String] = js.native
     var margin: js.UndefOr[String] = js.native
     var `type`: js.UndefOr[String] = js.native
@@ -52,6 +55,9 @@ object TextField {
             name: js.UndefOr[String] = js.undefined,
             placeholder: js.UndefOr[String] = js.undefined,
             label: js.UndefOr[VdomNode] = js.undefined,
+            multiline: js.UndefOr[Boolean] = js.undefined,
+            rows: js.UndefOr[Int] = js.undefined,
+            rowsMax: js.UndefOr[Int] = js.undefined,
             helperText: js.UndefOr[VdomNode] = js.undefined,
             inputType: js.UndefOr[String] = js.undefined,
             inputRef: js.UndefOr[js.Any] = js.undefined,
@@ -69,6 +75,9 @@ object TextField {
     p.error = error
     p.placeholder = placeholder
     p.label = label.map(_.rawNode)
+    p.multiline = multiline
+    p.rows = rows
+    p.rowsMax = rowsMax
     p.helperText = helperText.map(_.rawNode)
     p.className = className
     p.margin = margin

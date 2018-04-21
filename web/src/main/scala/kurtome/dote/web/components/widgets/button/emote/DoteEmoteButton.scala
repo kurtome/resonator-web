@@ -25,12 +25,15 @@ object DoteEmoteButton extends LogSupport {
 
   }
 
-  case class Props(dotable: Dotable, showAllOptions: Boolean, onDoteChanged: (Dote) => Callback)
+  case class Props(dotable: Dotable,
+                   showAllOptions: Boolean,
+                   onDoteChanged: (Dote) => Callback,
+                   sendToServer: Boolean)
   case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val sendDoteToServer: js.Function1[EmoteKind, Unit] = Debounce.debounce1(waitMs = 200) {
+    val updateDote: js.Function1[EmoteKind, Unit] = Debounce.debounce1(waitMs = 200) {
       (emoteKind: EmoteKind) =>
         val p: Props = bs.props.runNow()
         val s: State = bs.state.runNow()
@@ -39,9 +42,11 @@ object DoteEmoteButton extends LogSupport {
 
         p.onDoteChanged(dote).runNow()
 
-        val f =
-          DoteProtoServer.setDote(SetDoteRequest(p.dotable.id, Some(dote)))
-        GlobalLoadingManager.addLoadingFuture(f)
+        if (p.sendToServer) {
+          val f =
+            DoteProtoServer.setDote(SetDoteRequest(p.dotable.id, Some(dote)))
+          GlobalLoadingManager.addLoadingFuture(f)
+        }
     }
 
     def handleEmoteValueChanged(p: Props,
@@ -57,7 +62,7 @@ object DoteEmoteButton extends LogSupport {
           } else {
             buttonKind
           }
-        sendDoteToServer(newEmoteKind)
+        updateDote(newEmoteKind)
       }
 
     def render(p: Props, s: State): VdomElement = {
@@ -104,6 +109,7 @@ object DoteEmoteButton extends LogSupport {
 
   def apply(dotable: Dotable,
             showAllOptions: Boolean = false,
-            onDoteChanged: (Dote) => Callback = _ => Callback.empty) =
-    component.withProps(Props(dotable, showAllOptions, onDoteChanged))
+            onDoteChanged: (Dote) => Callback = _ => Callback.empty,
+            sendToServer: Boolean = true) =
+    component.withProps(Props(dotable, showAllOptions, onDoteChanged, sendToServer))
 }

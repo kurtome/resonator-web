@@ -17,6 +17,7 @@ import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.shared.constants.DotableKinds.DotableKind
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 @Singleton
 class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
@@ -44,6 +45,51 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     for {
       id <- (table returning table.map(_.id)) += row
     } yield (id, episode)
+  }
+
+  def insertReview(subjectId: Long, reviewBody: String) = {
+    val reviewTime = LocalDateTime.now()
+
+    val data = DotableData()
+      .withCommon(
+        DotableCommon()
+          .withDescription(reviewBody)
+          .withUpdatedEpochSec(reviewTime.toEpochSecond(ZoneOffset.UTC))
+          .withPublishedEpochSec(reviewTime.toEpochSecond(ZoneOffset.UTC)))
+
+    val row = DotableRow(
+      id = 0,
+      kind = DotableKinds.Review,
+      title = None,
+      contentEditedTime = reviewTime,
+      parentId = Some(subjectId),
+      data = JsonFormat.toJson(data)
+    )
+
+    for {
+      id <- (table returning table.map(_.id)) += row
+    } yield (id)
+
+  }
+
+  def updateReview(reviewId: Long, reviewBody: String) = {
+    def updateFields(row: Tables.DotableRow) = {
+      val editedTime = LocalDateTime.now()
+      val data = JsonFormat.fromJson[DotableData](row.data)
+      row.copy(
+        contentEditedTime = editedTime,
+        data = JsonFormat.toJson(
+          data.withCommon(
+            data.getCommon
+              .withDescription(reviewBody)
+              .withUpdatedEpochSec(editedTime.toEpochSecond(ZoneOffset.UTC))))
+      )
+    }
+
+    for {
+      existingRow <- table.filter(_.id === reviewId).result.head
+      _ <- table.filter(_.id === reviewId).update(updateFields(existingRow))
+    } yield ()
   }
 
   def updateEpisodes(podcastId: Long, existingEpisodesWithId: Seq[(Long, RssFetchedEpisode)]) = {
@@ -81,8 +127,10 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     filterRaw(id).result.headOption.map(_.map(protoRowMapper))
   }
 
-  val readByParentIdRaw = Compiled { (parentId: Rep[Long]) =>
-    table.filter(_.parentId === parentId).sortBy(_.contentEditedTime.desc)
+  val readByParentIdRaw = Compiled { (parentId: Rep[Long], kind: Rep[DotableKind]) =>
+    table
+      .filter(row => row.parentId === parentId && row.kind === kind)
+      .sortBy(_.contentEditedTime.desc)
   }
 
   val readByChildIdRaw = Compiled { (childId: Rep[Long]) =>
@@ -92,19 +140,15 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   def readHeadByParentId(kind: DotableKind, parentId: Long) = {
-    readByParentIdRaw(parentId).result.headOption.map(_.map(protoRowMapper(kind)))
+    readByParentIdRaw(parentId, kind).result.headOption.map(_.map(protoRowMapper(kind)))
   }
 
   def readByParentId(kind: DotableKind, parentId: Long) = {
-    readByParentIdRaw(parentId).result.map(_.map(protoRowMapper(kind)))
+    readByParentIdRaw(parentId, kind).result.map(_.map(protoRowMapper(kind)))
   }
 
   def readByChildId(kind: DotableKind, childId: Long) = {
     readByChildIdRaw(childId).result.headOption.map(_.map(protoRowMapper(kind)))
-  }
-
-  def readByParentId(parentId: Long) = {
-    readByParentIdRaw(parentId).result.map(_.map(protoRowMapper))
   }
 
   def protoRowMapper(kind: DotableKind)(row: DotableRow): Dotable = {
@@ -121,6 +165,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
       kind = row.kind match {
         case DotableKinds.Podcast => Dotable.Kind.PODCAST
         case DotableKinds.PodcastEpisode => Dotable.Kind.PODCAST_EPISODE
+        case DotableKinds.Review => Dotable.Kind.REVIEW
         case _ => throw new IllegalStateException("unexpected type " + kind)
       },
       common = data.common,

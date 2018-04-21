@@ -7,6 +7,8 @@ import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.VdomNode
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
+import japgolly.scalajs.react._
+import japgolly.scalajs.react.vdom.html_<^._
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
@@ -26,6 +28,9 @@ abstract class BaseBackend(val styleSheet: StyleSheet.Inline) extends LogSupport
   implicit def richStyleOrUndef(style: StyleA) = js.UndefOr.any2undefOrA(styleMap(style.htmlClass))
 
   implicit def vdomNodeOrUndef(node: VdomNode) = js.UndefOr.any2undefOrA(node)
+
+  implicit def vdomNodeOrUndef(node: String): js.UndefOr[VdomNode] =
+    js.UndefOr.any2undefOrA[VdomNode](node)
 
   implicit def vdomElementOrUndef(node: UnmountedSimple[_, _]): js.UndefOr[VdomElement] =
     js.UndefOr.any2undefOrA(node.vdomElement)
