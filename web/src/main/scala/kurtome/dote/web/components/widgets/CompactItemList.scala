@@ -38,7 +38,8 @@ object CompactItemList extends LogSupport {
 
   case class Props(itemsPerRowBreakpoints: Map[String, Int],
                    title: String,
-                   moreRoute: Option[DoteRoute])
+                   moreRoute: Option[DoteRoute],
+                   padEmptyRows: Boolean)
   case class State(breakpoint: String, pageIndex: Int)
 
   private def fallbackItemsPerRow(breakpoint: String): Int = {
@@ -120,7 +121,7 @@ object CompactItemList extends LogSupport {
     def render(p: Props, pc: PropsChildren, s: State): VdomElement = {
       val numTilesPerRow: Int = calcItemsPerRow(p, s)
 
-      val numRows =
+      val maxRows =
         if (numTilesPerRow == 1) {
           3
         } else if (numTilesPerRow < 6) {
@@ -130,6 +131,13 @@ object CompactItemList extends LogSupport {
         }
 
       val items = pc.toList
+
+      val numRows =
+        if (p.padEmptyRows) {
+          maxRows
+        } else {
+          Math.min(Math.ceil(items.size.toDouble / numTilesPerRow).toInt, maxRows)
+        }
 
       val numTilesPerPage = numTilesPerRow * numRows
       val partialPage = if (items.size % numTilesPerPage > 0) 1 else 0
@@ -157,8 +165,9 @@ object CompactItemList extends LogSupport {
 
   def apply(itemsPerRowBreakpoints: Map[String, Int] = Map.empty,
             title: String = "",
-            moreRoute: Option[DoteRoute] = None) = {
-    component.withProps(Props(itemsPerRowBreakpoints, title, moreRoute))
+            moreRoute: Option[DoteRoute] = None,
+            padEmptyRows: Boolean = true) = {
+    component.withProps(Props(itemsPerRowBreakpoints, title, moreRoute, padEmptyRows))
   }
 
 }

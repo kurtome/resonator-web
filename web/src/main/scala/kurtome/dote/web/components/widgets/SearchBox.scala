@@ -8,6 +8,7 @@ import scala.scalajs.js.JSConverters._
 import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.action.search.SearchResponse
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
@@ -84,9 +85,10 @@ object SearchBox {
     val textFieldWrapper = style(
       overflow.auto
     )
+
   }
 
-  case class Props(onResultsUpdated: (String, Seq[Dotable]) => Callback)
+  case class Props(onResultsUpdated: (SearchResponse) => Callback)
   case class State(query: String = "", results: Seq[Dotable] = Nil, inFlight: Seq[Future[_]] = Nil) {
     def isLoading = inFlight.nonEmpty
   }
@@ -114,24 +116,30 @@ object SearchBox {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val runSearch: (String) => Unit = Debounce.debounce1(waitMs = 300) { query =>
-      val f = DoteProtoServer.search(SearchRequest(query = query, maxResults = 5)) map {
-        response =>
-          // only use the results if the query hasn't changed
-          if (bs.state.runNow().query == query) {
-            bs.modState(s => s.copy(results = response.dotables)).runNow()
-            // invoke the results callback
-            bs.props.runNow().onResultsUpdated(query, response.dotables).runNow()
-          }
-      }
+    val runSearch: (String) => Unit = Debounce.debounce1(waitMs = 400) { query =>
+      if (query.isEmpty) {
+        bs.props.runNow().onResultsUpdated(SearchResponse.defaultInstance).runNow()
+      } else {
+        val f = DoteProtoServer.search(SearchRequest(query = query, maxResults = 24)) map {
+          response =>
+            // only use the results if the query hasn't changed
+            if (bs.state.runNow().query == query) {
+              // Disabling suggestion dropdown or now
+              //bs.modState(s => s.copy(results = podcasts ++ episodes)).runNow()
 
-      // Add future to those in flight
-      bs.modState(s => s.copy(inFlight = s.inFlight :+ f)).runNow()
+              // invoke the results callback
+              bs.props.runNow().onResultsUpdated(response).runNow()
+            }
+        }
 
-      // Regardless of the result, remove the future from those in flight
-      f andThen {
-        case _ =>
-          bs.modState(s => s.copy(inFlight = s.inFlight.filter(_ != f))).runNow()
+        // Add future to those in flight
+        bs.modState(s => s.copy(inFlight = s.inFlight :+ f)).runNow()
+
+        // Regardless of the result, remove the future from those in flight
+        f andThen {
+          case _ =>
+            bs.modState(s => s.copy(inFlight = s.inFlight.filter(_ != f))).runNow()
+        }
       }
     }
 
@@ -158,25 +166,6 @@ object SearchBox {
 
       val title = suggestion.getCommon.title
 
-      var textRemaining: String = title
-      var textNodes: VdomArray = VdomArray()
-      while (textRemaining.nonEmpty && query.nonEmpty) {
-        val i = textRemaining.toLowerCase.indexOf(query.toLowerCase)
-        if (i < 0) {
-          if (textRemaining.nonEmpty) {
-            textNodes += <.i(^.key := "search-prefix-text-remaining", textRemaining)
-          }
-          textRemaining = ""
-        } else {
-          if (i > 0) {
-            textNodes += <.i(^.key := "search-text-matching", textRemaining.substring(0, i))
-          }
-          textNodes += <.span(^.key := "search-postfix-text-remaining",
-                              textRemaining.substring(i, i + query.length))
-          textRemaining = textRemaining.substring(i + query.length)
-        }
-      }
-
       val breakpoint = currentBreakpointString
 
       val tileWidthPx: Int = breakpoint match {
@@ -194,9 +183,7 @@ object SearchBox {
           Grid(item = true)(<.span(PodcastImageCard(suggestion, width = asPxStr(tileWidthPx))())),
           Grid(item = true, style = Styles.suggestTitleContainer)(
             Typography(style = Styles.suggestTitleText(params.isHighlighted),
-                       variant = Typography.Variants.SubHeading)(
-              textNodes
-            )
+                       variant = Typography.Variants.SubHeading)(title)
           )
         )
       ).rawElement
@@ -233,7 +220,10 @@ object SearchBox {
 
     def renderInput(s: State): js.Function1[InputProps, raw.ReactElement] = (inputProps) => {
       <.div(
-        IconButton(style = Styles.searchIcon)(Icons.Search()),
+        <.div(
+          ^.className := Styles.searchIcon,
+          IconButton()(Icons.Search())
+        ),
         <.div(
           ^.className := Styles.textFieldWrapper,
           TextField(
@@ -286,6 +276,6 @@ object SearchBox {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(onResultsUpdated: (String, Seq[Dotable]) => Callback) =
+  def apply(onResultsUpdated: (SearchResponse) => Callback) =
     component.withProps(Props(onResultsUpdated))
 }

@@ -63,3 +63,18 @@ message ExternalUrls {
   string spotify = 2;
   string google_play = 3;
 }
+
+message SearchIndexedData {
+  ChildJoin child_join = 1;
+  DotableData data = 2;
+  string id = 3;
+  string slug = 4;
+  string kind = 5;
+
+  message ChildJoin {
+    // required, the relationship name: [PODCAST, PODCAST_EPISODE]
+    string name = 1;
+    // optional, the parent id
+    string parent = 2;
+  }
+}

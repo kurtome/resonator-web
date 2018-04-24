@@ -2,17 +2,22 @@ package kurtome.dote.web.components.views
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.action.search.SearchResponse
 import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.shared.constants.QueryParamKeys
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes.AddRoute
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.CompactItemList
 import kurtome.dote.web.components.widgets.Fader
 import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.SearchBox
 import kurtome.dote.web.components.widgets.SiteLink
+import kurtome.dote.web.components.widgets.card.EpisodeCard
+import kurtome.dote.web.components.widgets.card.PodcastCard
 import kurtome.dote.web.utils.BaseBackend
 import wvlet.log.LogSupport
 import scalacss.internal.mutable.StyleSheet
@@ -32,18 +37,34 @@ object SearchView extends LogSupport {
     )
   }
 
-  case class Props()
-  case class State(showAddText: Boolean = false)
+  case class Props(query: String)
+  case class State(showAddText: Boolean = false,
+                   podcasts: Seq[Dotable] = Nil,
+                   episodes: Seq[Dotable] = Nil)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val handleSearchResultsUpdated = (query: String, results: Seq[Dotable]) =>
-      bs.modState(_.copy(showAddText = query.nonEmpty && results.isEmpty))
+    def handleSearchResultsUpdated(response: SearchResponse) = Callback {
+      val podcasts =
+        response.resultsByKind
+          .find(_.kind == Dotable.Kind.PODCAST)
+          .map(_.dotables)
+          .getOrElse(Nil)
+
+      val episodes =
+        response.resultsByKind
+          .find(_.kind == Dotable.Kind.PODCAST_EPISODE)
+          .map(_.dotables)
+          .getOrElse(Nil)
+      bs.modState(
+          _.copy(showAddText = response.query.nonEmpty, podcasts = podcasts, episodes = episodes))
+        .runNow()
+    }
 
     def render(p: Props, s: State): VdomElement = {
       MainContentSection()(
-        Grid(container = true, justify = Grid.Justify.Center)(
-          Grid(item = true, xs = 12, sm = 10, md = 8)(
+        GridContainer(justify = Grid.Justify.Center)(
+          GridItem(xs = 12, sm = 10, md = 8)(
             Paper(style = Styles.paperContainer)(
               SearchBox(onResultsUpdated = handleSearchResultsUpdated)()
             ),
@@ -53,6 +74,22 @@ object SearchView extends LogSupport {
                 SiteLink(AddRoute)("here"),
                 "."
               )
+            )
+          ),
+          GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = s.podcasts.isEmpty))(
+            CompactItemList(title = "Podcasts",
+                            padEmptyRows = false,
+                            itemsPerRowBreakpoints =
+                              Map("xs" -> 2, "sm" -> 3, "md" -> 4, "lg" -> 5, "xl" -> 5))(
+              s.podcasts.map(p => PodcastCard(p)()).toVdomArray
+            )
+          ),
+          GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = s.episodes.isEmpty))(
+            CompactItemList(title = "Episodes",
+                            padEmptyRows = false,
+                            itemsPerRowBreakpoints =
+                              Map("xs" -> 1, "sm" -> 2, "md" -> 2, "lg" -> 3, "xl" -> 3))(
+              s.episodes.map(p => EpisodeCard(p)()).toVdomArray
             )
           )
         ))
@@ -66,7 +103,8 @@ object SearchView extends LogSupport {
     .renderPS((b, p, s) => b.backend.render(p, s))
     .build
 
-  def apply() = {
-    component.withProps(Props())
+  def apply(route: SearchRoute) = {
+    val query = route.queryParams.getOrElse(QueryParamKeys.query, "")
+    component.withProps(Props(query))
   }
 }

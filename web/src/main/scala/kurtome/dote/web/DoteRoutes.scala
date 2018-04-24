@@ -18,7 +18,7 @@ object DoteRoutes extends LogSupport {
 
   case object HomeRoute extends DoteRoute
 
-  case object SearchRoute extends DoteRoute
+  case class SearchRoute(queryParams: Map[String, String] = Map.empty) extends DoteRoute
 
   case class DetailsRoute(id: String, slug: String, queryParams: Map[String, String] = Map())
       extends DoteRoute
@@ -37,14 +37,14 @@ object DoteRoutes extends LogSupport {
 
   case class FollowersRoute(username: String) extends DoteRoute
 
-  case class AllActivityRoute(queryParams: Map[String, String] = Map()) extends DoteRoute
+  case class AllActivityRoute(queryParams: Map[String, String] = Map.empty) extends DoteRoute
 
-  case class FollowingActivityRoute(queryParams: Map[String, String] = Map()) extends DoteRoute
+  case class FollowingActivityRoute(queryParams: Map[String, String] = Map.empty) extends DoteRoute
 
-  case class ProfileActivityRoute(username: String, queryParams: Map[String, String] = Map())
+  case class ProfileActivityRoute(username: String, queryParams: Map[String, String] = Map.empty)
       extends DoteRoute
 
-  case class TagRoute(kind: String, key: String, queryParams: Map[String, String] = Map())
+  case class TagRoute(kind: String, key: String, queryParams: Map[String, String] = Map.empty)
       extends DoteRoute
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,7 +110,9 @@ object DoteRoutes extends LogSupport {
 
         | staticRoute("/login", LoginRoute) ~> renderR(_ => LoginView()())
 
-        | staticRoute("/search", SearchRoute) ~> renderR(_ => SearchView()())
+        | dynamicRouteCT(("/search" ~ query)
+          .caseClass[SearchRoute]) ~> dynRenderR((page: SearchRoute,
+                                                  routerCtl) => SearchView(page)())
 
         | staticRoute("/add", AddRoute) ~> renderR(_ => AddPodcastView()())
 

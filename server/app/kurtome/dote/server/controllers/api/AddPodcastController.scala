@@ -38,12 +38,18 @@ class AddPodcastController @Inject()(
     dotableDbService.getPodcastIngestionRowByItunesId(itunesId) flatMap {
       case Some(row) => {
         if (request.body.ingestLater) {
-          Future(AddPodcastResponse().withResponseStatus(StatusMapper.toProto(SuccessStatus)))
+          debug("Podcast already exists, skipping ingestion.")
+          //Future(AddPodcastResponse().withResponseStatus(StatusMapper.toProto(SuccessStatus)))
+          fetchFromItunesAndIngest(request.body, itunesId)
         } else {
+          debug("Podcast exists, ingesting anyways.")
           fetchFromItunesAndIngest(request.body, itunesId)
         }
       }
-      case None => fetchFromItunesAndIngest(request.body, itunesId)
+      case None => {
+        debug("New podcast, ingesting.")
+        fetchFromItunesAndIngest(request.body, itunesId)
+      }
     }
   }
 

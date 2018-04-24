@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 
 import javax.inject._
 import kurtome.dote.proto.api.action.add_podcast.{AddPodcastRequest, AddPodcastResponse}
+import kurtome.dote.server.search.SearchClient
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.shared.util.result.FailedData
 import kurtome.dote.shared.util.result.ProduceAction
@@ -17,10 +18,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 @Singleton
-class PodcastFeedIngester @Inject()(
-    itunesEntityFetcher: ItunesEntityFetcher,
-    podcastFetcher: PodcastFeedFetcher,
-    podcastDbService: DotableService)(implicit ec: ExecutionContext)
+class PodcastFeedIngester @Inject()(itunesEntityFetcher: ItunesEntityFetcher,
+                                    podcastFetcher: PodcastFeedFetcher,
+                                    searchClient: SearchClient,
+                                    dotableService: DotableService)(implicit ec: ExecutionContext)
     extends LogSupport {
 
   def fetchFeedAndIngestRequest(request: AddPodcastRequest,
@@ -28,7 +29,7 @@ class PodcastFeedIngester @Inject()(
                                 itunesUrl: String,
                                 feedUrl: String): Future[ProduceAction[Seq[Long]]] = {
     if (request.ingestLater) {
-      podcastDbService.addFeedForLaterIngestion(itunesId, feedUrl) map { _ =>
+      dotableService.addFeedForLaterIngestion(itunesId, feedUrl) map { _ =>
         debug(s"added for later $feedUrl")
         SuccessData(Nil)
       }
@@ -40,7 +41,7 @@ class PodcastFeedIngester @Inject()(
 
   def reingestPodcastByItunesId(itunesId: Long): Future[ProduceAction[Seq[Long]]] = {
     Try(
-      podcastDbService.getPodcastIngestionRowByItunesId(itunesId) flatMap { ingestionRowOpt =>
+      dotableService.getPodcastIngestionRowByItunesId(itunesId) flatMap { ingestionRowOpt =>
         val ingestionRow = ingestionRowOpt.get
         if (ingestionRow.podcastDotableId.isEmpty) {
           itunesEntityFetcher.fetch(itunesId, "podcast") flatMap { itunesEntity =>
@@ -54,7 +55,7 @@ class PodcastFeedIngester @Inject()(
           }
         } else {
           val podcastId = ingestionRow.podcastDotableId.get
-          podcastDbService.readDotableShallow(podcastId) flatMap { dotableOpt =>
+          dotableService.readDotableShallow(podcastId) flatMap { dotableOpt =>
             val itunesUrl = dotableOpt.get.getDetails.getPodcast.getExternalUrls.itunes
             fetchFeedAndIngest(AddPodcastRequest.Extras.defaultInstance,
                                itunesId,
@@ -86,7 +87,7 @@ class PodcastFeedIngester @Inject()(
           // the feed wasn't changed since last time it was checked, either from the etag or the
           // contents of the feed being checked against the previously ingested feed
           val waitMinutes: Long = ingestionRow.map(_.reingestWaitMinutes).getOrElse(60L)
-          podcastDbService.updateNextIngestionTimeByItunesId(
+          dotableService.updateNextIngestionTimeByItunesId(
             itunesId,
             LocalDateTime.now().plusMinutes(waitMinutes))
           // this should be interpreted as successfully processed
@@ -95,15 +96,27 @@ class PodcastFeedIngester @Inject()(
           Future(FailedData(Nil, UnknownErrorStatus))
         }
       }
+    } flatMap { successResult =>
+      val indexFuture = for {
+        podcastOpts <- Future.sequence(
+          successResult.data.map(id => dotableService.readDotableDetails(id, None)))
+        podcasts = podcastOpts.filter(_.isDefined).map(_.get)
+        _ <- Future.sequence(podcasts.map(p => searchClient.indexPodcastWithEpisodes(p)))
+      } yield ()
+      // For now use the ingestion result, so a failed index doesn't fail the ingestion
+      indexFuture map { _ =>
+        debug("indexing done")
+        successResult
+      }
     }
   }
 
   private def ingestToDatabase(extras: AddPodcastRequest.Extras,
                                itunesId: Long,
                                podcast: RssFetchedPodcast): Future[Long] = {
-    val id = podcastDbService.ingestPodcast(itunesId, podcast)
+    val id = dotableService.ingestPodcast(itunesId, podcast)
     if (extras.popular) {
-      id.map(podcastDbService.setPopularTag)
+      id.map(dotableService.setPopularTag)
     }
     id
   }

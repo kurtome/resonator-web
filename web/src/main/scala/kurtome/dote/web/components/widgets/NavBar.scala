@@ -68,8 +68,7 @@ object NavBar extends LogSupport {
   }
 
   case class Props(currentRoute: DoteRoute)
-  case class State(navValue: String = "home",
-                   isCollapsed: Boolean = false,
+  case class State(isCollapsed: Boolean = false,
                    isLoading: Boolean = false,
                    windowHeight: Int = 0,
                    documentHeight: Int = 0,
@@ -189,7 +188,7 @@ object NavBar extends LogSupport {
                                  onClick = handleProfileButtonClicked(p))(Icons.AccountCircle())),
                     GridItem()(
                       IconButton(style = Styles.actionButton,
-                                 onClick = doteRouterCtl.set(SearchRoute))(Icons.Search()))
+                                 onClick = doteRouterCtl.set(SearchRoute()))(Icons.Search()))
                   )
                 )
               )
@@ -201,21 +200,11 @@ object NavBar extends LogSupport {
     }
   }
 
-  private def navValueFromUrl(p: Props): String = {
-    p.currentRoute match {
-      case SearchRoute => "search"
-      case ProfileRoute(_) => "profile"
-      case _ => "home"
-    }
-  }
-
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialStateFromProps(
-      p =>
-        State(navValue = navValueFromUrl(p),
-              isLoading = GlobalLoadingManager.curState.isLoading,
-              loggedInPerson = LoggedInPersonManager.person))
+    .initialStateFromProps(p =>
+      State(isLoading = GlobalLoadingManager.curState.isLoading,
+            loggedInPerson = LoggedInPersonManager.person))
     .backend(new Backend(_))
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
     .componentDidMount(x => x.backend.onMount)

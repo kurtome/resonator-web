@@ -1,0 +1,15 @@
+PUT dotable
+{
+    "mappings": {
+        "_doc": {
+          "properties": {
+            "childJoin": {
+              "type": "join",
+              "relations": {
+                "PODCAST": "PODCAST_EPISODE"
+              }
+            }
+          }
+        }
+    }
+}

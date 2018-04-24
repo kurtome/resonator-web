@@ -15,12 +15,13 @@ import javax.inject._
 import kurtome.dote.server.util.UrlIds.IdKinds
 import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.shared.constants.DotableKinds.DotableKind
+import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 @Singleton
-class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
+class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
 
   private val table = Tables.Dotable
 
@@ -221,32 +222,55 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) {
     )
   }
 
-  val searchRaw = Compiled {
-    (query: ConstColumn[String],
-     psqlQueryStr: ConstColumn[String],
+  val ilikeSearchRaw = Compiled {
+    (query: ConstColumn[String], kind: ConstColumn[DotableKind], limit: ConstColumn[Long]) =>
+      for {
+        (d, p) <- table
+          .filter(row => (row.title ilike query) && row.kind === kind)
+          .take(limit) joinLeft table on (_.parentId === _.id)
+      } yield (d, p)
+  }
+
+  val fuzzySearchRaw = Compiled {
+    (psqlQueryStr: ConstColumn[String],
      kind: ConstColumn[DotableKind],
      limit: ConstColumn[Long]) =>
       // Use full text search on the title column and order by the highest text ranking
-      table
-        .filter(row => {
-          toTsVector(row.title, Some("english")) @@ toTsQuery(psqlQueryStr, Some("english")) && row.kind === kind
-        })
-        .map(row =>
-          (row,
-           !(row.title ilike query), // sort by this first so that prefix exact matches are on top
-           tsRank(toTsVector(row.title, Some("english")),
-                  toTsQuery(psqlQueryStr, Some("english")))))
-        .sortBy(rowTup => (rowTup._2, rowTup._3.desc))
-        .take(limit)
-        .map(_._1)
+      for {
+        (d, p) <- table
+          .filter(row => {
+            toTsVector(row.title, Some("english")) @@ toTsQuery(psqlQueryStr, Some("english")) && row.kind === kind
+          })
+          .map(row =>
+            (row,
+             tsRank(toTsVector(row.title, Some("english")),
+                    toTsQuery(psqlQueryStr, Some("english")))))
+          .sortBy(rowTup => rowTup._2.desc)
+          .take(limit)
+          .map(_._1) joinLeft table on (_.parentId === _.id)
+      } yield (d, p)
   }
 
   def search(query: String, kind: DotableKind, limit: Long) = {
     val parts = query.split("\\W")
-    // join on '|' to logically or the words together
+    // join on '&' to logically and the words together
     // add ':*' to the last word, assuming it may be a partial word
-    val psqlQueryStr = if (query.nonEmpty) parts.mkString("&") + ":*" else ""
+    val fuzzyQueryStr = if (query.nonEmpty) parts.mkString("&") else ""
 
-    searchRaw(query, psqlQueryStr, kind, limit).result.map(_.map(protoRowMapper(kind)))
+    (for {
+      fuzzyResults <- fuzzySearchRaw(fuzzyQueryStr, kind, limit).result
+      prefixResults <- ilikeSearchRaw(query + "%", kind, limit).result
+      //prefixResults <- prefixSearchRaw(query + "%", kind, limit).result
+      prefixIds = prefixResults.map(_._1.id).toSet
+      // put prefix results before fuzzy results and remove duplicates
+      results = prefixResults ++ fuzzyResults.filterNot(pair => prefixIds.contains(pair._1.id))
+    } yield results).map(_ map {
+      case (result, None) => protoRowMapper(kind)(result)
+      case (result, Some(parent)) => {
+        val relatives =
+          Dotable.Relatives(parentFetched = true, parent = Some(protoRowMapper(parent)))
+        protoRowMapper(kind)(result).withRelatives(relatives)
+      }
+    })
   }
 }
