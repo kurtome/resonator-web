@@ -28,14 +28,14 @@ class SearchController @Inject()(cc: ControllerComponents,
 
     for {
       podcastResults <- searchClient.searchPodcast(request.body.query)
-      episodeResults <- searchClient.searchEpisode(request.body.query)
+//      episodeResults <- searchClient.searchEpisode(request.body.query)
     } yield
       SearchResponse(
         Some(StatusMapper.toProto(SuccessStatus)),
         Seq(
-          SearchResponse.ResultsByKind(kind = Dotable.Kind.PODCAST, dotables = podcastResults),
-          SearchResponse.ResultsByKind(kind = Dotable.Kind.PODCAST_EPISODE,
-                                       dotables = episodeResults)
+          SearchResponse.ResultsByKind(kind = Dotable.Kind.PODCAST, dotables = podcastResults)
+//          SearchResponse.ResultsByKind(kind = Dotable.Kind.PODCAST_EPISODE,
+//                                       dotables = episodeResults)
         ),
         request.body.query
       )

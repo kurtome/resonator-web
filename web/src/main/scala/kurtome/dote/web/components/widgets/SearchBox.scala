@@ -7,6 +7,8 @@ import scala.scalajs.js._
 import scala.scalajs.js.JSConverters._
 import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
+import japgolly.scalajs.react.raw.SyntheticEvent
+import japgolly.scalajs.react.raw.SyntheticKeyboardEvent
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.action.search.SearchResponse
 import kurtome.dote.web.SharedStyles
@@ -88,8 +90,11 @@ object SearchBox {
 
   }
 
-  case class Props(onResultsUpdated: (SearchResponse) => Callback)
-  case class State(query: String = "", results: Seq[Dotable] = Nil, inFlight: Seq[Future[_]] = Nil) {
+  case class Props(query: String, onResultsUpdated: (SearchResponse) => Callback)
+  case class State(query: String = "",
+                   results: Seq[Dotable] = Nil,
+                   inFlightQuery: String = "",
+                   inFlight: Seq[Future[_]] = Nil) {
     def isLoading = inFlight.nonEmpty
   }
 
@@ -116,9 +121,27 @@ object SearchBox {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    val runSearch: (String) => Unit = Debounce.debounce1(waitMs = 400) { query =>
+    def onSubmit(s: State)(e: ReactEventFromInput) = Callback {
+      runSearch(s.query)
+      e.preventDefault()
+    }
+
+    def handleNewProps(newProps: Props, s: State) = Callback {
+      if (newProps.query != s.query) {
+        bs.modState(_.copy(query = newProps.query)).runNow()
+        runSearch(newProps.query)
+      }
+    }
+
+    val inputChanged: (String) => Unit = Debounce.debounce1(waitMs = 2000) { query =>
+      runSearch(query)
+    }
+
+    val runSearch: (String) => Unit = Debounce.debounce1(waitMs = 10) { query =>
       if (query.isEmpty) {
         bs.props.runNow().onResultsUpdated(SearchResponse.defaultInstance).runNow()
+      } else if (query == bs.state.runNow().inFlightQuery) {
+        // Nothing to do
       } else {
         val f = DoteProtoServer.search(SearchRequest(query = query, maxResults = 24)) map {
           response =>
@@ -133,7 +156,7 @@ object SearchBox {
         }
 
         // Add future to those in flight
-        bs.modState(s => s.copy(inFlight = s.inFlight :+ f)).runNow()
+        bs.modState(s => s.copy(inFlightQuery = query, inFlight = s.inFlight :+ f)).runNow()
 
         // Regardless of the result, remove the future from those in flight
         f andThen {
@@ -149,7 +172,7 @@ object SearchBox {
         val reason = suggestionFetchRequest.reason
         reason match {
           case "input-changed" => {
-            runSearch(query)
+            inputChanged(query)
           }
           case _ => Unit
         }
@@ -222,10 +245,13 @@ object SearchBox {
       <.div(
         <.div(
           ^.className := Styles.searchIcon,
-          IconButton()(Icons.Search())
+          IconButton(onClick = Callback {
+            runSearch(s.query)
+          })(Icons.Search())
         ),
-        <.div(
+        <.form(
           ^.className := Styles.textFieldWrapper,
+          ^.onSubmit ==> onSubmit(s),
           TextField(
             value = inputProps.value,
             placeholder = inputProps.placeholder,
@@ -274,8 +300,10 @@ object SearchBox {
     .initialState(State())
     .backend(new Backend(_))
     .renderPS((builder, p, s) => builder.backend.render(p, s))
+    .componentWillMount(x => x.backend.handleNewProps(x.props, x.state))
+    .componentWillReceiveProps(x => x.backend.handleNewProps(x.nextProps, x.state))
     .build
 
-  def apply(onResultsUpdated: (SearchResponse) => Callback) =
-    component.withProps(Props(onResultsUpdated))
+  def apply(query: String, onResultsUpdated: (SearchResponse) => Callback) =
+    component.withProps(Props(query, onResultsUpdated))
 }

@@ -118,13 +118,13 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
                   MatchQueryDefinition("data.common.title",
                                        query,
                                        fuzziness = Some("AUTO"),
-                                       prefixLength = Some(2)),
+                                       prefixLength = Some(3)),
                   MatchQueryDefinition("data.common.description",
                                        query,
                                        fuzziness = Some("AUTO"),
-                                       prefixLength = Some(2))
+                                       prefixLength = Some(3))
                 )),
-              MatchQueryDefinition("kind", "PODCAST")
+              TermQueryDefinition("kind.keyword", "PODCAST")
             )
           )
         }
@@ -153,7 +153,7 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
               MatchQueryDefinition("data.common.title",
                                    query,
                                    fuzziness = Some("AUTO"),
-                                   prefixLength = Some(2)),
+                                   prefixLength = Some(3)),
               HasChildQueryDefinition(
                 `type` = "PODCAST_EPISODE",
                 query = BoolQueryDefinition(
@@ -161,11 +161,11 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
                     MatchQueryDefinition("data.common.title",
                                          query,
                                          fuzziness = Some("AUTO"),
-                                         prefixLength = Some(2)),
+                                         prefixLength = Some(3)),
                     MatchQueryDefinition("data.common.description",
                                          query,
                                          fuzziness = Some("AUTO"),
-                                         prefixLength = Some(2))
+                                         prefixLength = Some(3))
                   )
                 ),
                 scoreMode = ScoreMode.Avg,

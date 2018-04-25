@@ -10,6 +10,8 @@ import kurtome.dote.web.views.HelloView
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
+import scala.scalajs.js
+
 object DoteRoutes extends LogSupport {
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +73,7 @@ object DoteRoutes extends LogSupport {
             // Note that it is possible for there to be just a key and no value
             val key = param.takeWhile(_ != '=')
             val value = param.drop(key.length + 1)
-            key -> value
+            key -> js.URIUtils.decodeURIComponent(value)
           }
           Some(params.toMap)
         },

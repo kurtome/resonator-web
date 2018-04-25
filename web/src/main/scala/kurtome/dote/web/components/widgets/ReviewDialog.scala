@@ -68,15 +68,17 @@ object ReviewDialog extends LogSupport {
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def handleWillReceiveProps(newProps: Props) = Callback {
-      bs.modState(_.copy(editedDote = newProps.dotable.getDote)).runNow()
+      if (newProps.open) {
+        bs.modState(_.copy(editedDote = newProps.dotable.getDote)).runNow()
 
-      val reviewId = newProps.dotable.getDote.reviewId
-      if (reviewId.nonEmpty) {
-        bs.modState(_.copy(submitInFlight = true)).runNow()
-        DoteProtoServer.getDotableDetails(GetDotableDetailsRequest(reviewId)) map { response =>
-          bs.modState(_.copy(submitInFlight = false,
-                             editedReview = response.getDotable.getCommon.description))
-            .runNow()
+        val reviewId = newProps.dotable.getDote.reviewId
+        if (reviewId.nonEmpty) {
+          bs.modState(_.copy(submitInFlight = true)).runNow()
+          DoteProtoServer.getDotableDetails(GetDotableDetailsRequest(reviewId)) map { response =>
+            bs.modState(_.copy(submitInFlight = false,
+                               editedReview = response.getDotable.getCommon.description))
+              .runNow()
+          }
         }
       }
     }
