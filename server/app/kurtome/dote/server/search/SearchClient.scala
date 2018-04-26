@@ -151,9 +151,6 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
           boolQuery()
             .must(
               boolQuery().should(
-                matchQuery("indexedFields.title", query)
-                  .fuzziness("AUTO")
-                  .prefixLength(3),
                 matchQuery("indexedFields.combinedText", query)
                   .fuzziness("AUTO")
                   .prefixLength(3)
@@ -230,7 +227,8 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
     val title = dotable.getCommon.title
     val description = truncateDescription(dotable.getCommon.description)
     val parentTitle = dotable.getRelatives.getParent.getCommon.title
-    val combinedText = Seq(title, parentTitle, description).mkString("\n")
+    val tags = dotable.getTagCollection.tags.map(_.displayValue).mkString(" ")
+    val combinedText = Seq(title, parentTitle, description, tags).mkString("\n")
     JsonFormat.toJsonString(
       SearchIndexedData(dotable = Some(toIndexedDotable(dotable)),
                         parent = parentDotable.map(toIndexedDotable))
