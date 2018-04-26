@@ -141,7 +141,7 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
     } map (_ => Unit)
   }
 
-  def searchPodcast(query: String, offset: Int = 0, limit: Int = 30): Future[Seq[Dotable]] = {
+  def searchAll(query: String, offset: Int = 0, limit: Int = 30): Future[Seq[Dotable]] = {
     implicit val formats = DefaultFormats
     client.execute {
       search(dotablesIndex)
@@ -153,8 +153,49 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
               boolQuery().should(
                 matchQuery("indexedFields.combinedText", query)
                   .fuzziness("AUTO")
-                  .prefixLength(3)
+                  .prefixLength(3),
+                matchPhrasePrefixQuery("indexedFields.title", query)
+                  .boost(2),
+                matchPhrasePrefixQuery("indexedFields.parentTitle", query)
+                  .boost(3)
               )
+            )
+        )
+    } map {
+      case Right(requestSuccess) => {
+        requestSuccess.result.hits.hits.map(resultData => {
+          val indexedData = JsonFormat.fromJsonString[SearchIndexedData](resultData.sourceAsString)
+          parseDataDoc(indexedData)
+        })
+      }
+      case Left(requestFailure) => {
+        warn(requestFailure.body)
+        Nil
+      }
+    }
+  }
+
+  def searchPodcast(query: String, offset: Int = 0, limit: Int = 30): Future[Seq[Dotable]] = {
+    implicit val formats = DefaultFormats
+    client.execute {
+      search(dotablesIndex)
+        .from(offset)
+        .size(limit)
+        .query(
+          boolQuery()
+            .must(
+              boolQuery()
+                .should(
+                  matchQuery("indexedFields.combinedText", query)
+                    .minimumShouldMatch("30%")
+                    .fuzziness("AUTO")
+                    .prefixLength(3)
+                )
+                .should(
+                  matchQuery("indexedFields.title", query)
+                    .minimumShouldMatch("60%")
+                    .boost(200)
+                )
             )
             .filter(termQuery("dotable.kind", "PODCAST"))
         )
@@ -181,11 +222,15 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
         .query(
           boolQuery()
             .must(
-              boolQuery().should(
-                matchQuery("indexedFields.combinedText", query)
-                  .fuzziness("AUTO")
-                  .prefixLength(3)
-              )
+              matchQuery("indexedFields.combinedText", query)
+                .minimumShouldMatch("30%")
+                .fuzziness("AUTO")
+                .prefixLength(3)
+            )
+            .should(
+              matchQuery("indexedFields.parentTitle", query)
+                .minimumShouldMatch("60%")
+                .boost(200)
             )
             .filter(termQuery("dotable.kind", "PODCAST_EPISODE"))
         )
@@ -226,7 +271,7 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   private def extractDataDoc(dotable: Dotable, parentDotable: Option[Dotable]): String = {
     val title = dotable.getCommon.title
     val description = truncateDescription(dotable.getCommon.description)
-    val parentTitle = dotable.getRelatives.getParent.getCommon.title
+    val parentTitle = parentDotable.map(_.getCommon.title).getOrElse("")
     val tags = dotable.getTagCollection.tags.map(_.displayValue).mkString(" ")
     val combinedText = Seq(title, parentTitle, description, tags).mkString("\n")
     JsonFormat.toJsonString(

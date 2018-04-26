@@ -395,6 +395,10 @@ class DotableService @Inject()(db: BasicBackend#Database,
     }
   }
 
+  def readAllPodcastIds(): Future[Seq[Long]] = {
+    db.run(podcastFeedIngestionDbIo.readAllPodcastDotableIds())
+  }
+
   private def updateTagsForDotable(dotableId: Long, tags: Seq[model.Tag]) = {
     val validatedTags = tags.filter(t => t.id.key.nonEmpty && t.name.nonEmpty)
     DBIO.seq(tagDbIo.upsertTagBatch(validatedTags),

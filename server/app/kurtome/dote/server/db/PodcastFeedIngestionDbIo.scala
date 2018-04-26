@@ -15,6 +15,14 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
   private val feedTable = Tables.PodcastFeedIngestion
   private val episodeTable = Tables.PodcastEpisodeIngestion
 
+  object PodcastQueries {
+    val allPodcastDotableIds = Compiled {
+      for {
+        row <- feedTable.filter(_.podcastDotableId.isDefined)
+      } yield row.podcastDotableId.get
+    }
+  }
+
   object EpisodeQueries {
     val selectDataHashByDotableId = Compiled { (episodeDotableId: Rep[Long]) =>
       for {
@@ -125,6 +133,10 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
 
   def readNextIngestionRows(limit: Long) = {
     readNextIngestionRowsRaw(limit, LocalDateTime.now()).result
+  }
+
+  def readAllPodcastDotableIds() = {
+    PodcastQueries.allPodcastDotableIds.result
   }
 
 }

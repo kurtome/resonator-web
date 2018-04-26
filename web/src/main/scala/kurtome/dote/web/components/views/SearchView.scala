@@ -101,7 +101,7 @@ object SearchView extends LogSupport {
                             padEmptyRows = false,
                             itemsPerRowBreakpoints =
                               Map("xs" -> 2, "sm" -> 3, "md" -> 4, "lg" -> 5, "xl" -> 5))(
-              s.podcasts.map(p => PodcastCard(p)()).toVdomArray
+              s.podcasts.map(renderCard).toVdomArray
             )
           ),
           GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = s.episodes.isEmpty))(
@@ -109,10 +109,17 @@ object SearchView extends LogSupport {
                             padEmptyRows = false,
                             itemsPerRowBreakpoints =
                               Map("xs" -> 1, "sm" -> 2, "md" -> 2, "lg" -> 3, "xl" -> 3))(
-              s.episodes.map(p => EpisodeCard(p)()).toVdomArray
+              s.episodes.map(renderCard).toVdomArray
             )
           )
         ))
+    }
+
+    private def renderCard(dotable: Dotable): VdomNode = {
+      dotable.kind match {
+        case Dotable.Kind.PODCAST => PodcastCard(dotable)()
+        case _ => EpisodeCard(dotable)()
+      }
     }
   }
 

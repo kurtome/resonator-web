@@ -4,7 +4,10 @@ import kurtome.dote.server.tasks._
 import play.api.inject._
 
 class TasksModule
-    extends SimpleModule(bind[TaskConfig].toSelf,
-                         bind[IngestPodcastsTask].toSelf.eagerly,
-                         bind[SetPopularPodcastsTask].toSelf.eagerly,
-                         bind[WarmDbTask].toSelf.eagerly)
+    extends SimpleModule(
+      bind[TaskConfig].toSelf,
+      bind[IngestPodcastsTask].toSelf.eagerly,
+      bind[IndexPodcastsTask].toSelf.eagerly,
+      bind[SetPopularPodcastsTask].toSelf.eagerly,
+      bind[WarmDbTask].toSelf.eagerly
+    )
