@@ -184,18 +184,14 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
         .query(
           boolQuery()
             .must(
-              boolQuery()
-                .should(
-                  matchQuery("indexedFields.combinedText", query)
-                    .minimumShouldMatch("30%")
-                    .fuzziness("AUTO")
-                    .prefixLength(3)
-                )
-                .should(
-                  matchQuery("indexedFields.title", query)
-                    .minimumShouldMatch("60%")
-                    .boost(200)
-                )
+              matchQuery("indexedFields.combinedText", query)
+                .minimumShouldMatch("90%")
+                .fuzziness("AUTO")
+                .prefixLength(3))
+            .should(
+              matchQuery("indexedFields.title", query)
+                .minimumShouldMatch("60%")
+                .boost(200)
             )
             .filter(termQuery("dotable.kind", "PODCAST"))
         )
@@ -223,14 +219,14 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
           boolQuery()
             .must(
               matchQuery("indexedFields.combinedText", query)
-                .minimumShouldMatch("30%")
+                .minimumShouldMatch("100%")
                 .fuzziness("AUTO")
                 .prefixLength(3)
             )
             .should(
               matchQuery("indexedFields.parentTitle", query)
                 .minimumShouldMatch("60%")
-                .boost(200)
+                .boost(100)
             )
             .filter(termQuery("dotable.kind", "PODCAST_EPISODE"))
         )
