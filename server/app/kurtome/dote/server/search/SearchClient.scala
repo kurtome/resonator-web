@@ -147,20 +147,21 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
       search(dotablesIndex)
         .from(offset)
         .size(limit)
-        .query {
-          BoolQueryDefinition(
-            should = Seq(
-              matchQuery("indexedFields.title", query)
-                .fuzziness("AUTO")
-                .prefixLength(3)
-                .boost(3),
-              matchQuery("indexedFields.combinedText", query)
-                .fuzziness("AUTO")
-                .prefixLength(3)
-            ),
-            filters = Seq(termQuery("dotable.kind", "PODCAST"))
-          )
-        }
+        .query(
+          boolQuery()
+            .must(
+              boolQuery().should(
+                matchQuery("indexedFields.title", query)
+                  .fuzziness("AUTO")
+                  .prefixLength(3)
+                  .boost(3),
+                matchQuery("indexedFields.combinedText", query)
+                  .fuzziness("AUTO")
+                  .prefixLength(3)
+              )
+            )
+            .filter(termQuery("dotable.kind", "PODCAST"))
+        )
     } map {
       case Right(requestSuccess) => {
         requestSuccess.result.hits.hits.map(resultData => {
@@ -181,24 +182,25 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
       search(dotablesIndex)
         .from(offset)
         .size(limit)
-        .query {
-          BoolQueryDefinition(
-            should = Seq(
-              matchQuery("indexedFields.title", query)
-                .fuzziness("AUTO")
-                .prefixLength(3)
-                .boost(3),
-              matchQuery("indexedFields.parentTitle", query)
-                .fuzziness("AUTO")
-                .prefixLength(3)
-                .boost(3),
-              matchQuery("indexedFields.combinedText", query)
-                .fuzziness("AUTO")
-                .prefixLength(3)
-            ),
-            filters = Seq(termQuery("dotable.kind", "PODCAST_EPISODE"))
-          )
-        }
+        .query(
+          boolQuery()
+            .must(
+              boolQuery().should(
+                matchQuery("indexedFields.title", query)
+                  .fuzziness("AUTO")
+                  .prefixLength(3)
+                  .boost(3),
+                matchQuery("indexedFields.parentTitle", query)
+                  .fuzziness("AUTO")
+                  .prefixLength(3)
+                  .boost(3),
+                matchQuery("indexedFields.combinedText", query)
+                  .fuzziness("AUTO")
+                  .prefixLength(3)
+              )
+            )
+            .filter(termQuery("dotable.kind", "PODCAST_EPISODE"))
+        )
     } map {
       case Right(requestSuccess) => {
         requestSuccess.result.hits.hits.map(resultData => {
