@@ -4,6 +4,7 @@ import javax.inject._
 import akka.actor.{Actor, ActorRef, ActorSystem}
 import kurtome.dote.server.ingestion.PodcastFeedIngester
 import kurtome.dote.server.model.MetadataFlag
+import kurtome.dote.server.search.SearchClient
 import kurtome.dote.server.services.{DotableService, DoteService}
 import kurtome.dote.shared.constants.DotableKinds
 import wvlet.log.LogSupport
@@ -39,6 +40,7 @@ class SetPopularPodcastsActor @Inject()(
     actorSystem: ActorSystem,
     dotableService: DotableService,
     doteService: DoteService,
+    searchClient: SearchClient,
     podcastFeedIngester: PodcastFeedIngester)(implicit executionContext: ExecutionContext)
     extends Actor
     with LogSupport {
@@ -52,6 +54,16 @@ class SetPopularPodcastsActor @Inject()(
         dotableService.replaceMetadataTagList(MetadataFlag.Keys.popular, dotables.map(_.id)) map {
           _ =>
             info(s"successfully set ${dotables.size} podcasts as popular")
+        } flatMap { _ =>
+          Future.sequence(dotables.map(_.id) map { podcastId =>
+            dotableService.readDotableDetails(podcastId, None) flatMap { podcast =>
+              if (podcast.isDefined) {
+                searchClient.indexPodcastWithEpisodes(podcast.get)
+              } else {
+                Future(Unit)
+              }
+            }
+          })
         }
       }
   }

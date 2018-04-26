@@ -64,17 +64,28 @@ message ExternalUrls {
   string google_play = 3;
 }
 
+// Currently this message is stored in an ElasticSearch index
 message SearchIndexedData {
-  ChildJoin child_join = 1;
-  DotableData data = 2;
-  string id = 3;
-  string slug = 4;
-  string kind = 5;
+  // required
+  IndexedDotable dotable = 1;
+  // will always be set on episodes
+  IndexedDotable parent = 2;
+  // required
+  IndexedFields indexed_fields = 3;
 
-  message ChildJoin {
-    // required, the relationship name: [PODCAST, PODCAST_EPISODE]
-    string name = 1;
-    // optional, the parent id
-    string parent = 2;
+  message IndexedDotable {
+    string id = 1;
+    string slug = 2;
+    string kind = 3;
+    DotableData data = 4;
+  }
+
+
+  message IndexedFields {
+    string title = 1;
+    // contains all the potentially relevant text:
+    //   title, description (possibly truncated), tag values
+    string combined_text = 2;
+    string parent_title = 3;
   }
 }

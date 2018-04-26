@@ -25,6 +25,7 @@ import com.trueaccord.scalapb.json.JsonFormat
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.db.dotable.DotableData
 import kurtome.dote.proto.db.dotable.SearchIndexedData
+import kurtome.dote.proto.db.dotable.SearchIndexedData.IndexedDotable
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.config.RequestConfig.Builder
@@ -84,56 +85,87 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
     }
   )
 
-  private val index = "dotable"
+  private val dotablesIndex = "dotables"
+  private val podcastsIndex = "podcasts"
+  private val docType = "_doc"
+
+  private def ensureIndexSchema(index: String) = {
+    client.execute {
+      createIndex(index)
+    } flatMap { _ =>
+      client.execute {
+        putMapping(index / docType) fields (
+          objectField("dotable").dynamic(false),
+          objectField("dotable.data").enabled(false),
+          keywordField("dotable.id"),
+          keywordField("dotable.kind"),
+          keywordField("dotable.slug"),
+          objectField("parent").dynamic(false),
+          objectField("parent.data").enabled(false),
+          keywordField("parent.id"),
+          keywordField("parent.kind"),
+          keywordField("parent.slug"),
+          objectField("indexedFields").dynamic(false),
+          textField("indexedFields.title"),
+          textField("indexedFields.parentTitle"),
+          textField("indexedFields.combinedText").analyzer("english"),
+        )
+
+      }
+    }
+  }
+
+  ensureIndexSchema(dotablesIndex)
+  ensureIndexSchema(podcastsIndex)
 
   def indexPodcastWithEpisodes(podcast: Dotable): Future[Unit] = {
+    val episodeParent = Some(podcast)
     client.execute {
-      bulk {
+      bulk(
         Seq(
-          indexInto(index / "_doc")
+          indexInto(podcastsIndex / docType)
             .id(podcast.id)
-            .doc(extractDataDoc(podcast))) ++
-          (podcast.getRelatives.children map { episode =>
-            indexInto(index / "_doc")
+            .doc(extractDataDoc(podcast, None)),
+          indexInto(dotablesIndex / docType)
+            .id(podcast.id)
+            .doc(extractDataDoc(podcast, None))
+        ) ++ podcast.getRelatives.children.map(
+          episode =>
+            indexInto(dotablesIndex / docType)
               .id(episode.id)
-              .routing(podcast.id)
-              .doc(extractDataDoc(episode, podcast.id))
-          })
-      }
+              .doc(extractDataDoc(episode, episodeParent)))
+      )
     } map {
       case Right(requestSuccess) => Unit
-      case Left(requestFailure) => warn(requestFailure.body)
+      case Left(requestFailure)  => warn(requestFailure.body)
     } map (_ => Unit)
   }
 
-  def searchPodcast(query: String): Future[Seq[Dotable]] = {
+  def searchPodcast(query: String, offset: Int = 0, limit: Int = 24): Future[Seq[Dotable]] = {
     implicit val formats = DefaultFormats
     client.execute {
-      search(index)
+      search(dotablesIndex)
+        .from(offset)
+        .size(limit)
         .query {
           BoolQueryDefinition(
-            must = Seq(
-              BoolQueryDefinition(
-                should = Seq(
-                  MatchQueryDefinition("data.common.title",
-                                       query,
-                                       fuzziness = Some("AUTO"),
-                                       prefixLength = Some(3)),
-                  MatchQueryDefinition("data.common.description",
-                                       query,
-                                       fuzziness = Some("AUTO"),
-                                       prefixLength = Some(3))
-                )),
-              TermQueryDefinition("kind.keyword", "PODCAST")
-            )
+            should = Seq(
+              matchQuery("indexedFields.title", query)
+                .fuzziness("AUTO")
+                .prefixLength(3)
+                .boost(3),
+              matchQuery("indexedFields.combinedText", query)
+                .fuzziness("AUTO")
+                .prefixLength(3)
+            ),
+            filters = Seq(termQuery("dotable.kind", "PODCAST"))
           )
         }
     } map {
       case Right(requestSuccess) => {
         requestSuccess.result.hits.hits.map(resultData => {
           val indexedData = JsonFormat.fromJsonString[SearchIndexedData](resultData.sourceAsString)
-          val parent = parseDataDoc(indexedData)
-          parent
+          parseDataDoc(indexedData)
         })
       }
       case Left(requestFailure) => {
@@ -143,54 +175,35 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
     }
   }
 
-  def searchEpisode(query: String): Future[Seq[Dotable]] = {
+  def searchEpisode(query: String, offset: Int = 0, limit: Int = 24): Future[Seq[Dotable]] = {
     implicit val formats = DefaultFormats
     client.execute {
-      search(index)
+      search(dotablesIndex)
+        .from(offset)
+        .size(limit)
         .query {
           BoolQueryDefinition(
             should = Seq(
-              MatchQueryDefinition("data.common.title",
-                                   query,
-                                   fuzziness = Some("AUTO"),
-                                   prefixLength = Some(3)),
-              HasChildQueryDefinition(
-                `type` = "PODCAST_EPISODE",
-                query = BoolQueryDefinition(
-                  should = Seq(
-                    MatchQueryDefinition("data.common.title",
-                                         query,
-                                         fuzziness = Some("AUTO"),
-                                         prefixLength = Some(3)),
-                    MatchQueryDefinition("data.common.description",
-                                         query,
-                                         fuzziness = Some("AUTO"),
-                                         prefixLength = Some(3))
-                  )
-                ),
-                scoreMode = ScoreMode.Avg,
-                innerHit = Some(InnerHitDefinition("childJoin"))
-              )
-            )
+              matchQuery("indexedFields.title", query)
+                .fuzziness("AUTO")
+                .prefixLength(3)
+                .boost(3),
+              matchQuery("indexedFields.parentTitle", query)
+                .fuzziness("AUTO")
+                .prefixLength(3)
+                .boost(3),
+              matchQuery("indexedFields.combinedText", query)
+                .fuzziness("AUTO")
+                .prefixLength(3)
+            ),
+            filters = Seq(termQuery("dotable.kind", "PODCAST_EPISODE"))
           )
         }
     } map {
       case Right(requestSuccess) => {
-        requestSuccess.result.hits.hits.flatMap(resultData => {
+        requestSuccess.result.hits.hits.map(resultData => {
           val indexedData = JsonFormat.fromJsonString[SearchIndexedData](resultData.sourceAsString)
-          val parent = parseDataDoc(indexedData)
-
-          val children = resultData.innerHits
-            .get("childJoin")
-            .map(_.hits.map(innerHit => {
-              val childData =
-                JsonFormat.fromJsonString[SearchIndexedData](Serialization.write(innerHit.source))
-              val child = parseDataDoc(childData).withRelatives(
-                Dotable.Relatives(parentFetched = true).withParent(parent))
-              child
-            }))
-            .getOrElse(Nil)
-          children
+          parseDataDoc(indexedData)
         })
       }
       case Left(requestFailure) => {
@@ -205,24 +218,48 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   }
 
   private def parseDataDoc(indexedData: SearchIndexedData): Dotable = {
-    Dotable(
-      id = indexedData.id,
-      slug = indexedData.slug,
-      kind = Dotable.Kind.fromName(indexedData.kind).get,
-      common = indexedData.getData.common,
-      details = indexedData.getData.details
-    )
+    val data = indexedData.getDotable
+    parseIndexedDotable(indexedData.getDotable, indexedData.parent)
   }
 
-  private def extractDataDoc(dotable: Dotable, parentId: String = ""): String = {
+  private def parseIndexedDotable(data: IndexedDotable, parent: Option[IndexedDotable]): Dotable = {
+    Dotable(
+      id = data.id,
+      slug = data.slug,
+      kind = Dotable.Kind.fromName(data.kind).get,
+      common = data.getData.common,
+      details = data.getData.details
+    ).withRelatives(Dotable.Relatives(parentFetched = parent.isDefined,
+                                      parent = parent.map(parseIndexedDotable(_, None))))
+  }
+
+  private def extractDataDoc(dotable: Dotable, parentDotable: Option[Dotable]): String = {
+    val title = dotable.getCommon.title
+    val description = truncateDescription(dotable.getCommon.description)
+    val parentTitle = dotable.getRelatives.getParent.getCommon.title
+    val combinedText = Seq(title, parentTitle, description).mkString("\n")
     JsonFormat.toJsonString(
-      SearchIndexedData(id = dotable.id, slug = dotable.slug, kind = dotable.kind.toString)
-        .withChildJoin(if (parentId.nonEmpty) {
-          SearchIndexedData.ChildJoin(name = dotable.kind.toString, parent = parentId)
-        } else {
-          SearchIndexedData.ChildJoin(name = dotable.kind.toString)
-        })
-        .withData(DotableData(common = dotable.common, details = dotable.details)))
+      SearchIndexedData(dotable = Some(toIndexedDotable(dotable)),
+                        parent = parentDotable.map(toIndexedDotable))
+        .withIndexedFields(SearchIndexedData
+          .IndexedFields(title = title, combinedText = combinedText, parentTitle = parentTitle)))
+  }
+
+  private def truncateDescription(description: String): String = {
+    if (description.length > 1000) {
+      val rawTruncated = description.substring(0, 1000)
+      // drop any partial words after the last space
+      rawTruncated.substring(0, rawTruncated.lastIndexOf(' '))
+    } else {
+      description
+    }
+  }
+
+  private def toIndexedDotable(dotable: Dotable): IndexedDotable = {
+    IndexedDotable(id = dotable.id,
+                   slug = dotable.slug,
+                   kind = dotable.kind.toString,
+                   data = Some(DotableData(common = dotable.common, details = dotable.details)))
   }
 
 }
