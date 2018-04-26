@@ -53,7 +53,7 @@ class IndexPodcastsActor @Inject()(
       dotableService.readAllPodcastIds().map(_.filter(_ % modValue == 0)) flatMap {
         podcastDotableIds =>
           info(s"Indexing ${podcastDotableIds.size} podcasts")
-          Future.sequence(podcastDotableIds map { podcastId =>
+          seqFutures(podcastDotableIds) { podcastId =>
             dotableService.readDotableDetails(podcastId, None) flatMap { podcast =>
               if (podcast.isDefined) {
                 debug(s"Indexing ${podcast.get.getCommon.title}")
@@ -62,9 +62,17 @@ class IndexPodcastsActor @Inject()(
                 Future(Unit)
               }
             }
-          })
+          }
       } map { _ =>
         info("Finished.")
       }
+  }
+
+  def seqFutures[T, U](items: TraversableOnce[T])(fn: T => Future[U]): Future[List[U]] = {
+    items.foldLeft(Future.successful[List[U]](Nil)) { (f, item) =>
+      f.flatMap { x =>
+        fn(item).map(_ :: x)
+      }
+    } map (_.reverse)
   }
 }
