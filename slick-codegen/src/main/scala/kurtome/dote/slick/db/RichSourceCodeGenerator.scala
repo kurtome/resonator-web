@@ -34,9 +34,12 @@ class RichSourceCodeGenerator(model: m.Model)
   // Don't generate the db managed columns, they are set via db triggers and best to just ignore
   // in the app code.
   private def filterDbColumns(model: m.Table) = {
-    model.copy(columns = model.columns.filter(c => {
-      c.name != "db_created_time" && c.name != "db_updated_time"
-    }))
+    model.copy(
+      columns = model.columns.filter(c => {
+        c.name != "db_created_time" && c.name != "db_updated_time"
+      }),
+      indices = model.indices.filter(i => i.columns.forall(_.name != "db_updated_time"))
+    )
   }
 
 }

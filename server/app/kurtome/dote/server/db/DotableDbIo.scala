@@ -158,6 +158,14 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
     }
   }
 
+  def readBatchById(ids: Seq[Long]) = {
+    (for {
+      (d, p) <- Tables.Dotable.filter(_.id inSet ids) joinLeft Tables.Dotable on (_.parentId === _.id)
+    } yield (d, p)).result.map(_.map(childAndParent => {
+      (protoRowMapper(childAndParent._1), childAndParent._2.map(protoRowMapper))
+    }))
+  }
+
   def protoRowMapper(kind: DotableKind)(row: DotableRow): Dotable = {
     assert(row.kind == kind)
     protoRowMapper(row)
@@ -272,5 +280,30 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
         protoRowMapper(kind)(result).withRelatives(relatives)
       }
     })
+  }
+
+  /**
+    * Returns a batch of IDs with db_updated_time > cutOffAge, and guaranteeing the batch contains
+    * all dotables with db_updated_time = max(db_updated_time) of this batch. In other words, it
+    * is safe to use the max db_updated time of this batch as the next cutOffAge.
+    */
+  def nextOldestModifiedBatch(approxBatchSize: Int, cutOffAge: LocalDateTime) = {
+    val cutOffTimestamp: java.sql.Timestamp = java.sql.Timestamp.valueOf(cutOffAge)
+    sql"""
+         SELECT d1.id, d1.db_updated_time
+         FROM dotable d1
+         WHERE d1.db_updated_time > $cutOffTimestamp AND d1.db_updated_time <= (
+           SELECT MAX(temp.db_updated_time) FROM (
+             SELECT d2.db_updated_time as db_updated_time
+             FROM dotable d2
+             WHERE d2.db_updated_time > $cutOffTimestamp
+             ORDER BY d2.db_updated_time
+             LIMIT $approxBatchSize) AS temp
+           )
+       """
+      .as[(Long, java.sql.Timestamp)]
+      .map(_.map(row => {
+        (row._1, row._2.toLocalDateTime)
+      }))
   }
 }

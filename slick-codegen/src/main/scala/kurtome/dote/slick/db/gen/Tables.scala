@@ -24,6 +24,7 @@ trait Tables {
     PlayEvolutions.schema,
     PodcastEpisodeIngestion.schema,
     PodcastFeedIngestion.schema,
+    SearchIndexQueue.schema,
     Tag.schema
   ).reduceLeft(_ ++ _)
   @deprecated("Use .schema instead of .ddl", "3.0")
@@ -182,6 +183,9 @@ trait Tables {
 
     /** Index over (kind,id) (database name dotable_kind_id_index) */
     val index2 = index("dotable_kind_id_index", (kind, id))
+
+    /** Index over (title) (database name dotable_title_index) */
+    val index3 = index("dotable_title_index", title)
   }
 
   /** Collection-like TableQuery object for table Dotable */
@@ -743,6 +747,43 @@ trait Tables {
 
   /** Collection-like TableQuery object for table PodcastFeedIngestion */
   lazy val PodcastFeedIngestion = new TableQuery(tag => new PodcastFeedIngestion(tag))
+
+  /** Entity class storing rows of table SearchIndexQueue
+    *  @param indexName Database column index_name SqlType(text), Length(2147483647,true)
+    *  @param syncCompletedThroughTime Database column sync_completed_through_time SqlType(timestamp) */
+  case class SearchIndexQueueRow(indexName: String,
+                                 syncCompletedThroughTime: java.time.LocalDateTime)
+
+  /** GetResult implicit for fetching SearchIndexQueueRow objects using plain SQL queries */
+  implicit def GetResultSearchIndexQueueRow(
+      implicit e0: GR[String],
+      e1: GR[java.time.LocalDateTime]): GR[SearchIndexQueueRow] = GR { prs =>
+    import prs._
+    SearchIndexQueueRow.tupled((<<[String], <<[java.time.LocalDateTime]))
+  }
+
+  /** Table description of table search_index_queue. Objects of this class serve as prototypes for rows in queries. */
+  class SearchIndexQueue(_tableTag: slick.lifted.Tag)
+      extends profile.api.Table[SearchIndexQueueRow](_tableTag, "search_index_queue") {
+    def * =
+      (indexName, syncCompletedThroughTime) <> (SearchIndexQueueRow.tupled, SearchIndexQueueRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(indexName), Rep.Some(syncCompletedThroughTime)).shaped.<>({ r =>
+        import r._; _1.map(_ => SearchIndexQueueRow.tupled((_1.get, _2.get)))
+      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+
+    /** Database column index_name SqlType(text), Length(2147483647,true) */
+    val indexName: Rep[String] = column[String]("index_name", O.Length(2147483647, varying = true))
+
+    /** Database column sync_completed_through_time SqlType(timestamp) */
+    val syncCompletedThroughTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("sync_completed_through_time")
+  }
+
+  /** Collection-like TableQuery object for table SearchIndexQueue */
+  lazy val SearchIndexQueue = new TableQuery(tag => new SearchIndexQueue(tag))
 
   /** Entity class storing rows of table Tag
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey

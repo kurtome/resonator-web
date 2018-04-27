@@ -1,11 +1,14 @@
 package kurtome.dote.server.tasks
 
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.chrono.ChronoLocalDateTime
 
 import javax.inject._
 import akka.actor.{Actor, ActorRef, ActorSystem}
 import kurtome.dote.server.search.SearchClient
 import kurtome.dote.server.services.DotableService
+import kurtome.dote.server.services.SearchIndexQueueService
 import wvlet.log.LogSupport
 
 import scala.concurrent.duration._
@@ -22,8 +25,8 @@ class IndexPodcastsTask @Inject()(
   if (run) {
     info("Enabling task.")
     actorSystem.scheduler.schedule(
-      initialDelay = 10.seconds,
-      interval = 1.hour,
+      initialDelay = 5.seconds,
+      interval = 1.minute,
       receiver = actor,
       message = IndexPodcasts
     )
@@ -38,6 +41,7 @@ case object IndexPodcasts
 class IndexPodcastsActor @Inject()(
     actorSystem: ActorSystem,
     dotableService: DotableService,
+    searchIndexQueueService: SearchIndexQueueService,
     searchClient: SearchClient)(implicit executionContext: ExecutionContext)
     extends Actor
     with LogSupport {
@@ -46,25 +50,31 @@ class IndexPodcastsActor @Inject()(
     case IndexPodcasts =>
       debug("Starting...")
 
-      // index 1/12 of the podcasts, this runs once an hour so it should index each podcast twice a
-      // day
-      val modValue = LocalDateTime.now().getHour % 12
+      val approxBatchSize = 500
 
-      dotableService.readAllPodcastIds().map(_.filter(_ % modValue == 0)) flatMap {
-        podcastDotableIds =>
-          info(s"Indexing ${podcastDotableIds.size} podcasts")
-          seqFutures(podcastDotableIds) { podcastId =>
-            dotableService.readDotableDetails(podcastId, None) flatMap { podcast =>
-              if (podcast.isDefined) {
-                debug(s"Indexing ${podcast.get.getCommon.title}")
-                searchClient.indexPodcastWithEpisodes(podcast.get)
-              } else {
-                Future(Unit)
-              }
-            }
-          }
-      } map { _ =>
+      (for {
+        timestamp <- searchIndexQueueService.readDotableSyncCompletedTimestamp()
+        dotablesIdsWithTimestamps <- dotableService.readNextOldestModifiedBatch(approxBatchSize,
+                                                                                timestamp)
+        newMaxTimestamp = dotablesIdsWithTimestamps
+          .map(_._2)
+          .sortWith((l1, l2) => (l1 compareTo l2) < 0)
+          .last
+        dotableIds = dotablesIdsWithTimestamps.map(_._1)
+        dotables <- dotableService.readBatchById(dotableIds)
+        _ <- {
+          info(s"Indexing ${dotables.size} dotables")
+          searchClient.indexDotables(dotables)
+        }
+        _ <- {
+          info(s"Old timestamp: $timestamp, new timestamp: $newMaxTimestamp")
+          searchIndexQueueService.writeDotableSyncCompletedTimestamp(newMaxTimestamp)
+        }
+      } yield {
         info("Finished.")
+        Unit
+      }) recover {
+        case t => warn("Error while indexing", t)
       }
   }
 

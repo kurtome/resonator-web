@@ -1,26 +1,10 @@
 package kurtome.dote.server.search
 
 import javax.inject._
-import kurtome.dote.slick.db.gen.Tables
-import org.matthicks.mailgun._
 import play.api.Configuration
 import wvlet.log.LogSupport
 import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.http._
-import com.sksamuel.elastic4s.http.search.queries.text.MatchQueryBuilderFn
-import com.sksamuel.elastic4s.mappings.Analysis
-import com.sksamuel.elastic4s.mappings.FieldDefinition
-import com.sksamuel.elastic4s.mappings.JoinFieldDefinition
-import com.sksamuel.elastic4s.mappings.MappingDefinition
-import com.sksamuel.elastic4s.mappings.Nulls
-import com.sksamuel.elastic4s.searches.ScoreMode
-import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
-import com.sksamuel.elastic4s.searches.queries.HasChildQueryDefinition
-import com.sksamuel.elastic4s.searches.queries.HasParentQueryDefinition
-import com.sksamuel.elastic4s.searches.queries.InnerHitDefinition
-import com.sksamuel.elastic4s.searches.queries.NestedQueryDefinition
-import com.sksamuel.elastic4s.searches.queries.matches.MatchQueryDefinition
-import com.sksamuel.elastic4s.searches.queries.term.TermQueryDefinition
 import com.trueaccord.scalapb.json.JsonFormat
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.db.dotable.DotableData
@@ -33,11 +17,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder
 import org.elasticsearch.client.RestClientBuilder.HttpClientConfigCallback
 import org.elasticsearch.client.RestClientBuilder.RequestConfigCallback
-import org.json4s.JsonAST
-import org.json4s.native.JsonParser
 import org.json4s._
-import org.json4s.jackson.JsonMethods._
-import org.json4s.jackson.Serialization
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -86,9 +66,9 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   )
 
   private val dotablesIndex = "dotables"
-  private val podcastsIndex = "podcasts"
   private val docType = "_doc"
 
+  // This cannot alter existing mappings, only create new ones.
   private def ensureIndexSchema(index: String) = {
     client.execute {
       createIndex(index)
@@ -116,16 +96,28 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   }
 
   ensureIndexSchema(dotablesIndex)
-  ensureIndexSchema(podcastsIndex)
 
+  def indexDotables(dotables: Seq[Dotable]): Future[Unit] = {
+    client.execute {
+      bulk(
+        dotables.map(
+          dotable =>
+            indexInto(dotablesIndex / docType)
+              .id(dotable.id)
+              .doc(extractDataDoc(dotable, dotable.getRelatives.parent)))
+      )
+    } map {
+      case Right(requestSuccess) => Unit
+      case Left(requestFailure)  => warn(requestFailure.body)
+    } map (_ => Unit)
+  }
+
+  @deprecated
   def indexPodcastWithEpisodes(podcast: Dotable): Future[Unit] = {
     val episodeParent = Some(podcast)
     client.execute {
       bulk(
         Seq(
-          indexInto(podcastsIndex / docType)
-            .id(podcast.id)
-            .doc(extractDataDoc(podcast, None)),
           indexInto(dotablesIndex / docType)
             .id(podcast.id)
             .doc(extractDataDoc(podcast, None))

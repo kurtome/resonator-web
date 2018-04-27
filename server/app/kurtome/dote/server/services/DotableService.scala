@@ -399,6 +399,20 @@ class DotableService @Inject()(db: BasicBackend#Database,
     db.run(podcastFeedIngestionDbIo.readAllPodcastDotableIds())
   }
 
+  def readNextOldestModifiedBatch(approxBatchSize: Int,
+                                  cutOffAge: LocalDateTime): Future[Seq[(Long, LocalDateTime)]] = {
+    db.run(dotableDbIo.nextOldestModifiedBatch(approxBatchSize, cutOffAge))
+  }
+
+  def readBatchById(ids: Seq[Long]): Future[Seq[Dotable]] = {
+    db.run(dotableDbIo.readBatchById(ids))
+      .map(_.map {
+        case (dotable, parent) => {
+          dotable.withRelatives(Dotable.Relatives(parentFetched = true, parent = parent))
+        }
+      })
+  }
+
   private def updateTagsForDotable(dotableId: Long, tags: Seq[model.Tag]) = {
     val validatedTags = tags.filter(t => t.id.key.nonEmpty && t.name.nonEmpty)
     DBIO.seq(tagDbIo.upsertTagBatch(validatedTags),
