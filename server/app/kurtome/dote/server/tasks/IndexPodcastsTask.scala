@@ -6,6 +6,7 @@ import java.time.chrono.ChronoLocalDateTime
 
 import javax.inject._
 import akka.actor.{Actor, ActorRef, ActorSystem}
+import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.server.search.SearchClient
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.server.services.SearchIndexQueueService
@@ -61,7 +62,12 @@ class IndexPodcastsActor @Inject()(
           .sortWith((l1, l2) => (l1 compareTo l2) < 0)
           .last
         dotableIds = dotablesIdsWithTimestamps.map(_._1)
-        dotables <- dotableService.readBatchById(dotableIds)
+        dotables <- dotableService.readBatchById(dotableIds).map(_.filter(_.kind match {
+          case Dotable.Kind.PODCAST => true
+          case Dotable.Kind.PODCAST_EPISODE => true
+            // ignore everything else
+          case _ => false
+        }))
         _ <- {
           info(s"Indexing ${dotables.size} dotables")
           searchClient.indexDotables(dotables)
