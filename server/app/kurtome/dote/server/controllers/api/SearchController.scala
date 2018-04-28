@@ -27,6 +27,7 @@ class SearchController @Inject()(cc: ControllerComponents,
   override def action(request: Request[SearchRequest]) = {
 
     for {
+      combinedResults <- searchClient.searchAll(request.body.query)
       podcastResults <- searchClient.searchPodcast(request.body.query)
       episodeResults <- searchClient.searchEpisode(request.body.query)
     } yield
@@ -38,7 +39,7 @@ class SearchController @Inject()(cc: ControllerComponents,
                                        dotables = episodeResults)
         ),
         request.body.query
-      )
+      ).withCombinedResults(combinedResults)
   }
 
   private def searchByKind(request: SearchRequest,

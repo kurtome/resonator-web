@@ -94,6 +94,7 @@ object ImageWithSummaryCard extends LogSupport {
   case class Props(dotable: Dotable,
                    caption1: VdomNode,
                    caption2: VdomNode,
+                   description: VdomNode,
                    imageOverlayCaption: String)
   case class State(smileCount: Int = 0,
                    cryCount: Int = 0,
@@ -155,12 +156,20 @@ object ImageWithSummaryCard extends LogSupport {
           <.div(
             ^.className := Styles.mainTextWrapper,
             ^.width := "calc(100% - 100px)",
+            ^.height := "100%",
             <.div(
               ^.padding := "4px",
+              ^.height := "100%",
               Typography(variant = Typography.Variants.Body1, noWrap = true)(
-                p.dotable.getCommon.title),
+                <.strong(p.dotable.getCommon.title)),
               p.caption1,
-              p.caption2
+              p.caption2,
+              <.div(
+                ^.position := "absolute",
+                ^.width := "calc(100% - 8px)",
+                ^.bottom := "4px",
+                p.description
+              )
             )
           )
         )
@@ -179,6 +188,7 @@ object ImageWithSummaryCard extends LogSupport {
   def apply(dotable: Dotable,
             caption1: VdomNode = "",
             caption2: VdomNode = "",
+            description: VdomNode = "",
             imageOverlayCaption: String = "") =
-    component.withProps(Props(dotable, caption1, caption2, imageOverlayCaption))
+    component.withProps(Props(dotable, caption1, caption2, description, imageOverlayCaption))
 }

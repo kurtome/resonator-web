@@ -142,15 +142,18 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
         .query(
           boolQuery()
             .must(
-              boolQuery().should(
-                matchQuery("indexedFields.combinedText", query)
-                  .fuzziness("AUTO")
-                  .prefixLength(3),
-                matchPhrasePrefixQuery("indexedFields.title", query)
-                  .boost(2),
-                matchPhrasePrefixQuery("indexedFields.parentTitle", query)
-                  .boost(3)
-              )
+              matchQuery("indexedFields.combinedText", query)
+                .minimumShouldMatch("70%")
+                .fuzziness("AUTO")
+                .prefixLength(3)
+            )
+            .should(
+              matchQuery("indexedFields.parentTitle", query)
+                .minimumShouldMatch("60%")
+                .boost(100),
+              matchQuery("indexedFields.title", query)
+                .minimumShouldMatch("60%")
+                .boost(100)
             )
         )
     } map {

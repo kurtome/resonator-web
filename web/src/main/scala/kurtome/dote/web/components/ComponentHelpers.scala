@@ -1,21 +1,17 @@
 package kurtome.dote.web.components
 
-import japgolly.scalajs.react.vdom.Attr
-import japgolly.scalajs.react.vdom.Attr.ValueType
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.web.utils.Linkify
 
-import scala.scalajs.js
 import scala.scalajs.js.Date
-import scala.scalajs.js.annotation.{JSImport, JSName}
-import scalacss.internal.StyleA
+import scala.scalajs.js.annotation.{JSImport}
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.constants.MuiTheme
 import org.scalajs.dom
+import org.scalajs.dom.html.Div
 
 import scala.scalajs.js
-import scala.scalajs.js.JSON
-import scalacss.internal.{Css, CssEntry, Renderer, Style}
+import scalacss.internal.{Css, CssEntry, Renderer}
 import scalacss.internal.mutable.StyleSheet
 
 object ComponentHelpers {
@@ -159,4 +155,10 @@ object ComponentHelpers {
   }
 
   def asPxStr(px: Int): String = s"${px}px"
+
+  def stripTags(str: String): String = {
+    val div = dom.document.createElement("div").asInstanceOf[Div]
+    div.innerHTML = str
+    div.textContent
+  }
 }

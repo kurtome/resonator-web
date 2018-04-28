@@ -44,7 +44,7 @@ object EpisodeCard extends LogSupport {
   }
   type Variant = Variants.Value
 
-  case class Props(dotable: Dotable, variant: Variant)
+  case class Props(dotable: Dotable, variant: Variant, showDescription: Boolean)
   case class State(hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -83,6 +83,12 @@ object EpisodeCard extends LogSupport {
           caption2 = Typography(variant = Typography.Variants.Caption, noWrap = true)(
             "from ",
             SiteLink(podcastRoute)(podcast.getCommon.title)),
+          description = if (p.showDescription) {
+            Typography(variant = Typography.Variants.Body2, noWrap = true)(
+              stripTags(p.dotable.getCommon.description))
+          } else {
+            ""
+          },
           imageOverlayCaption = epochSecToDate(p.dotable.getCommon.publishedEpochSec)
         )()
       )
@@ -96,6 +102,8 @@ object EpisodeCard extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable, variant: Variant = Variants.Default) =
-    component.withProps(Props(dotable, variant))
+  def apply(dotable: Dotable,
+            variant: Variant = Variants.Default,
+            showDescription: Boolean = false) =
+    component.withProps(Props(dotable, variant, showDescription))
 }

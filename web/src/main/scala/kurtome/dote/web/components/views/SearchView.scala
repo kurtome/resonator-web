@@ -18,6 +18,7 @@ import kurtome.dote.web.components.widgets.SearchBox
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.card.EpisodeCard
 import kurtome.dote.web.components.widgets.card.PodcastCard
+import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import org.scalajs.dom
 import wvlet.log.LogSupport
@@ -43,6 +44,7 @@ object SearchView extends LogSupport {
   case class Props(query: String)
   case class State(query: String = "",
                    showAddText: Boolean = false,
+                   combinedResults: Seq[Dotable] = Nil,
                    podcasts: Seq[Dotable] = Nil,
                    episodes: Seq[Dotable] = Nil)
 
@@ -75,6 +77,7 @@ object SearchView extends LogSupport {
       bs.modState(
           _.copy(query = response.query,
                  showAddText = response.query.nonEmpty,
+                 combinedResults = response.combinedResults,
                  podcasts = podcasts,
                  episodes = episodes))
         .runNow()
@@ -96,20 +99,18 @@ object SearchView extends LogSupport {
               )
             )
           ),
-          GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = s.podcasts.isEmpty))(
-            CompactItemList(title = "Podcasts",
-                            padEmptyRows = false,
-                            itemsPerRowBreakpoints =
-                              Map("xs" -> 2, "sm" -> 3, "md" -> 4, "lg" -> 5, "xl" -> 5))(
-              s.podcasts.map(renderCard).toVdomArray
-            )
-          ),
-          GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = s.episodes.isEmpty))(
-            CompactItemList(title = "Episodes",
-                            padEmptyRows = false,
-                            itemsPerRowBreakpoints =
-                              Map("xs" -> 1, "sm" -> 2, "md" -> 2, "lg" -> 3, "xl" -> 3))(
-              s.episodes.map(renderCard).toVdomArray
+          GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = s.combinedResults.isEmpty))(
+            GridContainer()(
+              GridItem(xs = 12)(
+                Typography(variant = Typography.Variants.SubHeading)("Combined Results")),
+              (s.combinedResults.zipWithIndex map {
+                case (dotable, i) =>
+                  <.div(
+                    ^.width := "100%",
+                    ^.marginBottom := "16px",
+                    renderCard(dotable)
+                  )
+              }).toVdomArray
             )
           )
         ))
@@ -117,8 +118,10 @@ object SearchView extends LogSupport {
 
     private def renderCard(dotable: Dotable): VdomNode = {
       dotable.kind match {
-        case Dotable.Kind.PODCAST => PodcastCard(dotable)()
-        case _ => EpisodeCard(dotable)()
+        case Dotable.Kind.PODCAST =>
+          PodcastCard(dotable, variant = PodcastCard.Variants.Activity, showDescription = true)()
+        case _ =>
+          EpisodeCard(dotable, variant = EpisodeCard.Variants.Activity, showDescription = true)()
       }
     }
   }

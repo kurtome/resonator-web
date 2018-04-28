@@ -52,7 +52,7 @@ object PodcastCard extends LogSupport {
   }
   type Variant = Variants.Value
 
-  case class Props(dotable: Dotable, variant: Variant)
+  case class Props(dotable: Dotable, variant: Variant, showDescription: Boolean)
   case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -88,7 +88,13 @@ object PodcastCard extends LogSupport {
               ImageWithSummaryCard(
                 p.dotable,
                 caption1 =
-                  Typography(variant = Typography.Variants.Caption, noWrap = true)(yearRange)
+                  Typography(variant = Typography.Variants.Caption, noWrap = true)(yearRange),
+                description = if (p.showDescription) {
+                  Typography(variant = Typography.Variants.Body2, noWrap = true)(
+                    stripTags(p.dotable.getCommon.description))
+                } else {
+                  ""
+                }
               )()
             )
           case _ =>
@@ -119,6 +125,8 @@ object PodcastCard extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable, variant: Variant = Variants.Default) =
-    component.withProps(Props(dotable, variant))
+  def apply(dotable: Dotable,
+            variant: Variant = Variants.Default,
+            showDescription: Boolean = false) =
+    component.withProps(Props(dotable, variant, showDescription))
 }

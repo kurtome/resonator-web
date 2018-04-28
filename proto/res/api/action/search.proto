@@ -12,10 +12,14 @@ message SearchRequest {
 
 message SearchResponse {
   api.ActionStatus response_status = 1;
+
   // at most one per kind
   repeated ResultsByKind results_by_kind = 2;
 
   string query = 3;
+
+  repeated api.Dotable combined_results = 4;
+
 
   message ResultsByKind {
     api.Dotable.Kind kind = 1;
