@@ -290,16 +290,18 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
   def nextOldestModifiedBatch(approxBatchSize: Int, cutOffAge: LocalDateTime) = {
     val cutOffTimestamp: java.sql.Timestamp = java.sql.Timestamp.valueOf(cutOffAge)
     sql"""
+        WITH max_time as (
+           SELECT MAX(temp.db_updated_time) db_updated_time
+           FROM (
+               SELECT d2.db_updated_time as db_updated_time
+               FROM dotable d2
+               WHERE d2.db_updated_time > $cutOffTimestamp
+               ORDER BY d2.db_updated_time
+               LIMIT $approxBatchSize) AS temp
+         )
          SELECT d1.id, d1.db_updated_time
-         FROM dotable d1
-         WHERE d1.db_updated_time > $cutOffTimestamp AND d1.db_updated_time <= (
-           SELECT MAX(temp.db_updated_time) FROM (
-             SELECT d2.db_updated_time as db_updated_time
-             FROM dotable d2
-             WHERE d2.db_updated_time > $cutOffTimestamp
-             ORDER BY d2.db_updated_time
-             LIMIT $approxBatchSize) AS temp
-           )
+         FROM dotable d1, max_time
+         WHERE d1.db_updated_time > $cutOffTimestamp  AND d1.db_updated_time <= max_time.db_updated_time
        """
       .as[(Long, java.sql.Timestamp)]
       .map(_.map(row => {

@@ -20,7 +20,6 @@ import scala.util.Try
 @Singleton
 class PodcastFeedIngester @Inject()(itunesEntityFetcher: ItunesEntityFetcher,
                                     podcastFetcher: PodcastFeedFetcher,
-                                    searchClient: SearchClient,
                                     dotableService: DotableService)(implicit ec: ExecutionContext)
     extends LogSupport {
 
@@ -95,18 +94,6 @@ class PodcastFeedIngester @Inject()(itunesEntityFetcher: ItunesEntityFetcher,
         } else {
           Future(FailedData(Nil, UnknownErrorStatus))
         }
-      }
-    } flatMap { successResult =>
-      val indexFuture = for {
-        podcastOpts <- Future.sequence(
-          successResult.data.map(id => dotableService.readDotableDetails(id, None)))
-        podcasts = podcastOpts.filter(_.isDefined).map(_.get)
-        _ <- Future.sequence(podcasts.map(p => searchClient.indexPodcastWithEpisodes(p)))
-      } yield ()
-      // For now use the ingestion result, so a failed index doesn't fail the ingestion
-      indexFuture map { _ =>
-        debug("indexing done")
-        successResult
       }
     }
   }
