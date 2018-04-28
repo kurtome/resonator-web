@@ -273,7 +273,13 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
     if (description.length > 1000) {
       val rawTruncated = description.substring(0, 1000)
       // drop any partial words after the last space
-      rawTruncated.substring(0, rawTruncated.lastIndexOf(' '))
+      val lastSpaceIndex = rawTruncated.lastIndexOf(' ')
+
+      if (lastSpaceIndex > 0) {
+        rawTruncated.substring(0, lastSpaceIndex)
+      } else {
+        rawTruncated
+      }
     } else {
       description
     }
