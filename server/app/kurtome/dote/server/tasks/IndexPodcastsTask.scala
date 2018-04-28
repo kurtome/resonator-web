@@ -62,12 +62,14 @@ class IndexPodcastsActor @Inject()(
           .sortWith((l1, l2) => (l1 compareTo l2) < 0)
           .last
         dotableIds = dotablesIdsWithTimestamps.map(_._1)
-        dotables <- dotableService.readBatchById(dotableIds).map(_.filter(_.kind match {
-          case Dotable.Kind.PODCAST => true
-          case Dotable.Kind.PODCAST_EPISODE => true
+        dotables <- dotableService
+          .readBatchById(dotableIds)
+          .map(_.filter(_.kind match {
+            case Dotable.Kind.PODCAST => true
+            case Dotable.Kind.PODCAST_EPISODE => true
             // ignore everything else
-          case _ => false
-        }))
+            case _ => false
+          }))
         _ <- {
           info(s"Indexing ${dotables.size} dotables")
           searchClient.indexDotables(dotables)
