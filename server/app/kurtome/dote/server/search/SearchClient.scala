@@ -141,18 +141,27 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
         .size(limit)
         .query(
           boolQuery()
-            .must(
+            .filter(
               matchQuery("indexedFields.combinedText", query)
-                .minimumShouldMatch("70%")
+                .minimumShouldMatch("3<70%")
                 .fuzziness("AUTO")
                 .prefixLength(3)
             )
             .should(
+              matchPhraseQuery("indexedFields.combinedText", query)
+                .boost(2),
+              matchQuery("indexedFields.combinedText", query)
+                .minimumShouldMatch("100%")
+                .boost(1)
+                .fuzziness("AUTO")
+                .prefixLength(3),
               matchQuery("indexedFields.parentTitle", query)
-                .minimumShouldMatch("60%")
-                .boost(100),
-              matchQuery("indexedFields.title", query)
-                .minimumShouldMatch("60%")
+                .boost(1),
+              boolQuery()
+                .must(
+                  matchPhraseQuery("indexedFields.title", query),
+                  termQuery("dotable.kind", "PODCAST")
+                )
                 .boost(100)
             )
         )

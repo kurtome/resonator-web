@@ -106,6 +106,7 @@ object SearchView extends LogSupport {
               (s.combinedResults.zipWithIndex map {
                 case (dotable, i) =>
                   <.div(
+                    ^.key := dotable.id,
                     ^.width := "100%",
                     ^.marginBottom := "16px",
                     renderCard(dotable)
