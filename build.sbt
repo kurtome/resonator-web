@@ -169,7 +169,7 @@ lazy val assembleJarAndDeployToHeroku = taskKey[Unit]("Execute frontend scripts"
 
 assembleJarAndDeployToHeroku := {
   val deploy =
-    ("heroku deploy:jar --app dote-web /Users/kmelby/github/kurtome/dote-web/server/target/scala-2.12/dote-web-server.jar" !)
+    ("heroku deploy:jar --app resonator /Users/kmelby/github/kurtome/dote-web/server/target/scala-2.12/dote-web-server.jar" !)
   ()
 }
 
