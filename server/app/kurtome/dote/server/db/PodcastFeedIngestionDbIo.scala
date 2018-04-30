@@ -37,7 +37,8 @@ class PodcastFeedIngestionDbIo @Inject()(implicit ec: ExecutionContext) {
       podcastDotableId = podcastId,
       guid = episode.details.rssGuid,
       episodeDotableId = episodeId,
-      lastDataHash = Some(episode.dataHash)
+      lastDataHash = Some(episode.dataHash),
+      dbUpdatedTime = LocalDateTime.MIN
     )
   }
 

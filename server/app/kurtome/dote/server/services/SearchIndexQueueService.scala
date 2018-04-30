@@ -18,21 +18,20 @@ class SearchIndexQueueService @Inject()(db: BasicBackend#Database)(
     implicit executionContext: ExecutionContext)
     extends LogSupport {
 
-  def readDotableSyncCompletedTimestamp(): Future[LocalDateTime] = {
+  def readDotableRow(): Future[Tables.SearchIndexQueueRow] = {
     db.run(
       Tables.SearchIndexQueue
         .filter(_.indexName === "dotables")
-        .map(_.syncCompletedThroughTime)
         .result
         .head)
   }
 
-  def writeDotableSyncCompletedTimestamp(time: LocalDateTime): Future[Unit] = {
+  def writeDotableRow(time: LocalDateTime, lastBatchMaxId: Long): Future[Unit] = {
     db.run(
         Tables.SearchIndexQueue
           .filter(_.indexName === "dotables")
-          .map(_.syncCompletedThroughTime)
-          .update(time)
+          .map(row => (row.syncCompletedThroughTime, row.lastBatchMaxId))
+          .update((time, lastBatchMaxId))
       )
       .map(_ => Unit)
   }

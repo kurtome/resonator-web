@@ -25,6 +25,21 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
 
   private val table = Tables.Dotable
 
+  object Queries {
+    val readBatchByNextMaxUpdatedTime = Compiled {
+      (limit: ConstColumn[Long], cutOffAge: Rep[LocalDateTime], cutOffAgeMinId: Rep[Long]) =>
+        {
+          for {
+            (d, p) <- Tables.Dotable
+              .filter(row => row.dbUpdatedTime >= cutOffAge)
+              .filterNot(row => row.dbUpdatedTime === cutOffAge && row.id <= cutOffAgeMinId)
+              .sortBy(row => (row.dbUpdatedTime, row.id))
+              .take(limit) joinLeft Tables.Dotable on (_.parentId === _.id)
+          } yield (d, p)
+        }
+    }
+  }
+
   val filterRaw = Compiled { (id: Rep[Long]) =>
     table.filter(row => row.id === id)
   }
@@ -64,7 +79,8 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
       title = None,
       contentEditedTime = reviewTime,
       parentId = Some(subjectId),
-      data = JsonFormat.toJson(data)
+      data = JsonFormat.toJson(data),
+      dbUpdatedTime = LocalDateTime.MIN
     )
 
     for {
@@ -211,7 +227,8 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
       title = Some(ep.common.title),
       contentEditedTime = LocalDateTime.ofEpochSecond(ep.common.updatedEpochSec, 0, ZoneOffset.UTC),
       parentId = Some(parentId),
-      data = JsonFormat.toJson(data)
+      data = JsonFormat.toJson(data),
+      dbUpdatedTime = LocalDateTime.MIN
     )
   }
 
@@ -226,7 +243,8 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
       contentEditedTime =
         LocalDateTime.ofEpochSecond(podcast.common.updatedEpochSec, 0, ZoneOffset.UTC),
       data = JsonFormat.toJson(data),
-      parentId = None
+      parentId = None,
+      dbUpdatedTime = LocalDateTime.MIN
     )
   }
 
@@ -282,30 +300,18 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
     })
   }
 
-  /**
-    * Returns a batch of IDs with db_updated_time > cutOffAge, and guaranteeing the batch contains
-    * all dotables with db_updated_time = max(db_updated_time) of this batch. In other words, it
-    * is safe to use the max db_updated time of this batch as the next cutOffAge.
-    */
-  def nextOldestModifiedBatch(approxBatchSize: Int, cutOffAge: LocalDateTime) = {
-    val cutOffTimestamp: java.sql.Timestamp = java.sql.Timestamp.valueOf(cutOffAge)
-    sql"""
-        WITH max_time as (
-           SELECT MAX(temp.db_updated_time) db_updated_time
-           FROM (
-               SELECT d2.db_updated_time as db_updated_time
-               FROM dotable d2
-               WHERE d2.db_updated_time > $cutOffTimestamp
-               ORDER BY d2.db_updated_time
-               LIMIT $approxBatchSize) AS temp
-         )
-         SELECT d1.id, d1.db_updated_time
-         FROM dotable d1, max_time
-         WHERE d1.db_updated_time > $cutOffTimestamp  AND d1.db_updated_time <= max_time.db_updated_time
-       """
-      .as[(Long, java.sql.Timestamp)]
-      .map(_.map(row => {
-        (row._1, row._2.toLocalDateTime)
-      }))
+  def readBatchByNextMaxUpdatedTime(limit: Int, cutOffAge: LocalDateTime, cutOffAgeMinId: Long) = {
+    Queries
+      .readBatchByNextMaxUpdatedTime(limit, cutOffAge, cutOffAgeMinId)
+      .result
+      .map(
+        batch =>
+          (batch.map(childAndParent => {
+             (protoRowMapper(childAndParent._1), childAndParent._2.map(protoRowMapper))
+           }),
+           // Return the max db_updated_time and ID of the this batch so it can be used for the next batch
+           batch.map(_._1.dbUpdatedTime).last,
+           batch.map(_._1.id).last))
   }
+
 }

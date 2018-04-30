@@ -1,6 +1,7 @@
 package kurtome.dote.server.db
 
 import java.sql.Types
+import java.time.LocalDateTime
 
 import javax.inject._
 import kurtome.dote.shared
@@ -104,16 +105,25 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   def insertDotableTag(tagId: Long, dotableId: Long) = {
-    table += DotableTagRow(tagId = tagId, dotableId = dotableId)
+    table += DotableTagRow(tagId = tagId, dotableId = dotableId, dbUpdatedTime = LocalDateTime.MIN)
   }
 
   def insertTag(tag: Tag) = {
-    tagTable += TagRow(id = 0, kind = tag.id.kind, key = tag.id.key, name = tag.name)
+    tagTable += TagRow(id = 0,
+                       kind = tag.id.kind,
+                       key = tag.id.key,
+                       name = tag.name,
+                       dbUpdatedTime = LocalDateTime.MIN)
   }
 
   def insertTagBatch(tags: Seq[Tag]) = {
-    tagTable ++= tags.map(tag =>
-      TagRow(id = 0, kind = tag.id.kind, key = tag.id.key, name = tag.name))
+    tagTable ++= tags.map(
+      tag =>
+        TagRow(id = 0,
+               kind = tag.id.kind,
+               key = tag.id.key,
+               name = tag.name,
+               dbUpdatedTime = LocalDateTime.MIN))
   }
 
   def dotableTagExists(tagId: Long, dotableId: Long) = {

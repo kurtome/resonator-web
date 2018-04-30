@@ -383,7 +383,9 @@ class DotableService @Inject()(db: BasicBackend#Database,
         .headOption) map {
       case Some(dbTag) => {
         val newTagRows = dotableIds map { dotableId =>
-          Tables.DotableTagRow(tagId = dbTag.id, dotableId = dotableId)
+          Tables.DotableTagRow(tagId = dbTag.id,
+                               dotableId = dotableId,
+                               dbUpdatedTime = LocalDateTime.MIN)
         }
         val replaceQuery = (for {
           deleteCount <- Tables.DotableTag.filter(_.tagId === dbTag.id).delete
@@ -399,11 +401,6 @@ class DotableService @Inject()(db: BasicBackend#Database,
     db.run(podcastFeedIngestionDbIo.readAllPodcastDotableIds())
   }
 
-  def readNextOldestModifiedBatch(approxBatchSize: Int,
-                                  cutOffAge: LocalDateTime): Future[Seq[(Long, LocalDateTime)]] = {
-    db.run(dotableDbIo.nextOldestModifiedBatch(approxBatchSize, cutOffAge))
-  }
-
   def readBatchById(ids: Seq[Long]): Future[Seq[Dotable]] = {
     db.run(dotableDbIo.readBatchById(ids))
       .map(_.map {
@@ -411,6 +408,19 @@ class DotableService @Inject()(db: BasicBackend#Database,
           dotable.withRelatives(Dotable.Relatives(parentFetched = true, parent = parent))
         }
       })
+  }
+
+  def readBatchByNextMaxUpdatedTime(
+      limit: Int,
+      cutOffAge: LocalDateTime,
+      cutOffAgeMinId: Long): Future[(Seq[Dotable], LocalDateTime, Long)] = {
+    db.run(dotableDbIo.readBatchByNextMaxUpdatedTime(limit, cutOffAge, cutOffAgeMinId))
+      .map(results =>
+        (results._1.map {
+          case (dotable, parent) => {
+            dotable.withRelatives(Dotable.Relatives(parentFetched = true, parent = parent))
+          }
+        }, results._2, results._3))
   }
 
   private def updateTagsForDotable(dotableId: Long, tags: Seq[model.Tag]) = {

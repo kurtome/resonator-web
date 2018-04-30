@@ -100,8 +100,13 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   def indexDotables(dotables: Seq[Dotable]): Future[Unit] = {
     client.execute {
       bulk(
-        dotables.map(
-          dotable =>
+        dotables
+          .filter(_.kind match {
+            case Dotable.Kind.PODCAST         => true
+            case Dotable.Kind.PODCAST_EPISODE => true
+            case _                            => false
+          })
+          .map(dotable =>
             indexInto(dotablesIndex / docType)
               .id(dotable.id)
               .doc(extractDataDoc(dotable, dotable.getRelatives.parent)))

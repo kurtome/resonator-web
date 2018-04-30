@@ -35,12 +35,14 @@ trait Tables {
     *  @param selector Database column selector SqlType(text), Length(2147483647,true)
     *  @param validator Database column validator SqlType(bytea)
     *  @param expirationTime Database column expiration_time SqlType(timestamp)
-    *  @param personId Database column person_id SqlType(int8) */
+    *  @param personId Database column person_id SqlType(int8)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp) */
   case class AuthTokenRow(id: Long,
                           selector: String,
                           validator: Array[Byte],
                           expirationTime: java.time.LocalDateTime,
-                          personId: Long)
+                          personId: Long,
+                          dbUpdatedTime: java.time.LocalDateTime)
 
   /** GetResult implicit for fetching AuthTokenRow objects using plain SQL queries */
   implicit def GetResultAuthTokenRow(implicit e0: GR[Long],
@@ -50,14 +52,19 @@ trait Tables {
     prs =>
       import prs._
       AuthTokenRow.tupled(
-        (<<[Long], <<[String], <<[Array[Byte]], <<[java.time.LocalDateTime], <<[Long]))
+        (<<[Long],
+         <<[String],
+         <<[Array[Byte]],
+         <<[java.time.LocalDateTime],
+         <<[Long],
+         <<[java.time.LocalDateTime]))
   }
 
   /** Table description of table auth_token. Objects of this class serve as prototypes for rows in queries. */
   class AuthToken(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[AuthTokenRow](_tableTag, "auth_token") {
     def * =
-      (id, selector, validator, expirationTime, personId) <> (AuthTokenRow.tupled, AuthTokenRow.unapply)
+      (id, selector, validator, expirationTime, personId, dbUpdatedTime) <> (AuthTokenRow.tupled, AuthTokenRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
@@ -65,9 +72,11 @@ trait Tables {
        Rep.Some(selector),
        Rep.Some(validator),
        Rep.Some(expirationTime),
-       Rep.Some(personId)).shaped.<>(
+       Rep.Some(personId),
+       Rep.Some(dbUpdatedTime)).shaped.<>(
         { r =>
-          import r._; _1.map(_ => AuthTokenRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))
+          import r._;
+          _1.map(_ => AuthTokenRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))
         },
         (_: Any) => throw new Exception("Inserting into ? projection not supported.")
       )
@@ -87,6 +96,10 @@ trait Tables {
 
     /** Database column person_id SqlType(int8) */
     val personId: Rep[Long] = column[Long]("person_id")
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
 
     /** Foreign key referencing Person (database name auth_token_person_id_fkey) */
     lazy val personFk = foreignKey("auth_token_person_id_fkey", personId, Person)(
@@ -109,12 +122,14 @@ trait Tables {
     *  @param kind Database column kind SqlType(dotablekind)
     *  @param title Database column title SqlType(text), Length(2147483647,true)
     *  @param parentId Database column parent_id SqlType(int8)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp)
     *  @param data Database column data SqlType(jsonb)
     *  @param contentEditedTime Database column content_edited_time SqlType(timestamp) */
   case class DotableRow(id: Long,
                         kind: kurtome.dote.shared.constants.DotableKinds.Value,
                         title: Option[String],
                         parentId: Option[Long],
+                        dbUpdatedTime: java.time.LocalDateTime,
                         data: org.json4s.JsonAST.JValue,
                         contentEditedTime: java.time.LocalDateTime)
 
@@ -123,14 +138,15 @@ trait Tables {
                                    e1: GR[kurtome.dote.shared.constants.DotableKinds.Value],
                                    e2: GR[Option[String]],
                                    e3: GR[Option[Long]],
-                                   e4: GR[org.json4s.JsonAST.JValue],
-                                   e5: GR[java.time.LocalDateTime]): GR[DotableRow] = GR { prs =>
+                                   e4: GR[java.time.LocalDateTime],
+                                   e5: GR[org.json4s.JsonAST.JValue]): GR[DotableRow] = GR { prs =>
     import prs._
     DotableRow.tupled(
       (<<[Long],
        <<[kurtome.dote.shared.constants.DotableKinds.Value],
        <<?[String],
        <<?[Long],
+       <<[java.time.LocalDateTime],
        <<[org.json4s.JsonAST.JValue],
        <<[java.time.LocalDateTime]))
   }
@@ -139,17 +155,23 @@ trait Tables {
   class Dotable(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[DotableRow](_tableTag, "dotable") {
     def * =
-      (id, kind, title, parentId, data, contentEditedTime) <> (DotableRow.tupled, DotableRow.unapply)
+      (id, kind, title, parentId, dbUpdatedTime, data, contentEditedTime) <> (DotableRow.tupled, DotableRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(id), Rep.Some(kind), title, parentId, Rep.Some(data), Rep.Some(contentEditedTime)).shaped
-        .<>(
-          { r =>
-            import r._; _1.map(_ => DotableRow.tupled((_1.get, _2.get, _3, _4, _5.get, _6.get)))
-          },
-          (_: Any) => throw new Exception("Inserting into ? projection not supported.")
-        )
+      (Rep.Some(id),
+       Rep.Some(kind),
+       title,
+       parentId,
+       Rep.Some(dbUpdatedTime),
+       Rep.Some(data),
+       Rep.Some(contentEditedTime)).shaped.<>(
+        { r =>
+          import r._;
+          _1.map(_ => DotableRow.tupled((_1.get, _2.get, _3, _4, _5.get, _6.get, _7.get)))
+        },
+        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+      )
 
     /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -164,6 +186,10 @@ trait Tables {
 
     /** Database column parent_id SqlType(int8) */
     val parentId: Rep[Option[Long]] = column[Option[Long]]("parent_id")
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
 
     /** Database column data SqlType(jsonb) */
     val data: Rep[org.json4s.JsonAST.JValue] = column[org.json4s.JsonAST.JValue]("data")
@@ -181,11 +207,14 @@ trait Tables {
     /** Index over (contentEditedTime) (database name dotable_content_edited_time_index) */
     val index1 = index("dotable_content_edited_time_index", contentEditedTime)
 
+    /** Index over (dbUpdatedTime) (database name dotable_db_updated_time_index) */
+    val index2 = index("dotable_db_updated_time_index", dbUpdatedTime)
+
     /** Index over (kind,id) (database name dotable_kind_id_index) */
-    val index2 = index("dotable_kind_id_index", (kind, id))
+    val index3 = index("dotable_kind_id_index", (kind, id))
 
     /** Index over (title) (database name dotable_title_index) */
-    val index3 = index("dotable_title_index", title)
+    val index4 = index("dotable_title_index", title)
   }
 
   /** Collection-like TableQuery object for table Dotable */
@@ -193,24 +222,27 @@ trait Tables {
 
   /** Entity class storing rows of table DotableTag
     *  @param tagId Database column tag_id SqlType(int8)
-    *  @param dotableId Database column dotable_id SqlType(int8) */
-  case class DotableTagRow(tagId: Long, dotableId: Long)
+    *  @param dotableId Database column dotable_id SqlType(int8)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp) */
+  case class DotableTagRow(tagId: Long, dotableId: Long, dbUpdatedTime: java.time.LocalDateTime)
 
   /** GetResult implicit for fetching DotableTagRow objects using plain SQL queries */
-  implicit def GetResultDotableTagRow(implicit e0: GR[Long]): GR[DotableTagRow] = GR { prs =>
-    import prs._
-    DotableTagRow.tupled((<<[Long], <<[Long]))
+  implicit def GetResultDotableTagRow(implicit e0: GR[Long],
+                                      e1: GR[java.time.LocalDateTime]): GR[DotableTagRow] = GR {
+    prs =>
+      import prs._
+      DotableTagRow.tupled((<<[Long], <<[Long], <<[java.time.LocalDateTime]))
   }
 
   /** Table description of table dotable_tag. Objects of this class serve as prototypes for rows in queries. */
   class DotableTag(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[DotableTagRow](_tableTag, "dotable_tag") {
-    def * = (tagId, dotableId) <> (DotableTagRow.tupled, DotableTagRow.unapply)
+    def * = (tagId, dotableId, dbUpdatedTime) <> (DotableTagRow.tupled, DotableTagRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(tagId), Rep.Some(dotableId)).shaped.<>({ r =>
-        import r._; _1.map(_ => DotableTagRow.tupled((_1.get, _2.get)))
+      (Rep.Some(tagId), Rep.Some(dotableId), Rep.Some(dbUpdatedTime)).shaped.<>({ r =>
+        import r._; _1.map(_ => DotableTagRow.tupled((_1.get, _2.get, _3.get)))
       }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column tag_id SqlType(int8) */
@@ -218,6 +250,10 @@ trait Tables {
 
     /** Database column dotable_id SqlType(int8) */
     val dotableId: Rep[Long] = column[Long]("dotable_id")
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
 
     /** Foreign key referencing Dotable (database name dotable_tag_dotable_id_fkey) */
     lazy val dotableFk = foreignKey("dotable_tag_dotable_id_fkey", dotableId, Dotable)(
@@ -243,6 +279,7 @@ trait Tables {
     *  @param dotableId Database column dotable_id SqlType(int8)
     *  @param personId Database column person_id SqlType(int8)
     *  @param doteTime Database column dote_time SqlType(timestamp)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp)
     *  @param emoteKind Database column emote_kind SqlType(emotekind)
     *  @param halfStars Database column half_stars SqlType(int4), Default(0)
     *  @param reviewDotableId Database column review_dotable_id SqlType(int8) */
@@ -250,6 +287,7 @@ trait Tables {
                      dotableId: Long,
                      personId: Long,
                      doteTime: java.time.LocalDateTime,
+                     dbUpdatedTime: java.time.LocalDateTime,
                      emoteKind: Option[kurtome.dote.shared.constants.EmoteKinds.Value],
                      halfStars: Int = 0,
                      reviewDotableId: Option[Long])
@@ -266,6 +304,7 @@ trait Tables {
        <<[Long],
        <<[Long],
        <<[java.time.LocalDateTime],
+       <<[java.time.LocalDateTime],
        <<?[kurtome.dote.shared.constants.EmoteKinds.Value],
        <<[Int],
        <<?[Long]))
@@ -274,7 +313,7 @@ trait Tables {
   /** Table description of table dote. Objects of this class serve as prototypes for rows in queries. */
   class Dote(_tableTag: slick.lifted.Tag) extends profile.api.Table[DoteRow](_tableTag, "dote") {
     def * =
-      (id, dotableId, personId, doteTime, emoteKind, halfStars, reviewDotableId) <> (DoteRow.tupled, DoteRow.unapply)
+      (id, dotableId, personId, doteTime, dbUpdatedTime, emoteKind, halfStars, reviewDotableId) <> (DoteRow.tupled, DoteRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
@@ -282,11 +321,13 @@ trait Tables {
        Rep.Some(dotableId),
        Rep.Some(personId),
        Rep.Some(doteTime),
+       Rep.Some(dbUpdatedTime),
        emoteKind,
        Rep.Some(halfStars),
        reviewDotableId).shaped.<>(
         { r =>
-          import r._; _1.map(_ => DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6.get, _7)))
+          import r._;
+          _1.map(_ => DoteRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6, _7.get, _8)))
         },
         (_: Any) => throw new Exception("Inserting into ? projection not supported.")
       )
@@ -302,6 +343,10 @@ trait Tables {
 
     /** Database column dote_time SqlType(timestamp) */
     val doteTime: Rep[java.time.LocalDateTime] = column[java.time.LocalDateTime]("dote_time")
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
 
     /** Database column emote_kind SqlType(emotekind) */
     val emoteKind: Rep[Option[kurtome.dote.shared.constants.EmoteKinds.Value]] =
@@ -345,30 +390,40 @@ trait Tables {
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
     *  @param followTime Database column follow_time SqlType(timestamp)
     *  @param followerId Database column follower_id SqlType(int8)
-    *  @param followeeId Database column followee_id SqlType(int8) */
+    *  @param followeeId Database column followee_id SqlType(int8)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp) */
   case class FollowerRow(id: Long,
                          followTime: java.time.LocalDateTime,
                          followerId: Long,
-                         followeeId: Long)
+                         followeeId: Long,
+                         dbUpdatedTime: java.time.LocalDateTime)
 
   /** GetResult implicit for fetching FollowerRow objects using plain SQL queries */
   implicit def GetResultFollowerRow(implicit e0: GR[Long],
                                     e1: GR[java.time.LocalDateTime]): GR[FollowerRow] = GR { prs =>
     import prs._
-    FollowerRow.tupled((<<[Long], <<[java.time.LocalDateTime], <<[Long], <<[Long]))
+    FollowerRow.tupled(
+      (<<[Long], <<[java.time.LocalDateTime], <<[Long], <<[Long], <<[java.time.LocalDateTime]))
   }
 
   /** Table description of table follower. Objects of this class serve as prototypes for rows in queries. */
   class Follower(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[FollowerRow](_tableTag, "follower") {
-    def * = (id, followTime, followerId, followeeId) <> (FollowerRow.tupled, FollowerRow.unapply)
+    def * =
+      (id, followTime, followerId, followeeId, dbUpdatedTime) <> (FollowerRow.tupled, FollowerRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(id), Rep.Some(followTime), Rep.Some(followerId), Rep.Some(followeeId)).shaped.<>({
-        r =>
-          import r._; _1.map(_ => FollowerRow.tupled((_1.get, _2.get, _3.get, _4.get)))
-      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+      (Rep.Some(id),
+       Rep.Some(followTime),
+       Rep.Some(followerId),
+       Rep.Some(followeeId),
+       Rep.Some(dbUpdatedTime)).shaped.<>(
+        { r =>
+          import r._; _1.map(_ => FollowerRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))
+        },
+        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+      )
 
     /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -381,6 +436,10 @@ trait Tables {
 
     /** Database column followee_id SqlType(int8) */
     val followeeId: Rep[Long] = column[Long]("followee_id")
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
 
     /** Foreign key referencing Person (database name follower_followee_id_fkey) */
     lazy val personFk1 = foreignKey("follower_followee_id_fkey", followeeId, Person)(
@@ -406,12 +465,14 @@ trait Tables {
     *  @param username Database column username SqlType(text), Length(2147483647,true)
     *  @param email Database column email SqlType(text), Length(2147483647,true)
     *  @param loginCode Database column login_code SqlType(text), Length(2147483647,true)
-    *  @param loginCodeExpirationTime Database column login_code_expiration_time SqlType(timestamp) */
+    *  @param loginCodeExpirationTime Database column login_code_expiration_time SqlType(timestamp)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp) */
   case class PersonRow(id: Long,
                        username: String,
                        email: String,
                        loginCode: Option[String],
-                       loginCodeExpirationTime: java.time.LocalDateTime)
+                       loginCodeExpirationTime: java.time.LocalDateTime,
+                       dbUpdatedTime: java.time.LocalDateTime)
 
   /** GetResult implicit for fetching PersonRow objects using plain SQL queries */
   implicit def GetResultPersonRow(implicit e0: GR[Long],
@@ -419,14 +480,20 @@ trait Tables {
                                   e2: GR[Option[String]],
                                   e3: GR[java.time.LocalDateTime]): GR[PersonRow] = GR { prs =>
     import prs._
-    PersonRow.tupled((<<[Long], <<[String], <<[String], <<?[String], <<[java.time.LocalDateTime]))
+    PersonRow.tupled(
+      (<<[Long],
+       <<[String],
+       <<[String],
+       <<?[String],
+       <<[java.time.LocalDateTime],
+       <<[java.time.LocalDateTime]))
   }
 
   /** Table description of table person. Objects of this class serve as prototypes for rows in queries. */
   class Person(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[PersonRow](_tableTag, "person") {
     def * =
-      (id, username, email, loginCode, loginCodeExpirationTime) <> (PersonRow.tupled, PersonRow.unapply)
+      (id, username, email, loginCode, loginCodeExpirationTime, dbUpdatedTime) <> (PersonRow.tupled, PersonRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
@@ -434,9 +501,13 @@ trait Tables {
        Rep.Some(username),
        Rep.Some(email),
        loginCode,
-       Rep.Some(loginCodeExpirationTime)).shaped.<>({ r =>
-        import r._; _1.map(_ => PersonRow.tupled((_1.get, _2.get, _3.get, _4, _5.get)))
-      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+       Rep.Some(loginCodeExpirationTime),
+       Rep.Some(dbUpdatedTime)).shaped.<>(
+        { r =>
+          import r._; _1.map(_ => PersonRow.tupled((_1.get, _2.get, _3.get, _4, _5.get, _6.get)))
+        },
+        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+      )
 
     /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -454,6 +525,10 @@ trait Tables {
     /** Database column login_code_expiration_time SqlType(timestamp) */
     val loginCodeExpirationTime: Rep[java.time.LocalDateTime] =
       column[java.time.LocalDateTime]("login_code_expiration_time")
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
 
     /** Uniqueness Index over (email) (database name email_uniq) */
     val index1 = index("email_uniq", email, unique = true)
@@ -553,27 +628,31 @@ trait Tables {
     *  @param podcastDotableId Database column podcast_dotable_id SqlType(int8)
     *  @param guid Database column guid SqlType(text), Length(2147483647,true)
     *  @param episodeDotableId Database column episode_dotable_id SqlType(int8)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp)
     *  @param lastDataHash Database column last_data_hash SqlType(bytea) */
   case class PodcastEpisodeIngestionRow(id: Long,
                                         podcastDotableId: Long,
                                         guid: String,
                                         episodeDotableId: Long,
+                                        dbUpdatedTime: java.time.LocalDateTime,
                                         lastDataHash: Option[Array[Byte]])
 
   /** GetResult implicit for fetching PodcastEpisodeIngestionRow objects using plain SQL queries */
   implicit def GetResultPodcastEpisodeIngestionRow(
       implicit e0: GR[Long],
       e1: GR[String],
-      e2: GR[Option[Array[Byte]]]): GR[PodcastEpisodeIngestionRow] = GR { prs =>
+      e2: GR[java.time.LocalDateTime],
+      e3: GR[Option[Array[Byte]]]): GR[PodcastEpisodeIngestionRow] = GR { prs =>
     import prs._
-    PodcastEpisodeIngestionRow.tupled((<<[Long], <<[Long], <<[String], <<[Long], <<?[Array[Byte]]))
+    PodcastEpisodeIngestionRow.tupled(
+      (<<[Long], <<[Long], <<[String], <<[Long], <<[java.time.LocalDateTime], <<?[Array[Byte]]))
   }
 
   /** Table description of table podcast_episode_ingestion. Objects of this class serve as prototypes for rows in queries. */
   class PodcastEpisodeIngestion(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[PodcastEpisodeIngestionRow](_tableTag, "podcast_episode_ingestion") {
     def * =
-      (id, podcastDotableId, guid, episodeDotableId, lastDataHash) <> (PodcastEpisodeIngestionRow.tupled, PodcastEpisodeIngestionRow.unapply)
+      (id, podcastDotableId, guid, episodeDotableId, dbUpdatedTime, lastDataHash) <> (PodcastEpisodeIngestionRow.tupled, PodcastEpisodeIngestionRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
@@ -581,10 +660,12 @@ trait Tables {
        Rep.Some(podcastDotableId),
        Rep.Some(guid),
        Rep.Some(episodeDotableId),
+       Rep.Some(dbUpdatedTime),
        lastDataHash).shaped.<>(
         { r =>
           import r._;
-          _1.map(_ => PodcastEpisodeIngestionRow.tupled((_1.get, _2.get, _3.get, _4.get, _5)))
+          _1.map(_ =>
+            PodcastEpisodeIngestionRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6)))
         },
         (_: Any) => throw new Exception("Inserting into ? projection not supported.")
       )
@@ -600,6 +681,10 @@ trait Tables {
 
     /** Database column episode_dotable_id SqlType(int8) */
     val episodeDotableId: Rep[Long] = column[Long]("episode_dotable_id")
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
 
     /** Database column last_data_hash SqlType(bytea) */
     val lastDataHash: Rep[Option[Array[Byte]]] = column[Option[Array[Byte]]]("last_data_hash")
@@ -636,6 +721,7 @@ trait Tables {
     *  @param feedRssUrl Database column feed_rss_url SqlType(text), Length(2147483647,true)
     *  @param itunesId Database column itunes_id SqlType(int8)
     *  @param podcastDotableId Database column podcast_dotable_id SqlType(int8)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp)
     *  @param nextIngestionTime Database column next_ingestion_time SqlType(timestamp)
     *  @param lastFeedEtag Database column last_feed_etag SqlType(text), Length(2147483647,true)
     *  @param lastDataHash Database column last_data_hash SqlType(bytea)
@@ -644,6 +730,7 @@ trait Tables {
                                      feedRssUrl: String,
                                      itunesId: Long,
                                      podcastDotableId: Option[Long],
+                                     dbUpdatedTime: java.time.LocalDateTime,
                                      nextIngestionTime: java.time.LocalDateTime,
                                      lastFeedEtag: Option[String],
                                      lastDataHash: Option[Array[Byte]],
@@ -664,6 +751,7 @@ trait Tables {
        <<[Long],
        <<?[Long],
        <<[java.time.LocalDateTime],
+       <<[java.time.LocalDateTime],
        <<?[String],
        <<?[Array[Byte]],
        <<[Long]))
@@ -677,6 +765,7 @@ trait Tables {
        feedRssUrl,
        itunesId,
        podcastDotableId,
+       dbUpdatedTime,
        nextIngestionTime,
        lastFeedEtag,
        lastDataHash,
@@ -688,14 +777,17 @@ trait Tables {
        Rep.Some(feedRssUrl),
        Rep.Some(itunesId),
        podcastDotableId,
+       Rep.Some(dbUpdatedTime),
        Rep.Some(nextIngestionTime),
        lastFeedEtag,
        lastDataHash,
        Rep.Some(reingestWaitMinutes)).shaped.<>(
         { r =>
           import r._;
-          _1.map(_ =>
-            PodcastFeedIngestionRow.tupled((_1.get, _2.get, _3.get, _4, _5.get, _6, _7, _8.get)))
+          _1.map(
+            _ =>
+              PodcastFeedIngestionRow.tupled(
+                (_1.get, _2.get, _3.get, _4, _5.get, _6.get, _7, _8, _9.get)))
         },
         (_: Any) => throw new Exception("Inserting into ? projection not supported.")
       )
@@ -712,6 +804,10 @@ trait Tables {
 
     /** Database column podcast_dotable_id SqlType(int8) */
     val podcastDotableId: Rep[Option[Long]] = column[Option[Long]]("podcast_dotable_id")
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
 
     /** Database column next_ingestion_time SqlType(timestamp) */
     val nextIngestionTime: Rep[java.time.LocalDateTime] =
@@ -750,29 +846,32 @@ trait Tables {
 
   /** Entity class storing rows of table SearchIndexQueue
     *  @param indexName Database column index_name SqlType(text), Length(2147483647,true)
-    *  @param syncCompletedThroughTime Database column sync_completed_through_time SqlType(timestamp) */
+    *  @param syncCompletedThroughTime Database column sync_completed_through_time SqlType(timestamp)
+    *  @param lastBatchMaxId Database column last_batch_max_id SqlType(int8), Default(0) */
   case class SearchIndexQueueRow(indexName: String,
-                                 syncCompletedThroughTime: java.time.LocalDateTime)
+                                 syncCompletedThroughTime: java.time.LocalDateTime,
+                                 lastBatchMaxId: Long = 0L)
 
   /** GetResult implicit for fetching SearchIndexQueueRow objects using plain SQL queries */
-  implicit def GetResultSearchIndexQueueRow(
-      implicit e0: GR[String],
-      e1: GR[java.time.LocalDateTime]): GR[SearchIndexQueueRow] = GR { prs =>
+  implicit def GetResultSearchIndexQueueRow(implicit e0: GR[String],
+                                            e1: GR[java.time.LocalDateTime],
+                                            e2: GR[Long]): GR[SearchIndexQueueRow] = GR { prs =>
     import prs._
-    SearchIndexQueueRow.tupled((<<[String], <<[java.time.LocalDateTime]))
+    SearchIndexQueueRow.tupled((<<[String], <<[java.time.LocalDateTime], <<[Long]))
   }
 
   /** Table description of table search_index_queue. Objects of this class serve as prototypes for rows in queries. */
   class SearchIndexQueue(_tableTag: slick.lifted.Tag)
       extends profile.api.Table[SearchIndexQueueRow](_tableTag, "search_index_queue") {
     def * =
-      (indexName, syncCompletedThroughTime) <> (SearchIndexQueueRow.tupled, SearchIndexQueueRow.unapply)
+      (indexName, syncCompletedThroughTime, lastBatchMaxId) <> (SearchIndexQueueRow.tupled, SearchIndexQueueRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(indexName), Rep.Some(syncCompletedThroughTime)).shaped.<>({ r =>
-        import r._; _1.map(_ => SearchIndexQueueRow.tupled((_1.get, _2.get)))
-      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+      (Rep.Some(indexName), Rep.Some(syncCompletedThroughTime), Rep.Some(lastBatchMaxId)).shaped
+        .<>({ r =>
+          import r._; _1.map(_ => SearchIndexQueueRow.tupled((_1.get, _2.get, _3.get)))
+        }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column index_name SqlType(text), Length(2147483647,true) */
     val indexName: Rep[String] = column[String]("index_name", O.Length(2147483647, varying = true))
@@ -780,6 +879,9 @@ trait Tables {
     /** Database column sync_completed_through_time SqlType(timestamp) */
     val syncCompletedThroughTime: Rep[java.time.LocalDateTime] =
       column[java.time.LocalDateTime]("sync_completed_through_time")
+
+    /** Database column last_batch_max_id SqlType(int8), Default(0) */
+    val lastBatchMaxId: Rep[Long] = column[Long]("last_batch_max_id", O.Default(0L))
   }
 
   /** Collection-like TableQuery object for table SearchIndexQueue */
@@ -789,30 +891,41 @@ trait Tables {
     *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
     *  @param kind Database column kind SqlType(tagkind)
     *  @param key Database column key SqlType(text), Length(2147483647,true)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp)
     *  @param name Database column name SqlType(text), Length(2147483647,true) */
   case class TagRow(id: Long,
                     kind: kurtome.dote.shared.constants.TagKinds.Value,
                     key: String,
+                    dbUpdatedTime: java.time.LocalDateTime,
                     name: String)
 
   /** GetResult implicit for fetching TagRow objects using plain SQL queries */
   implicit def GetResultTagRow(implicit e0: GR[Long],
                                e1: GR[kurtome.dote.shared.constants.TagKinds.Value],
-                               e2: GR[String]): GR[TagRow] = GR { prs =>
+                               e2: GR[String],
+                               e3: GR[java.time.LocalDateTime]): GR[TagRow] = GR { prs =>
     import prs._
     TagRow.tupled(
-      (<<[Long], <<[kurtome.dote.shared.constants.TagKinds.Value], <<[String], <<[String]))
+      (<<[Long],
+       <<[kurtome.dote.shared.constants.TagKinds.Value],
+       <<[String],
+       <<[java.time.LocalDateTime],
+       <<[String]))
   }
 
   /** Table description of table tag. Objects of this class serve as prototypes for rows in queries. */
   class Tag(_tableTag: slick.lifted.Tag) extends profile.api.Table[TagRow](_tableTag, "tag") {
-    def * = (id, kind, key, name) <> (TagRow.tupled, TagRow.unapply)
+    def * = (id, kind, key, dbUpdatedTime, name) <> (TagRow.tupled, TagRow.unapply)
 
     /** Maps whole row to an option. Useful for outer joins. */
     def ? =
-      (Rep.Some(id), Rep.Some(kind), Rep.Some(key), Rep.Some(name)).shaped.<>({ r =>
-        import r._; _1.map(_ => TagRow.tupled((_1.get, _2.get, _3.get, _4.get)))
-      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+      (Rep.Some(id), Rep.Some(kind), Rep.Some(key), Rep.Some(dbUpdatedTime), Rep.Some(name)).shaped
+        .<>(
+          { r =>
+            import r._; _1.map(_ => TagRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))
+          },
+          (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+        )
 
     /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
     val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -823,6 +936,10 @@ trait Tables {
 
     /** Database column key SqlType(text), Length(2147483647,true) */
     val key: Rep[String] = column[String]("key", O.Length(2147483647, varying = true))
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
 
     /** Database column name SqlType(text), Length(2147483647,true) */
     val name: Rep[String] = column[String]("name", O.Length(2147483647, varying = true))

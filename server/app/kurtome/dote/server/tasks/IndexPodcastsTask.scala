@@ -1,12 +1,7 @@
 package kurtome.dote.server.tasks
 
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.chrono.ChronoLocalDateTime
-
 import javax.inject._
 import akka.actor.{Actor, ActorRef, ActorSystem}
-import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.server.search.SearchClient
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.server.services.SearchIndexQueueService
@@ -54,29 +49,19 @@ class IndexPodcastsActor @Inject()(
       val approxBatchSize = 500
 
       (for {
-        timestamp <- searchIndexQueueService.readDotableSyncCompletedTimestamp()
-        dotablesIdsWithTimestamps <- dotableService.readNextOldestModifiedBatch(approxBatchSize,
-                                                                                timestamp)
-        newMaxTimestamp = dotablesIdsWithTimestamps
-          .map(_._2)
-          .sortWith((l1, l2) => (l1 compareTo l2) < 0)
-          .last
-        dotableIds = dotablesIdsWithTimestamps.map(_._1)
-        dotables <- dotableService
-          .readBatchById(dotableIds)
-          .map(_.filter(_.kind match {
-            case Dotable.Kind.PODCAST => true
-            case Dotable.Kind.PODCAST_EPISODE => true
-            // ignore everything else
-            case _ => false
-          }))
+        queueRow <- searchIndexQueueService.readDotableRow()
+        timestamp = queueRow.syncCompletedThroughTime
+        id = queueRow.lastBatchMaxId
+        (dotables, newMaxTimestamp, newMaxId) <- dotableService
+          .readBatchByNextMaxUpdatedTime(approxBatchSize, timestamp, id)
         _ <- {
           info(s"Indexing ${dotables.size} dotables")
           searchClient.indexDotables(dotables)
         }
         _ <- {
-          info(s"Old timestamp: $timestamp, new timestamp: $newMaxTimestamp")
-          searchIndexQueueService.writeDotableSyncCompletedTimestamp(newMaxTimestamp)
+          debug(s"Old timestamp: $timestamp, new timestamp: $newMaxTimestamp")
+          debug(s"Old ID: $id, new ID: $newMaxId")
+          searchIndexQueueService.writeDotableRow(newMaxTimestamp, newMaxId)
         }
       } yield {
         info("Finished.")

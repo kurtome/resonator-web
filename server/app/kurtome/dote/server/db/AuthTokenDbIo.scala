@@ -27,7 +27,12 @@ class AuthTokenDbIo @Inject()(implicit executionContext: ExecutionContext) {
              validator: Array[Byte],
              personId: Long,
              expirationTime: LocalDateTime) = {
-    Tables.AuthToken += Tables.AuthTokenRow(0, selector, validator, expirationTime, personId)
+    Tables.AuthToken += Tables.AuthTokenRow(0,
+                                            selector,
+                                            validator,
+                                            expirationTime,
+                                            personId,
+                                            dbUpdatedTime = LocalDateTime.MIN)
   }
 
 }
