@@ -56,8 +56,7 @@ object SiteTitle extends LogSupport {
           ^.className := Styles.siteTitleAnchor,
           ^.color := MuiTheme.theme.palette.common.white,
           <.span(^.className := Styles.siteTitleText, StringValues.siteTitle),
-          Typography(variant = Typography.Variants.Caption, style = Styles.subtitleText)(
-            "(under construction)")
+          Typography(variant = Typography.Variants.Caption, style = Styles.subtitleText)("beta")
         )
       )
     }

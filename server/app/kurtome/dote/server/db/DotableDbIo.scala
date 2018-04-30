@@ -27,15 +27,21 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
 
   object Queries {
     val readBatchByNextMaxUpdatedTime = Compiled {
-      (limit: ConstColumn[Long], cutOffAge: Rep[LocalDateTime], cutOffAgeMinId: Rep[Long]) =>
+      (limit: ConstColumn[Long],
+       innerLimit: ConstColumn[Long],
+       cutOffAge: Rep[LocalDateTime],
+       cutOffAgeMinId: Rep[Long]) =>
         {
-          for {
+          val q = for {
             (d, p) <- Tables.Dotable
               .filter(row => row.dbUpdatedTime >= cutOffAge)
-              .filterNot(row => row.dbUpdatedTime === cutOffAge && row.id <= cutOffAgeMinId)
-              .sortBy(row => (row.dbUpdatedTime, row.id))
-              .take(limit) joinLeft Tables.Dotable on (_.parentId === _.id)
+              .sortBy(_.dbUpdatedTime)
+              .take(innerLimit) joinLeft Tables.Dotable on (_.parentId === _.id)
           } yield (d, p)
+
+          q.filterNot(row => row._1.dbUpdatedTime === cutOffAge && row._1.id <= cutOffAgeMinId)
+            .sortBy(row => (row._1.dbUpdatedTime, row._1.id))
+            .take(limit)
         }
     }
   }
@@ -302,7 +308,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
 
   def readBatchByNextMaxUpdatedTime(limit: Int, cutOffAge: LocalDateTime, cutOffAgeMinId: Long) = {
     Queries
-      .readBatchByNextMaxUpdatedTime(limit, cutOffAge, cutOffAgeMinId)
+      .readBatchByNextMaxUpdatedTime(limit, limit * 2, cutOffAge, cutOffAgeMinId)
       .result
       .map(
         batch =>
@@ -310,8 +316,8 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
              (protoRowMapper(childAndParent._1), childAndParent._2.map(protoRowMapper))
            }),
            // Return the max db_updated_time and ID of the this batch so it can be used for the next batch
-           batch.map(_._1.dbUpdatedTime).last,
-           batch.map(_._1.id).last))
+           batch.map(_._1.dbUpdatedTime).lastOption.getOrElse(cutOffAge),
+           batch.map(_._1.id).lastOption.getOrElse(cutOffAgeMinId)))
   }
 
 }

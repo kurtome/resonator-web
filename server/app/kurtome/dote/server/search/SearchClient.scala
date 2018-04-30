@@ -98,23 +98,27 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   ensureIndexSchema(dotablesIndex)
 
   def indexDotables(dotables: Seq[Dotable]): Future[Unit] = {
-    client.execute {
-      bulk(
-        dotables
-          .filter(_.kind match {
-            case Dotable.Kind.PODCAST         => true
-            case Dotable.Kind.PODCAST_EPISODE => true
-            case _                            => false
-          })
-          .map(dotable =>
-            indexInto(dotablesIndex / docType)
-              .id(dotable.id)
-              .doc(extractDataDoc(dotable, dotable.getRelatives.parent)))
-      )
-    } map {
-      case Right(requestSuccess) => Unit
-      case Left(requestFailure)  => warn(requestFailure.body)
-    } map (_ => Unit)
+    val toIndex = dotables
+      .filter(_.kind match {
+        case Dotable.Kind.PODCAST         => true
+        case Dotable.Kind.PODCAST_EPISODE => true
+        case _                            => false
+      })
+
+    if (toIndex.nonEmpty) {
+      client.execute {
+        bulk(
+          toIndex.map(
+            dotable =>
+              indexInto(dotablesIndex / docType)
+                .id(dotable.id)
+                .doc(extractDataDoc(dotable, dotable.getRelatives.parent)))
+        )
+      } map {
+        case Right(requestSuccess) => Unit
+        case Left(requestFailure)  => warn(requestFailure.body)
+      } map (_ => Unit)
+    }
   }
 
   @deprecated
