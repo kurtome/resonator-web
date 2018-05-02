@@ -15,6 +15,10 @@ import javax.inject._
 import kurtome.dote.server.util.UrlIds.IdKinds
 import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.shared.constants.DotableKinds.DotableKind
+import kurtome.dote.slick.db.DotePostgresProfile
+import slick.jdbc.GetResult
+import slick.jdbc.GetTupleResult
+import slick.jdbc.PositionedResult
 import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext
@@ -32,16 +36,29 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
        cutOffAge: Rep[LocalDateTime],
        cutOffAgeMinId: Rep[Long]) =>
         {
-          val q = for {
+          for {
             (d, p) <- Tables.Dotable
               .filter(row => row.dbUpdatedTime >= cutOffAge)
-              .sortBy(_.dbUpdatedTime)
+              .sortBy(row => (row.dbUpdatedTime, row.id))
               .take(innerLimit) joinLeft Tables.Dotable on (_.parentId === _.id)
           } yield (d, p)
 
-          q.filterNot(row => row._1.dbUpdatedTime === cutOffAge && row._1.id <= cutOffAgeMinId)
-            .sortBy(row => (row._1.dbUpdatedTime, row._1.id))
-            .take(limit)
+//          val batchQ =
+//            Tables.Dotable.filter(row => row.dbUpdatedTime >= cutOffAge)
+//              .filterNot(row => row.dbUpdatedTime === cutOffAge && row.id <= cutOffAgeMinId)
+//              .sortBy(row => (row.dbUpdatedTime, row.id))
+//              .take(innerLimit) joinLeft Tables.Dotable on (_.parentId === _.id)
+
+//          val q = for {
+//            (d, p) <- Tables.Dotable
+//              .filter(row => row.dbUpdatedTime >= cutOffAge)
+//              .sortBy(_.dbUpdatedTime)
+//              .take(innerLimit) joinLeft Tables.Dotable on (_.parentId === _.id)
+//          } yield (d, p)
+//
+//          q.filterNot(row => row._1.dbUpdatedTime === cutOffAge && row._1.id <= cutOffAgeMinId)
+//            .sortBy(row => (row._1.dbUpdatedTime, row._1.id))
+//            .take(limit)
         }
     }
   }
@@ -307,17 +324,70 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
   }
 
   def readBatchByNextMaxUpdatedTime(limit: Int, cutOffAge: LocalDateTime, cutOffAgeMinId: Long) = {
-    Queries
-      .readBatchByNextMaxUpdatedTime(limit, limit * 2, cutOffAge, cutOffAgeMinId)
-      .result
-      .map(
-        batch =>
-          (batch.map(childAndParent => {
-             (protoRowMapper(childAndParent._1), childAndParent._2.map(protoRowMapper))
-           }),
-           // Return the max db_updated_time and ID of the this batch so it can be used for the next batch
-           batch.map(_._1.dbUpdatedTime).lastOption.getOrElse(cutOffAge),
-           batch.map(_._1.id).lastOption.getOrElse(cutOffAgeMinId)))
+
+    //Queries.readBatchByNextMaxUpdatedTime(limit, limit * 2, cutOffAge, cutOffAgeMinId)
+
+    import DotePostgresProfile.plainApi._
+
+    import GetResult._
+
+    implicit val k = new GetResult[DotableKind] {
+      override def apply(pr: PositionedResult): DotableKind = {
+        val str = pr.<<[String]
+        if (str == null) {
+          DotableKinds.Podcast
+        } else {
+          DotableKinds.withName(str)
+        }
+      }
+    }
+    implicit val x = Tables.GetResultDotableRow
+
+    sql"""
+         select
+           d.id,
+           d.kind,
+           d.title,
+           d.parent_id,
+           d.db_updated_time,
+           d.data,
+           d.content_edited_time,
+           p.id,
+           p.kind,
+           p.title,
+           p.parent_id,
+           p.db_updated_time,
+           p.data,
+           p.content_edited_time
+         from dotable d
+           left join dotable p on d.parent_id = p.id
+         where
+           d.db_updated_time >= $cutOffAge
+         order by d.db_updated_time, d.id
+         limit ${limit * 2}
+      """.as[(Tables.DotableRow, Tables.DotableRow)] map { batch =>
+      val filteredBatch =
+        batch
+          .filterNot(row => {
+            val d = row._1
+            (d.dbUpdatedTime.isBefore(cutOffAge) || d.dbUpdatedTime
+              .isEqual(cutOffAge)) && d.id <= cutOffAgeMinId
+          })
+          .take(limit)
+          .map(childAndParent => {
+            (protoRowMapper(childAndParent._1), if (childAndParent._2.id > 0) {
+              Some(protoRowMapper(childAndParent._2))
+            } else {
+              None
+            })
+          })
+
+      // Return the max db_updated_time and ID of the this batch so it can be used for the next batch
+      val age = batch.map(_._1.dbUpdatedTime).lastOption.getOrElse(cutOffAge)
+      val id = batch.map(_._1.id).lastOption.getOrElse(cutOffAgeMinId)
+
+      (filteredBatch, age, id)
+    }
   }
 
 }

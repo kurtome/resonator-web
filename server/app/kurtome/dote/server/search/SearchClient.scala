@@ -118,6 +118,8 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
         case Right(requestSuccess) => Unit
         case Left(requestFailure)  => warn(requestFailure.body)
       } map (_ => Unit)
+    } else {
+      Future()
     }
   }
 

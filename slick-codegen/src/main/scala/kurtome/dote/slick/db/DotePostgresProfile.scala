@@ -64,7 +64,7 @@ trait DotePostgresProfile
 
   override val api = DoteAPI
 
-  val plainAPI = new API with Json4sJsonPlainImplicits
+  val plainApi = new API with Date2DateTimePlainImplicits with Json4sJsonPlainImplicits
 
   type DOCType = org.json4s.native.Document
   override val jsonMethods = org.json4s.native.JsonMethods.asInstanceOf[JsonMethods[DOCType]]
