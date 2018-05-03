@@ -170,8 +170,7 @@ object AudioControls extends LogSupport {
                 ^.className := Styles.contentWrapper,
                 <.div(
                   ^.className := Styles.tileWrapper,
-                  doteRouterCtl.link(
-                    DetailsRoute(s.playerState.episode.id, s.playerState.episode.slug))(
+                  DotableLink(s.playerState.episode)(
                     PodcastImageCard(dotable = s.playerState.episode,
                                      width = asPxStr(controlsHeight))()
                   )

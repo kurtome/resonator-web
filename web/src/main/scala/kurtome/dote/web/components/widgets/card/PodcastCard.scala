@@ -104,8 +104,7 @@ object PodcastCard extends LogSupport {
                 Callback {
                   // Don't hijack clicks on anchor links
                   if (e.target.nodeName.toLowerCase != "a") {
-                    DotableDetailView.cachedDotable =
-                      TimeCachedValue(Date.now() + (1000 * 60), p.dotable)
+                    DotableDetailView.cachedDotable = TimeCachedValue.minutes(1, p.dotable)
                     doteRouterCtl.set(detailRoute).runNow()
                   }
                 }),

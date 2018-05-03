@@ -7,6 +7,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.DotableLink
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils._
@@ -57,22 +58,7 @@ object EpisodeCard extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
-      val id = p.dotable.id
-      val slug = p.dotable.slug
-      val detailRoute = DetailsRoute(id = id, slug = slug)
-
       val podcast = p.dotable.getRelatives.getParent
-      val podcastRoute = DetailsRoute(id = podcast.id, slug = podcast.slug)
-
-      val url = if (p.dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-        podcast.getDetails.getPodcast.imageUrl
-      } else {
-        p.dotable.getDetails.getPodcast.imageUrl
-      }
-
-      val height = 100
-      val imageSize = height
-      val textMargins = 16
 
       <.div(
         ^.className := backgroundColor(p),
@@ -82,7 +68,7 @@ object EpisodeCard extends LogSupport {
             durationSecToMin(p.dotable.getDetails.getPodcastEpisode.durationSec)),
           caption2 = Typography(variant = Typography.Variants.Caption, noWrap = true)(
             "from ",
-            SiteLink(podcastRoute)(podcast.getCommon.title)),
+            DotableLink(podcast)(podcast.getCommon.title)),
           description = if (p.showDescription) {
             Typography(variant = Typography.Variants.Body2, noWrap = true)(
               stripTags(p.dotable.getCommon.description))

@@ -19,3 +19,8 @@ case class TimeCachedValue[T](expiresAtTime: Double, value: T) extends CachedVal
     }
   }
 }
+object TimeCachedValue {
+  def minutes[T](minutes: Int, value: T): TimeCachedValue[T] = {
+    TimeCachedValue(Date.now() + (minutes * 1000 * 60), value)
+  }
+}

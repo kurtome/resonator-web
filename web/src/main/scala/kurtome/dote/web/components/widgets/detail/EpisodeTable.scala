@@ -10,6 +10,7 @@ import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
+import kurtome.dote.web.components.widgets.DotableLink
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.utils.BaseBackend
 import org.scalajs.dom
@@ -40,6 +41,9 @@ object EpisodeTable {
       padding(SharedStyles.spacingUnit * 2)
     )
 
+    val circularProgressWrapper = style(
+      padding(SharedStyles.spacingUnit * 2)
+    )
   }
 
   case class Props(dotable: Dotable, initialPage: Int = 0, rowsPerPage: Int = 5)
@@ -104,8 +108,8 @@ object EpisodeTable {
                 if (p.dotable.getRelatives.childrenFetched) {
                   renderEpisodeRows(episodePage)
                 } else {
-                  GridContainer(spacing = 24, justify = Grid.Justify.Center)(
-                    GridItem()(
+                  GridContainer(justify = Grid.Justify.Center)(
+                    GridItem(style = Styles.circularProgressWrapper)(
                       CircularProgress(variant = CircularProgress.Variant.Indeterminate)())
                   )
                 }
@@ -170,7 +174,7 @@ object EpisodeTable {
                   ^.position := "absolute",
                   ^.maxWidth := "100%",
                   Typography(variant = Typography.Variants.Body1, noWrap = true)(
-                    SiteLink(detailRoute)(episode.getCommon.title)),
+                    DotableLink(episode)(episode.getCommon.title)),
                   Typography(variant = Typography.Variants.Caption, noWrap = true)(summaryInfo)
                 )
               )

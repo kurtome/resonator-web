@@ -45,10 +45,6 @@ object PodcastImageCard extends LogSupport {
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def render(p: Props, s: State): VdomElement = {
-      val id = p.dotable.id
-      val slug = p.dotable.slug
-      val detailRoute = DetailsRoute(id = id, slug = slug)
-
       val url = if (p.dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
         p.dotable.getRelatives.getParent.getDetails.getPodcast.imageUrl
       } else {

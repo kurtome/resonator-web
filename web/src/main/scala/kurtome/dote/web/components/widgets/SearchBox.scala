@@ -18,9 +18,11 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.lib.AutoSuggest
 import kurtome.dote.web.components.lib.AutoSuggest._
+import kurtome.dote.web.components.views.DotableDetailView
 import kurtome.dote.web.components.widgets.card.PodcastImageCard
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.TimeCachedValue
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
@@ -185,8 +187,6 @@ object SearchBox {
     def renderSuggestion(suggestion: Dotable, params: SuggestionRenderParams): raw.ReactElement = {
       val query = params.query
 
-      val route = DetailsRoute(suggestion.id, suggestion.slug)
-
       val title = suggestion.getCommon.title
 
       val breakpoint = currentBreakpointString
@@ -226,6 +226,7 @@ object SearchBox {
       : Function2[ReactEventFromInput, SuggestionSelectedParams[Dotable], Unit] =
       (e, params) => {
         val route = DetailsRoute(params.suggestion.id, params.suggestion.slug)
+        DotableDetailView.cachedDotable = TimeCachedValue.minutes(1, params.suggestion)
         doteRouterCtl.set(route).runNow()
       }
 
