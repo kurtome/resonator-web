@@ -148,9 +148,9 @@ object ReviewDialog extends LogSupport {
         DialogTitle()("Write Review"),
         DialogContent()(
           if (p.dotable.kind == Dotable.Kind.PODCAST) {
-            PodcastCard(dotable = p.dotable, variant = PodcastCard.Variants.Activity)()
+            PodcastCard(dotable = p.dotable, color = PodcastCard.Colors.PrimaryAccent)()
           } else {
-            EpisodeCard(dotable = p.dotable, variant = EpisodeCard.Variants.Activity)()
+            EpisodeCard(dotable = p.dotable, color = EpisodeCard.Colors.PrimaryAccent)()
           },
           GridContainer(spacing = 8,
                         justify = Grid.Justify.SpaceAround,

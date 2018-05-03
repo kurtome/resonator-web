@@ -161,9 +161,9 @@ object ActivityCard extends LogSupport {
           ),
           GridItem(xs = 12)(
             if (dotable.kind == Dotable.Kind.PODCAST) {
-              PodcastCard(dotable = dotable, variant = PodcastCard.Variants.Activity)()
+              PodcastCard(dotable = dotable, color = PodcastCard.Colors.PrimaryAccent)()
             } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-              EpisodeCard(dotable = dotable, variant = EpisodeCard.Variants.Activity)()
+              EpisodeCard(dotable = dotable, color = EpisodeCard.Colors.PrimaryAccent)()
             } else {
               // Placeholder for correct spacing
               <.div(^.width := "100%")

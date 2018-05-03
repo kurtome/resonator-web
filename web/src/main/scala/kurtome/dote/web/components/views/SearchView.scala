@@ -101,9 +101,9 @@ object SearchView extends LogSupport {
     private def renderCard(dotable: Dotable): VdomNode = {
       dotable.kind match {
         case Dotable.Kind.PODCAST =>
-          PodcastCard(dotable, variant = PodcastCard.Variants.Activity, showDescription = true)()
+          PodcastCard(dotable, showDescription = true)()
         case _ =>
-          EpisodeCard(dotable, variant = EpisodeCard.Variants.Activity, showDescription = true)()
+          EpisodeCard(dotable, showDescription = true)()
       }
     }
   }

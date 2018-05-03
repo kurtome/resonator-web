@@ -39,20 +39,20 @@ object EpisodeCard extends LogSupport {
 
   }
 
-  object Variants extends Enumeration {
-    val Activity = Value // recent activity feed
+  object Colors extends Enumeration {
+    val PrimaryAccent = Value // recent activity feed
     val Default = Value
   }
-  type Variant = Variants.Value
+  type Variant = Colors.Value
 
-  case class Props(dotable: Dotable, variant: Variant, showDescription: Boolean)
+  case class Props(dotable: Dotable, color: Variant, showDescription: Boolean)
   case class State(hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def backgroundColor(p: Props): StyleA = {
-      p.variant match {
-        case Variants.Activity => Styles.activityPaper
+      p.color match {
+        case Colors.PrimaryAccent => Styles.activityPaper
         case _ => Styles.defaultPaper
       }
     }
@@ -88,8 +88,6 @@ object EpisodeCard extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable,
-            variant: Variant = Variants.Default,
-            showDescription: Boolean = false) =
-    component.withProps(Props(dotable, variant, showDescription))
+  def apply(dotable: Dotable, color: Variant = Colors.Default, showDescription: Boolean = false) =
+    component.withProps(Props(dotable, color, showDescription))
 }

@@ -46,20 +46,26 @@ object PodcastCard extends LogSupport {
   }
   Animations.addToDocument()
 
+  object Colors extends Enumeration {
+    val PrimaryAccent = Value // recent activity feed
+    val Default = Value
+  }
+  type Color = Colors.Value
+
   object Variants extends Enumeration {
-    val Activity = Value // recent activity feed
+    val ImageOnly = Value
     val Default = Value
   }
   type Variant = Variants.Value
 
-  case class Props(dotable: Dotable, variant: Variant, showDescription: Boolean)
+  case class Props(dotable: Dotable, color: Color, variant: Variant, showDescription: Boolean)
   case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def backgroundColor(p: Props): StyleA = {
-      p.variant match {
-        case Variants.Activity => Styles.activityPaper
+      p.color match {
+        case Colors.PrimaryAccent => Styles.activityPaper
         case _ => Styles.defaultPaper
       }
     }
@@ -83,21 +89,7 @@ object PodcastCard extends LogSupport {
         ^.className := backgroundColor(p),
         ^.width := "100%",
         p.variant match {
-          case Variants.Activity =>
-            <.div(
-              ImageWithSummaryCard(
-                p.dotable,
-                caption1 =
-                  Typography(variant = Typography.Variants.Caption, noWrap = true)(yearRange),
-                description = if (p.showDescription) {
-                  Typography(variant = Typography.Variants.Body2, noWrap = true)(
-                    stripTags(p.dotable.getCommon.description))
-                } else {
-                  ""
-                }
-              )()
-            )
-          case _ =>
+          case Variants.ImageOnly =>
             <.div(
               ^.cursor.pointer,
               ^.onClick ==> ((e: ReactMouseEvent) =>
@@ -110,6 +102,20 @@ object PodcastCard extends LogSupport {
                 }),
               ^.className := Styles.container,
               PodcastImageCard(dotable = p.dotable, width = "100%")()
+            )
+          case _ =>
+            <.div(
+              ImageWithSummaryCard(
+                p.dotable,
+                caption1 =
+                  Typography(variant = Typography.Variants.Caption, noWrap = true)(yearRange),
+                description = if (p.showDescription) {
+                  Typography(variant = Typography.Variants.Body2, noWrap = true)(
+                    stripTags(p.dotable.getCommon.description))
+                } else {
+                  ""
+                }
+              )()
             )
         }
       )
@@ -125,7 +131,8 @@ object PodcastCard extends LogSupport {
     .build
 
   def apply(dotable: Dotable,
+            color: Color = Colors.Default,
             variant: Variant = Variants.Default,
             showDescription: Boolean = false) =
-    component.withProps(Props(dotable, variant, showDescription))
+    component.withProps(Props(dotable, color, variant, showDescription))
 }

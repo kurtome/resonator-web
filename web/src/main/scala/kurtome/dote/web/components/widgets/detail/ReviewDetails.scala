@@ -66,9 +66,9 @@ object ReviewDetails {
 
       GridContainer()(
         GridItem(xs = 12, md = 4)(if (parent.kind == Dotable.Kind.PODCAST) {
-          PodcastCard(dotable = parent, variant = PodcastCard.Variants.Activity)()
+          PodcastCard(dotable = parent, color = PodcastCard.Colors.PrimaryAccent)()
         } else {
-          EpisodeCard(dotable = parent, variant = EpisodeCard.Variants.Activity)()
+          EpisodeCard(dotable = parent, color = EpisodeCard.Colors.PrimaryAccent)()
         }),
         GridItem(xs = 12, sm = 8, md = 6)(
           Paper(elevation = 0, style = Styles.reviewPaper)(
