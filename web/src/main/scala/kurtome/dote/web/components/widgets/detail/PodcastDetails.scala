@@ -210,10 +210,12 @@ object PodcastDetails {
                 ^.width := asPxStr(tileContainerWidth),
                 <.div(
                   ^.className := tileContainerStyle,
-                  <.div(^.position := "relative",
-                        ^.width := asPxStr(tileWidth),
-                        DotableActionsCardWrapper(p.dotable, alwaysExpanded = true)(
-                          PodcastCard(dotable = p.dotable)()))
+                  <.div(
+                    ^.position := "relative",
+                    ^.width := asPxStr(tileWidth),
+                    DotableActionsCardWrapper(p.dotable, alwaysExpanded = true)(
+                      PodcastCard(dotable = p.dotable, variant = PodcastCard.Variants.ImageOnly)())
+                  )
                 )
               )
             ),
