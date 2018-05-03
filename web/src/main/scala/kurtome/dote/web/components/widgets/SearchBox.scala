@@ -285,7 +285,7 @@ object SearchBox {
             inputProps = InputProps(value = s.query,
                                     inputType = "search",
                                     onChange = handleChange,
-                                    placeholder = "Search by podcast title."),
+                                    placeholder = "Search by title, description or episode..."),
             theme = autoSuggestTheme,
             renderInputComponent = renderInput(s),
             renderSuggestionsContainer = renderSuggestionsContainer,

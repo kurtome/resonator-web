@@ -7,6 +7,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.feed.FeedItemCommon
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
+import kurtome.dote.web.components.ComponentHelpers._
 import scalacss.internal.mutable.StyleSheet
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.materialui.MuiThemeProvider
@@ -25,7 +26,7 @@ object MainContentSection {
   }
   type Variant = Variants.Value
 
-  case class Props(variant: Variant, center: Boolean)
+  case class Props(variant: Variant, center: Boolean, verticalPaddingPx: Int)
 
   class Backend(bs: BackendScope[Props, Unit]) extends BaseBackend(Styles) {
 
@@ -47,8 +48,8 @@ object MainContentSection {
 
     def render(p: Props, pc: PropsChildren): VdomElement = {
       <.div(
-        ^.paddingTop := "16px",
-        ^.paddingBottom := "16px",
+        ^.paddingTop := asPxStr(p.verticalPaddingPx),
+        ^.paddingBottom := asPxStr(p.verticalPaddingPx),
         ^.backgroundColor := color(p),
         ^.width := "100%",
         if (p.variant == Variants.Primary) {
@@ -69,8 +70,10 @@ object MainContentSection {
     .renderPC((builder, props, pc) => builder.backend.render(props, pc))
     .build
 
-  def apply(variant: Variant = Variants.Default, center: Boolean = true)(c: CtorType.ChildArg*) =
-    component.withChildren(c: _*).withProps(Props(variant, center))()
+  def apply(variant: Variant = Variants.Default,
+            center: Boolean = true,
+            verticalPaddingPx: Int = 16)(c: CtorType.ChildArg*) =
+    component.withChildren(c: _*).withProps(Props(variant, center, verticalPaddingPx))()
 
   def chooseVariant(common: FeedItemCommon): Variant = {
     common.backgroundColor match {
