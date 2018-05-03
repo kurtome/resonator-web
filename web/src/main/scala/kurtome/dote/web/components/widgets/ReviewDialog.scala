@@ -26,12 +26,10 @@ import kurtome.dote.web.components.materialui.TextField
 import kurtome.dote.web.components.widgets.button.emote.DoteEmoteButton
 import kurtome.dote.web.components.widgets.button.emote.DoteStarsButton
 import kurtome.dote.web.components.widgets.card.EpisodeCard
-import kurtome.dote.web.components.widgets.card.ImageWithSummaryCard
 import kurtome.dote.web.components.widgets.card.PodcastCard
 import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.GlobalLoadingManager
-import kurtome.dote.web.utils.GlobalNotificationManager
 import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -42,9 +40,6 @@ object ReviewDialog extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val dialog = style(
-      padding(8 px)
-    )
   }
 
   object Variants extends Enumeration {
@@ -63,7 +58,7 @@ object ReviewDialog extends LogSupport {
                    editedDote: Dote = Dote.defaultInstance,
                    reviewError: Boolean = false,
                    reviewHelper: String = "",
-                   submitInFlight: Boolean = false)
+                   loading: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -73,10 +68,10 @@ object ReviewDialog extends LogSupport {
 
         val reviewId = newProps.dotable.getDote.reviewId
         if (reviewId.nonEmpty) {
-          bs.modState(_.copy(submitInFlight = true)).runNow()
+          bs.modState(_.copy(loading = true)).runNow()
           DoteProtoServer.getDotableDetails(GetDotableDetailsRequest(reviewId)) map { response =>
-            bs.modState(_.copy(submitInFlight = false,
-                               editedReview = response.getDotable.getCommon.description))
+            bs.modState(
+                _.copy(loading = false, editedReview = response.getDotable.getCommon.description))
               .runNow()
           }
         }
@@ -123,7 +118,7 @@ object ReviewDialog extends LogSupport {
       bs.modState(
           _.copy(reviewError = message.nonEmpty,
                  reviewHelper = message,
-                 submitInFlight = result.isSuccess))
+                 loading = result.isSuccess))
         .runNow()
       if (result.isSuccess) {
         val f = DoteProtoServer.setDote(
@@ -141,7 +136,6 @@ object ReviewDialog extends LogSupport {
     def render(p: Props, s: State): VdomElement = {
       Dialog(open = p.open,
              onClose = p.onClose,
-             style = Styles.dialog,
              maxWidth = Dialog.MaxWidths.Sm,
              fullWidth = true,
              fullScreen = currentBreakpointString == "xs")(
@@ -172,23 +166,23 @@ object ReviewDialog extends LogSupport {
             error = s.reviewError,
             value = s.editedReview,
             helperText = s.reviewHelper,
-            disabled = s.submitInFlight,
+            disabled = s.loading,
             placeholder = "Write review..."
           )()
         ),
         DialogActions()(
           GridContainer(justify = Grid.Justify.FlexEnd, alignItems = Grid.AlignItems.Center)(
             GridItem()(
-              Fade(in = s.submitInFlight)(
+              Fade(in = s.loading)(
                 CircularProgress(variant = CircularProgress.Variant.Indeterminate)())
             ),
             GridItem()(
-              Button(onClick = p.onClose, disabled = s.submitInFlight)("Cancel")
+              Button(onClick = p.onClose, disabled = s.loading)("Cancel")
             ),
             GridItem()(
               Button(color = Button.Colors.Primary,
                      onClick = attemptPublish(p, s),
-                     disabled = s.submitInFlight)("Publish")
+                     disabled = s.loading)("Publish")
             )
           )
         )
