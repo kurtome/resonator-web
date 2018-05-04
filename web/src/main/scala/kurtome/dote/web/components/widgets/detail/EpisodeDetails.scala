@@ -3,23 +3,15 @@ package kurtome.dote.web.components.widgets.detail
 import kurtome.dote.proto.api.dotable.Dotable
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
-import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.components.widgets._
-import kurtome.dote.web.components.widgets.button.ShareButton
-import kurtome.dote.web.components.widgets.button.emote.DoteEmoteButton
 import kurtome.dote.web.components.widgets.card.EpisodeCard
 import kurtome.dote.web.components.widgets.feed.DotableActionsCardWrapper
-import kurtome.dote.web.rpc.DoteProtoServer
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.Debounce
-import kurtome.dote.web.utils.GlobalLoadingManager
 import org.scalajs.dom
 import scalacss.internal.mutable.StyleSheet
 
@@ -30,9 +22,6 @@ object EpisodeDetails {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
-    val descriptionText = style(
-      marginTop(SharedStyles.spacingUnit)
-    )
   }
 
   case class Props(dotable: Dotable)
@@ -63,43 +52,17 @@ object EpisodeDetails {
         case _ => true
       }
 
-      if (shouldInline) {
-        <.div(
-          <.div(
-            ^.position := "relative",
-            ^.marginRight := "8px",
-            ^.marginBottom := "8px",
-            ^.float.left,
-            ^.width := "500px",
-            DotableActionsCardWrapper(p.dotable, alwaysExpanded = true)(
-              EpisodeCard(dotable = p.dotable)())
-          ),
+      GridContainer(spacing = 8)(
+        GridItem(xs = 12, sm = 6, md = 4)(
+          DotableActionsCardWrapper(p.dotable, alwaysExpanded = true)(
+            EpisodeCard(dotable = p.dotable)())
+        ),
+        GridItem(xs = 12, sm = 6, md = 8)(
           Typography(component = "span",
-                     style = Styles.descriptionText,
                      variant = Typography.Variants.Body1,
                      dangerouslySetInnerHTML = linkifyAndSanitize(description))()
         )
-      } else {
-        GridContainer(spacing = 0)(
-          GridItem(xs = 12)(
-            <.div(
-              ^.position := "relative",
-              ^.marginBottom := "8px",
-              ^.float.left,
-              ^.width := "100%",
-              DotableActionsCardWrapper(p.dotable, alwaysExpanded = true)(
-                EpisodeCard(dotable = p.dotable)())
-            )
-          ),
-          GridItem(xs = 12)(
-            Typography(component = "span",
-                       style = Styles.descriptionText,
-                       variant = Typography.Variants.Body1,
-                       dangerouslySetInnerHTML = linkifyAndSanitize(description))()
-          )
-        )
-
-      }
+      )
     }
   }
 
