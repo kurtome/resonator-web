@@ -7,6 +7,7 @@ import kurtome.dote.proto.api.action.get_dotable.GetDotableDetailsRequest
 import kurtome.dote.proto.api.action.set_dote.SetDoteRequest
 import kurtome.dote.proto.api.action.set_dote.SetDoteRequest.SetReview
 import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.dotable.Dotable.ReviewExtras
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.shared.util.result.StatusCodes
 import kurtome.dote.shared.validation.ReviewValidation
@@ -52,7 +53,7 @@ object ReviewDialog extends LogSupport {
   case class Props(dotable: Dotable,
                    open: Boolean,
                    onClose: Callback,
-                   onDoteChanged: (Dote) => Callback)
+                   onReviewChanged: (ReviewExtras) => Callback)
 
   case class State(editedReview: String = "",
                    editedDote: Dote = Dote.defaultInstance,
@@ -126,7 +127,7 @@ object ReviewDialog extends LogSupport {
             .withDote(s.editedDote)
             .withReview(SetReview(s.editedReview))) map { _ =>
           // Change was successful, let callers know
-          p.onDoteChanged(s.editedDote).runNow()
+          p.onReviewChanged(ReviewExtras().withDote(s.editedDote)).runNow()
           p.onClose.runNow()
         }
         GlobalLoadingManager.addLoadingFuture(f)
@@ -202,7 +203,7 @@ object ReviewDialog extends LogSupport {
   def apply(dotable: Dotable,
             open: Boolean,
             onClose: Callback = Callback.empty,
-            onDoteChanged: (Dote) => Callback = _ => Callback.empty) =
-    component.withProps(Props(dotable, open, onClose, onDoteChanged))
+            onReviewChanged: (ReviewExtras) => Callback = _ => Callback.empty) =
+    component.withProps(Props(dotable, open, onClose, onReviewChanged))
 
 }

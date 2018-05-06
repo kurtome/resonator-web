@@ -186,7 +186,7 @@ object NavBar extends LogSupport {
                       hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
                       IconButton(style = Styles.actionButton,
                                  onClick = handleProfileButtonClicked(p))(Icons.AccountCircle())),
-                    GridItem()(
+                    GridItem(hidden = Grid.HiddenProps(xsUp = p.currentRoute == SearchRoute))(
                       IconButton(style = Styles.actionButton,
                                  onClick = doteRouterCtl.set(SearchRoute()))(Icons.Search()))
                   )

@@ -165,6 +165,9 @@ object DotableActionsCardWrapper extends LogSupport {
       }
     }
 
+    def handleReviewChanged(review: Dotable.ReviewExtras) =
+      bs.modState(s => s.copy(loggedInUserDote = review.getDote))
+
     def handleDoteChanged(dote: Dote) =
       bs.modState(s => s.copy(loggedInUserDote = dote))
 
@@ -245,7 +248,7 @@ object DotableActionsCardWrapper extends LogSupport {
         ReviewDialog(p.dotable.withDote(s.loggedInUserDote),
                      s.reviewOpen,
                      onClose = bs.modState(_.copy(reviewOpen = false)),
-                     onDoteChanged = handleDoteChanged)()
+                     onReviewChanged = handleReviewChanged)()
       ).ref(el => outerRef = Some(el))
     }
   }

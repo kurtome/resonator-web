@@ -124,7 +124,9 @@ lazy val web = (project in webBaseDir)
       "material-ui-icons" -> "1.0.0-beta.15",
       "mdi-material-ui" -> "3.1.0",
       "mobile-detect" -> "1.4.1",
-      "react-lazyload" -> "2.3.0"
+      "react-lazyload" -> "2.3.0",
+      "react-markdown" -> "3.3.0",
+      "universal-analytics" -> "0.4.16"
     )
   )
   .dependsOn(sharedJs)

@@ -7,13 +7,18 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.components.ComponentHelpers._
+import kurtome.dote.web.components.lib.Markdown
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.ActivityHeadline
+import kurtome.dote.web.components.widgets.ReviewDialog
+import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.card.EpisodeCard
 import kurtome.dote.web.components.widgets.card.PodcastCard
 import kurtome.dote.web.components.widgets.feed.DotableActionsCardWrapper
+import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.Debounce
+import kurtome.dote.web.utils.LoggedInPersonManager
 import org.scalajs.dom
 import scalacss.internal.mutable.StyleSheet
 
@@ -34,7 +39,7 @@ object ReviewDetails {
   }
 
   case class Props(dotable: Dotable)
-  case class State(breakpoint: String)
+  case class State(breakpoint: String, editOpen: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
@@ -64,6 +69,9 @@ object ReviewDetails {
           ""
         }
 
+      val isCurrentUsersReview =
+        LoggedInPersonManager.isLoggedInPerson(reviewExtras.getDote.getPerson.username)
+
       GridContainer()(
         GridItem(xs = 12, md = 4)(if (parent.kind == Dotable.Kind.PODCAST) {
           PodcastCard(dotable = parent, color = PodcastCard.Colors.PrimaryAccent)()
@@ -81,7 +89,22 @@ object ReviewDetails {
                   s"Reviewed on $publishedDate$editedDateFragment"
                 )
               ),
-              GridItem(xs = 12)(Typography()(common.description))
+              GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = !isCurrentUsersReview))(
+                Typography(variant = Typography.Variants.Caption)(
+                  <.a(
+                    ^.color := MuiTheme.theme.palette.primary.light,
+                    ^.href := "#",
+                    ^.textDecoration := "none",
+                    ^.onClick --> bs.modState(_.copy(editOpen = true)),
+                    "Edit"
+                  )
+                ),
+                ReviewDialog(dotable = parent.withDote(reviewExtras.getDote),
+                             open = s.editOpen,
+                             onClose = bs.modState(_.copy(editOpen = false)))()
+              ),
+              GridItem(xs = 12)(
+                Typography(component = "div")(Markdown(source = common.description)()))
             )
           )
         )
