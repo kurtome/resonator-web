@@ -1,8 +1,8 @@
 package kurtome.dote.web
 
 import japgolly.scalajs.react.Callback
-import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.extra.router._
+import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.shared.util.observer.SimpleObservable
 import kurtome.dote.web.components.views._
 import kurtome.dote.web.components.widgets.ContentFrame
@@ -11,6 +11,7 @@ import org.scalajs.dom
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
+import scala.scalajs.js.annotation.JSGlobalScope
 
 object DoteRoutes extends LogSupport {
 
@@ -91,8 +92,8 @@ object DoteRoutes extends LogSupport {
 
   private val routerConfig: RouterConfig[DoteRoute] =
     RouterConfigDsl[DoteRoute].buildConfig { dsl =>
-      import dsl._
       import AdditionalDsl._
+      import dsl._
 
       // Slug must start and end with a alpha-numeric
       val slug = string("(?:[a-z0-9][-a-z0-9]+[a-z0-9])|[a-z0-9]")
@@ -163,8 +164,18 @@ object DoteRoutes extends LogSupport {
           Callback {
             currentRoute = cur
             routeObservable.notifyObservers(cur)
+
+            import Globals.ga
+            ga("set", "page", dom.window.location.pathname)
+            ga("send", "pageview")
         })
     }
+
+  @js.native
+  @JSGlobalScope
+  object Globals extends js.Object {
+    var ga: js.Dynamic = js.native
+  }
 
   private val baseUrl: BaseUrl =
     BaseUrl(dom.window.location.protocol + "//" + dom.window.location.host)
