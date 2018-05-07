@@ -167,12 +167,7 @@ object DoteRoutes extends LogSupport {
             currentRoute = cur
             routeObservable.notifyObservers(cur)
 
-            val global = js.special.globalThis.asInstanceOf[js.Dynamic]
-            if (!js.isUndefined(global.ga)) {
-              global.ga("set", "page", dom.window.location.pathname)
-              global.ga("send", "pageview")
-            }
-//            UniversalAnalytics.visitor.pageview(dom.window.location.pathname).send()
+            UniversalAnalytics.visitor.pageview(dom.window.location.pathname).send()
         })
     }
 
