@@ -6,12 +6,14 @@ import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.shared.util.observer.SimpleObservable
 import kurtome.dote.web.components.views._
 import kurtome.dote.web.components.widgets.ContentFrame
+import kurtome.dote.web.utils.UniversalAnalytics
 import kurtome.dote.web.views.HelloView
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSGlobalScope
+import scala.scalajs.js.annotation.JSName
 
 object DoteRoutes extends LogSupport {
 
@@ -165,17 +167,21 @@ object DoteRoutes extends LogSupport {
             currentRoute = cur
             routeObservable.notifyObservers(cur)
 
-            import Globals.ga
-            ga("set", "page", dom.window.location.pathname)
-            ga("send", "pageview")
+            val global = js.special.globalThis.asInstanceOf[js.Dynamic]
+            if (!js.isUndefined(global.ga)) {
+              global.ga("set", "page", dom.window.location.pathname)
+              global.ga("send", "pageview")
+            }
+//            UniversalAnalytics.visitor.pageview(dom.window.location.pathname).send()
         })
     }
 
-  @js.native
-  @JSGlobalScope
-  object Globals extends js.Object {
-    var ga: js.Dynamic = js.native
-  }
+//
+//  @js.native
+//  @JSGlobalScope
+//  object Globals extends js.Object {
+//    var ga: js.Dynamic = js.native
+//  }
 
   private val baseUrl: BaseUrl =
     BaseUrl(dom.window.location.protocol + "//" + dom.window.location.host)
