@@ -115,7 +115,7 @@ class ProgramRadioStationsActor @Inject()(
     val episodes = podcast.getRelatives.children.filter(isValidEpisode)
     if (station.callSign == "QTLK") {
       // News station, always pick latest episode
-      episodes.last
+      episodes.head
     } else {
       randomElement(episodes)
     }
