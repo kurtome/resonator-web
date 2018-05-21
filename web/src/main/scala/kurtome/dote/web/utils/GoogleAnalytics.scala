@@ -14,6 +14,8 @@ object UniversalAnalytics {
   @js.native
   private object ua extends js.Object {
     def apply(id: String): Visitor = js.native
+
+    def apply(id: String, userId: String): Visitor = js.native
   }
 
   @js.native
@@ -30,5 +32,13 @@ object UniversalAnalytics {
     ua(id)
   }
 
-  val visitor = UniversalAnalytics("UA-118773848-1")
+  def apply(id: String, userId: String): Visitor = {
+    ua(id, userId)
+  }
+
+  val visitor = if (LoggedInPersonManager.isLoggedIn) {
+    UniversalAnalytics("UA-118773848-1", s"ruser:${LoggedInPersonManager.person.get.id}")
+  } else {
+    UniversalAnalytics("UA-118773848-1")
+  }
 }
