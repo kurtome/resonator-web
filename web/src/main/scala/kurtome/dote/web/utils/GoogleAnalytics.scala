@@ -1,6 +1,7 @@
 package kurtome.dote.web.utils
 
 import org.scalajs.dom
+import wvlet.log.LogSupport
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
@@ -8,14 +9,14 @@ import scala.scalajs.js.annotation.JSImport
 /**
   * https://www.npmjs.com/package/universal-analytics
   */
-object UniversalAnalytics {
+object UniversalAnalytics extends LogSupport {
 
   @JSImport("universal-analytics", JSImport.Default)
   @js.native
   private object ua extends js.Object {
-    def apply(id: String): Visitor = js.native
+    def apply(id: String, options: js.Dynamic): Visitor = js.native
 
-    def apply(id: String, userId: String): Visitor = js.native
+    def apply(id: String, userId: String, options: js.Dynamic): Visitor = js.native
   }
 
   @js.native
@@ -28,17 +29,26 @@ object UniversalAnalytics {
     def send(): Unit = js.native
   }
 
-  def apply(id: String): Visitor = {
-    ua(id)
+  def apply(id: String, options: js.Dynamic): Visitor = {
+    ua(id, options)
   }
 
-  def apply(id: String, userId: String): Visitor = {
-    ua(id, userId)
+  def apply(id: String, userId: String, options: js.Dynamic): Visitor = {
+    ua(id, userId, options)
   }
 
-  val visitor = if (LoggedInPersonManager.isLoggedIn) {
-    UniversalAnalytics("UA-118773848-1", s"ruser:${LoggedInPersonManager.person.get.id}")
-  } else {
-    UniversalAnalytics("UA-118773848-1")
+  val visitor = {
+    val options = js.Dynamic.literal(
+      "https" -> (dom.window.location.protocol == "https:")
+    )
+    debug(dom.window.location.protocol)
+    debug(options)
+    if (LoggedInPersonManager.isLoggedIn) {
+      UniversalAnalytics("UA-118773848-1",
+                         s"ruser:${LoggedInPersonManager.person.get.id}",
+                         options)
+    } else {
+      UniversalAnalytics("UA-118773848-1", options)
+    }
   }
 }

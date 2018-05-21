@@ -116,7 +116,7 @@ lazy val web = (project in webBaseDir)
       "react-autosuggest" -> "9.3.2",
       "react-dom" -> "15.6.1",
       "react-swipeable-views" -> "0.12.13",
-      "howler" -> "2.0.5",
+      "howler" -> "2.0.10",
       "sanitize-html" -> "1.15.0",
       "idb-keyval" -> "2.3.0",
       "siriwavejs" -> "2.0.2",

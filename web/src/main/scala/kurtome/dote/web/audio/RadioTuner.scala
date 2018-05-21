@@ -15,6 +15,7 @@ import wvlet.log.LogSupport
 
 import scala.scalajs.js
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Random
 
 /**
   * Controller for the global radio tuner, viewed at /tuner
@@ -51,6 +52,19 @@ object RadioTuner extends LogSupport {
   val amFrequencyRange = Range(535, 1605)
   val fmFrequencyRange = Range(88, 108)
 
+  private val switchUrl = "/assets/audio/radioSwitch1.mp3"
+  private val switchHowl = Howler.createHowl(src = js.Array[String](switchUrl),
+                                             volume = 0.5,
+                                             html5 = true,
+                                             autoplay = false,
+                                             preload = true)
+  private val staticUrl = "/assets/audio/static1.mp3"
+  private val staticHowl = Howler.createHowl(src = js.Array[String](staticUrl),
+                                             html5 = true,
+                                             autoplay = false,
+                                             preload = true,
+                                             loop = true)
+
   val stateObservable: Observable[State] = SimpleObservable()
   private var state = State(on = false, frequency = 0, frequencyKind = FrequencyKind.AM)
   private var fetchTimerId: Option[Long] = None
@@ -59,8 +73,16 @@ object RadioTuner extends LogSupport {
 
   private val audioPlayerStateObserver: Observer[AudioPlayer.State] =
     (audioPlayerState: AudioPlayer.State) => {
+
+      if (curState.on && audioPlayerState.status != PlayerStatuses.Playing) {
+        playStatic()
+      } else if (audioPlayerState.status == PlayerStatuses.Playing) {
+        pauseStatic()
+      }
+
       if (audioPlayerState.status == PlayerStatuses.Off && audioPlayerState.offSource == OffSources.CloseButton) {
         power(false)
+        pauseStatic()
       }
     }
   AudioPlayer.stateObservable.addObserver(audioPlayerStateObserver)
@@ -77,7 +99,7 @@ object RadioTuner extends LogSupport {
     }
 
     if (state.frequency == 0) {
-      state.currentSchedules.headOption.foreach(stationSchedule =>
+      randomOption(state.currentSchedules).foreach(stationSchedule =>
         setFrequency(frequency = stationSchedule.getStation.frequency))
     }
   }
@@ -92,6 +114,7 @@ object RadioTuner extends LogSupport {
   }
 
   def power(on: Boolean): Unit = {
+    switchHowl.play()
     updateState(curState.copy(on = on))
     syncAudioPlayer()
   }
@@ -136,6 +159,10 @@ object RadioTuner extends LogSupport {
 
   private def syncAudioPlayer() = {
     if (curState.on) {
+      if (AudioPlayer.curState.status != PlayerStatuses.Playing) {
+        playStatic()
+      }
+
       val station = state.currentSchedules.find(_.getStation.frequency == curState.frequency)
       if (station.isDefined) {
         AudioPlayer.attemptPlayFromRadioSchedule(station.get)
@@ -143,7 +170,27 @@ object RadioTuner extends LogSupport {
         AudioPlayer.off(OffSources.RadioControls)
       }
     } else {
+      pauseStatic()
       AudioPlayer.off(OffSources.RadioPower)
+    }
+  }
+
+  private def playStatic() = {
+    if (!staticHowl.playing()) {
+      staticHowl.setSeek(staticHowl.duration() * js.Math.random())
+      staticHowl.play()
+    }
+  }
+
+  private def pauseStatic() = {
+    staticHowl.pause()
+  }
+
+  def randomOption[T](xs: Seq[T]): Option[T] = {
+    if (xs.nonEmpty) {
+      Some(xs(Random.nextInt(xs.length)))
+    } else {
+      None
     }
   }
 }

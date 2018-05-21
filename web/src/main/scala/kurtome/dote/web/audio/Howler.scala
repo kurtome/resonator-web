@@ -51,6 +51,7 @@ object Howler {
                  sprite: js.UndefOr[js.Object] = js.undefined,
                  rate: js.UndefOr[Double] = js.undefined,
                  pool: js.UndefOr[Int] = js.undefined,
+                 loop: js.UndefOr[Boolean] = js.undefined,
                  format: js.UndefOr[js.Array[String]] = js.undefined,
                  xhrWithCredentials: js.UndefOr[js.Array[String]] = js.undefined,
                  onload: js.UndefOr[js.Function0[Unit]] = js.undefined,
@@ -74,6 +75,7 @@ object Howler {
     options.sprite = sprite
     options.rate = rate
     options.pool = pool
+    options.loop = loop
     options.format = format
     options.xhrWithCredentials = xhrWithCredentials
     options.onload = onload
@@ -151,6 +153,11 @@ object Howler {
       * active so that it can be resumed later.
       */
     var pool: js.UndefOr[Int] = js.native
+
+    /**
+      * Set to true to automatically loop the sound forever.
+      */
+    var loop: js.UndefOr[Boolean] = js.native
 
     /**
       * howler.js automatically detects your file format from the extension, but you may also

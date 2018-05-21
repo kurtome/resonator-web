@@ -103,15 +103,20 @@ object AudioPlayer extends LogSupport {
   }
 
   def attemptPlayFromRadioSchedule(stationSchedule: RadioStationSchedule) = {
-    stationSchedule.scheduledEpisodes.find(se => {
-      val now = js.Date.now()
-      se.startTimeMillis <= now && se.endTimeMillis >= now && canPlay(se.getEpisode)
-    }) foreach { episode =>
-      if (episode.getEpisode.id != curState.episode.id) {
-        startPlayingEpisode(episode.getEpisode, Some(stationSchedule))
-      } else {
-        resumeOrStartPlaying()
+    if (curState.stationSchedule.map(_.getStation).contains(stationSchedule.getStation)) {
+      debug("already playing this station")
+    } else {
+      stationSchedule.scheduledEpisodes.find(se => {
+        val now = js.Date.now()
+        se.startTimeMillis <= now && se.endTimeMillis >= now && canPlay(se.getEpisode)
+      }) foreach { episode =>
+        if (episode.getEpisode.id != curState.episode.id) {
+          startPlayingEpisode(episode.getEpisode, Some(stationSchedule))
+        } else {
+          resumeOrStartPlaying()
+        }
       }
+
     }
   }
 

@@ -7,6 +7,7 @@ import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.audio.RadioTuner
+import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
@@ -107,7 +108,7 @@ object RadioView extends LogSupport {
           GridItem(xs = 12)(
             TunerBand(minFrequency = 500,
                       maxFrequency = 1700,
-                      majorTickInterval = 100,
+                      majorTickInterval = if (ComponentHelpers.isBreakpointXs) 200 else 100,
                       currentFrequency = s.tunerState.frequency)()
           ),
           GridItem(xs = 12)(
