@@ -121,6 +121,10 @@ object AudioPlayer extends LogSupport {
       warn(s"${episode.kind} invalid for playing")
     }
 
+    if (howl != null) {
+      howl.stop()
+    }
+
     val url: String = getUrl(episode)
     updateState(State(PlayerStatuses.Loading, episode, stationSchedule))
     howl = Howler.createHowl(src = js.Array[String](url),

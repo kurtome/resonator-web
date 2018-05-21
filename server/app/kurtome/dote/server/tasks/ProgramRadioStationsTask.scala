@@ -80,7 +80,7 @@ class ProgramRadioStationsActor @Inject()(
           for {
             podcastOpt <- dotableService.readPodcastWithEpisodes(randomElement(podcastIds))
             podcast = podcastOpt.get
-            episode = randomElement(podcast.getRelatives.children.filter(isValidEpisode))
+            episode = chooseEpisode(station, podcast)
             _ <- {
               debug(s"adding episode ${episode.getCommon.title} from ${podcast.getCommon.title}")
               val nextStartTime = latestEpisode
@@ -109,6 +109,16 @@ class ProgramRadioStationsActor @Inject()(
         }
       }
     } yield ()
+  }
+
+  def chooseEpisode(station: Tables.RadioStationRow, podcast: Dotable): Dotable = {
+    val episodes = podcast.getRelatives.children.filter(isValidEpisode)
+    if (station.callSign == "QTLK") {
+      // News station, always pick latest episode
+      episodes.last
+    } else {
+      randomElement(episodes)
+    }
   }
 
   def randomElement[T](xs: Seq[T]): T = {
