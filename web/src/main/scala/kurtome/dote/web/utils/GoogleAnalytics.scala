@@ -41,8 +41,6 @@ object UniversalAnalytics extends LogSupport {
     val options = js.Dynamic.literal(
       "https" -> (dom.window.location.protocol == "https:")
     )
-    debug(dom.window.location.protocol)
-    debug(options)
     if (LoggedInPersonManager.isLoggedIn) {
       UniversalAnalytics("UA-118773848-1",
                          s"ruser:${LoggedInPersonManager.person.get.id}",

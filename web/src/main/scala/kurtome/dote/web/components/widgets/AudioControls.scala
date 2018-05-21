@@ -31,7 +31,9 @@ object AudioControls extends LogSupport {
     import dsl._
 
     val playerWrapper = style(
-      width(100 %%),
+      // don't be wider than the controls themselves (without this it is full width on desktop
+      // and makes links to the right of the controls un-clickable)
+      width.unset,
       // leave some space at the bottom even when fullWidth since iOS has OS buttons that overlay
       // the bottom of the screen
       bottom(16 px),

@@ -73,16 +73,15 @@ object RadioTuner extends LogSupport {
 
   private val audioPlayerStateObserver: Observer[AudioPlayer.State] =
     (audioPlayerState: AudioPlayer.State) => {
-
-      if (curState.on && audioPlayerState.status != PlayerStatuses.Playing) {
-        playStatic()
-      } else if (audioPlayerState.status == PlayerStatuses.Playing) {
-        pauseStatic()
-      }
-
       if (audioPlayerState.status == PlayerStatuses.Off && audioPlayerState.offSource == OffSources.CloseButton) {
         power(false)
         pauseStatic()
+      } else {
+        if (curState.on && audioPlayerState.status != PlayerStatuses.Playing) {
+          playStatic()
+        } else if (audioPlayerState.status == PlayerStatuses.Playing) {
+          pauseStatic()
+        }
       }
     }
   AudioPlayer.stateObservable.addObserver(audioPlayerStateObserver)
@@ -182,7 +181,7 @@ object RadioTuner extends LogSupport {
   }
 
   private def pauseStatic() = {
-    staticHowl.pause()
+    staticHowl.stop()
   }
 
   def randomOption[T](xs: Seq[T]): Option[T] = {
