@@ -78,8 +78,6 @@ object RadioView extends LogSupport {
         } else {
           dom.window.history.pushState(new js.Object(), s"Resonator", url)
         }
-      } else {
-        debug("url already correct")
       }
     }
     RadioTuner.stateObservable.addObserver(stateObserver)

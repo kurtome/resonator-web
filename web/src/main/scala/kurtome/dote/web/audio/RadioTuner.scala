@@ -93,7 +93,6 @@ object RadioTuner extends LogSupport {
     AudioPlayer.curState.stationSchedule foreach { playerStationSchedule =>
       (state.amSchedule ++ state.fmSchedule)
         .find(_.getStation == playerStationSchedule.getStation) foreach { updatedSchedule =>
-        debug(s"updating station schedule for station ${updatedSchedule.getStation.callSign}")
         AudioPlayer.updateStationSchedule(updatedSchedule)
       }
     }
