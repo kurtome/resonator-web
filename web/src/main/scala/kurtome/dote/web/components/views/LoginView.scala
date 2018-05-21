@@ -13,7 +13,7 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.MainContentSection
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.utils._
 import org.scalajs.dom
 import wvlet.log.LogSupport
@@ -65,7 +65,7 @@ object LoginView extends LogSupport {
           bs.modState(
               _.copy(isLoading = true, errorMessage = "", emailError = "", usernameError = ""))
             .runNow()
-          val f = DoteProtoServer
+          val f = ResonatorApiClient
             .loginLink(LoginLinkRequest(username = s.username, email = s.email))
             .map(handleCreateResponse(p, s))
           GlobalLoadingManager.addLoadingFuture(f)

@@ -68,7 +68,7 @@ object SearchView extends LogSupport {
         MainContentSection(variant = MainContentSection.Variants.Light, verticalPaddingPx = 8)(
           GridContainer(justify = Grid.Justify.Center)(
             GridItem(xs = 12, sm = 10, md = 8)(
-              SearchBox(s.query, onResultsUpdated = handleSearchResultsUpdated)(),
+              SearchBox(s.query, onResultsUpdated = handleSearchResultsUpdated)()
             )
           )
         ),

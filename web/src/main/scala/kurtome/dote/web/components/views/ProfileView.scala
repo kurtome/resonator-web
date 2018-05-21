@@ -16,7 +16,7 @@ import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.feed.VerticalFeed
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.utils.GlobalLoadingManager
 import kurtome.dote.web.utils.LoggedInPersonManager
 import kurtome.dote.web.utils.BaseBackend
@@ -72,7 +72,7 @@ object ProfileView extends LogSupport {
     }
 
     private def fetchProfileFeed(p: Props): Unit = {
-      val f = DoteProtoServer.getFeed(
+      val f = ResonatorApiClient.getFeed(
         GetFeedRequest(maxItems = 20,
                        maxItemSize = 10,
                        id = Some(FeedId().withProfile(ProfileId(username = p.username))))) map {

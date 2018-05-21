@@ -14,7 +14,7 @@ import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.MainContentSection
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.GlobalLoadingManager
 import kurtome.dote.web.utils.GlobalNotificationManager
@@ -71,7 +71,7 @@ object AddPodcastView extends LogSupport {
 
         if (urlStatus.isSuccess) {
           bs.setState(s.copy(isLoading = true)).runNow
-          val addFuture = DoteProtoServer.addPodcast(AddPodcastRequest(itunesUrl = url))
+          val addFuture = ResonatorApiClient.addPodcast(AddPodcastRequest(itunesUrl = url))
           GlobalLoadingManager.addLoadingFuture(addFuture)
 
           addFuture onComplete {
@@ -117,7 +117,7 @@ object AddPodcastView extends LogSupport {
               name = "itunes-url",
               label = Typography()("iTunes Podcast URL"),
               placeholder = "https://itunes.apple.com/us/podcast/foocast/id123456789",
-            )(),
+            )()
           ),
           GridItem(xs = 12)(
             GridContainer(spacing = 0, justify = Grid.Justify.FlexEnd)(

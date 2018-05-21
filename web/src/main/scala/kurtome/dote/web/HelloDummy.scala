@@ -1,7 +1,7 @@
 package kurtome.dote.web
 
 import kurtome.dote.proto.action.hello.HelloRequest
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import wvlet.log.LogSupport
 
 import scala.scalajs.js.Dynamic
@@ -17,7 +17,7 @@ object HelloDummy extends LogSupport {
 
     // Test bytes request
     info("Running proto bytes request...")
-    DoteProtoServer.hello(request) onComplete {
+    ResonatorApiClient.hello(request) onComplete {
       case Success(response) =>
         info("Got proto response: " + response.message)
       case Failure(ex) => warn("Proto failure: " + ex.getMessage)
@@ -25,7 +25,7 @@ object HelloDummy extends LogSupport {
 
     // Test JSON request
     info("Running proto JSON request...")
-    DoteProtoServer.requestAsJson("hello", Dynamic.literal("name" -> "Jason")) onComplete {
+    ResonatorApiClient.requestAsJson("hello", Dynamic.literal("name" -> "Jason")) onComplete {
       case Success(response) =>
         info("Got JSON response: " + response.message)
       case Failure(ex) => warn("JSON failure: " + ex.getMessage)

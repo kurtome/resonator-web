@@ -226,7 +226,7 @@ object MuiTheme extends LogSupport {
           ),
           "button" -> l$(
             "fontFamily" -> "roboto",
-            "textTransform" -> js.undefined,
+            "textTransform" -> js.undefined
           )
         ),
         "overrides" -> l$(

@@ -182,11 +182,17 @@ object NavBar extends LogSupport {
                       IconButton(style = Styles.actionButton,
                                  onClick = doteRouterCtl.set(HomeRoute))(Icons.Home())
                     ),
+                    GridItem(hidden = Grid.HiddenProps(
+                      xsUp = p.currentRoute.isInstanceOf[RadioRoute] || p.currentRoute
+                        .isInstanceOf[RadioDefaultRoute]))(
+                      IconButton(style = Styles.actionButton,
+                                 onClick = doteRouterCtl.set(RadioDefaultRoute()))(Icons.Radio())),
                     GridItem(
                       hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
                       IconButton(style = Styles.actionButton,
                                  onClick = handleProfileButtonClicked(p))(Icons.AccountCircle())),
-                    GridItem(hidden = Grid.HiddenProps(xsUp = p.currentRoute == SearchRoute))(
+                    GridItem(
+                      hidden = Grid.HiddenProps(xsUp = p.currentRoute.isInstanceOf[SearchRoute]))(
                       IconButton(style = Styles.actionButton,
                                  onClick = doteRouterCtl.set(SearchRoute()))(Icons.Search()))
                   )

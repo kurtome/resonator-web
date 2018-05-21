@@ -2,12 +2,14 @@ package kurtome.dote.web.components.widgets
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.radio.RadioStation
 import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.audio.AudioPlayer
+import kurtome.dote.web.audio.AudioPlayer.OffSources
 import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.widgets.card.PodcastImageCard
@@ -136,7 +138,7 @@ object AudioControls extends LogSupport {
     }
 
     val offClicked = Callback {
-      AudioPlayer.off()
+      AudioPlayer.off(OffSources.CloseButton)
     }
 
     val rewind10Clicked = Callback {
@@ -145,6 +147,14 @@ object AudioControls extends LogSupport {
 
     val forward30Clicked = Callback {
       AudioPlayer.forward(30)
+    }
+
+    private def formatFrequency(station: RadioStation): String = {
+      station.frequencyKind match {
+        case RadioStation.FrequencyKind.AM => s"${station.frequency} kHz"
+        case RadioStation.FrequencyKind.FM => s"${station.frequency} MHz"
+        case _ => station.frequency.toString
+      }
     }
 
     def render(p: Props, s: State): VdomElement = {
@@ -156,6 +166,7 @@ object AudioControls extends LogSupport {
       if (s.playerState.status == PlayerStatuses.Off) {
         <.div()
       } else {
+        val station = s.playerState.stationSchedule
         Grid(container = true,
              spacing = 0,
              style = Styles.playerWrapper,
@@ -185,12 +196,11 @@ object AudioControls extends LogSupport {
                   ^.width := asPxStr(buttonSpaceWidth),
                   ^.height := asPxStr(controlsHeight),
                   ^.className := Styles.buttonSpaceWrapper,
-                  Grid(container = true,
-                       spacing = 0,
-                       justify = Grid.Justify.Center,
-                       alignItems = Grid.AlignItems.FlexEnd,
-                       style = Styles.buttonGrid)(
-                    Grid(item = true)(
+                  GridContainer(spacing = 0,
+                                justify = Grid.Justify.Center,
+                                alignItems = Grid.AlignItems.FlexEnd,
+                                style = Styles.buttonGrid)(
+                    GridItem(hidden = Grid.HiddenProps(xsUp = station.isDefined))(
                       IconButton(style = Styles.bottomButton, onClick = rewind10Clicked)(
                         Icons.Replay10()
                       ),
@@ -203,6 +213,11 @@ object AudioControls extends LogSupport {
                       ),
                       IconButton(style = Styles.bottomButton, onClick = forward30Clicked)(
                         Icons.Forward30()
+                      )
+                    ),
+                    GridItem(hidden = Grid.HiddenProps(xsUp = station.isEmpty))(
+                      Typography()(
+                        s"${station.get.getStation.callSign} - ${formatFrequency(station.get.getStation)}"
                       )
                     )
                   )

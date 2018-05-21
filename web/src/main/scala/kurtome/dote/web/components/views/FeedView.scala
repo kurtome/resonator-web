@@ -20,7 +20,7 @@ import kurtome.dote.web.DoteRoutes.FollowingActivityRoute
 import kurtome.dote.web.DoteRoutes.ProfileActivityRoute
 import kurtome.dote.web.DoteRoutes.TagRoute
 import kurtome.dote.web.components.widgets.feed.VerticalFeed
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.utils.FeedIdRoutes.TagKindUrlMapper
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -51,7 +51,7 @@ object FeedView extends LogSupport {
       bs.modState(_.copy(isFeedLoading = true)).runNow()
 
       // get the latest data as well, in case it has changed
-      val f = DoteProtoServer.getFeed(
+      val f = ResonatorApiClient.getFeed(
         GetFeedRequest(maxItems = 10, maxItemSize = 12, id = Some(p.feedId))) map { response =>
         bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
       }

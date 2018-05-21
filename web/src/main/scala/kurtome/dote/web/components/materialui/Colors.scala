@@ -48,26 +48,4 @@ object Colors extends js.Object {
   val teal: Color = js.native
   val yellow: Color = js.native
 
-  val allColors = Seq(
-    amber,
-    blue,
-    blueGrey,
-    brown,
-    cyan,
-    deepOrange,
-    deepPurple,
-    green,
-    grey,
-    indigo,
-    lightBlue,
-    lightGreen,
-    lime,
-    orange,
-    pink,
-    purple,
-    red,
-    teal,
-    yellow
-  )
-
 }

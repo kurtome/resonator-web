@@ -28,7 +28,7 @@ import kurtome.dote.web.components.widgets.button.emote.DoteEmoteButton
 import kurtome.dote.web.components.widgets.button.emote.DoteStarsButton
 import kurtome.dote.web.components.widgets.card.EpisodeCard
 import kurtome.dote.web.components.widgets.card.PodcastCard
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.GlobalLoadingManager
 import wvlet.log.LogSupport
@@ -70,10 +70,11 @@ object ReviewDialog extends LogSupport {
         val reviewId = newProps.dotable.getDote.reviewId
         if (reviewId.nonEmpty) {
           bs.modState(_.copy(loading = true)).runNow()
-          DoteProtoServer.getDotableDetails(GetDotableDetailsRequest(reviewId)) map { response =>
-            bs.modState(
-                _.copy(loading = false, editedReview = response.getDotable.getCommon.description))
-              .runNow()
+          ResonatorApiClient.getDotableDetails(GetDotableDetailsRequest(reviewId)) map {
+            response =>
+              bs.modState(_.copy(loading = false,
+                                 editedReview = response.getDotable.getCommon.description))
+                .runNow()
           }
         }
       }
@@ -122,7 +123,7 @@ object ReviewDialog extends LogSupport {
                  loading = result.isSuccess))
         .runNow()
       if (result.isSuccess) {
-        val f = DoteProtoServer.setDote(
+        val f = ResonatorApiClient.setDote(
           SetDoteRequest(p.dotable.id)
             .withDote(s.editedDote)
             .withReview(SetReview(s.editedReview))) map { _ =>

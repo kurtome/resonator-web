@@ -8,6 +8,7 @@ import com.github.tminglei.slickpg._
 import com.github.tminglei.slickpg.enums.PgEnumExtensions
 import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.shared.constants.EmoteKinds
+import kurtome.dote.shared.constants.StationKinds
 import org.json4s.{JValue, JsonMethods}
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcModelBuilder
@@ -47,6 +48,7 @@ trait DotePostgresProfile
           case "dotablekind" => DotableKinds.getClass.getName + "Value"
           case "tagkind" => TagKinds.getClass.getName + "Value"
           case "emotekind" => EmoteKinds.getClass.getName + "Value"
+          case "stationkind" => StationKinds.getClass.getName + "Value"
           case _ => super.tpe
         }
         // Replace $ with . to fix nested classes in generated code because classTag.toString
@@ -111,6 +113,14 @@ trait DotePostgresProfile
       createEnumColumnExtensionMethodsBuilder(EmoteKinds)
     implicit val emoteKindOptionColumnExtensionMethodsBuilder =
       createEnumOptionColumnExtensionMethodsBuilder(EmoteKinds)
+
+    implicit val stationKindTypeMapper = createEnumJdbcType("StationKind", StationKinds, false)
+    implicit val stationKindListTypeMapper =
+      createEnumListJdbcType("StationKind", StationKinds, false)
+    implicit val stationKindColumnExtensionMethodsBuilder =
+      createEnumColumnExtensionMethodsBuilder(StationKinds)
+    implicit val stationKindOptionColumnExtensionMethodsBuilder =
+      createEnumOptionColumnExtensionMethodsBuilder(StationKinds)
 
     implicit val emoteKindSetter = SetParameter[Option[EmoteKinds.Value]] {
       case (Some(kind), params) => params.setObject(kind.toString, Types.OTHER)

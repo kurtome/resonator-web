@@ -11,7 +11,7 @@ import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
 import kurtome.dote.web.components.materialui.IconButton
 import kurtome.dote.web.components.materialui.Icons
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
 
@@ -43,7 +43,7 @@ object DoteStarsButton extends LogSupport {
 
         if (p.sendToServer) {
           val f =
-            DoteProtoServer.setDote(SetDoteRequest(p.dotable.id, Some(dote)))
+            ResonatorApiClient.setDote(SetDoteRequest(p.dotable.id, Some(dote)))
           GlobalLoadingManager.addLoadingFuture(f)
         }
     }

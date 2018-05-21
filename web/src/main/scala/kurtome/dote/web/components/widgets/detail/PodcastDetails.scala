@@ -47,7 +47,7 @@ object PodcastDetails {
     )
 
     val episodeTableWrapper = style(
-      marginTop(SharedStyles.spacingUnit),
+      marginTop(SharedStyles.spacingUnit)
     )
 
     val normalTileContainer = style(
@@ -169,7 +169,7 @@ object PodcastDetails {
           DetailField("Listen", LinkFieldValue("iTunes", podcastDetails.getExternalUrls.itunes))
         ) filter { field =>
           field.values exists {
-            case TextFieldValue(text)      => text.nonEmpty
+            case TextFieldValue(text) => text.nonEmpty
             case LinkFieldValue(text, url) => text.nonEmpty && url.nonEmpty
           }
         }
@@ -177,7 +177,7 @@ object PodcastDetails {
       val shouldCenterTile = currentBreakpointString match {
         case "xs" => true
         case "sm" => true
-        case _    => false
+        case _ => false
       }
 
       val tileContainerStyle = if (shouldCenterTile) {

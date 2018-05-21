@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api.action;
+
+import "api/radio.proto";
+import "api/feed.proto";
+import "api/common.proto";
+
+message GetRadioScheduleRequest {
+  // Use to calibrate response schedules to the client's time
+  int64 request_time_millis = 1;
+}
+
+message GetRadioScheduleResponse {
+  api.ActionStatus response_status = 1;
+
+  repeated api.RadioStationSchedule am_stations = 2;
+  repeated api.RadioStationSchedule fm_stations = 3;
+}

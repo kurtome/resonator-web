@@ -6,7 +6,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.feed.FeedId
 import kurtome.dote.proto.api.feed.FeedId.HomeId
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.materialui.Grid
@@ -72,7 +72,7 @@ object HomeView extends LogSupport {
       if (cachedFeed.isDefined) {
         bs.modState(_.copy(feed = cachedFeed.get, isFeedLoading = false)).runNow()
       } else {
-        val f = DoteProtoServer.getFeed(GetFeedRequest(
+        val f = ResonatorApiClient.getFeed(GetFeedRequest(
           maxItems = 20,
           maxItemSize = 20,
           id = Some(FeedId().withHome(HomeId())))) map { response =>

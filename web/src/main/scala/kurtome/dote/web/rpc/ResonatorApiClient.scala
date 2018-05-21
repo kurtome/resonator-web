@@ -9,6 +9,8 @@ import kurtome.dote.proto.api.action.get_dotable_list._
 import kurtome.dote.proto.api.action.get_feed._
 import kurtome.dote.proto.api.action.get_follower_summary.GetFollowerSummaryRequest
 import kurtome.dote.proto.api.action.get_follower_summary.GetFollowerSummaryResponse
+import kurtome.dote.proto.api.action.get_radio_schedule.GetRadioScheduleRequest
+import kurtome.dote.proto.api.action.get_radio_schedule.GetRadioScheduleResponse
 import kurtome.dote.proto.api.action.search._
 import kurtome.dote.proto.api.action.set_dote._
 import kurtome.dote.proto.api.action.set_follow._
@@ -18,7 +20,7 @@ import kurtome.dote.web.utils.PerfTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object DoteProtoServer {
+object ResonatorApiClient {
 
   def requestAsJson = AjaxRpc.jsonRequest _
 
@@ -117,5 +119,15 @@ object DoteProtoServer {
         SetFollowRequest.toByteArray(r)
 
       override def parseResponse(r: Array[Byte]) = SetFollowResponse.parseFrom(r)
+    })(request)
+
+  def getRadioSchedule(request: GetRadioScheduleRequest) =
+    AjaxRpc.protoRequest(new ProtoAction[GetRadioScheduleRequest, GetRadioScheduleResponse] {
+      override val route = "get-radio-schedule"
+
+      override def serializeRequest(r: GetRadioScheduleRequest) =
+        GetRadioScheduleRequest.toByteArray(r)
+
+      override def parseResponse(r: Array[Byte]) = GetRadioScheduleResponse.parseFrom(r)
     })(request)
 }

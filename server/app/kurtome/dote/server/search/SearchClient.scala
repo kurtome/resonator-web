@@ -119,29 +119,8 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
         case Left(requestFailure)  => warn(requestFailure.body)
       } map (_ => Unit)
     } else {
-      Future()
+      Future.unit
     }
-  }
-
-  @deprecated
-  def indexPodcastWithEpisodes(podcast: Dotable): Future[Unit] = {
-    val episodeParent = Some(podcast)
-    client.execute {
-      bulk(
-        Seq(
-          indexInto(dotablesIndex / docType)
-            .id(podcast.id)
-            .doc(extractDataDoc(podcast, None))
-        ) ++ podcast.getRelatives.children.map(
-          episode =>
-            indexInto(dotablesIndex / docType)
-              .id(episode.id)
-              .doc(extractDataDoc(episode, episodeParent)))
-      )
-    } map {
-      case Right(requestSuccess) => Unit
-      case Left(requestFailure)  => warn(requestFailure.body)
-    } map (_ => Unit)
   }
 
   def searchAll(query: String, offset: Int = 0, limit: Int = 30): Future[Seq[Dotable]] = {

@@ -18,7 +18,7 @@ import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.SiteLink
 import kurtome.dote.web.constants.MuiTheme
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.FeedIdRoutes
 import kurtome.dote.web.utils.GlobalLoadingManager
@@ -82,7 +82,7 @@ object FollowerSummaryFeedItem extends LogSupport {
       bs.modState(_.copy(setFollowInFlight = true)).runNow()
       val newState =
         if (checked) SetFollowRequest.State.FOLLOWING else SetFollowRequest.State.NOT_FOLLOWING
-      val f = DoteProtoServer.setFollow(
+      val f = ResonatorApiClient.setFollow(
         SetFollowRequest(requesterPersonId = LoggedInPersonManager.person.get.id,
                          followPersonId = s.followerSummary.person.get.id,
                          requestedState = newState)

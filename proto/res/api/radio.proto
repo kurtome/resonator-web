@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api;
+
+import "api/dotable.proto";
+
+message RadioStation {
+  string call_sign = 1;
+  float frequency = 2;
+  FrequencyKind frequency_kind = 3;
+
+  enum FrequencyKind {
+    UNKNOWN_KIND = 0;
+    AM = 1;
+    FM = 2;
+  }
+}
+
+message RadioStationSchedule {
+  RadioStation station = 1;
+  // the current and upcoming schedueld content, this data can go stale over time and should be
+  // re-fetched frequently (every few minutes) to get the newest schedule.
+  repeated ScheduledEpisode scheduled_episodes = 2;
+}
+
+message ScheduledEpisode {
+  Dotable episode = 1;
+  int64 start_time_millis = 2;
+  int64 end_time_millis = 3;
+}

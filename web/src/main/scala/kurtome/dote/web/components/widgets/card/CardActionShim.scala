@@ -12,7 +12,7 @@ import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.widgets.Fader
 import kurtome.dote.web.components.widgets.button.ShareButton
 import kurtome.dote.web.components.widgets.button.emote._
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.utils._
 import org.scalajs.dom
 import wvlet.log.LogSupport

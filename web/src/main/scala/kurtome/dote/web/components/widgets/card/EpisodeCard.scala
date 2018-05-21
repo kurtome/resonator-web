@@ -43,9 +43,9 @@ object EpisodeCard extends LogSupport {
     val PrimaryAccent = Value // recent activity feed
     val Default = Value
   }
-  type Variant = Colors.Value
+  type Color = Colors.Value
 
-  case class Props(dotable: Dotable, color: Variant, showDescription: Boolean)
+  case class Props(dotable: Dotable, color: Color, showDescription: Boolean)
   case class State(hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -88,6 +88,6 @@ object EpisodeCard extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable, color: Variant = Colors.Default, showDescription: Boolean = false) =
+  def apply(dotable: Dotable, color: Color = Colors.Default, showDescription: Boolean = false) =
     component.withProps(Props(dotable, color, showDescription))
 }

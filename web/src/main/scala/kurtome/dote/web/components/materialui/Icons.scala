@@ -156,6 +156,14 @@ object Icons {
     MessageDrawComponent.withProps(props(style))()
   }
 
+  @JSImport("mdi-material-ui/Radio", JSImport.Default)
+  @js.native
+  private object RadioRaw extends js.Object {}
+  private val RadioComponent = JsComponent[IconProps, Children.None, Null](RadioRaw)
+  def Radio(style: js.UndefOr[js.Dynamic] = js.undefined) = {
+    RadioComponent.withProps(props(style))()
+  }
+
   @js.native
   trait IconProps extends js.Object {
     var style: js.UndefOr[js.Dynamic] = js.native

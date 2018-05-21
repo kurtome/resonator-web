@@ -21,7 +21,7 @@ import kurtome.dote.web.components.lib.AutoSuggest._
 import kurtome.dote.web.components.views.DotableDetailView
 import kurtome.dote.web.components.widgets.card.PodcastImageCard
 import kurtome.dote.web.constants.MuiTheme
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.rpc.TimeCachedValue
 import kurtome.dote.web.utils._
 import wvlet.log.LogSupport
@@ -145,7 +145,7 @@ object SearchBox {
       } else if (query == bs.state.runNow().inFlightQuery) {
         // Nothing to do
       } else {
-        val f = DoteProtoServer.search(SearchRequest(query = query, maxResults = 24)) map {
+        val f = ResonatorApiClient.search(SearchRequest(query = query, maxResults = 24)) map {
           response =>
             // only use the results if the query hasn't changed
             if (bs.state.runNow().query == query) {

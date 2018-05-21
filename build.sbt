@@ -1,4 +1,4 @@
-name := """dote-web"""
+name := """resonator-web"""
 organization := "kurtome"
 version := "1.0-SNAPSHOT"
 
@@ -50,7 +50,7 @@ lazy val server = (project in file("server"))
         oldStrategy(x)
       }
     },
-    assemblyJarName in assembly := "dote-web-server.jar"
+    assemblyJarName in assembly := "resonator-web-server.jar"
   )
   .dependsOn(sharedJvm, slickCodegen)
 
@@ -171,7 +171,7 @@ lazy val assembleJarAndDeployToHeroku = taskKey[Unit]("Execute frontend scripts"
 
 assembleJarAndDeployToHeroku := {
   val deploy =
-    ("heroku deploy:jar --app resonator /Users/kmelby/github/kurtome/dote-web/server/target/scala-2.12/dote-web-server.jar" !)
+    ("heroku deploy:jar --app resonator ./server/target/scala-2.12/resonator-web-server.jar" !)
   ()
 }
 

@@ -52,6 +52,13 @@ object DoteRoutes extends LogSupport {
   case class TagRoute(kind: String, key: String, queryParams: Map[String, String] = Map.empty)
       extends DoteRoute
 
+  case class RadioDefaultRoute(queryParams: Map[String, String] = Map.empty) extends DoteRoute
+
+  case class RadioRoute(
+      station: String, // station includes frequency and band suffix, e.g. "770kHz"
+      queryParams: Map[String, String] = Map.empty)
+      extends DoteRoute
+
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   type DoteRouterCtl = RouterCtl[DoteRoute]
@@ -127,8 +134,8 @@ object DoteRoutes extends LogSupport {
           .caseClass[TagRoute]) ~> dynRenderR((page: TagRoute, routerCtl) => FeedView(page)())
 
         | dynamicRouteCT("/details" ~ ("/" ~ id ~ "/" ~ slug ~ query)
-          .caseClass[DetailsRoute]) ~> dynRenderR(
-          (page: DetailsRoute, routerCtl) => DotableDetailView(page)())
+          .caseClass[DetailsRoute]) ~> dynRenderR((page: DetailsRoute,
+                                                   routerCtl) => DotableDetailView(page)())
 
         | dynamicRouteCT("/profile" ~ ("/" ~ slug)
           .caseClass[ProfileRoute]) ~> dynRenderR(
@@ -149,6 +156,13 @@ object DoteRoutes extends LogSupport {
         | dynamicRouteCT(("/profile/" ~ slug ~ "/activity" ~ query)
           .caseClass[ProfileActivityRoute]) ~> dynRenderR(
           (page: ProfileActivityRoute, routerCtl) => FeedView(page)())
+
+        | dynamicRouteCT(("/tuner" ~ query)
+          .caseClass[RadioDefaultRoute]) ~> dynRenderR(
+          (page: RadioDefaultRoute, routerCtl) => RadioView(page)())
+
+        | dynamicRouteCT("/tuner" ~ ("/" ~ id ~ query)
+          .caseClass[RadioRoute]) ~> dynRenderR((page: RadioRoute, routerCtl) => RadioView(page)())
 
         | staticRoute("/not-found", PageNotFoundRoute) ~> render(
           HelloView.component("who am iii??")))

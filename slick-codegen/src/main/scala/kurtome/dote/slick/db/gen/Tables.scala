@@ -24,6 +24,9 @@ trait Tables {
     PlayEvolutions.schema,
     PodcastEpisodeIngestion.schema,
     PodcastFeedIngestion.schema,
+    RadioStation.schema,
+    RadioStationPlaylist.schema,
+    RadioStationPodcast.schema,
     SearchIndexQueue.schema,
     Tag.schema
   ).reduceLeft(_ ++ _)
@@ -207,14 +210,17 @@ trait Tables {
     /** Index over (contentEditedTime) (database name dotable_content_edited_time_index) */
     val index1 = index("dotable_content_edited_time_index", contentEditedTime)
 
+    /** Index over (dbUpdatedTime,id) (database name dotable_db_updated_time_id_compound_index) */
+    val index2 = index("dotable_db_updated_time_id_compound_index", (dbUpdatedTime, id))
+
     /** Index over (dbUpdatedTime) (database name dotable_db_updated_time_index) */
-    val index2 = index("dotable_db_updated_time_index", dbUpdatedTime)
+    val index3 = index("dotable_db_updated_time_index", dbUpdatedTime)
 
     /** Index over (kind,id) (database name dotable_kind_id_index) */
-    val index3 = index("dotable_kind_id_index", (kind, id))
+    val index4 = index("dotable_kind_id_index", (kind, id))
 
     /** Index over (title) (database name dotable_title_index) */
-    val index4 = index("dotable_title_index", title)
+    val index5 = index("dotable_title_index", title)
   }
 
   /** Collection-like TableQuery object for table Dotable */
@@ -843,6 +849,239 @@ trait Tables {
 
   /** Collection-like TableQuery object for table PodcastFeedIngestion */
   lazy val PodcastFeedIngestion = new TableQuery(tag => new PodcastFeedIngestion(tag))
+
+  /** Entity class storing rows of table RadioStation
+    *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
+    *  @param enabled Database column enabled SqlType(bool)
+    *  @param frequency Database column frequency SqlType(numeric)
+    *  @param frequencyKind Database column frequency_kind SqlType(frequencykind), Length(2147483647,true)
+    *  @param callSign Database column call_sign SqlType(bpchar), Length(4,false)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp) */
+  case class RadioStationRow(id: Long,
+                             enabled: Boolean,
+                             frequency: scala.math.BigDecimal,
+                             frequencyKind: String,
+                             callSign: String,
+                             dbUpdatedTime: java.time.LocalDateTime)
+
+  /** GetResult implicit for fetching RadioStationRow objects using plain SQL queries */
+  implicit def GetResultRadioStationRow(implicit e0: GR[Long],
+                                        e1: GR[Boolean],
+                                        e2: GR[scala.math.BigDecimal],
+                                        e3: GR[String],
+                                        e4: GR[java.time.LocalDateTime]): GR[RadioStationRow] =
+    GR { prs =>
+      import prs._
+      RadioStationRow.tupled(
+        (<<[Long],
+         <<[Boolean],
+         <<[scala.math.BigDecimal],
+         <<[String],
+         <<[String],
+         <<[java.time.LocalDateTime]))
+    }
+
+  /** Table description of table radio_station. Objects of this class serve as prototypes for rows in queries. */
+  class RadioStation(_tableTag: slick.lifted.Tag)
+      extends profile.api.Table[RadioStationRow](_tableTag, "radio_station") {
+    def * =
+      (id, enabled, frequency, frequencyKind, callSign, dbUpdatedTime) <> (RadioStationRow.tupled, RadioStationRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(id),
+       Rep.Some(enabled),
+       Rep.Some(frequency),
+       Rep.Some(frequencyKind),
+       Rep.Some(callSign),
+       Rep.Some(dbUpdatedTime)).shaped.<>(
+        { r =>
+          import r._;
+          _1.map(_ => RadioStationRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))
+        },
+        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+      )
+
+    /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
+    val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+
+    /** Database column enabled SqlType(bool) */
+    val enabled: Rep[Boolean] = column[Boolean]("enabled")
+
+    /** Database column frequency SqlType(numeric) */
+    val frequency: Rep[scala.math.BigDecimal] = column[scala.math.BigDecimal]("frequency")
+
+    /** Database column frequency_kind SqlType(frequencykind), Length(2147483647,true) */
+    val frequencyKind: Rep[String] =
+      column[String]("frequency_kind", O.Length(2147483647, varying = true))
+
+    /** Database column call_sign SqlType(bpchar), Length(4,false) */
+    val callSign: Rep[String] = column[String]("call_sign", O.Length(4, varying = false))
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
+
+    /** Uniqueness Index over (callSign) (database name radio_station_call_sign_uniq) */
+    val index1 = index("radio_station_call_sign_uniq", callSign, unique = true)
+
+    /** Uniqueness Index over (frequency,frequencyKind) (database name radio_station_fequency_frequency_kind_uniq) */
+    val index2 = index("radio_station_fequency_frequency_kind_uniq",
+                       (frequency, frequencyKind),
+                       unique = true)
+  }
+
+  /** Collection-like TableQuery object for table RadioStation */
+  lazy val RadioStation = new TableQuery(tag => new RadioStation(tag))
+
+  /** Entity class storing rows of table RadioStationPlaylist
+    *  @param id Database column id SqlType(bigserial), AutoInc, PrimaryKey
+    *  @param stationId Database column station_id SqlType(int8)
+    *  @param episodeId Database column episode_id SqlType(int8)
+    *  @param startTime Database column start_time SqlType(timestamp)
+    *  @param endTime Database column end_time SqlType(timestamp)
+    *  @param dbUpdatedTime Database column db_updated_time SqlType(timestamp) */
+  case class RadioStationPlaylistRow(id: Long,
+                                     stationId: Long,
+                                     episodeId: Long,
+                                     startTime: java.time.LocalDateTime,
+                                     endTime: java.time.LocalDateTime,
+                                     dbUpdatedTime: java.time.LocalDateTime)
+
+  /** GetResult implicit for fetching RadioStationPlaylistRow objects using plain SQL queries */
+  implicit def GetResultRadioStationPlaylistRow(
+      implicit e0: GR[Long],
+      e1: GR[java.time.LocalDateTime]): GR[RadioStationPlaylistRow] = GR { prs =>
+    import prs._
+    RadioStationPlaylistRow.tupled(
+      (<<[Long],
+       <<[Long],
+       <<[Long],
+       <<[java.time.LocalDateTime],
+       <<[java.time.LocalDateTime],
+       <<[java.time.LocalDateTime]))
+  }
+
+  /** Table description of table radio_station_playlist. Objects of this class serve as prototypes for rows in queries. */
+  class RadioStationPlaylist(_tableTag: slick.lifted.Tag)
+      extends profile.api.Table[RadioStationPlaylistRow](_tableTag, "radio_station_playlist") {
+    def * =
+      (id, stationId, episodeId, startTime, endTime, dbUpdatedTime) <> (RadioStationPlaylistRow.tupled, RadioStationPlaylistRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(id),
+       Rep.Some(stationId),
+       Rep.Some(episodeId),
+       Rep.Some(startTime),
+       Rep.Some(endTime),
+       Rep.Some(dbUpdatedTime)).shaped.<>(
+        { r =>
+          import r._;
+          _1.map(_ =>
+            RadioStationPlaylistRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6.get)))
+        },
+        (_: Any) => throw new Exception("Inserting into ? projection not supported.")
+      )
+
+    /** Database column id SqlType(bigserial), AutoInc, PrimaryKey */
+    val id: Rep[Long] = column[Long]("id", O.AutoInc, O.PrimaryKey)
+
+    /** Database column station_id SqlType(int8) */
+    val stationId: Rep[Long] = column[Long]("station_id")
+
+    /** Database column episode_id SqlType(int8) */
+    val episodeId: Rep[Long] = column[Long]("episode_id")
+
+    /** Database column start_time SqlType(timestamp) */
+    val startTime: Rep[java.time.LocalDateTime] = column[java.time.LocalDateTime]("start_time")
+
+    /** Database column end_time SqlType(timestamp) */
+    val endTime: Rep[java.time.LocalDateTime] = column[java.time.LocalDateTime]("end_time")
+
+    /** Database column db_updated_time SqlType(timestamp) */
+    val dbUpdatedTime: Rep[java.time.LocalDateTime] =
+      column[java.time.LocalDateTime]("db_updated_time")
+
+    /** Foreign key referencing Dotable (database name radio_station_playlist_episode_id_fkey) */
+    lazy val dotableFk = foreignKey("radio_station_playlist_episode_id_fkey", episodeId, Dotable)(
+      r => r.id,
+      onUpdate = ForeignKeyAction.NoAction,
+      onDelete = ForeignKeyAction.NoAction)
+
+    /** Foreign key referencing RadioStation (database name radio_station_playlist_station_id_fkey) */
+    lazy val radioStationFk =
+      foreignKey("radio_station_playlist_station_id_fkey", stationId, RadioStation)(
+        r => r.id,
+        onUpdate = ForeignKeyAction.NoAction,
+        onDelete = ForeignKeyAction.NoAction)
+
+    /** Index over (endTime) (database name radio_station_playlist_end_time_index) */
+    val index1 = index("radio_station_playlist_end_time_index", endTime)
+
+    /** Index over (startTime) (database name radio_station_playlist_start_time_index) */
+    val index2 = index("radio_station_playlist_start_time_index", startTime)
+
+    /** Uniqueness Index over (stationId,startTime) (database name radio_station_playlist_station_start_time_uniq) */
+    val index3 = index("radio_station_playlist_station_start_time_uniq",
+                       (stationId, startTime),
+                       unique = true)
+  }
+
+  /** Collection-like TableQuery object for table RadioStationPlaylist */
+  lazy val RadioStationPlaylist = new TableQuery(tag => new RadioStationPlaylist(tag))
+
+  /** Entity class storing rows of table RadioStationPodcast
+    *  @param stationId Database column station_id SqlType(int8)
+    *  @param podcastId Database column podcast_id SqlType(int8) */
+  case class RadioStationPodcastRow(stationId: Long, podcastId: Long)
+
+  /** GetResult implicit for fetching RadioStationPodcastRow objects using plain SQL queries */
+  implicit def GetResultRadioStationPodcastRow(implicit e0: GR[Long]): GR[RadioStationPodcastRow] =
+    GR { prs =>
+      import prs._
+      RadioStationPodcastRow.tupled((<<[Long], <<[Long]))
+    }
+
+  /** Table description of table radio_station_podcast. Objects of this class serve as prototypes for rows in queries. */
+  class RadioStationPodcast(_tableTag: slick.lifted.Tag)
+      extends profile.api.Table[RadioStationPodcastRow](_tableTag, "radio_station_podcast") {
+    def * =
+      (stationId, podcastId) <> (RadioStationPodcastRow.tupled, RadioStationPodcastRow.unapply)
+
+    /** Maps whole row to an option. Useful for outer joins. */
+    def ? =
+      (Rep.Some(stationId), Rep.Some(podcastId)).shaped.<>({ r =>
+        import r._; _1.map(_ => RadioStationPodcastRow.tupled((_1.get, _2.get)))
+      }, (_: Any) => throw new Exception("Inserting into ? projection not supported."))
+
+    /** Database column station_id SqlType(int8) */
+    val stationId: Rep[Long] = column[Long]("station_id")
+
+    /** Database column podcast_id SqlType(int8) */
+    val podcastId: Rep[Long] = column[Long]("podcast_id")
+
+    /** Foreign key referencing Dotable (database name radio_station_podcast_podcast_id_fkey) */
+    lazy val dotableFk = foreignKey("radio_station_podcast_podcast_id_fkey", podcastId, Dotable)(
+      r => r.id,
+      onUpdate = ForeignKeyAction.NoAction,
+      onDelete = ForeignKeyAction.NoAction)
+
+    /** Foreign key referencing RadioStation (database name radio_station_podcast_station_id_fkey) */
+    lazy val radioStationFk =
+      foreignKey("radio_station_podcast_station_id_fkey", stationId, RadioStation)(
+        r => r.id,
+        onUpdate = ForeignKeyAction.NoAction,
+        onDelete = ForeignKeyAction.NoAction)
+
+    /** Uniqueness Index over (stationId,podcastId) (database name radio_station_podcast_station_podcast_id_uniq_index) */
+    val index1 = index("radio_station_podcast_station_podcast_id_uniq_index",
+                       (stationId, podcastId),
+                       unique = true)
+  }
+
+  /** Collection-like TableQuery object for table RadioStationPodcast */
+  lazy val RadioStationPodcast = new TableQuery(tag => new RadioStationPodcast(tag))
 
   /** Entity class storing rows of table SearchIndexQueue
     *  @param indexName Database column index_name SqlType(text), Length(2147483647,true)

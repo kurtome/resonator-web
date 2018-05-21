@@ -4,16 +4,11 @@ import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
-import kurtome.dote.proto.api.activity.Activity
-import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.dote.Dote
 import kurtome.dote.shared.constants.Emojis
 import kurtome.dote.web.CssSettings._
-import kurtome.dote.web.DoteRoutes.DetailsRoute
 import kurtome.dote.web.DoteRoutes.ProfileRoute
-import kurtome.dote.web.SharedStyles
 import kurtome.dote.web.components.materialui._
-import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import scalacss.ScalaCssReact._
 import wvlet.log.LogSupport
@@ -47,7 +42,6 @@ object ActivityHeadline extends LogSupport {
       marginRight(8 px)
     )
   }
-  Styles.addToDocument()
 
   case class Props(dote: Dote)
   case class State()

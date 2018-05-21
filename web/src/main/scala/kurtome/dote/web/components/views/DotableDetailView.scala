@@ -14,7 +14,7 @@ import kurtome.dote.web.components.widgets.detail.ReviewDetails
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
 import kurtome.dote.web.rpc.CachedValue
 import kurtome.dote.web.rpc.EmptyCachedValue
-import kurtome.dote.web.rpc.DoteProtoServer
+import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.GlobalLoadingManager
 import scalacss.internal.mutable.StyleSheet
@@ -62,7 +62,7 @@ object DotableDetailView extends LogSupport {
 
     def fetchFromServer(p: Props): Unit = {
       val request = GetDotableDetailsRequest(p.id)
-      val f = DoteProtoServer.getDotableDetails(request) map { response =>
+      val f = ResonatorApiClient.getDotableDetails(request) map { response =>
         bs.modState(_.copy(response = response, requestInFlight = false)).runNow()
       }
       GlobalLoadingManager.addLoadingFuture(f)
