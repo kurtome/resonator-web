@@ -88,21 +88,24 @@ object RadioView extends LogSupport {
 
     private def powerSwitched(e: ReactEventFromInput) = Callback {
       val checked = e.target.checked
-      UniversalAnalytics.visitor.event("radio-tuner",
-                                       s"power-$checked",
-                                       dom.window.location.pathname)
+      val onStr = if (checked) "on" else "false"
+      UniversalAnalytics.visitor
+        .event("radio-tuner", s"power-$onStr", dom.window.location.pathname)
+        .send()
       RadioTuner.power(checked)
     }
 
     private val seekForward = Callback {
-      UniversalAnalytics.visitor.event("radio-tuner", "seek-forward", dom.window.location.pathname)
+      UniversalAnalytics.visitor
+        .event("radio-tuner", "seek-forward", dom.window.location.pathname)
+        .send()
       RadioTuner.seekForward()
     }
 
     private val seekBackward = Callback {
-      UniversalAnalytics.visitor.event("radio-tuner",
-                                       "seek-backward",
-                                       dom.window.location.pathname)
+      UniversalAnalytics.visitor
+        .event("radio-tuner", "seek-backward", dom.window.location.pathname)
+        .send()
       RadioTuner.seekForward()
     }
 
