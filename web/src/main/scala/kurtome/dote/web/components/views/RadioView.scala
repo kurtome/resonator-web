@@ -106,7 +106,7 @@ object RadioView extends LogSupport {
       UniversalAnalytics.visitor
         .event("radio-tuner", "seek-backward", dom.window.location.pathname)
         .send()
-      RadioTuner.seekForward()
+      RadioTuner.seekBackward()
     }
 
     def render(p: Props, s: State): VdomElement = {
