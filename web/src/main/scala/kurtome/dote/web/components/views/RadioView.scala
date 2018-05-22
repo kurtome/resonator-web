@@ -18,6 +18,7 @@ import kurtome.dote.web.components.materialui.Typography
 import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.radio.TunerBand
 import kurtome.dote.web.utils.BaseBackend
+import kurtome.dote.web.utils.UniversalAnalytics
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
@@ -87,7 +88,22 @@ object RadioView extends LogSupport {
 
     private def powerSwitched(e: ReactEventFromInput) = Callback {
       val checked = e.target.checked
+      UniversalAnalytics.visitor.event("radio-tuner",
+                                       s"power-$checked",
+                                       dom.window.location.pathname)
       RadioTuner.power(checked)
+    }
+
+    private val seekForward = Callback {
+      UniversalAnalytics.visitor.event("radio-tuner", "seek-forward", dom.window.location.pathname)
+      RadioTuner.seekForward()
+    }
+
+    private val seekBackward = Callback {
+      UniversalAnalytics.visitor.event("radio-tuner",
+                                       "seek-backward",
+                                       dom.window.location.pathname)
+      RadioTuner.seekForward()
     }
 
     def render(p: Props, s: State): VdomElement = {
@@ -113,11 +129,11 @@ object RadioView extends LogSupport {
             GridContainer(spacing = 8,
                           justify = Grid.Justify.Center,
                           alignItems = Grid.AlignItems.Center)(
-              IconButton(color = IconButton.Colors.Primary,
-                         onClick = Callback(RadioTuner.seekBackward()))(Icons.ChevronLeft()),
+              IconButton(color = IconButton.Colors.Primary, onClick = seekBackward)(
+                Icons.ChevronLeft()),
               Typography()("Seek"),
-              IconButton(color = IconButton.Colors.Primary,
-                         onClick = Callback(RadioTuner.seekForward()))(Icons.ChevronRight())
+              IconButton(color = IconButton.Colors.Primary, onClick = seekForward)(
+                Icons.ChevronRight())
             )
           )
         )

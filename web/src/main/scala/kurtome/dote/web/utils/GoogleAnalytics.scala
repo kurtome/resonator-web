@@ -21,11 +21,12 @@ object UniversalAnalytics extends LogSupport {
 
   @js.native
   trait Visitor extends js.Object {
-    def pageview(path: String): VisitorPageView = js.native
+    def pageview(path: String): Hit = js.native
+    def event(category: String, action: String, label: String): Hit = js.native
   }
 
   @js.native
-  trait VisitorPageView extends js.Object {
+  trait Hit extends js.Object {
     def send(): Unit = js.native
   }
 

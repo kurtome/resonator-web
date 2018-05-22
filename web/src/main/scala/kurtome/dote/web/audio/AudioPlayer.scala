@@ -6,6 +6,8 @@ import kurtome.dote.shared.util.observer.Observable
 import kurtome.dote.web.audio.Howler.Howl
 import kurtome.dote.shared.util.observer.SimpleObservable
 import kurtome.dote.web.utils.GlobalNotificationManager
+import kurtome.dote.web.utils.UniversalAnalytics
+import org.scalajs.dom
 import wvlet.log.LogSupport
 
 import scala.scalajs.js
@@ -78,7 +80,7 @@ object AudioPlayer extends LogSupport {
       updateState(curState.copy(PlayerStatuses.Paused))
 
       // try to autoplay the next episode on this station
-      curState.stationSchedule.foreach(attemptPlayFromRadioSchedule)
+      curState.stationSchedule.foreach(playCurrentEpisodeFromStation)
     }
   }
 
@@ -106,17 +108,20 @@ object AudioPlayer extends LogSupport {
     if (curState.stationSchedule.map(_.getStation).contains(stationSchedule.getStation)) {
       debug("already playing this station")
     } else {
-      stationSchedule.scheduledEpisodes.find(se => {
-        val now = js.Date.now()
-        se.startTimeMillis <= now && se.endTimeMillis >= now && canPlay(se.getEpisode)
-      }) foreach { episode =>
-        if (episode.getEpisode.id != curState.episode.id) {
-          startPlayingEpisode(episode.getEpisode, Some(stationSchedule))
-        } else {
-          resumeOrStartPlaying()
-        }
-      }
+      playCurrentEpisodeFromStation(stationSchedule)
+    }
+  }
 
+  private def playCurrentEpisodeFromStation(stationSchedule: RadioStationSchedule) = {
+    stationSchedule.scheduledEpisodes.find(se => {
+      val now = js.Date.now()
+      se.startTimeMillis <= now && se.endTimeMillis >= now && canPlay(se.getEpisode)
+    }) foreach { episode =>
+      if (episode.getEpisode.id != curState.episode.id) {
+        startPlayingEpisode(episode.getEpisode, Some(stationSchedule))
+      } else {
+        resumeOrStartPlaying()
+      }
     }
   }
 
@@ -129,6 +134,11 @@ object AudioPlayer extends LogSupport {
     if (howl != null) {
       howl.stop()
     }
+
+    UniversalAnalytics.visitor.event(
+      category = stationSchedule.map(_ => "radio-tuner").getOrElse("audio-player"),
+      action = "play-episode",
+      label = dom.window.location.pathname)
 
     val url: String = getUrl(episode)
     updateState(State(PlayerStatuses.Loading, episode, stationSchedule))
