@@ -39,7 +39,7 @@ object RadioView extends LogSupport {
     )
   }
 
-  case class Props(routeStation: String)
+  case class Props(initialRoute: RadioRoute)
   case class State(tunerState: RadioTuner.State)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -47,7 +47,7 @@ object RadioView extends LogSupport {
     private val stationPattern = raw"([0-9]+.?[0-9]*)(kHz|MHz)".r
 
     def handleNewProps(p: Props) = Callback {
-      p.routeStation match {
+      p.initialRoute.station match {
         case stationPattern(frequencyStr, bandStr) => {
           bandStr match {
             case "kHz" => RadioTuner.setStation(FrequencyKind.AM, frequencyStr.toFloat)
@@ -59,36 +59,40 @@ object RadioView extends LogSupport {
       RadioTuner.startFetchingSchedule()
     }
 
+    def handleDidMount(p: Props) = Callback {}
+
     val stateObserver: Observer[RadioTuner.State] = (state: RadioTuner.State) => {
       bs.modState(_.copy(tunerState = state)).runNow()
 
-      val desiredRoute = if (state.frequency > 0) {
+      if (state.frequency > 0) {
         val stationStr = state.frequency.toString + (state.frequencyKind match {
           case FrequencyKind.FM => "MHz"
           case _ => "kHz"
         })
-        RadioRoute(stationStr)
-      } else {
-        RadioDefaultRoute()
-      }
-      val url = doteRouterCtl.urlFor(desiredRoute).value
-      val baseTunerUrl = doteRouterCtl.urlFor(RadioDefaultRoute()).value
-      if (dom.window.location.href != url) {
-        if (dom.window.location.href == baseTunerUrl) {
-          dom.window.history.replaceState(new js.Object(), s"Resonator", url)
-        } else {
-          dom.window.history.pushState(new js.Object(), s"Resonator", url)
+        val title = {
+          state.currentCallSign match {
+            case Some(callSign) => s"$callSign - $stationStr | Resonator"
+            case _ => s"$stationStr | Resonator"
+          }
         }
+        val url = doteRouterCtl.urlFor(RadioRoute(stationStr)).value
+        // put the current station in the navigation history, but replace the current state so
+        // that it doesn't create a long stack of stations.
+        dom.window.history
+          .replaceState(new js.Object(), title, url)
+        dom.document.title = title
       }
     }
+
     RadioTuner.stateObservable.addObserver(stateObserver)
+
     val onUnmount: Callback = Callback {
       RadioTuner.stateObservable.removeObserver(stateObserver)
     }
 
     private def powerSwitched(e: ReactEventFromInput) = Callback {
       val checked = e.target.checked
-      val onStr = if (checked) "on" else "false"
+      val onStr = if (checked) "on" else "off"
       UniversalAnalytics.visitor
         .event("radio-tuner", s"power-$onStr", dom.window.location.pathname)
         .send()
@@ -147,17 +151,18 @@ object RadioView extends LogSupport {
 
   val component = ScalaComponent
     .builder[Props](this.getClass.getSimpleName)
-    .initialState(State(RadioTuner.curState))
+    .initialStateFromProps(p => State(RadioTuner.curState))
     .backend(new Backend(_))
     .render(x => x.backend.render(x.props, x.state))
     .componentWillMount(x => x.backend.handleNewProps(x.props))
     .componentWillReceiveProps(x => x.backend.handleNewProps(x.nextProps))
+    .componentWillUnmount(x => x.backend.onUnmount)
     .build
 
   def apply(route: RadioDefaultRoute) =
-    component.withProps(Props(""))
+    component.withProps(Props(RadioRoute("")))
 
   def apply(route: RadioRoute) = {
-    component.withProps(Props(route.station))
+    component.withProps(Props(route))
   }
 }

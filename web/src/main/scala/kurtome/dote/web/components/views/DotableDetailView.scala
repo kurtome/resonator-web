@@ -17,6 +17,7 @@ import kurtome.dote.web.rpc.EmptyCachedValue
 import kurtome.dote.web.rpc.ResonatorApiClient
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.GlobalLoadingManager
+import org.scalajs.dom
 import scalacss.internal.mutable.StyleSheet
 import wvlet.log.LogSupport
 
@@ -69,7 +70,13 @@ object DotableDetailView extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
+
       val dotable = s.response.getDotable
+
+      val title = dotable.getCommon.title
+      if (title.nonEmpty) {
+        dom.document.title = s"$title | Resonator"
+      }
 
       val episodeTablePage = Try(p.queryParams.getOrElse("ep_page", "0").toInt).getOrElse(0)
 

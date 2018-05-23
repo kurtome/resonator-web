@@ -3,6 +3,7 @@ package kurtome.dote.web
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.shared.constants.QueryParamKeys
 import kurtome.dote.shared.util.observer.SimpleObservable
 import kurtome.dote.web.components.views._
 import kurtome.dote.web.components.widgets.ContentFrame
@@ -33,8 +34,6 @@ object DoteRoutes extends LogSupport {
   case object AddRoute extends DoteRoute
 
   case object LoginRoute extends DoteRoute
-
-  case object ListsRoute extends DoteRoute
 
   case object ThemeRoute extends DoteRoute
 
@@ -138,8 +137,8 @@ object DoteRoutes extends LogSupport {
                                                    routerCtl) => DotableDetailView(page)())
 
         | dynamicRouteCT("/profile" ~ ("/" ~ slug)
-          .caseClass[ProfileRoute]) ~> dynRenderR(
-          (page: ProfileRoute, routerCtl) => ProfileView(page)())
+          .caseClass[ProfileRoute]) ~> dynRenderR((page: ProfileRoute,
+                                                   routerCtl) => ProfileView(page)())
 
         | dynamicRouteCT("/profile" ~ ("/" ~ slug ~ "/followers")
           .caseClass[FollowersRoute]) ~> dynRenderR(
@@ -183,14 +182,20 @@ object DoteRoutes extends LogSupport {
 
             UniversalAnalytics.visitor.pageview(dom.window.location.pathname).send()
         })
+        .setTitle {
+          case ThemeRoute => s"Theme | Resonator"
+          case AddRoute => s"Add Podcast | Resonator"
+          case LoginRoute => s"Login | Resonator"
+          case AllActivityRoute(_) => s"Activity | Resonator"
+          case SearchRoute(params) =>
+            s"${params.getOrElse(QueryParamKeys.query, "Search")} | Resonator Search"
+          case RadioRoute(station, _) => s"$station | Resonator"
+          case FollowersRoute(username) => s"$username Followers | Resonator"
+          case FollowingActivityRoute(_) => s"Following Activity | Resonator"
+          case ProfileRoute(username) => s"$username Profile | Resonator"
+          case _ => "Resonator"
+        }
     }
-
-//
-//  @js.native
-//  @JSGlobalScope
-//  object Globals extends js.Object {
-//    var ga: js.Dynamic = js.native
-//  }
 
   private val baseUrl: BaseUrl =
     BaseUrl(dom.window.location.protocol + "//" + dom.window.location.host)

@@ -3,6 +3,7 @@ package kurtome.dote.web.components.widgets
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.radio.RadioStation
+import kurtome.dote.proto.api.radio.RadioStationSchedule
 import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.components.materialui._
@@ -168,7 +169,7 @@ object AudioControls extends LogSupport {
       if (s.playerState.status == PlayerStatuses.Off) {
         <.div()
       } else {
-        val station = s.playerState.stationSchedule
+        val station = s.playerState.stationSchedule.getOrElse(RadioStationSchedule.defaultInstance)
         Grid(container = true,
              spacing = 0,
              style = Styles.playerWrapper,
@@ -202,7 +203,8 @@ object AudioControls extends LogSupport {
                                 justify = Grid.Justify.Center,
                                 alignItems = Grid.AlignItems.FlexEnd,
                                 style = Styles.buttonGrid)(
-                    GridItem(hidden = Grid.HiddenProps(xsUp = station.isDefined))(
+                    GridItem(
+                      hidden = Grid.HiddenProps(xsUp = s.playerState.stationSchedule.isDefined))(
                       IconButton(style = Styles.bottomButton, onClick = rewind10Clicked)(
                         Icons.Replay10()
                       ),
@@ -217,9 +219,10 @@ object AudioControls extends LogSupport {
                         Icons.Forward30()
                       )
                     ),
-                    GridItem(hidden = Grid.HiddenProps(xsUp = station.isEmpty))(
+                    GridItem(
+                      hidden = Grid.HiddenProps(xsUp = s.playerState.stationSchedule.isEmpty))(
                       Typography()(
-                        s"${station.get.getStation.callSign} - ${formatFrequency(station.get.getStation)}"
+                        s"${station.getStation.callSign} - ${formatFrequency(station.getStation)}"
                       )
                     )
                   )

@@ -40,6 +40,12 @@ object RadioTuner extends LogSupport {
       }
     }
 
+    def currentStationSchedule: Option[RadioStationSchedule] = {
+      currentSchedules.find(_.getStation.frequency == frequency)
+    }
+
+    def currentCallSign: Option[String] = currentStationSchedule.map(_.getStation.callSign)
+
     def currentFrequencyRange: Range = {
       frequencyKind match {
         case FrequencyKind.FM => fmFrequencyRange
@@ -145,10 +151,6 @@ object RadioTuner extends LogSupport {
   }
 
   private def updateState(s: State): Unit = {
-    if (s.on && state.off) {
-      // TODO
-    }
-
     if (s != state) {
       state = s
       stateObservable.notifyObservers(state)

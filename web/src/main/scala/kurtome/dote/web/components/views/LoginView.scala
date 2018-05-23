@@ -78,10 +78,6 @@ object LoginView extends LogSupport {
         }
     }
 
-    val handleLogout = Callback {
-      dom.document.location.assign("/logout")
-    }
-
     private def statusToErrorMessage(status: ActionStatus): String = {
       if (status.isSuccess) {
         ""
