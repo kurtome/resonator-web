@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-next.com/api/table-sort-label/
+  * Wrapper for https://material-ui.com/api/table-sort-label/
   */
 object TableSortLabel {
 
-  @JSImport("material-ui/Table/TableSortLabel", JSImport.Default)
+  @JSImport("@material-ui/core/TableSortLabel", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/grow/
+  * Wrapper for https://material-ui.com/api/grow/
   */
 object Grow {
 
-  @JSImport("material-ui/transitions/Grow", JSImport.Default)
+  @JSImport("@material-ui/core/Grow", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

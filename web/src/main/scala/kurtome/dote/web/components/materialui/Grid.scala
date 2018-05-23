@@ -14,16 +14,16 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/grid/
+  * Wrapper for https://material-ui.com/api/grid/
   */
 object Grid {
 
-  @JSImport("material-ui/Grid/Grid.js", JSImport.Default)
+  @JSImport("@material-ui/core/Grid", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
   /**
-    * https://material-ui-next.com/layout/hidden/
+    * https://material-ui.com/layout/hidden/
     */
   @js.native
   trait HiddenProps extends js.Object {
@@ -38,10 +38,18 @@ object Grid {
               smUp: js.UndefOr[Boolean] = js.undefined,
               smDown: js.UndefOr[Boolean] = js.undefined): HiddenProps = {
       val p = new js.Object().asInstanceOf[HiddenProps]
-      p.xsUp = xsUp
-      p.xsDown = xsDown
-      p.smUp = smUp
-      p.smDown = smDown
+      if (xsUp.getOrElse(false)) {
+        p.xsUp = xsUp
+      }
+      if (xsDown.isDefined) {
+        p.xsDown = xsDown
+      }
+      if (smUp.isDefined) {
+        p.smUp = smUp
+      }
+      if (smDown.isDefined) {
+        p.smDown = smDown
+      }
       p
     }
   }
@@ -110,7 +118,7 @@ object Grid {
             sm: js.UndefOr[Int] = js.undefined,
             xs: js.UndefOr[Int] = js.undefined,
             hidden: js.UndefOr[HiddenProps] = js.undefined)
-    : CtorType.Children[Props, UnmountedWithRawType[Props, Null, RawMounted]] = {
+    : CtorType.Children[Props, UnmountedWithRawType[Props, Null, RawMounted[Props, Null]]] = {
     val p = (new js.Object).asInstanceOf[Props]
     p.style = style
     p.container = container
@@ -124,7 +132,9 @@ object Grid {
     p.justify = justify.map(_.toString)
     p.direction = direction.map(_.toString)
     p.wrap = wrap.map(_.toString)
-    p.hidden = hidden
+    if (hidden.isDefined) {
+      p.hidden = hidden
+    }
 
     if (key.isDefined) {
       component.withKey(key.get).withProps(p)
@@ -144,7 +154,8 @@ object GridContainer {
       wrap: js.UndefOr[Wrap.Value] = js.undefined,
       hidden: js.UndefOr[HiddenProps] = js.undefined,
       alignItems: js.UndefOr[AlignItems.Value] = js.undefined
-  ): CtorType.Children[Grid.Props, UnmountedWithRawType[Grid.Props, Null, RawMounted]] = {
+  ): CtorType.Children[Grid.Props,
+                       UnmountedWithRawType[Grid.Props, Null, RawMounted[Grid.Props, Null]]] = {
     Grid(container = true,
          key = key,
          style = style,
@@ -167,7 +178,8 @@ object GridItem {
       md: js.UndefOr[Int] = js.undefined,
       sm: js.UndefOr[Int] = js.undefined,
       xs: js.UndefOr[Int] = js.undefined
-  ): CtorType.Children[Grid.Props, UnmountedWithRawType[Grid.Props, Null, RawMounted]] = {
+  ): CtorType.Children[Grid.Props,
+                       UnmountedWithRawType[Grid.Props, Null, RawMounted[Grid.Props, Null]]] = {
     Grid(item = true,
          key = key,
          style = style,

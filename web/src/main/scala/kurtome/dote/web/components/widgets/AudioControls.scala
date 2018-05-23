@@ -203,8 +203,7 @@ object AudioControls extends LogSupport {
                                 justify = Grid.Justify.Center,
                                 alignItems = Grid.AlignItems.FlexEnd,
                                 style = Styles.buttonGrid)(
-                    GridItem(
-                      hidden = Grid.HiddenProps(xsUp = s.playerState.stationSchedule.isDefined))(
+                    Hidden(xsUp = s.playerState.stationSchedule.isDefined)(GridItem()(
                       IconButton(style = Styles.bottomButton, onClick = rewind10Clicked)(
                         Icons.Replay10()
                       ),
@@ -218,15 +217,17 @@ object AudioControls extends LogSupport {
                       IconButton(style = Styles.bottomButton, onClick = forward30Clicked)(
                         Icons.Forward30()
                       )
-                    ),
-                    GridItem(
-                      hidden = Grid.HiddenProps(xsUp = s.playerState.stationSchedule.isEmpty))(
+                    ))
+                  )
+                ),
+                Hidden(xsUp = s.playerState.stationSchedule.isEmpty)(
+                  GridItem()(
+                    GridItem()(
                       Typography()(
                         s"${station.getStation.callSign} - ${formatFrequency(station.getStation)}"
                       )
                     )
-                  )
-                ),
+                  )),
                 <.div(
                   ^.width := asPxStr(buttonSpaceWidth),
                   ^.height := asPxStr(controlsHeight),

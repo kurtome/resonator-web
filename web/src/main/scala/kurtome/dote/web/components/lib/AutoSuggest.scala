@@ -53,7 +53,7 @@ object AutoSuggest {
   @js.native
   trait SuggestionContainerRenderParams extends js.Object {
     val containerProps: js.Dynamic = js.native
-    val children: js.UndefOr[raw.ReactElement] = js.native
+    val children: js.UndefOr[raw.React.Element] = js.native
     val query: String = js.native
   }
 
@@ -122,15 +122,15 @@ object AutoSuggest {
     var onSuggestionsFetchRequested: js.Function1[SuggestionFetchRequest, Unit] = js.native
     var onSuggestionsClearRequested: js.Function0[Unit] = js.native
     var getSuggestionValue: js.Function1[TSuggestion, String] = js.native
-    var renderSuggestion: js.Function2[TSuggestion, SuggestionRenderParams, raw.ReactElement] =
+    var renderSuggestion: js.Function2[TSuggestion, SuggestionRenderParams, raw.React.Element] =
       js.native
     var onSuggestionSelected: js.UndefOr[
       js.Function2[ReactEventFromInput, SuggestionSelectedParams[TSuggestion], Unit]] =
       js.native
     var inputProps: InputProps = js.native
-    var renderInputComponent: js.UndefOr[js.Function1[InputProps, raw.ReactElement]] = js.native
+    var renderInputComponent: js.UndefOr[js.Function1[InputProps, raw.React.Element]] = js.native
     var renderSuggestionsContainer
-      : js.UndefOr[js.Function1[SuggestionContainerRenderParams, raw.ReactElement]] =
+      : js.UndefOr[js.Function1[SuggestionContainerRenderParams, raw.React.Element]] =
       js.native
     var alwaysRenderSuggestions: js.UndefOr[Boolean] = js.native
     var highlightFirstSuggestion: js.UndefOr[Boolean] = js.native
@@ -144,7 +144,7 @@ object AutoSuggest {
       onSuggestionsFetchRequested: (SuggestionFetchRequest) => Callback,
       onSuggestionsClearRequested: Callback,
       getSuggestionValue: (TSuggestion) => String,
-      renderSuggestion: (TSuggestion, SuggestionRenderParams) => raw.ReactElement,
+      renderSuggestion: (TSuggestion, SuggestionRenderParams) => raw.React.Element,
       onSuggestionSelected: js.UndefOr[
         js.Function2[ReactEventFromInput, SuggestionSelectedParams[TSuggestion], Unit]] =
         js.undefined,
@@ -152,9 +152,9 @@ object AutoSuggest {
       theme: js.UndefOr[js.Dynamic],
       alwaysRenderSuggestions: js.UndefOr[Boolean] = js.undefined,
       highlightFirstSuggestion: js.UndefOr[Boolean] = js.undefined,
-      renderInputComponent: js.UndefOr[js.Function1[InputProps, raw.ReactElement]] = js.undefined,
+      renderInputComponent: js.UndefOr[js.Function1[InputProps, raw.React.Element]] = js.undefined,
       renderSuggestionsContainer: js.UndefOr[
-        js.Function1[SuggestionContainerRenderParams, raw.ReactElement]] = js.undefined) = {
+        js.Function1[SuggestionContainerRenderParams, raw.React.Element]] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props[TSuggestion]]
     p.suggestions = suggestions
     p.onSuggestionsFetchRequested = (r) => onSuggestionsFetchRequested(r).runNow()

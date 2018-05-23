@@ -198,7 +198,7 @@ object MuiTheme extends LogSupport {
     val zIndex: js.Dynamic = js.native
   }
 
-  // Look at the documentation at https://material-ui-next.com/customization/themes/ for
+  // Look at the documentation at https://material-ui.com/customization/themes/ for
   // that customization is possible.
   def createTheme(light: Boolean, primary: PaletteColor, secondary: PaletteColor): Theme =
     MuiThemeProvider.CreateMuiTheme.createMuiTheme(

@@ -37,7 +37,23 @@ object RadioView extends LogSupport {
       width(50 %%),
       minWidth(300 px)
     )
+
+    val powerButton = style(
+      // TODO: animate a glow to draw attention
+      // animation := s"${Animations.fadeIn.name.value} 2s infinite",
+      opacity(1)
+    )
   }
+
+  private object Animations extends StyleSheet.Inline {
+    import dsl._
+    val fadeIn = keyframes(
+      (0 %%) -> keyframe(opacity(0)),
+      (50 %%) -> keyframe(opacity(1)),
+      (100 %%) -> keyframe(opacity(0))
+    )
+  }
+  Animations.addToDocument()
 
   case class Props(initialRoute: RadioRoute)
   case class State(tunerState: RadioTuner.State)
@@ -122,7 +138,9 @@ object RadioView extends LogSupport {
                           alignItems = Grid.AlignItems.Center)(
               GridItem()(
                 <.div(^.textAlign.center, ^.marginBottom := "-8px", Typography()("Power")),
-                Switch(checked = s.tunerState.on, onChange = powerSwitched)()
+                Switch(style = Styles.powerButton,
+                       checked = s.tunerState.on,
+                       onChange = powerSwitched)()
               )
             )
           ),

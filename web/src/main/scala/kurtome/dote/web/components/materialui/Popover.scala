@@ -9,11 +9,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/popovers/
+  * Wrapper for https://material-ui.com/api/popovers/
   */
 object Popover {
 
-  @JSImport("material-ui/Popover", JSImport.Default)
+  @JSImport("@material-ui/core/Popover", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

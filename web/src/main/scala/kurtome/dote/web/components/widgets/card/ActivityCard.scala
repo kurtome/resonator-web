@@ -145,16 +145,18 @@ object ActivityCard extends LogSupport {
               )
             )
           ),
-          GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = review.isEmpty))(
-            GridContainer(alignItems = Grid.AlignItems.Center, style = Styles.reviewSnippet)(
-              GridItem(style = Styles.reviewSnippetItem)(
-                Typography(variant = Typography.Variants.Caption, noWrap = true)(
-                  s""""$reviewBody""""
-                )
-              ),
-              GridItem()(
-                Typography(variant = Typography.Variants.Caption)(
-                  SiteLink(DetailsRoute(review.map(_.id).getOrElse(""), "review"))("See Review")
+          Hidden(xsUp = review.isEmpty)(
+            GridItem(xs = 12)(
+              GridContainer(alignItems = Grid.AlignItems.Center, style = Styles.reviewSnippet)(
+                GridItem(style = Styles.reviewSnippetItem)(
+                  Typography(variant = Typography.Variants.Caption, noWrap = true)(
+                    s""""$reviewBody""""
+                  )
+                ),
+                GridItem()(
+                  Typography(variant = Typography.Variants.Caption)(
+                    SiteLink(DetailsRoute(review.map(_.id).getOrElse(""), "review"))("See Review")
+                  )
                 )
               )
             )

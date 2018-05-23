@@ -130,7 +130,7 @@ object FullItemList extends LogSupport {
       )
     }
 
-    private def renderPage(p: Props, allItems: Seq[raw.ReactNode], tilesPerRow: Int): VdomNode = {
+    private def renderPage(p: Props, allItems: Seq[raw.React.Node], tilesPerRow: Int): VdomNode = {
       if (allItems.nonEmpty) {
         val widthPercent = 100.0 / tilesPerRow
         GridContainer(style = Styles.itemsContainer,

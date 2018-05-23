@@ -6,19 +6,19 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/form-control-label/
+  * Wrapper for https://material-ui.com/api/form-control-label/
   */
 object FormControlLabel {
 
-  @JSImport("material-ui/Form/FormControlLabel", JSImport.Default)
+  @JSImport("@material-ui/core/FormControlLabel", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
   // NOTE: not all props exposed
   @js.native
   trait Props extends js.Object {
-    var control: js.UndefOr[raw.ReactNode] = js.native
-    var label: js.UndefOr[raw.ReactNode] = js.native
+    var control: js.UndefOr[raw.React.Node] = js.native
+    var label: js.UndefOr[raw.React.Node] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)

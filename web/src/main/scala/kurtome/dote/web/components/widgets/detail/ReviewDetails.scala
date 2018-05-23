@@ -89,19 +89,21 @@ object ReviewDetails {
                   s"Reviewed on $publishedDate$editedDateFragment"
                 )
               ),
-              GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = !isCurrentUsersReview))(
-                Typography(variant = Typography.Variants.Caption)(
-                  <.a(
-                    ^.color := MuiTheme.theme.palette.primary.light,
-                    ^.href := "#",
-                    ^.textDecoration := "none",
-                    ^.onClick --> bs.modState(_.copy(editOpen = true)),
-                    "Edit"
-                  )
-                ),
-                ReviewDialog(dotable = parent.withDote(reviewExtras.getDote),
-                             open = s.editOpen,
-                             onClose = bs.modState(_.copy(editOpen = false)))()
+              Hidden(xsUp = !isCurrentUsersReview)(
+                GridItem(xs = 12)(
+                  Typography(variant = Typography.Variants.Caption)(
+                    <.a(
+                      ^.color := MuiTheme.theme.palette.primary.light,
+                      ^.href := "#",
+                      ^.textDecoration := "none",
+                      ^.onClick --> bs.modState(_.copy(editOpen = true)),
+                      "Edit"
+                    )
+                  ),
+                  ReviewDialog(dotable = parent.withDote(reviewExtras.getDote),
+                               open = s.editOpen,
+                               onClose = bs.modState(_.copy(editOpen = false)))()
+                )
               ),
               GridItem(xs = 12)(
                 Typography(component = "div")(Markdown(source = common.description)()))

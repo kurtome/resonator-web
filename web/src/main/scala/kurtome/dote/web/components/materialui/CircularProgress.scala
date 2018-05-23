@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/circular-progress/
+  * Wrapper for https://material-ui.com/api/circular-progress/
   */
 object CircularProgress {
 
-  @JSImport("material-ui/Progress/CircularProgress.js", JSImport.Default)
+  @JSImport("@material-ui/core/CircularProgress", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

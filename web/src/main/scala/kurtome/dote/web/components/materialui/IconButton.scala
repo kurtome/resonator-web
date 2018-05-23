@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/button/
+  * Wrapper for https://material-ui.com/api/button/
   */
 object IconButton {
 
-  @JSImport("material-ui/IconButton", JSImport.Default)
+  @JSImport("@material-ui/core/IconButton", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

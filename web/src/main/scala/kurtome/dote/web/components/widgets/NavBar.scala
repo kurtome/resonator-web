@@ -169,32 +169,30 @@ object NavBar extends LogSupport {
             ^.className := Styles.navPaper,
             CenteredMainContent()(
               GridContainer(justify = Grid.Justify.SpaceBetween, spacing = 0)(
-                GridItem(hidden = Grid.HiddenProps(xsUp = s.isCollapsed))(SiteTitle()()),
+                Hidden(xsUp = s.isCollapsed)(
+                  GridItem()(SiteTitle()())
+                ),
                 GridItem()(
                   GridContainer(style = Styles.actionsContainer,
                                 spacing = 0,
                                 alignItems = Grid.AlignItems.Center)(
-                    GridItem(hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isLoggedIn))(
-                      Button(style = Styles.actionButton, onClick = doteRouterCtl.set(LoginRoute))(
-                        "Log In")),
-                    GridItem(hidden =
-                      Grid.HiddenProps(xsDown = true, smUp = p.currentRoute == HomeRoute))(
+                    Hidden(xsUp = LoggedInPersonManager.isLoggedIn)(
+                      GridItem()(Button(style = Styles.actionButton,
+                                        onClick = doteRouterCtl.set(LoginRoute))("Log In"))),
+                    Hidden(xsDown = true, smUp = p.currentRoute == HomeRoute)(GridItem()(
                       IconButton(style = Styles.actionButton,
                                  onClick = doteRouterCtl.set(HomeRoute))(Icons.Home())
-                    ),
-                    GridItem(hidden = Grid.HiddenProps(
-                      xsUp = p.currentRoute.isInstanceOf[RadioRoute] || p.currentRoute
-                        .isInstanceOf[RadioDefaultRoute]))(
+                    )),
+                    Hidden(xsUp = p.currentRoute.isInstanceOf[RadioRoute] || p.currentRoute
+                      .isInstanceOf[RadioDefaultRoute])(GridItem()(IconButton(
+                      style = Styles.actionButton,
+                      onClick = doteRouterCtl.set(RadioDefaultRoute()))(Icons.Radio()))),
+                    Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(GridItem()(
                       IconButton(style = Styles.actionButton,
-                                 onClick = doteRouterCtl.set(RadioDefaultRoute()))(Icons.Radio())),
-                    GridItem(
-                      hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+                                 onClick = handleProfileButtonClicked(p))(Icons.AccountCircle()))),
+                    Hidden(xsUp = p.currentRoute.isInstanceOf[SearchRoute])(GridItem()(
                       IconButton(style = Styles.actionButton,
-                                 onClick = handleProfileButtonClicked(p))(Icons.AccountCircle())),
-                    GridItem(
-                      hidden = Grid.HiddenProps(xsUp = p.currentRoute.isInstanceOf[SearchRoute]))(
-                      IconButton(style = Styles.actionButton,
-                                 onClick = doteRouterCtl.set(SearchRoute()))(Icons.Search()))
+                                 onClick = doteRouterCtl.set(SearchRoute()))(Icons.Search())))
                   )
                 )
               )

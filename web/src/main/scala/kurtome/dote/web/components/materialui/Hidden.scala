@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/hidden/
+  * Wrapper for https://material-ui.com/api/hidden/
   */
 object Hidden {
 
-  @JSImport("material-ui/Hidden", JSImport.Default)
+  @JSImport("@material-ui/core/Hidden", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

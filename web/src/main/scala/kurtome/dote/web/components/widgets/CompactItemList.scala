@@ -79,14 +79,16 @@ object CompactItemList extends LogSupport {
                       justify = Grid.Justify.SpaceBetween,
                       alignItems = Grid.AlignItems.Center)(
           GridItem()(Typography(variant = Typography.Variants.Title)(p.title)),
-          GridItem(hidden = Grid.HiddenProps(xsUp = p.moreRoute.isEmpty))(FlatRoundedButton(
-            onClick = p.moreRoute.map(doteRouterCtl.set).getOrElse(Callback.empty))("See More"))
+          Hidden(xsUp = p.moreRoute.isEmpty)(
+            GridItem()(FlatRoundedButton(
+              onClick = p.moreRoute.map(doteRouterCtl.set).getOrElse(Callback.empty))("See More"))
+          )
         )
       )
     }
 
     private def renderPage(p: Props,
-                           allItems: Seq[raw.ReactNode],
+                           allItems: Seq[raw.React.Node],
                            tilesPerPage: Int,
                            tilesPerRow: Int,
                            selectedPageIndex: Int,
@@ -97,7 +99,7 @@ object CompactItemList extends LogSupport {
       // speed up the render time of the page.
       val items = if (selectedPageIndex == pageIndex) allItems else Nil
 
-      val pageItems: Seq[raw.ReactNode] = items
+      val pageItems: Seq[raw.React.Node] = items
         .drop(pageIndex * tilesPerPage)
         // Pad with placeholders to make the list spacing balanced, rendering code below
         // will handle the placeholders

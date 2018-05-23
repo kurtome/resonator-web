@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-next.com/api/bottom-navigation/
+  * Wrapper for https://material-ui.com/api/bottom-navigation/
   */
 object BottomNavigation {
 
-  @JSImport("material-ui/BottomNavigation/BottomNavigation.js", JSImport.Default)
+  @JSImport("@material-ui/core/BottomNavigation", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

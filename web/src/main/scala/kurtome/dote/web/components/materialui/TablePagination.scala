@@ -7,11 +7,11 @@ import scala.scalajs.js.annotation.JSImport
 import scala.scalajs.js.JSConverters._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/table-pagination/
+  * Wrapper for https://material-ui.com/api/table-pagination/
   */
 object TablePagination {
 
-  @JSImport("material-ui/Table/TablePagination", JSImport.Default)
+  @JSImport("@material-ui/core/TablePagination", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
@@ -19,7 +19,7 @@ object TablePagination {
   trait Props extends js.Object {
     var count: js.UndefOr[Int] = js.native
     var page: js.UndefOr[Int] = js.native
-    var labelRowsPerPage: js.UndefOr[raw.ReactElement] = js.native
+    var labelRowsPerPage: js.UndefOr[raw.React.Element] = js.native
     var rowsPerPage: js.UndefOr[Int] = js.native
     var rowsPerPageOptions: js.UndefOr[js.Array[Int]] = js.native
     var onChangePage: js.Function2[js.Dynamic, Int, Unit] = js.native
@@ -31,7 +31,7 @@ object TablePagination {
 
   def apply(count: js.UndefOr[Int] = js.undefined,
             page: js.UndefOr[Int] = js.undefined,
-            labelRowsPerPage: js.UndefOr[raw.ReactElement] = js.undefined,
+            labelRowsPerPage: js.UndefOr[raw.React.Element] = js.undefined,
             rowsPerPage: js.UndefOr[Int] = js.undefined,
             rowsPerPageOptions: js.UndefOr[Array[Int]] = js.undefined,
             onChangePage: (js.Dynamic, Int) => Callback = (_, _) => Callback.empty,

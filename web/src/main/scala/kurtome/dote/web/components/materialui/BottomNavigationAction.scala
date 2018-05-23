@@ -8,11 +8,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-next.com/api/bottom-navigation-action/
+  * Wrapper for https://material-ui.com/api/bottom-navigation-action/
   */
 object BottomNavigationAction {
 
-  @JSImport("material-ui/BottomNavigation/BottomNavigationAction", JSImport.Default)
+  @JSImport("@material-ui/core/BottomNavigationAction", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
@@ -26,8 +26,8 @@ object BottomNavigationAction {
     var focusRipple: js.UndefOr[Boolean] = js.native
     var centerRipple: js.UndefOr[Boolean] = js.native
     var onClick: js.UndefOr[js.Function0[Unit]] = js.native
-    var icon: js.UndefOr[raw.ReactElement] = js.native
-    var label: js.UndefOr[raw.ReactElement] = js.native
+    var icon: js.UndefOr[raw.React.Element] = js.native
+    var label: js.UndefOr[raw.React.Element] = js.native
     var value: js.UndefOr[String] = js.native
     var className: js.UndefOr[String] = js.native
   }

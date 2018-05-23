@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/tab/
+  * Wrapper for https://material-ui.com/api/tab/
   */
 object Tab {
 
-  @JSImport("material-ui/Tabs/Tab.js", JSImport.Default)
+  @JSImport("@material-ui/core/Tab", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

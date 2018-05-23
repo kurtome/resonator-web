@@ -80,17 +80,19 @@ object SearchView extends LogSupport {
               "."
             )
           ),
-          GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = s.combinedResults.isEmpty))(
-            GridContainer()(
-              (s.combinedResults.zipWithIndex map {
-                case (dotable, i) =>
-                  <.div(
-                    ^.key := dotable.id,
-                    ^.width := "100%",
-                    ^.marginBottom := "16px",
-                    renderCard(dotable)
-                  )
-              }).toVdomArray
+          Hidden(xsUp = s.combinedResults.isEmpty)(
+            GridItem(xs = 12)(
+              GridContainer()(
+                (s.combinedResults.zipWithIndex map {
+                  case (dotable, i) =>
+                    <.div(
+                      ^.key := dotable.id,
+                      ^.width := "100%",
+                      ^.marginBottom := "16px",
+                      renderCard(dotable)
+                    )
+                }).toVdomArray
+              )
             )
           )
         )

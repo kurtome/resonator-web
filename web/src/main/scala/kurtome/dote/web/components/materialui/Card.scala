@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-next.com/api/card/
+  * Wrapper for https://material-ui.com/api/card/
   */
 object Card {
 
-  @JSImport("material-ui/Card/Card.js", JSImport.Default)
+  @JSImport("@material-ui/core/Card.js", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

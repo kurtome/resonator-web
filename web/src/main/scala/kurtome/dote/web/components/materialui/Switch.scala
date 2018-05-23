@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/switch/
+  * Wrapper for https://material-ui.com/api/switch/
   */
 object Switch {
 
-  @JSImport("material-ui/Switch", JSImport.Default)
+  @JSImport("@material-ui/core/Switch", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
@@ -29,6 +29,7 @@ object Switch {
     var disableRipple: js.UndefOr[Boolean] = js.native
     var value: js.UndefOr[String] = js.native
     var onChange: js.Function1[ReactEventFromInput, Unit] = js.native
+    var style: js.UndefOr[js.Dynamic] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
@@ -39,7 +40,8 @@ object Switch {
       disabled: js.UndefOr[Boolean] = js.undefined,
       disableRipple: js.UndefOr[Boolean] = js.undefined,
       value: js.UndefOr[String] = js.undefined,
-      onChange: (ReactEventFromInput) => Callback = _ => Callback.empty
+      onChange: (ReactEventFromInput) => Callback = _ => Callback.empty,
+      style: js.UndefOr[js.Dynamic] = js.undefined,
   ) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.checked = checked
@@ -48,6 +50,7 @@ object Switch {
     p.disableRipple = disableRipple
     p.value = value
     p.onChange = (e) => onChange(e).runNow()
+    p.style = style
 
     component.withProps(p)
   }

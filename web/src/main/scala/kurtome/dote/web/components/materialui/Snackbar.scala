@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/demos/snackbars/
+  * Wrapper for https://material-ui.com/demos/snackbars/
   */
 object Snackbar {
 
-  @JSImport("material-ui/Snackbar/Snackbar.js", JSImport.Default)
+  @JSImport("@material-ui/core/Snackbar", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
@@ -39,10 +39,10 @@ object Snackbar {
   // NOTE: not all props exposed
   @js.native
   trait Props extends js.Object {
-    var action: js.UndefOr[raw.ReactElement] = js.native
+    var action: js.UndefOr[raw.React.Element] = js.native
     var anchorOrigin: js.UndefOr[Shape] = js.native
     var autoHideDuration: js.UndefOr[Int] = js.native
-    var message: js.UndefOr[raw.ReactElement] = js.native
+    var message: js.UndefOr[raw.React.Element] = js.native
     var open: js.UndefOr[Boolean] = js.native
     var resumeHideDuration: js.UndefOr[Int] = js.native
     var onClose: js.Function2[js.Dynamic, String, Unit] = js.native
@@ -53,10 +53,10 @@ object Snackbar {
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(action: js.UndefOr[raw.ReactElement] = js.undefined,
+  def apply(action: js.UndefOr[raw.React.Element] = js.undefined,
             anchorOrigin: js.UndefOr[Shape] = js.undefined,
             autoHideDurationMs: js.UndefOr[Int] = js.undefined,
-            message: js.UndefOr[raw.ReactElement] = js.undefined,
+            message: js.UndefOr[raw.React.Element] = js.undefined,
             open: js.UndefOr[Boolean] = js.undefined,
             resumeHideDurationMs: js.UndefOr[Int] = js.undefined,
             onClose: (js.Dynamic, String) => Callback = (_, _) => Callback.empty,

@@ -101,10 +101,10 @@ lazy val web = (project in webBaseDir)
       "org.querki" %%% "jquery-facade" % "1.2",
       "org.querki" %%% "querki-jsext" % "0.8",
       "org.wvlet.airframe" %%% "airframe-log" % "0.37",
-      "com.github.japgolly.scalajs-react" %%% "core" % "1.1.0",
-      "com.github.japgolly.scalajs-react" %%% "extra" % "1.1.0",
-      "com.github.japgolly.scalacss" %%% "core" % "0.5.3",
-      "com.github.japgolly.scalacss" %%% "ext-react" % "0.5.3"
+      "com.github.japgolly.scalajs-react" %%% "core" % "1.2.0",
+      "com.github.japgolly.scalajs-react" %%% "extra" % "1.2.0",
+      "com.github.japgolly.scalacss" %%% "core" % "0.5.5",
+      "com.github.japgolly.scalacss" %%% "ext-react" % "0.5.5"
     ),
     // Pure javascript libraries (from npm)
     npmDependencies in Compile ++= Seq(
@@ -112,17 +112,17 @@ lazy val web = (project in webBaseDir)
       "debounce" -> "1.1.0",
       "linkifyjs" -> "2.1.5",
       "jquery" -> "3.2.1",
-      "react" -> "15.6.1",
+      "react" -> "16.3.2",
+      "react-dom" -> "16.3.2",
       "react-autosuggest" -> "9.3.2",
-      "react-dom" -> "15.6.1",
       "react-swipeable-views" -> "0.12.13",
       "howler" -> "2.0.10",
       "sanitize-html" -> "1.15.0",
       "idb-keyval" -> "2.3.0",
       "siriwavejs" -> "2.0.2",
-      "material-ui" -> "next", // Using "next" to use the 1.0 release while its in beta
-      "material-ui-icons" -> "1.0.0-beta.15",
-      "mdi-material-ui" -> "3.1.0",
+      "@material-ui/core" -> "1.0.0",
+      "@material-ui/icons" -> "1.0.0",
+      "mdi-material-ui" -> "5.0.0",
       "mobile-detect" -> "1.4.1",
       "react-lazyload" -> "2.3.0",
       "react-markdown" -> "3.3.0",

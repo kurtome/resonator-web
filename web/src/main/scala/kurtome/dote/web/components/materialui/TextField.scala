@@ -8,11 +8,11 @@ import scala.scalajs.js.annotation._
 import scalacss.internal.StyleA
 
 /**
-  * Wrapper for https://material-ui-next.com/api/text-field/
+  * Wrapper for https://material-ui.com/api/text-field/
   */
 object TextField {
 
-  @JSImport("material-ui/TextField/TextField.js", JSImport.Default)
+  @JSImport("@material-ui/core/TextField", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
@@ -30,8 +30,8 @@ object TextField {
     var error: js.UndefOr[Boolean] = js.native
     var fullWidth: js.UndefOr[Boolean] = js.native
     var placeholder: js.UndefOr[String] = js.native
-    var label: js.UndefOr[raw.ReactNode] = js.native
-    var helperText: js.UndefOr[raw.ReactNode] = js.native
+    var label: js.UndefOr[raw.React.Node] = js.native
+    var helperText: js.UndefOr[raw.React.Node] = js.native
     var multiline: js.UndefOr[Boolean] = js.native
     var rows: js.UndefOr[Int] = js.native
     var rowsMax: js.UndefOr[Int] = js.native

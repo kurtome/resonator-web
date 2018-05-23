@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui-next.com/api/dialog-content-text/
+  * Wrapper for https://material-ui.com/api/dialog-content-text/
   */
 object DialogContentText {
 
-  @JSImport("material-ui/Dialog/DialogContentText", JSImport.Default)
+  @JSImport("@material-ui/core/DialogContentText", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

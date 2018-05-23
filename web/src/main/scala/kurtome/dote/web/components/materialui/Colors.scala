@@ -6,7 +6,7 @@ import scala.scalajs.js.annotation.JSImport
 /**
   * Scala accessors for pre-defined MUI colors
   */
-@JSImport("material-ui/colors", JSImport.Default)
+@JSImport("@material-ui/core/colors", JSImport.Default)
 @js.native
 object Colors extends js.Object {
 

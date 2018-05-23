@@ -8,11 +8,11 @@ import scala.scalajs.js.annotation._
 import scalacss.internal.StyleA
 
 /**
-  * Wrapper for https://material-ui-next.com/api/paper/
+  * Wrapper for https://material-ui.com/api/paper/
   */
 object Paper {
 
-  @JSImport("material-ui/Paper/Paper.js", JSImport.Default)
+  @JSImport("@material-ui/core/Paper", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

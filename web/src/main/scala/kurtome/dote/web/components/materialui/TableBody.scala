@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-next.com/api/table-body/
+  * Wrapper for https://material-ui.com/api/table-body/
   */
 object TableBody {
 
-  @JSImport("material-ui/Table/TableBody", JSImport.Default)
+  @JSImport("@material-ui/core/TableBody", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

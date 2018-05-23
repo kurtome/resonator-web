@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-next.com/api/backdrop/
+  * Wrapper for https://material-ui.com/api/backdrop/
   */
 object Backdrop {
 
-  @JSImport("material-ui/internal/Backdrop", JSImport.Default)
+  @JSImport("@material-ui/core/internal/Backdrop", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

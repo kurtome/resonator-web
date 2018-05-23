@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-next.com/api/fade/
+  * Wrapper for https://material-ui.com/api/fade/
   */
 object Fade {
 
-  @JSImport("material-ui/transitions/Fade.js", JSImport.Default)
+  @JSImport("@material-ui/core/Fade", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

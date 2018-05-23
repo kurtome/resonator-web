@@ -66,7 +66,7 @@ object AudioWave {
     var wave: SiriWave = null
 
     val onMount = Callback {
-      wave = createWave(container = bs.getDOMNode.runNow(),
+      wave = createWave(container = bs.getDOMNode.runNow().asElement,
                         cover = true,
                         color = "#999999",
                         speed = 0.05f,

@@ -6,11 +6,11 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-next.com/api/divider/
+  * Wrapper for https://material-ui.com/api/divider/
   */
 object Divider {
 
-  @JSImport("material-ui/Divider/Divider.js", JSImport.Default)
+  @JSImport("@material-ui/core/Divider", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

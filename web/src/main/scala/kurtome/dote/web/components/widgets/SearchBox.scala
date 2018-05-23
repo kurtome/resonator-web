@@ -184,7 +184,7 @@ object SearchBox {
       suggestion.getCommon.title
     }
 
-    def renderSuggestion(suggestion: Dotable, params: SuggestionRenderParams): raw.ReactElement = {
+    def renderSuggestion(suggestion: Dotable, params: SuggestionRenderParams): raw.React.Element = {
       val query = params.query
 
       val title = suggestion.getCommon.title
@@ -212,7 +212,7 @@ object SearchBox {
       ).rawElement
     }
 
-    val renderSuggestionsContainer: Function1[SuggestionContainerRenderParams, raw.ReactElement] =
+    val renderSuggestionsContainer: Function1[SuggestionContainerRenderParams, raw.React.Element] =
       (params) => {
         val style = Styles.suggestDropdownSheet
         if (params.children.isDefined) {
@@ -242,7 +242,7 @@ object SearchBox {
       }
     }
 
-    def renderInput(s: State): js.Function1[InputProps, raw.ReactElement] = (inputProps) => {
+    def renderInput(s: State): js.Function1[InputProps, raw.React.Element] = (inputProps) => {
       <.div(
         <.div(
           ^.className := Styles.searchIcon,

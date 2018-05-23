@@ -152,20 +152,22 @@ object FollowerSummaryFeedItem extends LogSupport {
                                color = Typography.Colors.Inherit)(person.username)
                   )
                 ),
-                GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = showFollowCheckbox))(
-                  GridContainer(spacing = 0)(
-                    GridItem()(FormControlLabel(
-                      control = Checkbox(checked = isFollowing(s),
-                                         name = "follow",
-                                         value = "follow",
-                                         disabled = isFollowPending(s),
-                                         onChange = handleFollowingChanged(s))(),
-                      label = s"Follow"
-                    )()),
-                    GridItem()(
-                      Fade(in = s.setFollowInFlight)(
-                        CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
-                      ))
+                Hidden(xsUp = showFollowCheckbox)(
+                  GridItem(xs = 12)(
+                    GridContainer(spacing = 0)(
+                      GridItem()(FormControlLabel(
+                        control = Checkbox(checked = isFollowing(s),
+                                           name = "follow",
+                                           value = "follow",
+                                           disabled = isFollowPending(s),
+                                           onChange = handleFollowingChanged(s))(),
+                        label = s"Follow"
+                      )()),
+                      GridItem()(
+                        Fade(in = s.setFollowInFlight)(
+                          CircularProgress(variant = CircularProgress.Variant.Indeterminate)()
+                        ))
+                    )
                   )
                 )
               )

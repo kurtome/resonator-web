@@ -6,18 +6,18 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 /**
-  * Wrapper for https://material-ui-next.com/api/chip/
+  * Wrapper for https://material-ui.com/api/chip/
   */
 object Chip {
 
-  @JSImport("material-ui/Chip", JSImport.Default)
+  @JSImport("@material-ui/core/Chip", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
   // NOTE: not all props exposed
   @js.native
   trait Props extends js.Object {
-    var label: js.UndefOr[raw.ReactElement] = js.native
+    var label: js.UndefOr[raw.React.Element] = js.native
     var onClick: js.Function0[Unit] = js.native
     var onDelete: js.Function0[Unit] = js.native
     var style: js.UndefOr[js.Dynamic] = js.native

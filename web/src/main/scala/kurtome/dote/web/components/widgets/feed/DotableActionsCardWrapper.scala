@@ -2,7 +2,6 @@ package kurtome.dote.web.components.widgets.feed
 
 import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.Attr.Ref
 import japgolly.scalajs.react.vdom.VdomElement
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.proto.api.dotable.Dotable
@@ -147,7 +146,7 @@ object DotableActionsCardWrapper extends LogSupport {
         .runNow()
     }
 
-    private var outerRef: Option[html.Element] = None
+    private var outerRef = Ref[html.Element]
 
     // on mobile, treat centered as if it hovered
     if (IsMobile.value) {
@@ -185,32 +184,27 @@ object DotableActionsCardWrapper extends LogSupport {
             Collapse(in = s.expanded, style = Styles.actionsCollapseContainer)(
               Divider()(),
               GridContainer()(
-                GridItem(xs = 12,
-                         hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
-                  GridContainer(justify = Grid.Justify.Center)(
-                    GridItem()(DoteEmoteButton(dotable.withDote(s.loggedInUserDote),
-                                               showAllOptions = true,
-                                               onDoteChanged = handleDoteChanged)())
+                Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(
+                  GridItem(xs = 12)(
+                    GridContainer(justify = Grid.Justify.Center)(
+                      GridItem()(DoteEmoteButton(dotable.withDote(s.loggedInUserDote),
+                                                 showAllOptions = true,
+                                                 onDoteChanged = handleDoteChanged)())
+                    )
                   )
                 ),
-                GridItem(xs = 12,
-                         hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
-                  Divider()()),
-                GridContainer()(
-                  GridItem(xs = 12,
-                           hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+                Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(GridItem(xs = 12)(Divider()())),
+                Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(
+                  GridItem(xs = 12)(
                     GridContainer(justify = Grid.Justify.Center)(
                       GridItem()(DoteStarsButton(dotable.withDote(s.loggedInUserDote),
                                                  onDoteChanged = handleDoteChanged)())
                     )
                   )
                 ),
-                GridItem(xs = 12,
-                         hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
-                  Divider()()),
-                GridContainer()(
-                  GridItem(xs = 12,
-                           hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
+                Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(GridItem(xs = 12)(Divider()())),
+                Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(
+                  GridItem(xs = 12)(
                     GridContainer(justify = Grid.Justify.Center,
                                   alignItems = Grid.AlignItems.Center)(
                       GridItem()(Typography()("Review")),
@@ -220,9 +214,7 @@ object DotableActionsCardWrapper extends LogSupport {
                     )
                   )
                 ),
-                GridItem(xs = 12,
-                         hidden = Grid.HiddenProps(xsUp = LoggedInPersonManager.isNotLoggedIn))(
-                  Divider()()),
+                Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(GridItem(xs = 12)(Divider()())),
                 GridItem(xs = 12)(
                   GridContainer(justify = Grid.Justify.Center,
                                 alignItems = Grid.AlignItems.Center)(
@@ -230,18 +222,19 @@ object DotableActionsCardWrapper extends LogSupport {
                     GridItem()(ShareButton(dotableUrl(dotable))())
                   )
                 ),
-                GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = !AudioPlayer.canPlay(dotable)))(
-                  Divider()()
+                Hidden(xsUp = !AudioPlayer.canPlay(dotable))(
+                  GridItem(xs = 12)(Divider()())
                 ),
-                GridItem(xs = 12, hidden = Grid.HiddenProps(xsUp = !AudioPlayer.canPlay(dotable)))(
-                  GridContainer(justify = Grid.Justify.Center,
-                                alignItems = Grid.AlignItems.Center)(
-                    GridItem()(Typography()("Play")),
-                    GridItem()(
-                      IconButton(onClick = Callback(AudioPlayer.startPlayingEpisode(dotable)),
-                                 color = IconButton.Colors.Primary)(Icons.PlayArrow()))
-                  )
-                )
+                Hidden(xsUp = !AudioPlayer.canPlay(dotable))(
+                  GridItem(xs = 12)(
+                    GridContainer(justify = Grid.Justify.Center,
+                                  alignItems = Grid.AlignItems.Center)(
+                      GridItem()(Typography()("Play")),
+                      GridItem()(
+                        IconButton(onClick = Callback(AudioPlayer.startPlayingEpisode(dotable)),
+                                   color = IconButton.Colors.Primary)(Icons.PlayArrow()))
+                    )
+                  ))
               )
             ))
         ),
@@ -249,7 +242,7 @@ object DotableActionsCardWrapper extends LogSupport {
                      s.reviewOpen,
                      onClose = bs.modState(_.copy(reviewOpen = false)),
                      onReviewChanged = handleReviewChanged)()
-      ).ref(el => outerRef = Some(el))
+      ).withRef(outerRef)
     }
   }
 

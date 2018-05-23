@@ -7,17 +7,17 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSImport, JSName}
 
 /**
-  * Wrapper for https://material-ui-next.com/api/mui-theme-provider/
+  * Wrapper for https://material-ui.com/api/mui-theme-provider/
   *
-  * <p>See more details for usage at https://material-ui-next.com/customization/themes/
+  * <p>See more details for usage at https://material-ui.com/customization/themes/
   */
 object MuiThemeProvider {
 
-  @JSImport("material-ui/styles/MuiThemeProvider.js", JSImport.Default)
+  @JSImport("@material-ui/core/styles/MuiThemeProvider", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
-  @JSImport("material-ui/styles/createMuiTheme.js", JSImport.Namespace)
+  @JSImport("@material-ui/core/styles/createMuiTheme", JSImport.Namespace)
   @js.native
   object CreateMuiTheme extends js.Object {
     @JSName("default")

@@ -10,11 +10,11 @@ import scala.scalajs.js.annotation._
 import scalacss.internal.StyleA
 
 /**
-  * Wrapper for https://material-ui-next.com/api/button/
+  * Wrapper for https://material-ui.com/api/button/
   */
 object Button {
 
-  @JSImport("material-ui/Button/Button.js", JSImport.Default)
+  @JSImport("@material-ui/core/Button", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 

@@ -45,12 +45,12 @@ object Icons {
   private object CloseRaw extends js.Object {}
   val Close = JsComponent[Null, Children.None, Null](CloseRaw)
 
-  @JSImport("material-ui-icons/Forward30", JSImport.Default)
+  @JSImport("@material-ui/icons/Forward30", JSImport.Default)
   @js.native
   private object Forward30Raw extends js.Object {}
   val Forward30 = JsComponent[Null, Children.None, Null](Forward30Raw)
 
-  @JSImport("material-ui-icons/Replay10", JSImport.Default)
+  @JSImport("@material-ui/icons/Replay10", JSImport.Default)
   @js.native
   private object Replay10Raw extends js.Object {}
   val Replay10 = JsComponent[Null, Children.None, Null](Replay10Raw)
