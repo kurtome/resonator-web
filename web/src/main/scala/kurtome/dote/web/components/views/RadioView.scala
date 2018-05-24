@@ -11,12 +11,14 @@ import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
+import kurtome.dote.web.components.materialui.Hidden
 import kurtome.dote.web.components.materialui.IconButton
 import kurtome.dote.web.components.materialui.Icons
 import kurtome.dote.web.components.materialui.Switch
 import kurtome.dote.web.components.materialui.Typography
 import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.radio.TunerBand
+import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
 import kurtome.dote.web.utils.UniversalAnalytics
 import org.scalajs.dom
@@ -38,16 +40,19 @@ object RadioView extends LogSupport {
       minWidth(300 px)
     )
 
-    val powerButton = style(
-      // TODO: animate a glow to draw attention
-      // animation := s"${Animations.fadeIn.name.value} 2s infinite",
-      opacity(1)
+    val powerButtonGlow = style(
+      width(100 %%),
+      height(100 %%),
+      position.absolute,
+      animation := s"${Animations.fadeInOut.name.value} 2s infinite",
+      background := s"radial-gradient(${MuiTheme.theme.palette.secondary.light} 0%, transparent 50%)",
+      borderRadius(50 %%)
     )
   }
 
   private object Animations extends StyleSheet.Inline {
     import dsl._
-    val fadeIn = keyframes(
+    val fadeInOut = keyframes(
       (0 %%) -> keyframe(opacity(0)),
       (50 %%) -> keyframe(opacity(1)),
       (100 %%) -> keyframe(opacity(0))
@@ -138,9 +143,15 @@ object RadioView extends LogSupport {
                           alignItems = Grid.AlignItems.Center)(
               GridItem()(
                 <.div(^.textAlign.center, ^.marginBottom := "-8px", Typography()("Power")),
-                Switch(style = Styles.powerButton,
-                       checked = s.tunerState.on,
-                       onChange = powerSwitched)()
+                <.div(
+                  ^.position := "relative",
+                  Hidden(xsUp = s.tunerState.on)(
+                    <.div(
+                      ^.className := Styles.powerButtonGlow
+                    )
+                  ),
+                  Switch(checked = s.tunerState.on, onChange = powerSwitched)()
+                )
               )
             )
           ),

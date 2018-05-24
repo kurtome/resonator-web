@@ -156,7 +156,7 @@ object AudioControls extends LogSupport {
       station.frequencyKind match {
         case RadioStation.FrequencyKind.AM => s"${station.frequency} kHz"
         case RadioStation.FrequencyKind.FM => s"${station.frequency} MHz"
-        case _ => station.frequency.toString
+        case _                             => station.frequency.toString
       }
     }
 
@@ -217,17 +217,18 @@ object AudioControls extends LogSupport {
                       IconButton(style = Styles.bottomButton, onClick = forward30Clicked)(
                         Icons.Forward30()
                       )
-                    ))
+                    )),
+                    Hidden(xsUp = s.playerState.stationSchedule.isEmpty)(
+                      GridItem()(
+                        GridItem()(
+                          Typography()(
+                            s"${station.getStation.callSign} - ${formatFrequency(station.getStation)}"
+                          )
+                        )
+                      )
+                    ),
                   )
                 ),
-                Hidden(xsUp = s.playerState.stationSchedule.isEmpty)(
-                  GridItem()(
-                    GridItem()(
-                      Typography()(
-                        s"${station.getStation.callSign} - ${formatFrequency(station.getStation)}"
-                      )
-                    )
-                  )),
                 <.div(
                   ^.width := asPxStr(buttonSpaceWidth),
                   ^.height := asPxStr(controlsHeight),
