@@ -20,7 +20,9 @@ object ListItem {
     var dense: js.UndefOr[Boolean] = js.native
     var disableGutters: js.UndefOr[Boolean] = js.native
     var divider: js.UndefOr[Boolean] = js.native
-    var className: js.UndefOr[String] = js.native
+    var button: js.UndefOr[Boolean] = js.native
+    var onClick: js.Function0[Unit] = js.native
+    var style: js.UndefOr[js.Dynamic] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
@@ -28,11 +30,16 @@ object ListItem {
   def apply(dense: js.UndefOr[Boolean] = js.undefined,
             disableGutters: js.UndefOr[Boolean] = js.undefined,
             divider: js.UndefOr[Boolean] = js.undefined,
-            className: js.UndefOr[String] = js.undefined) = {
+            button: js.UndefOr[Boolean] = js.undefined,
+            onClick: Callback = Callback.empty,
+            style: js.UndefOr[js.Dynamic] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.dense = dense
     p.disableGutters = disableGutters
-    p.className = className
+    p.style = style
+    p.onClick = onClick.toJsFn
+    p.divider = divider
+    p.button = button
 
     component.withProps(p)
   }

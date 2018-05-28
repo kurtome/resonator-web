@@ -6,7 +6,6 @@ import japgolly.scalajs.react.component.Js.RawMounted
 import japgolly.scalajs.react.component.Js.UnmountedWithRawType
 import kurtome.dote.web.components.materialui.Grid.AlignItems
 import kurtome.dote.web.components.materialui.Grid.Direction
-import kurtome.dote.web.components.materialui.Grid.HiddenProps
 import kurtome.dote.web.components.materialui.Grid.Justify
 import kurtome.dote.web.components.materialui.Grid.Wrap
 
@@ -21,38 +20,6 @@ object Grid {
   @JSImport("@material-ui/core/Grid", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
-
-  /**
-    * https://material-ui.com/layout/hidden/
-    */
-  @js.native
-  trait HiddenProps extends js.Object {
-    var xsUp: js.UndefOr[Boolean] = js.native
-    var xsDown: js.UndefOr[Boolean] = js.native
-    var smUp: js.UndefOr[Boolean] = js.native
-    var smDown: js.UndefOr[Boolean] = js.native
-  }
-  object HiddenProps {
-    def apply(xsUp: js.UndefOr[Boolean] = js.undefined,
-              xsDown: js.UndefOr[Boolean] = js.undefined,
-              smUp: js.UndefOr[Boolean] = js.undefined,
-              smDown: js.UndefOr[Boolean] = js.undefined): HiddenProps = {
-      val p = new js.Object().asInstanceOf[HiddenProps]
-      if (xsUp.getOrElse(false)) {
-        p.xsUp = xsUp
-      }
-      if (xsDown.isDefined) {
-        p.xsDown = xsDown
-      }
-      if (smUp.isDefined) {
-        p.smUp = smUp
-      }
-      if (smDown.isDefined) {
-        p.smDown = smDown
-      }
-      p
-    }
-  }
 
   object Wrap extends Enumeration {
     val Wrap = Value("wrap")
@@ -98,7 +65,6 @@ object Grid {
     var sm: js.UndefOr[Int] = js.native
     var md: js.UndefOr[Int] = js.native
     var lg: js.UndefOr[Int] = js.native
-    var hidden: js.UndefOr[HiddenProps] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
@@ -116,8 +82,7 @@ object Grid {
             lg: js.UndefOr[Int] = js.undefined,
             md: js.UndefOr[Int] = js.undefined,
             sm: js.UndefOr[Int] = js.undefined,
-            xs: js.UndefOr[Int] = js.undefined,
-            hidden: js.UndefOr[HiddenProps] = js.undefined)
+            xs: js.UndefOr[Int] = js.undefined)
     : CtorType.Children[Props, UnmountedWithRawType[Props, Null, RawMounted[Props, Null]]] = {
     val p = (new js.Object).asInstanceOf[Props]
     p.style = style
@@ -132,9 +97,6 @@ object Grid {
     p.justify = justify.map(_.toString)
     p.direction = direction.map(_.toString)
     p.wrap = wrap.map(_.toString)
-    if (hidden.isDefined) {
-      p.hidden = hidden
-    }
 
     if (key.isDefined) {
       component.withKey(key.get).withProps(p)
@@ -152,7 +114,6 @@ object GridContainer {
       justify: js.UndefOr[Justify.Value] = js.undefined,
       direction: js.UndefOr[Direction.Value] = js.undefined,
       wrap: js.UndefOr[Wrap.Value] = js.undefined,
-      hidden: js.UndefOr[HiddenProps] = js.undefined,
       alignItems: js.UndefOr[AlignItems.Value] = js.undefined
   ): CtorType.Children[Grid.Props,
                        UnmountedWithRawType[Grid.Props, Null, RawMounted[Grid.Props, Null]]] = {
@@ -163,8 +124,7 @@ object GridContainer {
          justify = justify,
          direction = direction,
          wrap = wrap,
-         alignItems = alignItems,
-         hidden = hidden)
+         alignItems = alignItems)
   }
 }
 
@@ -172,7 +132,6 @@ object GridItem {
   def apply(
       key: Option[react.Key] = None,
       style: js.UndefOr[js.Dynamic] = js.undefined,
-      hidden: js.UndefOr[HiddenProps] = js.undefined,
       xl: js.UndefOr[Int] = js.undefined,
       lg: js.UndefOr[Int] = js.undefined,
       md: js.UndefOr[Int] = js.undefined,
@@ -180,14 +139,6 @@ object GridItem {
       xs: js.UndefOr[Int] = js.undefined
   ): CtorType.Children[Grid.Props,
                        UnmountedWithRawType[Grid.Props, Null, RawMounted[Grid.Props, Null]]] = {
-    Grid(item = true,
-         key = key,
-         style = style,
-         xl = xl,
-         lg = lg,
-         md = md,
-         sm = sm,
-         xs = xs,
-         hidden = hidden)
+    Grid(item = true, key = key, style = style, xl = xl, lg = lg, md = md, sm = sm, xs = xs)
   }
 }

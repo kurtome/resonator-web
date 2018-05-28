@@ -43,7 +43,6 @@ object SearchView extends LogSupport {
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def handleNewProps(newProps: Props) = {
-      debug(s"new Props $newProps")
       bs.modState(_.copy(query = newProps.query))
     }
 

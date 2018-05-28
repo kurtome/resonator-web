@@ -16,13 +16,13 @@ import kurtome.dote.web.utils.BaseBackend
 import org.scalajs.dom
 import wvlet.log.LogSupport
 
-import scala.scalajs.js
-
 /**
   * Pager wrapper includes header/footer and renders child content within a centered portion of the
   * screen.
   */
 object ContentFrame extends LogSupport {
+
+  val drawerWidth = 240
 
   object Styles extends StyleSheet.Inline {
     import dsl._
@@ -36,7 +36,7 @@ object ContentFrame extends LogSupport {
   }
 
   case class Props(currentRoute: DoteRoute)
-  case class State(theme: Theme)
+  case class State(theme: Theme, drawerOpen: Boolean = false)
 
   /**
     * Width of the main content area (based on the current viewport size).
@@ -53,7 +53,9 @@ object ContentFrame extends LogSupport {
 
     val paddingPx = 32
 
-    Math.round(dom.window.document.body.offsetWidth * usableRatio).toInt - paddingPx
+    Math
+      .round(dom.window.document.body.offsetWidth * usableRatio)
+      .toInt - (paddingPx + drawerWidth)
   }
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -67,12 +69,19 @@ object ContentFrame extends LogSupport {
     }
 
     def render(p: Props, s: State, mainContent: PropsChildren): VdomElement = {
-      val isXs = currentBreakpointString == "xs"
-
       MuiThemeProvider(s.theme)(
         <.div(
-          NavBar(p.currentRoute)(),
-          mainContent,
+          ^.position.relative,
+          ^.display.flex,
+          ^.minHeight := "100vh",
+          NavBar(p.currentRoute,
+                 onMenuClick = bs.modState(s => s.copy(drawerOpen = !s.drawerOpen)))(),
+          MenuDrawer(open = s.drawerOpen, onClose = bs.modState(_.copy(drawerOpen = false)))(),
+          <.main(
+            ^.flexGrow := "1",
+            Toolbar()(), // leave space for the navbar
+            mainContent
+          ),
           NotificationSnackBar()(),
           AudioControls()()
         )

@@ -164,6 +164,11 @@ object Icons {
     RadioComponent.withProps(props(style))()
   }
 
+  @JSImport("@material-ui/icons/Menu", JSImport.Default)
+  @js.native
+  private object MenuRaw extends js.Object {}
+  val Menu = JsComponent[Null, Children.None, Null](MenuRaw)
+
   @js.native
   trait IconProps extends js.Object {
     var style: js.UndefOr[js.Dynamic] = js.native

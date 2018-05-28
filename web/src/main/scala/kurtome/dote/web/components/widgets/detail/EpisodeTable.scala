@@ -65,10 +65,7 @@ object EpisodeTable {
 
     def goToPage(page: Int) = {
       val dotable = bs.props.runNow().dotable
-      val url = doteRouterCtl
-        .urlFor(DetailsRoute(dotable.id, dotable.slug, Map("ep_page" -> page.toString)))
-        .value
-      dom.window.history.pushState(new js.Object(), "Resonator", url)
+      replaceCurrentRoute(DetailsRoute(dotable.id, dotable.slug, Map("ep_page" -> page.toString)))
     }
 
     def handlePrevPageClicked(s: State)() = Callback {

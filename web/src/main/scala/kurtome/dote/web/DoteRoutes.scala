@@ -177,25 +177,40 @@ object DoteRoutes extends LogSupport {
         })
         .onPostRender((prev, cur) =>
           Callback {
-            currentRoute = cur
-            routeObservable.notifyObservers(cur)
-
-            UniversalAnalytics.visitor.pageview(dom.window.location.pathname).send()
+            updateCurrentRoute(cur)
         })
-        .setTitle {
-          case ThemeRoute => s"Theme | Resonator"
-          case AddRoute => s"Add Podcast | Resonator"
-          case LoginRoute => s"Login | Resonator"
-          case AllActivityRoute(_) => s"Activity | Resonator"
-          case SearchRoute(params) =>
-            s"${params.getOrElse(QueryParamKeys.query, "Search")} | Resonator Search"
-          case RadioRoute(station, _) => s"$station | Resonator"
-          case FollowersRoute(username) => s"$username Followers | Resonator"
-          case FollowingActivityRoute(_) => s"Following Activity | Resonator"
-          case ProfileRoute(username) => s"$username Profile | Resonator"
-          case _ => "Resonator"
-        }
+        .setTitle(pageTitle)
     }
+
+  def replaceCurrentRoute(newRoute: DoteRoute): Unit = {
+    val url = doteRouterCtl.urlFor(newRoute).value
+    val title = pageTitle(newRoute)
+    dom.window.history.replaceState(new js.Object(), title, url)
+    dom.document.title = title
+    updateCurrentRoute(newRoute)
+  }
+
+  private def updateCurrentRoute(newRoute: DoteRoute): Unit = {
+    currentRoute = newRoute
+    routeObservable.notifyObservers(newRoute)
+    UniversalAnalytics.visitor.pageview(dom.window.location.pathname).send()
+  }
+
+  private def pageTitle(route: DoteRoute): String = {
+    route match {
+      case ThemeRoute => s"Theme | Resonator"
+      case AddRoute => s"Add Podcast | Resonator"
+      case LoginRoute => s"Login | Resonator"
+      case AllActivityRoute(_) => s"Activity | Resonator"
+      case SearchRoute(params) =>
+        s"${params.getOrElse(QueryParamKeys.query, "Search")} | Resonator Search"
+      case RadioRoute(station, _) => s"$station | Resonator"
+      case FollowersRoute(username) => s"$username Followers | Resonator"
+      case FollowingActivityRoute(_) => s"Following Activity | Resonator"
+      case ProfileRoute(username) => s"$username Profile | Resonator"
+      case _ => "Resonator"
+    }
+  }
 
   private val baseUrl: BaseUrl =
     BaseUrl(dom.window.location.protocol + "//" + dom.window.location.host)

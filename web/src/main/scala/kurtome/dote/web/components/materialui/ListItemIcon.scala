@@ -6,30 +6,24 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 /**
-  * Wrapper for https://material-ui.com/api/list/
+  * Wrapper for https://material-ui.com/api/list-item-icon/
   */
-object List {
+object ListItemIcon {
 
-  @JSImport("@material-ui/core/List", JSImport.Default)
+  @JSImport("@material-ui/core/ListItemIcon", JSImport.Default)
   @js.native
   object RawComponent extends js.Object
 
   // NOTE: not all props exposed
   @js.native
   trait Props extends js.Object {
-    var dense: js.UndefOr[Boolean] = js.native
-    var disablePadding: js.UndefOr[Boolean] = js.native
     var style: js.UndefOr[js.Dynamic] = js.native
   }
 
   val component = JsComponent[Props, Children.Varargs, Null](RawComponent)
 
-  def apply(dense: js.UndefOr[Boolean] = js.undefined,
-            disablePadding: js.UndefOr[Boolean] = js.undefined,
-            style: js.UndefOr[js.Dynamic] = js.undefined) = {
+  def apply(style: js.UndefOr[js.Dynamic] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
-    p.dense = dense
-    p.disablePadding = disablePadding
     p.style = style
 
     component.withProps(p)

@@ -22,7 +22,7 @@ object SiteTitle extends LogSupport {
       marginTop(16.px),
       fontFamily(SharedStyles.rogueSansExtBoldIt),
       fontStyle.italic,
-      fontSize(1.9.rem)
+      fontSize(1.8 rem)
     )
 
     val siteTitleAnchor = style(
@@ -49,8 +49,6 @@ object SiteTitle extends LogSupport {
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def render(p: Props): VdomElement = {
-      val isXs = currentBreakpointString == "xs"
-
       <.div(
         doteRouterCtl.link(HomeRoute)(
           ^.className := Styles.siteTitleAnchor,

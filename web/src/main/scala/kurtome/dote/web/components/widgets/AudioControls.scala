@@ -156,7 +156,7 @@ object AudioControls extends LogSupport {
       station.frequencyKind match {
         case RadioStation.FrequencyKind.AM => s"${station.frequency} kHz"
         case RadioStation.FrequencyKind.FM => s"${station.frequency} MHz"
-        case _                             => station.frequency.toString
+        case _ => station.frequency.toString
       }
     }
 
@@ -226,7 +226,7 @@ object AudioControls extends LogSupport {
                           )
                         )
                       )
-                    ),
+                    )
                   )
                 ),
                 <.div(

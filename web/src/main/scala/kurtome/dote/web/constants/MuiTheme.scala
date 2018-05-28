@@ -187,6 +187,16 @@ object MuiTheme extends LogSupport {
   }
 
   @js.native
+  trait ZIndex extends js.Object {
+    val mobileStepper: Int = js.native
+    val appBar: Int = js.native
+    val drawer: Int = js.native
+    val modal: Int = js.native
+    val snackbar: Int = js.native
+    val tooltip: Int = js.native
+  }
+
+  @js.native
   trait Theme extends js.Object {
     val palette: Palette = js.native
     val typography: js.Dynamic = js.native
@@ -195,7 +205,7 @@ object MuiTheme extends LogSupport {
     val shadows: js.Dynamic = js.native
     val transitions: js.Dynamic = js.native
     val spacing: Spacing = js.native
-    val zIndex: js.Dynamic = js.native
+    val zIndex: ZIndex = js.native
   }
 
   // Look at the documentation at https://material-ui.com/customization/themes/ for

@@ -136,7 +136,7 @@ object LoginView extends LogSupport {
       MainContentSection()(
         GridContainer(spacing = 0, justify = Grid.Justify.Center)(
           GridItem(xs = 12, sm = 10, md = 8)(
-            Paper(style = Styles.paperContainer)(
+            Paper(style = Styles.paperContainer, elevation = 0)(
               GridContainer()(
                 GridItem(xs = 12)(
                   Typography(variant = Typography.Variants.Body1)(

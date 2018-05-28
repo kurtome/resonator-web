@@ -96,12 +96,9 @@ object RadioView extends LogSupport {
             case _ => s"$stationStr | Resonator"
           }
         }
-        val url = doteRouterCtl.urlFor(RadioRoute(stationStr)).value
         // put the current station in the navigation history, but replace the current state so
         // that it doesn't create a long stack of stations.
-        dom.window.history
-          .replaceState(new js.Object(), title, url)
-        dom.document.title = title
+        replaceCurrentRoute(RadioRoute(stationStr))
       }
     }
 

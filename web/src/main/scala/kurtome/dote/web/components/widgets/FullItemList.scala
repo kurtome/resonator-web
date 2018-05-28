@@ -125,7 +125,7 @@ object FullItemList extends LogSupport {
               Typography(variant = Typography.Variants.Title)(p.title),
               Typography(variant = Typography.Variants.Caption)(p.caption)
             )),
-          GridItem(hidden = Grid.HiddenProps(xsDown = true))(renderPagination(p))
+          Hidden(xsDown = true)(GridItem()(renderPagination(p)))
         )
       )
     }
