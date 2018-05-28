@@ -12,6 +12,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
+import kurtome.dote.web.components.materialui.Hidden
 import kurtome.dote.web.components.widgets.Announcement
 import kurtome.dote.web.components.widgets.FlatRoundedButton
 import kurtome.dote.web.components.widgets.MainContentSection
@@ -83,9 +84,9 @@ object HomeView extends LogSupport {
       }
     }
 
-    def render(p: Props, s: State): VdomElement = {
-      <.div(
-        if (!LoggedInPersonManager.isLoggedIn) {
+    def render(p: Props, s: State): VdomNode = {
+      ReactFragment(
+        Hidden(xsUp = LoggedInPersonManager.isLoggedIn)(
           MainContentSection(variant = MainContentSection.Variants.Primary)(
             GridContainer(justify = Grid.Justify.SpaceBetween,
                           alignItems = Grid.AlignItems.Center)(
@@ -104,9 +105,7 @@ object HomeView extends LogSupport {
               )
             )
           )
-        } else {
-          <.div()
-        },
+        ),
         VerticalFeed(s.feed, s.isFeedLoading)()
       )
     }

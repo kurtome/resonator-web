@@ -44,9 +44,9 @@ object MenuDrawer extends LogSupport {
 
     private def renderDrawerContents(p: Props): VdomNode = {
       <.div(
-        ^.width := "100%",
+        ^.width := asPxStr(drawerWidth),
         ^.position.fixed,
-        Toolbar()(), // SiteTitle()()), // leave space for the navbar
+        Toolbar()(), // leave space for the navbar
         Divider()(),
         List()(
           Hidden(xsUp = LoggedInPersonManager.isLoggedIn)(

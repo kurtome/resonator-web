@@ -166,10 +166,8 @@ object AudioControls extends LogSupport {
 
       val shouldCenter = ComponentHelpers.currentBreakpointString == "xs"
 
-      if (s.playerState.status == PlayerStatuses.Off) {
-        <.div()
-      } else {
-        val station = s.playerState.stationSchedule.getOrElse(RadioStationSchedule.defaultInstance)
+      val station = s.playerState.stationSchedule.getOrElse(RadioStationSchedule.defaultInstance)
+      Hidden(xsUp = s.playerState.isOff)(
         Grid(container = true,
              spacing = 0,
              style = Styles.playerWrapper,
@@ -255,7 +253,7 @@ object AudioControls extends LogSupport {
             )
           )
         )
-      }
+      )
     }
   }
 

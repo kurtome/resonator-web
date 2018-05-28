@@ -34,7 +34,6 @@ object NavBar extends LogSupport {
 
     val pageLengthHack = style(
       position.fixed,
-      //width(100 %%),
       bottom(0 px)
     )
 

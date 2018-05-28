@@ -38,7 +38,10 @@ object AudioPlayer extends LogSupport {
   case class State(status: PlayerStatus,
                    episode: Dotable,
                    stationSchedule: Option[RadioStationSchedule],
-                   offSource: OffSource = OffSources.None)
+                   offSource: OffSource = OffSources.None) {
+    val isOn = status != PlayerStatuses.Off
+    val isOff = !isOn
+  }
 
   private var howl: Howl = null
   val stateObservable: Observable[State] = SimpleObservable()

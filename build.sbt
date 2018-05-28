@@ -2,9 +2,11 @@ name := """resonator-web"""
 organization := "kurtome"
 version := "1.0-SNAPSHOT"
 
-val scalaV = "2.12.4"
+val scalaV = "2.12.5"
 val postgresJdbcDriver
   : ModuleID = "org.postgresql" % "postgresql" % "9.4-1200-jdbc41" exclude ("org.slf4j", "slf4j-simple")
+
+scalacOptions += "-Ypartial-unification"
 
 lazy val server = (project in file("server"))
   .enablePlugins(PlayScala, WebScalaJSBundlerPlugin)
@@ -23,6 +25,9 @@ lazy val server = (project in file("server"))
     libraryDependencies ++= Seq(
       guice,
       ws,
+      "io.circe" %% "circe-core" % "0.9.0",
+      "io.circe" %% "circe-generic" % "0.9.0",
+      "io.circe" %% "circe-parser" % "0.9.0",
       "org.picoworks" %% "pico-hashids" % "4.4.141",
       "com.vmunier" %% "scalajs-scripts" % "1.1.1",
       "org.wvlet.airframe" %% "airframe-log" % "0.37",
@@ -32,7 +37,7 @@ lazy val server = (project in file("server"))
       postgresJdbcDriver,
       "com.github.tminglei" %% "slick-pg" % "0.15.4",
       "com.github.tminglei" %% "slick-pg_json4s" % "0.15.4",
-      "org.matthicks" %% "mailgun4s" % "1.0.6",
+      "org.matthicks" %% "mailgun4s" % "1.0.9",
       "com.sksamuel.elastic4s" %% "elastic4s-http" % "6.2.5",
       "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
       "org.slf4j" % "slf4j-jdk14" % "1.7.25" // this ensures all logs are sent to airframe-log
