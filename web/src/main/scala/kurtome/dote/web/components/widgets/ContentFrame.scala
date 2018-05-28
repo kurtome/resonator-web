@@ -78,6 +78,7 @@ object ContentFrame extends LogSupport {
                  onMenuClick = bs.modState(s => s.copy(drawerOpen = !s.drawerOpen)))(),
           MenuDrawer(open = s.drawerOpen, onClose = bs.modState(_.copy(drawerOpen = false)))(),
           <.main(
+            ^.position.relative,
             ^.flexGrow := "1",
             Toolbar()(), // leave space for the navbar
             mainContent

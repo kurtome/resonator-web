@@ -120,7 +120,7 @@ object ActivityCard extends LogSupport {
       val dotable = activity.getDote.getDotable
       val dote = activity.getDote.getDote
       val review = activity.getDote.review
-      val reviewBody = review.map(_.getCommon.description).getOrElse("")
+      val reviewBody = review.map(_.getCommon.description).getOrElse("").take(50)
       <.div(
         ^.width := "100%",
         GridContainer(spacing = 0)(
@@ -150,7 +150,7 @@ object ActivityCard extends LogSupport {
               GridContainer(alignItems = Grid.AlignItems.Center, style = Styles.reviewSnippet)(
                 GridItem(style = Styles.reviewSnippetItem)(
                   Typography(variant = Typography.Variants.Caption, noWrap = true)(
-                    s""""$reviewBody""""
+                    s"$reviewBody"
                   )
                 ),
                 GridItem()(
