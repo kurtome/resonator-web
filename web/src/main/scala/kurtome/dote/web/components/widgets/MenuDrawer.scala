@@ -46,7 +46,9 @@ object MenuDrawer extends LogSupport {
       <.div(
         ^.width := asPxStr(drawerWidth),
         ^.position.fixed,
-        Toolbar()(), // leave space for the navbar
+        Toolbar(disableGutters = false)(
+          SiteTitle(color = SiteTitle.Colors.Dark)()
+        ),
         Divider()(),
         List()(
           Hidden(xsUp = LoggedInPersonManager.isLoggedIn)(

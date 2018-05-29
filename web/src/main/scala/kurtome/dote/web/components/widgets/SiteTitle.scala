@@ -37,22 +37,29 @@ object SiteTitle extends LogSupport {
     )
   }
 
-  object Variants extends Enumeration {
-    val Small = Value
-    val Large = Value
+  object Colors extends Enumeration {
+    val Light = Value
+    val Dark = Value
   }
-  type Variant = Variants.Value
+  type Color = Colors.Value
 
-  case class Props()
+  case class Props(color: Color)
   case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
+
+    private def pickColor(p: Props): String = {
+      p.color match {
+        case Colors.Dark => MuiTheme.theme.palette.primary.dark
+        case _ => MuiTheme.theme.palette.common.white
+      }
+    }
 
     def render(p: Props): VdomElement = {
       <.div(
         doteRouterCtl.link(HomeRoute)(
           ^.className := Styles.siteTitleAnchor,
-          ^.color := MuiTheme.theme.palette.common.white,
+          ^.color := pickColor(p),
           <.span(^.className := Styles.siteTitleText, StringValues.siteTitle),
           Typography(variant = Typography.Variants.Caption, style = Styles.subtitleText)("beta")
         )
@@ -67,5 +74,5 @@ object SiteTitle extends LogSupport {
     .renderP((b, p) => b.backend.render(p))
     .build
 
-  def apply() = component.withProps(Props())
+  def apply(color: Color) = component.withProps(Props(color))
 }

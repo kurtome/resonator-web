@@ -207,7 +207,7 @@ object NavBar extends LogSupport {
             Hidden(mdUp = true)(
               GridItem(style = Styles.menuIconContainer)(
                 IconButton(onClick = p.onMenuClick, style = Styles.actionButton)(Icons.Menu()))),
-            GridItem()(SiteTitle()())
+            GridItem()(SiteTitle(SiteTitle.Colors.Light)())
           )
         ),
         GridItem()(
