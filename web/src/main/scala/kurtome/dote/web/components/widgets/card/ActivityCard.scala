@@ -36,9 +36,7 @@ object ActivityCard extends LogSupport {
 
     val headerTextWrapper = style(
       width :=! ("calc(100% - 16px)"), // leave space for the padding
-      paddingTop(SharedStyles.spacingUnit),
-      paddingLeft(SharedStyles.spacingUnit),
-      paddingRight(SharedStyles.spacingUnit),
+      padding(SharedStyles.spacingUnit),
       display.inlineBlock
     )
 
@@ -52,9 +50,7 @@ object ActivityCard extends LogSupport {
     )
 
     val reviewSnippet = style(
-      paddingLeft(8 px),
-      paddingRight(8 px),
-      paddingBottom(4 px)
+      marginTop(SharedStyles.spacingUnit)
     )
 
     val reviewSnippetItem = style(
@@ -80,6 +76,7 @@ object ActivityCard extends LogSupport {
     val starsWrapper = style(
       marginRight(8 px)
     )
+
   }
   Styles.addToDocument()
 
@@ -120,58 +117,51 @@ object ActivityCard extends LogSupport {
       val dotable = activity.getDote.getDotable
       val dote = activity.getDote.getDote
       val review = activity.getDote.review
-      val reviewBody = review.map(_.getCommon.description).getOrElse("").take(50)
-      <.div(
-        ^.width := "100%",
-        GridContainer(spacing = 0)(
-          GridItem(xs = 12)(
-            <.div(
-              ^.className := Styles.headerTextWrapper,
-              GridContainer(spacing = 0, justify = Grid.Justify.SpaceBetween)(
-                GridItem()(
-                  GridContainer(wrap = Grid.Wrap.NoWrap, alignItems = Grid.AlignItems.Center)(
-                    GridItem(style = Styles.accountIcon)(Icons.AccountCircle()),
-                    GridItem()(Typography(component = "span", noWrap = true)(
-                      SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username)))
-                  )
-                ),
-                GridItem()(
-                  GridContainer(wrap = Grid.Wrap.NoWrap, alignItems = Grid.AlignItems.Center)(
-                    GridItem()(renderStars(dote)),
-                    GridItem()(Typography(component = "span", noWrap = true)(
-                      Emojis.pickEmoji(dote.emoteKind)))
-                  )
-                )
+      val reviewSnippetLength = 50
+      val reviewBody: String =
+        review
+          .map(_.getCommon.description)
+          .getOrElse("")
+          .take(reviewSnippetLength - 3)
+          .padTo(reviewSnippetLength, '.')
+
+      ReactFragment(
+        <.div(
+          ^.className := Styles.headerTextWrapper,
+          GridContainer(spacing = 0, justify = Grid.Justify.SpaceBetween)(
+            GridItem(zeroMinWidth = true)(
+              GridContainer(wrap = Grid.Wrap.NoWrap, alignItems = Grid.AlignItems.Center)(
+                GridItem(style = Styles.accountIcon, zeroMinWidth = true)(Icons.AccountCircle()),
+                GridItem(zeroMinWidth = true)(Typography(component = "span", noWrap = true)(
+                  SiteLink(ProfileRoute(dote.getPerson.username))(dote.getPerson.username)))
+              )
+            ),
+            GridItem(zeroMinWidth = true)(
+              GridContainer(spacing = 0,
+                            wrap = Grid.Wrap.NoWrap,
+                            alignItems = Grid.AlignItems.Center)(
+                GridItem(zeroMinWidth = true)(renderStars(dote)),
+                GridItem(zeroMinWidth = true)(
+                  Typography(component = "span", noWrap = true)(Emojis.pickEmoji(dote.emoteKind)))
               )
             )
           ),
           Hidden(xsUp = review.isEmpty)(
-            GridItem(xs = 12)(
-              GridContainer(alignItems = Grid.AlignItems.Center, style = Styles.reviewSnippet)(
-                GridItem(style = Styles.reviewSnippetItem)(
-                  Typography(variant = Typography.Variants.Caption, noWrap = true)(
-                    s"$reviewBody"
-                  )
-                ),
-                GridItem()(
-                  Typography(variant = Typography.Variants.Caption)(
-                    SiteLink(DetailsRoute(review.map(_.id).getOrElse(""), "review"))("See Review")
-                  )
-                )
-              )
+            Typography(style = Styles.reviewSnippet, variant = Typography.Variants.Caption)(
+              s"$reviewBody"),
+            Typography(variant = Typography.Variants.Caption)(
+              SiteLink(DetailsRoute(review.map(_.id).getOrElse(""), "review"))("See Review")
             )
-          ),
-          GridItem(xs = 12)(
-            if (dotable.kind == Dotable.Kind.PODCAST) {
-              PodcastCard(dotable = dotable, color = PodcastCard.Colors.PrimaryAccent)()
-            } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-              EpisodeCard(dotable = dotable, color = EpisodeCard.Colors.PrimaryAccent)()
-            } else {
-              // Placeholder for correct spacing
-              <.div(^.width := "100%")
-            }
           )
-        )
+        ),
+        if (dotable.kind == Dotable.Kind.PODCAST) {
+          PodcastCard(dotable = dotable, color = PodcastCard.Colors.PrimaryAccent)()
+        } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
+          EpisodeCard(dotable = dotable, color = EpisodeCard.Colors.PrimaryAccent)()
+        } else {
+          // Placeholder for correct spacing
+          <.div(^.width := "100%")
+        }
       )
     }
   }

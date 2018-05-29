@@ -45,17 +45,19 @@ object ContentFrame extends LogSupport {
     // Based on the grid sizing of the mainContent wrapper
     val usableRatio = ComponentHelpers.currentBreakpointString match {
       case "xl" => 6.0 / 12.0
-      case "lg" => 8.0 / 12.0
-      case "md" => 10.0 / 12.0
-      case "sm" => 10.0 / 12.0
+      case "lg" => 10.0 / 12.0
+//      case "md" => 12.0 / 12.0
+//      case "sm" => 12.0 / 12.0
       case _ => 12.0 / 12.0
     }
 
     val paddingPx = 32
 
-    Math
+    val width = Math
       .round(dom.window.document.body.offsetWidth * usableRatio)
       .toInt - (paddingPx + drawerWidth)
+    debug(width)
+    width
   }
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {

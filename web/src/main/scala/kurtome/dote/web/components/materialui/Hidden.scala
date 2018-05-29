@@ -28,6 +28,8 @@ object Hidden {
     var smDown: js.UndefOr[Boolean] = js.native
     var mdUp: js.UndefOr[Boolean] = js.native
     var mdDown: js.UndefOr[Boolean] = js.native
+    var lgUp: js.UndefOr[Boolean] = js.native
+    var lgDown: js.UndefOr[Boolean] = js.native
   }
   object Props {
     def apply(xsUp: js.UndefOr[Boolean] = js.undefined,
@@ -35,7 +37,9 @@ object Hidden {
               smDown: js.UndefOr[Boolean] = js.undefined,
               smUp: js.UndefOr[Boolean] = js.undefined,
               mdDown: js.UndefOr[Boolean] = js.undefined,
-              mdUp: js.UndefOr[Boolean] = js.undefined): Props = {
+              mdUp: js.UndefOr[Boolean] = js.undefined,
+              lgDown: js.UndefOr[Boolean] = js.undefined,
+              lgUp: js.UndefOr[Boolean] = js.undefined): Props = {
       val p = (new js.Object).asInstanceOf[Props]
       p.xsUp = xsUp
       p.xsDown = xsDown
@@ -43,6 +47,8 @@ object Hidden {
       p.smDown = smDown
       p.mdUp = mdUp
       p.mdDown = mdDown
+      p.lgUp = lgUp
+      p.lgDown = lgDown
       p
     }
   }
@@ -54,7 +60,9 @@ object Hidden {
             smDown: js.UndefOr[Boolean] = js.undefined,
             smUp: js.UndefOr[Boolean] = js.undefined,
             mdDown: js.UndefOr[Boolean] = js.undefined,
-            mdUp: js.UndefOr[Boolean] = js.undefined) = {
+            mdUp: js.UndefOr[Boolean] = js.undefined,
+            lgDown: js.UndefOr[Boolean] = js.undefined,
+            lgUp: js.UndefOr[Boolean] = js.undefined) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.xsUp = xsUp
     p.xsDown = xsDown
@@ -62,6 +70,8 @@ object Hidden {
     p.smDown = smDown
     p.mdUp = mdUp
     p.mdDown = mdDown
+    p.lgUp = lgUp
+    p.lgDown = lgDown
 
     jsComponent.withProps(p)
   }

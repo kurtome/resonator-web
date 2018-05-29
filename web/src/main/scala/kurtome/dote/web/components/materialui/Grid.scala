@@ -60,6 +60,7 @@ object Grid {
     var wrap: js.UndefOr[String] = js.native
     var container: js.UndefOr[Boolean] = js.native
     var item: js.UndefOr[Boolean] = js.native
+    var zeroMinWidth: js.UndefOr[Boolean] = js.native
     var spacing: js.UndefOr[Int] = js.native
     var xs: js.UndefOr[Int] = js.native
     var sm: js.UndefOr[Int] = js.native
@@ -73,6 +74,7 @@ object Grid {
             style: js.UndefOr[js.Dynamic] = js.undefined,
             container: js.UndefOr[Boolean] = js.undefined,
             item: js.UndefOr[Boolean] = js.undefined,
+            zeroMinWidth: js.UndefOr[Boolean] = js.undefined,
             spacing: js.UndefOr[Int] = js.undefined,
             justify: js.UndefOr[Justify.Value] = js.undefined,
             direction: js.UndefOr[Direction.Value] = js.undefined,
@@ -88,6 +90,7 @@ object Grid {
     p.style = style
     p.container = container
     p.item = item
+    p.zeroMinWidth = zeroMinWidth
     p.spacing = spacing
     p.xs = xs
     p.sm = sm
@@ -132,6 +135,7 @@ object GridItem {
   def apply(
       key: Option[react.Key] = None,
       style: js.UndefOr[js.Dynamic] = js.undefined,
+      zeroMinWidth: js.UndefOr[Boolean] = js.undefined,
       xl: js.UndefOr[Int] = js.undefined,
       lg: js.UndefOr[Int] = js.undefined,
       md: js.UndefOr[Int] = js.undefined,
@@ -139,6 +143,14 @@ object GridItem {
       xs: js.UndefOr[Int] = js.undefined
   ): CtorType.Children[Grid.Props,
                        UnmountedWithRawType[Grid.Props, Null, RawMounted[Grid.Props, Null]]] = {
-    Grid(item = true, key = key, style = style, xl = xl, lg = lg, md = md, sm = sm, xs = xs)
+    Grid(item = true,
+         key = key,
+         style = style,
+         zeroMinWidth = zeroMinWidth,
+         xl = xl,
+         lg = lg,
+         md = md,
+         sm = sm,
+         xs = xs)
   }
 }

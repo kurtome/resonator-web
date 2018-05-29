@@ -195,29 +195,29 @@ object NavBar extends LogSupport {
     }
 
     private def renderToolbarContent(p: Props, s: State): VdomNode = {
-      CenteredMainContent(horizontalPadding = 0)(
-        GridContainer(justify = Grid.Justify.SpaceBetween,
-                      alignItems = Grid.AlignItems.Center,
-                      spacing = 0)(
-          Hidden(mdUp = true)(
-            GridItem()(
-              IconButton(onClick = p.onMenuClick, style = Styles.actionButton)(Icons.Menu()))),
-          GridItem()(SiteTitle()()),
-          GridItem()(
-            GridContainer(style = Styles.actionsContainer,
-                          spacing = 0,
-                          alignItems = Grid.AlignItems.Center)(
-              Hidden(xsUp = LoggedInPersonManager.isLoggedIn)(
-                GridItem()(Button(style = Styles.actionButton,
-                                  onClick = doteRouterCtl.set(LoginRoute))("Log In"))),
-              Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(
-                GridItem()(
-                  IconButton(style = Styles.actionButton, onClick = handleProfileButtonClicked(p))(
-                    Icons.AccountCircle()))),
-              Hidden(xsDown = true)(
-                GridItem()(IconButton(style = Styles.actionButton,
-                                      onClick = doteRouterCtl.set(SearchRoute()))(Icons.Search()))
-              )
+      GridContainer(justify = Grid.Justify.SpaceBetween,
+                    alignItems = Grid.AlignItems.Center,
+                    spacing = 0)(
+        GridItem()(
+          GridContainer(spacing = 0)(
+            Hidden(mdUp = true)(
+              GridItem()(
+                IconButton(onClick = p.onMenuClick, style = Styles.actionButton)(Icons.Menu()))),
+            GridItem()(SiteTitle()()))
+        ),
+        GridItem()(
+          GridContainer(style = Styles.actionsContainer, spacing = 0)(
+            Hidden(xsUp = LoggedInPersonManager.isLoggedIn)(
+              GridItem()(Button(style = Styles.actionButton,
+                                onClick = doteRouterCtl.set(LoginRoute))("Log In"))),
+            Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(
+              GridItem()(
+                IconButton(style = Styles.actionButton, onClick = handleProfileButtonClicked(p))(
+                  Icons.AccountCircle()))),
+            Hidden(xsDown = true)(
+              GridItem()(
+                IconButton(style = Styles.actionButton,
+                           onClick = doteRouterCtl.set(SearchRoute()))(Icons.Search()))
             )
           )
         )

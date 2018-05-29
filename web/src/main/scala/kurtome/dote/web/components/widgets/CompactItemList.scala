@@ -28,7 +28,7 @@ object CompactItemList extends LogSupport {
     )
 
     val itemsContainer = style(
-      width(100 %%),
+      //width(100 %%),
       marginLeft(0 px),
       marginRight(0 px),
       marginBottom(8 px)
@@ -78,7 +78,8 @@ object CompactItemList extends LogSupport {
         GridContainer(spacing = 0,
                       justify = Grid.Justify.SpaceBetween,
                       alignItems = Grid.AlignItems.Center)(
-          GridItem()(Typography(variant = Typography.Variants.Title)(p.title)),
+          GridItem(zeroMinWidth = true)(
+            Typography(variant = Typography.Variants.Title, noWrap = true)(p.title)),
           Hidden(xsUp = p.moreRoute.isEmpty)(
             GridItem()(FlatRoundedButton(
               onClick = p.moreRoute.map(doteRouterCtl.set).getOrElse(Callback.empty))("See More"))
@@ -115,7 +116,9 @@ object CompactItemList extends LogSupport {
         pageItems.zipWithIndex map {
           case (item, i) =>
             GridItem(key = Some(s"page-$pageIndex-item-$i"),
-                     style = js.Dynamic.literal("width" -> s"$widthPercent%"))(item)
+                     style = js.Dynamic.literal("width" -> s"$widthPercent%",
+                                                "maxWidth" -> s"$widthPercent"),
+                     zeroMinWidth = true)(item)
         } toVdomArray
       )
     }

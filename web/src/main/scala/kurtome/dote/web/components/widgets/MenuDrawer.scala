@@ -58,14 +58,6 @@ object MenuDrawer extends LogSupport {
             ),
             Divider()()
           ),
-          Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(
-            ListItem(button = true,
-                     onClick =
-                       doteRouterCtl.set(ProfileRoute(username = LoggedInPersonManager.username)))(
-              ListItemIcon()(Icons.AccountCircle()),
-              ListItemText(secondary = LoggedInPersonManager.username)("Profile")
-            )
-          ),
           ListItem(button = true, onClick = routeClicked(p, HomeRoute))(
             ListItemIcon()(Icons.Home()),
             ListItemText()("Home")
@@ -77,6 +69,14 @@ object MenuDrawer extends LogSupport {
           ListItem(button = true, onClick = routeClicked(p, RadioDefaultRoute()))(
             ListItemIcon()(Icons.Radio()),
             ListItemText()("Radio")
+          ),
+          Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(
+            ListItem(button = true,
+                     onClick =
+                       doteRouterCtl.set(ProfileRoute(username = LoggedInPersonManager.username)))(
+              ListItemIcon()(Icons.AccountCircle()),
+              ListItemText(secondary = LoggedInPersonManager.username)("Profile")
+            )
           )
         )
       )

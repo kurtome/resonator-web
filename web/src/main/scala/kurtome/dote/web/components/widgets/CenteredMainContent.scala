@@ -19,24 +19,39 @@ object CenteredMainContent extends LogSupport {
 
   }
 
-  case class Props(horizontalPadding: Int)
+  case class Props()
   case class State()
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
     def render(p: Props, s: State, children: PropsChildren): VdomElement = {
-      GridContainer(justify = Grid.Justify.Center, spacing = 0)(
-        GridItem(
-          style = js.Dynamic.literal(
-            "paddingLeft" -> ComponentHelpers.asPxStr(p.horizontalPadding),
-            "paddingRight" -> ComponentHelpers.asPxStr(p.horizontalPadding)
-          ),
-          xs = 12,
-          sm = 10,
-          md = 10,
-          lg = 8,
-          xl = 6
-        )(children)
+      ReactFragment(
+        Hidden(smUp = true)(
+          <.div(
+            ^.paddingLeft := "16px",
+            ^.paddingRight := "16px",
+            ^.position.relative,
+            children
+          )
+        ),
+        Hidden(xsDown = true, lgUp = true)(
+          // md size
+          <.div(
+            // large margins to fit left/right pagination buttons of CompactItemList
+            ^.paddingLeft := "80px",
+            ^.paddingRight := "80px",
+            ^.position.relative,
+            children
+          )
+        ),
+        Hidden(mdDown = true)(
+          GridContainer(justify = Grid.Justify.Center, spacing = 0)(
+            GridItem(
+              lg = 10,
+              xl = 6
+            )(children)
+          )
+        )
       )
     }
   }
@@ -48,6 +63,6 @@ object CenteredMainContent extends LogSupport {
     .renderPCS((b, p, pc, s) => b.backend.render(p, s, pc))
     .build
 
-  def apply(horizontalPadding: Int = 16)(c: CtorType.ChildArg*) =
-    component.withChildren(c: _*)(Props(horizontalPadding))
+  def apply()(c: CtorType.ChildArg*) =
+    component.withChildren(c: _*)(Props())
 }

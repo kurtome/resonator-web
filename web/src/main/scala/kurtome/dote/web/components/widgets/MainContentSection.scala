@@ -51,7 +51,6 @@ object MainContentSection {
         ^.paddingTop := asPxStr(p.verticalPaddingPx),
         ^.paddingBottom := asPxStr(p.verticalPaddingPx),
         ^.backgroundColor := color(p),
-        ^.width := "100%",
         if (p.variant == Variants.Primary) {
           // Use the dark theme so text shows up correctly on the dark background.
           MuiThemeProvider(MuiTheme.darkTheme)(
