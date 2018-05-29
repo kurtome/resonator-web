@@ -22,7 +22,7 @@ object SiteTitle extends LogSupport {
       marginTop(16.px),
       fontFamily(SharedStyles.rogueSansExtBoldIt),
       fontStyle.italic,
-      fontSize(1.8 rem)
+      fontSize(1.6 rem)
     )
 
     val siteTitleAnchor = style(
@@ -31,8 +31,8 @@ object SiteTitle extends LogSupport {
     )
 
     val subtitleText = style(
-      marginTop(-8.px),
-      textAlign.center,
+      position.absolute,
+      marginTop(-4 px),
       color :=! MuiTheme.theme.palette.grey.`400`
     )
   }

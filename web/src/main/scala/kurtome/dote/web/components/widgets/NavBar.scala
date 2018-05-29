@@ -77,6 +77,10 @@ object NavBar extends LogSupport {
     val actionButton = style(
       color.white
     )
+
+    val menuIconContainer = style(
+      marginRight(16 px)
+    )
   }
 
   private object Animations extends StyleSheet.Inline {
@@ -199,14 +203,17 @@ object NavBar extends LogSupport {
                     alignItems = Grid.AlignItems.Center,
                     spacing = 0)(
         GridItem()(
-          GridContainer(spacing = 0)(
+          GridContainer(spacing = 0, alignItems = Grid.AlignItems.Center)(
             Hidden(mdUp = true)(
-              GridItem()(
+              GridItem(style = Styles.menuIconContainer)(
                 IconButton(onClick = p.onMenuClick, style = Styles.actionButton)(Icons.Menu()))),
-            GridItem()(SiteTitle()()))
+            GridItem()(SiteTitle()())
+          )
         ),
         GridItem()(
-          GridContainer(style = Styles.actionsContainer, spacing = 0)(
+          GridContainer(style = Styles.actionsContainer,
+                        spacing = 0,
+                        alignItems = Grid.AlignItems.Center)(
             Hidden(xsUp = LoggedInPersonManager.isLoggedIn)(
               GridItem()(Button(style = Styles.actionButton,
                                 onClick = doteRouterCtl.set(LoginRoute))("Log In"))),
@@ -235,11 +242,14 @@ object NavBar extends LogSupport {
             <.div(
               ^.paddingLeft := asPxStr(ContentFrame.drawerWidth),
               ^.width := "100%",
-              renderToolbarContent(p, s)
+              CenteredMainContent()(renderToolbarContent(p, s))
             )
           ),
           Hidden(mdUp = true)(
-            renderToolbarContent(p, s)
+            <.div(
+              ^.width := "100%",
+              CenteredMainContent()(renderToolbarContent(p, s))
+            )
           )
         ),
         Fader(in = s.isLoading)(LinearProgress()())

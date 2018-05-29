@@ -26,7 +26,7 @@ object CenteredMainContent extends LogSupport {
 
     def render(p: Props, s: State, children: PropsChildren): VdomElement = {
       ReactFragment(
-        Hidden(smUp = true)(
+        Hidden(mdUp = true)(
           <.div(
             ^.paddingLeft := "16px",
             ^.paddingRight := "16px",
@@ -34,7 +34,7 @@ object CenteredMainContent extends LogSupport {
             children
           )
         ),
-        Hidden(xsDown = true, lgUp = true)(
+        Hidden(smDown = true, lgUp = true)(
           // md size
           <.div(
             // large margins to fit left/right pagination buttons of CompactItemList

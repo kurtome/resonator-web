@@ -199,13 +199,12 @@ object PodcastDetails {
         tileWidth + 24
       }
 
-      Grid(container = true, spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
-        Grid(item = true, xs = 12)(
-          Grid(container = true,
-               spacing = 0,
-               alignItems = Grid.AlignItems.FlexStart,
-               style = Styles.detailsHeaderContainer)(
-            Grid(item = true)(
+      GridContainer(spacing = 0, alignItems = Grid.AlignItems.FlexStart)(
+        GridItem(xs = 12)(
+          GridContainer(spacing = 0,
+                        alignItems = Grid.AlignItems.FlexStart,
+                        style = Styles.detailsHeaderContainer)(
+            GridItem()(
               <.div(
                 ^.width := asPxStr(tileContainerWidth),
                 <.div(
@@ -219,7 +218,7 @@ object PodcastDetails {
                 )
               )
             ),
-            Grid(item = true, style = Styles.titleFieldContainer)(
+            GridItem(style = Styles.titleFieldContainer)(
               <.div(
                 ^.width := asPxStr(detailsWidth),
                 GridContainer(spacing = 0)(
@@ -253,7 +252,7 @@ object PodcastDetails {
             )
           )
         ),
-        Grid(item = true, xs = 12)(
+        GridItem(xs = 12)(
           <.div(
             ^.className := Styles.episodeTableWrapper,
             EpisodeTable(EpisodeTable.Props(p.dotable, p.episodeTablePage))()
