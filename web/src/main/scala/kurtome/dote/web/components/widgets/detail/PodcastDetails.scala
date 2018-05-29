@@ -176,7 +176,6 @@ object PodcastDetails {
 
       val shouldCenterTile = currentBreakpointString match {
         case "xs" => true
-        case "sm" => true
         case _ => false
       }
 

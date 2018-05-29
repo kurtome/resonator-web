@@ -46,16 +46,24 @@ object ContentFrame extends LogSupport {
     val usableRatio = ComponentHelpers.currentBreakpointString match {
       case "xl" => 6.0 / 12.0
       case "lg" => 10.0 / 12.0
-//      case "md" => 12.0 / 12.0
-//      case "sm" => 12.0 / 12.0
       case _ => 12.0 / 12.0
     }
 
-    val paddingPx = 32
+    val paddingPx = ComponentHelpers.currentBreakpointString match {
+      case "md" => 160
+      case _ => 32
+    }
+
+    val curDrawerWidth = ComponentHelpers.currentBreakpointString match {
+      case "xl" => drawerWidth
+      case "lg" => drawerWidth
+      case "md" => drawerWidth
+      case _ => 0
+    }
 
     val width = Math
       .round(dom.window.document.body.offsetWidth * usableRatio)
-      .toInt - (paddingPx + drawerWidth)
+      .toInt - (paddingPx + curDrawerWidth)
     debug(width)
     width
   }
