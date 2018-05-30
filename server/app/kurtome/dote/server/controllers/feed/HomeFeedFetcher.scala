@@ -24,6 +24,7 @@ import kurtome.dote.server.db.mappers.DotableMapper
 import kurtome.dote.server.db.mappers.DoteMapper
 import kurtome.dote.shared.constants.TagKinds
 import kurtome.dote.server.model.MetadataFlag
+import kurtome.dote.server.search.SearchClient
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.server.services.DoteService
 import kurtome.dote.server.services.TagService
@@ -40,7 +41,8 @@ import wvlet.log.LogSupport
 @Singleton
 class HomeFeedFetcher @Inject()(doteService: DoteService,
                                 dotableService: DotableService,
-                                tagService: TagService)(implicit ec: ExecutionContext)
+                                tagService: TagService,
+                                searchClient: SearchClient)(implicit ec: ExecutionContext)
     extends FeedFetcher
     with LogSupport {
 

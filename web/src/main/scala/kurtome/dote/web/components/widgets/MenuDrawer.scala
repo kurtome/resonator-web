@@ -75,7 +75,7 @@ object MenuDrawer extends LogSupport {
           Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(
             ListItem(button = true,
                      onClick =
-                       doteRouterCtl.set(ProfileRoute(username = LoggedInPersonManager.username)))(
+                       routeClicked(p, ProfileRoute(username = LoggedInPersonManager.username)))(
               ListItemIcon()(Icons.AccountCircle()),
               ListItemText(secondary = LoggedInPersonManager.username)("Profile")
             )

@@ -5,8 +5,10 @@ import play.api.Configuration
 import wvlet.log.LogSupport
 import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.http._
+import com.sksamuel.elastic4s.searches.queries.ArtificialDocument
 import com.trueaccord.scalapb.json.JsonFormat
 import kurtome.dote.proto.api.dotable.Dotable
+import kurtome.dote.proto.api.tag.Tag
 import kurtome.dote.proto.db.dotable.DotableData
 import kurtome.dote.proto.db.dotable.SearchIndexedData
 import kurtome.dote.proto.db.dotable.SearchIndexedData.IndexedDotable
@@ -89,6 +91,8 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
           textField("indexedFields.title"),
           textField("indexedFields.parentTitle"),
           textField("indexedFields.combinedText").analyzer("english"),
+          keywordField("indexedFields.tagIds"),
+          textField("indexedFields.tagDisplayValues")
         )
 
       }
@@ -100,9 +104,9 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   def indexDotables(dotables: Seq[Dotable]): Future[Unit] = {
     val toIndex = dotables
       .filter(_.kind match {
-        case Dotable.Kind.PODCAST         => true
+        case Dotable.Kind.PODCAST => true
         case Dotable.Kind.PODCAST_EPISODE => true
-        case _                            => false
+        case _ => false
       })
 
     if (toIndex.nonEmpty) {
@@ -112,11 +116,11 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
             dotable =>
               indexInto(dotablesIndex / docType)
                 .id(dotable.id)
-                .doc(extractDataDoc(dotable, dotable.getRelatives.parent)))
+                .doc(extractDataDoc(dotable)))
         )
       } map {
         case Right(requestSuccess) => Unit
-        case Left(requestFailure)  => warn(requestFailure.body)
+        case Left(requestFailure) => warn(requestFailure.body)
       } map (_ => Unit)
     } else {
       Future.unit
@@ -124,7 +128,6 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   }
 
   def searchAll(query: String, offset: Int = 0, limit: Int = 30): Future[Seq[Dotable]] = {
-    implicit val formats = DefaultFormats
     client.execute {
       search(dotablesIndex)
         .from(offset)
@@ -147,6 +150,8 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
                 .prefixLength(3),
               matchQuery("indexedFields.parentTitle", query)
                 .boost(1),
+              matchQuery("indexedFields.tagDisplayValues", query)
+                .boost(50),
               boolQuery()
                 .must(
                   matchPhraseQuery("indexedFields.title", query),
@@ -170,7 +175,6 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   }
 
   def searchPodcast(query: String, offset: Int = 0, limit: Int = 30): Future[Seq[Dotable]] = {
-    implicit val formats = DefaultFormats
     client.execute {
       search(dotablesIndex)
         .from(offset)
@@ -204,7 +208,6 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   }
 
   def searchEpisode(query: String, offset: Int = 0, limit: Int = 30): Future[Seq[Dotable]] = {
-    implicit val formats = DefaultFormats
     client.execute {
       search(dotablesIndex)
         .from(offset)
@@ -223,6 +226,47 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
                 .boost(100)
             )
             .filter(termQuery("dotable.kind", "PODCAST_EPISODE"))
+        )
+    } map {
+      case Right(requestSuccess) => {
+        requestSuccess.result.hits.hits.map(resultData => {
+          val indexedData = JsonFormat.fromJsonString[SearchIndexedData](resultData.sourceAsString)
+          parseDataDoc(indexedData)
+        })
+      }
+      case Left(requestFailure) => {
+        warn(requestFailure.body)
+        Nil
+      }
+    }
+  }
+
+  def moreLike(dotable: Dotable, offset: Int = 0, limit: Int = 24): Future[Seq[Dotable]] = {
+    val tags = dotable.kind match {
+      case Dotable.Kind.PODCAST => dotable.getTagCollection.tags
+      case _ => dotable.getRelatives.getParent.getTagCollection.tags
+    }
+    client.execute {
+      search(dotablesIndex)
+        .from(offset)
+        .size(limit)
+        .query(
+          boolQuery()
+            .filter(
+              termsQuery("indexedFields.tagIds", tags.map(extractTagId)),
+              termQuery("dotable.kind", dotable.kind.toString),
+              not(termQuery("dotable.id", dotable.id))
+            )
+            .should(
+              termsQuery("indexedFields.tagIds", tags.map(extractTagId)),
+              termsQuery("indexedFields.tagIds",
+                         tags
+                           .filter(_.getId.kind == Tag.Kind.PODCAST_CREATOR)
+                           .map(extractTagId))
+                .boost(3),
+              moreLikeThisQuery("indexedFields.combinedText").likeTexts(
+                dotable.getCommon.description)
+            )
         )
     } map {
       case Right(requestSuccess) => {
@@ -258,17 +302,29 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
                                       parent = parent.map(parseIndexedDotable(_, None))))
   }
 
-  private def extractDataDoc(dotable: Dotable, parentDotable: Option[Dotable]): String = {
+  private def extractTagId(tag: Tag): String = {
+    s"${tag.getId.kind.toString}:${tag.getId.key}"
+  }
+
+  private def extractDataDoc(dotable: Dotable): String = {
+    val parentDotable = dotable.getRelatives.parent
     val title = dotable.getCommon.title
     val description = truncateDescription(dotable.getCommon.description)
     val parentTitle = parentDotable.map(_.getCommon.title).getOrElse("")
-    val tags = dotable.getTagCollection.tags.map(_.displayValue).mkString(" ")
-    val combinedText = Seq(title, parentTitle, description, tags).mkString("\n")
+    val tags =
+      (dotable.getTagCollection.tags ++ dotable.getRelatives.getParent.getTagCollection.tags).distinct
+    val tagSnippet = tags.map(_.displayValue).mkString(" ")
+    val combinedText = Seq(title, parentTitle, description, tagSnippet).mkString("\n")
     JsonFormat.toJsonString(
       SearchIndexedData(dotable = Some(toIndexedDotable(dotable)),
                         parent = parentDotable.map(toIndexedDotable))
-        .withIndexedFields(SearchIndexedData
-          .IndexedFields(title = title, combinedText = combinedText, parentTitle = parentTitle)))
+        .withIndexedFields(
+          SearchIndexedData
+            .IndexedFields(title = title,
+                           combinedText = combinedText,
+                           parentTitle = parentTitle,
+                           tagDisplayValues = tags.map(_.displayValue),
+                           tagIds = tags.map(extractTagId))))
   }
 
   private def truncateDescription(description: String): String = {

@@ -3,7 +3,6 @@ syntax = "proto3";
 package kurtome.dote.proto.api.action;
 
 import "api/radio.proto";
-import "api/feed.proto";
 import "api/common.proto";
 
 message GetRadioScheduleRequest {

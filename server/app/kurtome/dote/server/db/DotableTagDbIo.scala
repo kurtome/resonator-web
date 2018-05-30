@@ -21,6 +21,14 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
   private val tagTable = Tables.Tag
   private val table = Tables.DotableTag
 
+  private val readByParentDotableIdRaw = Compiled { (dotableId: Rep[Long]) =>
+    for {
+      d <- Tables.Dotable.filter(_.id === dotableId)
+      dt <- table if dt.dotableId === d.parentId
+      t <- tagTable if t.id === dt.tagId
+    } yield t
+  }
+
   private val readByDotableIdRaw = Compiled { (dotableId: Rep[Long]) =>
     for {
       dt <- table.filter(_.dotableId === dotableId)
@@ -59,7 +67,23 @@ class DotableTagDbIo @Inject()(implicit ec: ExecutionContext) {
   }
 
   def readByDotableId(dotableId: Long) = {
-    readByDotableIdRaw(dotableId).result
+    readByDotableIdRaw(dotableId).result.map(_.map { tagRow =>
+      Tag(
+        kind = tagRow.kind,
+        key = tagRow.key,
+        name = tagRow.name
+      )
+    })
+  }
+
+  def readByParentDotableId(dotableId: Long) = {
+    readByParentDotableIdRaw(dotableId).result.map(_.map { tagRow =>
+      Tag(
+        kind = tagRow.kind,
+        key = tagRow.key,
+        name = tagRow.name
+      )
+    })
   }
 
   implicit val kindSetter = SetParameter[TagKind] {

@@ -22,6 +22,7 @@ message FeedId {
     ProfileDoteListId profile_dote_list = 5;
     TagCollectionId tag_collection = 6;
     ActivityId activity = 7;
+    DotableListId dotable_list = 8;
   }
   message HomeId {}
 
@@ -69,6 +70,8 @@ message FeedId {
     // optional, filter to the current user's following
     bool following_only = 4;
   }
+
+  message DotableListId {}
 }
 
 message PaginationInfo {

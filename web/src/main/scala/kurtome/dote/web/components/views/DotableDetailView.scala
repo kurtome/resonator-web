@@ -12,6 +12,7 @@ import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.detail.ReviewDetails
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
+import kurtome.dote.web.components.widgets.feed.VerticalFeed
 import kurtome.dote.web.rpc.CachedValue
 import kurtome.dote.web.rpc.EmptyCachedValue
 import kurtome.dote.web.rpc.ResonatorApiClient
@@ -80,19 +81,22 @@ object DotableDetailView extends LogSupport {
 
       val episodeTablePage = Try(p.queryParams.getOrElse("ep_page", "0").toInt).getOrElse(0)
 
-      MainContentSection()(
-        dotable.kind match {
-          case Kind.PODCAST =>
-            PodcastDetails(PodcastDetails.Props(dotable, episodeTablePage))()
-          case Kind.PODCAST_EPISODE => EpisodeDetails(EpisodeDetails.Props(dotable))()
-          case Kind.REVIEW => ReviewDetails(ReviewDetails.Props(dotable))()
-          case _ => {
-            // Waiting for data
-            GridContainer(justify = Grid.Justify.Center)(
-              GridItem()(CircularProgress(variant = CircularProgress.Variant.Indeterminate)())
-            )
-          }
-        }
+      ReactFragment(
+        MainContentSection()(
+          dotable.kind match {
+            case Kind.PODCAST =>
+              PodcastDetails(PodcastDetails.Props(dotable, episodeTablePage))()
+            case Kind.PODCAST_EPISODE => EpisodeDetails(EpisodeDetails.Props(dotable))()
+            case Kind.REVIEW          => ReviewDetails(ReviewDetails.Props(dotable))()
+            case _ => {
+              // Waiting for data
+              GridContainer(justify = Grid.Justify.Center)(
+                GridItem()(CircularProgress(variant = CircularProgress.Variant.Indeterminate)())
+              )
+            }
+          },
+        ),
+        VerticalFeed(s.response.getFeed, false)()
       )
     }
   }

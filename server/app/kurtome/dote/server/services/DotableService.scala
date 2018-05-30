@@ -295,28 +295,26 @@ class DotableService @Inject()(db: BasicBackend#Database,
     val childrenQuery = dotableDbIo.readByParentId(DotableKinds.PodcastEpisode, id)
     val parentQuery = dotableDbIo.readParentAndGrandparent(id)
     val tagsQuery = tagDbIo.readByDotableId(id)
+    val parentTagsQuery = tagDbIo.readByParentDotableId(id)
 
     val op = for {
       dotableOpt <- dotableDbIo.readHeadById(id)
       children <- childrenQuery
       (parentOpt, grandParentOpt) <- parentQuery
       tags <- tagsQuery
+      parentTags <- parentTagsQuery
     } yield
       dotableOpt.map(
         _.withRelatives(Dotable.Relatives(
           parent = parentOpt.map(
-            _.withRelatives(Dotable.Relatives(parent = grandParentOpt, parentFetched = true))),
+            _.withRelatives(Dotable.Relatives(parent = grandParentOpt, parentFetched = true))
+              .withTagCollection(
+                TagCollection(tagsFetched = true, tags = parentTags.map(TagMapper.toProto)))),
           parentFetched = true,
           children = children,
           childrenFetched = true
-        )).withTagCollection(TagCollection(tagsFetched = true, tags = tags map { tagRow =>
-          TagMapper.toProto(
-            Tag(
-              kind = tagRow.kind,
-              key = tagRow.key,
-              name = tagRow.name
-            ))
-        })))
+        )).withTagCollection(
+          TagCollection(tagsFetched = true, tags = tags.map(TagMapper.toProto))))
     for {
       dotable <- db.run(op)
       dote <- doteService.readDote(personId.getOrElse(0), id)
@@ -414,13 +412,21 @@ class DotableService @Inject()(db: BasicBackend#Database,
       limit: Int,
       cutOffAge: LocalDateTime,
       cutOffAgeMinId: Long): Future[(Seq[Dotable], LocalDateTime, Long)] = {
-    db.run(dotableDbIo.readBatchByNextMaxUpdatedTime(limit, cutOffAge, cutOffAgeMinId))
-      .map(results =>
-        (results._1.map {
-          case (dotable, parent) => {
-            dotable.withRelatives(Dotable.Relatives(parentFetched = true, parent = parent))
-          }
-        }, results._2, results._3))
+    for {
+      results <- db.run(
+        dotableDbIo.readBatchByNextMaxUpdatedTime(limit, cutOffAge, cutOffAgeMinId))
+    } yield
+      (results._1.map {
+        case (dotable, parent, tags, parentTags) => {
+          dotable
+            .withRelatives(
+              Dotable.Relatives(
+                parentFetched = true,
+                parent = parent.map(
+                  _.withTagCollection(TagCollection(tagsFetched = true, tags = parentTags)))))
+            .withTagCollection(TagCollection(tagsFetched = true, tags = tags))
+        }
+      }, results._2, results._3)
   }
 
   private def updateTagsForDotable(dotableId: Long, tags: Seq[model.Tag]) = {

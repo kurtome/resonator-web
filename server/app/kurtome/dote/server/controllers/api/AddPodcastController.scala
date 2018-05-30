@@ -3,6 +3,7 @@ package kurtome.dote.server.controllers.api
 import javax.inject._
 import kurtome.dote.proto.api.action.add_podcast._
 import kurtome.dote.server.ingestion.{ItunesEntityFetcher, PodcastFeedIngester}
+import kurtome.dote.server.search.SearchClient
 import kurtome.dote.server.services.DotableService
 import kurtome.dote.shared.mapper.StatusMapper
 import kurtome.dote.shared.util.result.ProduceAction
@@ -10,15 +11,17 @@ import kurtome.dote.shared.util.result.SuccessStatus
 import play.api.Configuration
 import play.api.mvc._
 
+import scala.concurrent.Future
+import scala.concurrent.Future
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AddPodcastController @Inject()(
-    cc: ControllerComponents,
-    config: Configuration,
-    itunesEntityFetcher: ItunesEntityFetcher,
-    dotableDbService: DotableService,
-    podcastFeedIngester: PodcastFeedIngester)(implicit ec: ExecutionContext)
+class AddPodcastController @Inject()(cc: ControllerComponents,
+                                     config: Configuration,
+                                     itunesEntityFetcher: ItunesEntityFetcher,
+                                     dotableDbService: DotableService,
+                                     podcastFeedIngester: PodcastFeedIngester,
+                                     searchClient: SearchClient)(implicit ec: ExecutionContext)
     extends ProtobufController[AddPodcastRequest, AddPodcastResponse](cc) {
 
   val allowExtras = config.get[Boolean]("kurtome.dote.add.podcast.extras")

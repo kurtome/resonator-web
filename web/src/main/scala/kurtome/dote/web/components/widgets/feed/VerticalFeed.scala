@@ -45,6 +45,12 @@ object VerticalFeed extends LogSupport {
               <.div(
                 ^.key := s"$i${item.getDotableList.getList.title}",
                 item.getId.id match {
+                  case Id.DotableList(_) =>
+                    LazyLoad(once = true,
+                             height = 150,
+                             key = Some(s"$i${item.getDotableList.getList.title}"))(
+                      DotableListFeedItem(item)()
+                    )
                   case Id.TagList(_) =>
                     LazyLoad(once = true,
                              height = 150,

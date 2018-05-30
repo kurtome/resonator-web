@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package kurtome.dote.proto.api.action;
 
+import "api/feed.proto";
 import "api/dotable.proto";
 import "api/common.proto";
 
@@ -12,4 +13,6 @@ message GetDotableDetailsRequest {
 message GetDotableDetailsResponse {
   api.ActionStatus response_status = 1;
   api.Dotable dotable = 2;
+  // feed to display after the dotable details
+  api.Feed feed = 3;
 }

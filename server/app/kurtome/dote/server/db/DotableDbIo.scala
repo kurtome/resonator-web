@@ -15,6 +15,8 @@ import javax.inject._
 import kurtome.dote.server.util.UrlIds.IdKinds
 import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.shared.constants.DotableKinds.DotableKind
+import kurtome.dote.shared.mapper.TagMapper
+import kurtome.dote.shared.model.Tag
 import kurtome.dote.slick.db.DotePostgresProfile
 import slick.jdbc.GetResult
 import slick.jdbc.GetTupleResult
@@ -324,9 +326,6 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
   }
 
   def readBatchByNextMaxUpdatedTime(limit: Int, cutOffAge: LocalDateTime, cutOffAgeMinId: Long) = {
-
-    //Queries.readBatchByNextMaxUpdatedTime(limit, limit * 2, cutOffAge, cutOffAgeMinId)
-
     import DotePostgresProfile.plainApi._
 
     import GetResult._
@@ -343,7 +342,7 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
     }
     implicit val x = Tables.GetResultDotableRow
 
-    sql"""
+    val batchAction = sql"""
          select
            d.id,
            d.kind,
@@ -365,7 +364,18 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
            d.db_updated_time >= $cutOffAge
          order by d.db_updated_time, d.id
          limit ${limit * 2}
-      """.as[(Tables.DotableRow, Tables.DotableRow)] map { batch =>
+      """.as[(Tables.DotableRow, Tables.DotableRow)]
+
+    for {
+      batch <- batchAction
+      tags <- (for {
+        (dt, t) <- Tables.DotableTag.filter(
+          row =>
+            row.dotableId inSet (batch.map(_._1.id) ++ batch
+              .map(_._1.parentId.getOrElse(0L)))) join Tables.Tag on (_.tagId === _.id)
+      } yield (dt.dotableId, t)).distinct.result
+    } yield {
+      val tagsMap = tags.groupBy(_._1).mapValues(_.map(_._2))
       val filteredBatch =
         batch
           .filterNot(row => {
@@ -379,7 +389,12 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
               Some(protoRowMapper(childAndParent._2))
             } else {
               None
-            })
+            }, tagsMap
+              .getOrElse(childAndParent._1.id, Nil)
+              .map(t => TagMapper.toProto(Tag(t.kind, t.key, t.name))), tagsMap
+              .getOrElse(childAndParent._2.id, Nil)
+              .map(t => TagMapper.toProto(Tag(t.kind, t.key, t.name))))
+
           })
 
       // Return the max db_updated_time and ID of the this batch so it can be used for the next batch

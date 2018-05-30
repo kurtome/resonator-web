@@ -87,5 +87,8 @@ message SearchIndexedData {
     //   title, description (possibly truncated), tag values
     string combined_text = 2;
     string parent_title = 3;
+    // stringified as "{tag_kind}:{tag_key}"
+    repeated string tag_ids = 4;
+    repeated string tag_display_values = 5;
   }
 }
