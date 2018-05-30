@@ -253,12 +253,11 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
         .query(
           boolQuery()
             .filter(
-              termsQuery("indexedFields.tagIds", tags.map(extractTagId)),
               termQuery("dotable.kind", dotable.kind.toString),
               not(termQuery("dotable.id", dotable.id))
             )
+            .must(termsQuery("indexedFields.tagIds", tags.map(extractTagId)))
             .should(
-              termsQuery("indexedFields.tagIds", tags.map(extractTagId)),
               termsQuery("indexedFields.tagIds",
                          tags
                            .filter(_.getId.kind == Tag.Kind.PODCAST_CREATOR)
