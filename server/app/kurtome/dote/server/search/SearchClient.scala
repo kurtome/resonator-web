@@ -258,7 +258,7 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
                 termQuery("dotable.kind", dotable.kind.toString),
                 not(termQuery("dotable.id", dotable.id))
               )
-              .should(
+              .must(
                 moreLikeThisQuery("indexedFields.combinedText")
                   .likeTexts(combinedText)
               )
