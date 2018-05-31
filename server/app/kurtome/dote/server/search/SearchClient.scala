@@ -246,38 +246,38 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
       case Dotable.Kind.PODCAST => dotable.getTagCollection.tags
       case _ => dotable.getRelatives.getParent.getTagCollection.tags
     }
-    client.execute {
-      search(dotablesIndex)
-        .from(offset)
-        .size(limit)
-        .query(
-          boolQuery()
-            .filter(
-              termQuery("dotable.kind", dotable.kind.toString),
-              not(termQuery("dotable.id", dotable.id))
-            )
-            .must(termsQuery("indexedFields.tagIds", tags.map(extractTagId)))
-            .should(
-              termsQuery("indexedFields.tagIds",
-                         tags
-                           .filter(_.getId.kind == Tag.Kind.PODCAST_CREATOR)
-                           .map(extractTagId))
-                .boost(3),
-              moreLikeThisQuery("indexedFields.combinedText").likeTexts(
-                dotable.getCommon.description)
-            )
-        )
-    } map {
-      case Right(requestSuccess) => {
-        requestSuccess.result.hits.hits.map(resultData => {
-          val indexedData = JsonFormat.fromJsonString[SearchIndexedData](resultData.sourceAsString)
-          parseDataDoc(indexedData)
-        })
+    val combinedText = extractIndexStruct(dotable).getIndexedFields.combinedText
+    if (tags.nonEmpty) {
+      client.execute {
+        search(dotablesIndex)
+          .from(offset)
+          .size(limit)
+          .query(
+            boolQuery()
+              .filter(
+                termQuery("dotable.kind", dotable.kind.toString),
+                not(termQuery("dotable.id", dotable.id))
+              )
+              .should(
+                moreLikeThisQuery("indexedFields.combinedText")
+                  .likeTexts(combinedText)
+              )
+          )
+      } map {
+        case Right(requestSuccess) => {
+          requestSuccess.result.hits.hits.map(resultData => {
+            val indexedData =
+              JsonFormat.fromJsonString[SearchIndexedData](resultData.sourceAsString)
+            parseDataDoc(indexedData)
+          })
+        }
+        case Left(requestFailure) => {
+          warn(requestFailure.body)
+          Nil
+        }
       }
-      case Left(requestFailure) => {
-        warn(requestFailure.body)
-        Nil
-      }
+    } else {
+      Future(Nil)
     }
   }
 
@@ -306,6 +306,10 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
   }
 
   private def extractDataDoc(dotable: Dotable): String = {
+    JsonFormat.toJsonString(extractIndexStruct(dotable))
+  }
+
+  private def extractIndexStruct(dotable: Dotable): SearchIndexedData = {
     val parentDotable = dotable.getRelatives.parent
     val title = dotable.getCommon.title
     val description = truncateDescription(dotable.getCommon.description)
@@ -314,16 +318,15 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
       (dotable.getTagCollection.tags ++ dotable.getRelatives.getParent.getTagCollection.tags).distinct
     val tagSnippet = tags.map(_.displayValue).mkString(" ")
     val combinedText = Seq(title, parentTitle, description, tagSnippet).mkString("\n")
-    JsonFormat.toJsonString(
-      SearchIndexedData(dotable = Some(toIndexedDotable(dotable)),
-                        parent = parentDotable.map(toIndexedDotable))
-        .withIndexedFields(
-          SearchIndexedData
-            .IndexedFields(title = title,
-                           combinedText = combinedText,
-                           parentTitle = parentTitle,
-                           tagDisplayValues = tags.map(_.displayValue),
-                           tagIds = tags.map(extractTagId))))
+    SearchIndexedData(dotable = Some(toIndexedDotable(dotable)),
+                      parent = parentDotable.map(toIndexedDotable))
+      .withIndexedFields(
+        SearchIndexedData
+          .IndexedFields(title = title,
+                         combinedText = combinedText,
+                         parentTitle = parentTitle,
+                         tagDisplayValues = tags.map(_.displayValue),
+                         tagIds = tags.map(extractTagId)))
   }
 
   private def truncateDescription(description: String): String = {

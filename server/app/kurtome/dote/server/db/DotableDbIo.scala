@@ -361,9 +361,9 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
          from dotable d
            left join dotable p on d.parent_id = p.id
          where
-           d.db_updated_time >= $cutOffAge
+           d.db_updated_time > $cutOffAge OR (d.db_updated_time = $cutOffAge AND d.id > $cutOffAgeMinId)
          order by d.db_updated_time, d.id
-         limit ${limit * 2}
+         limit $limit
       """.as[(Tables.DotableRow, Tables.DotableRow)]
 
     for {
@@ -378,12 +378,6 @@ class DotableDbIo @Inject()(implicit ec: ExecutionContext) extends LogSupport {
       val tagsMap = tags.groupBy(_._1).mapValues(_.map(_._2))
       val filteredBatch =
         batch
-          .filterNot(row => {
-            val d = row._1
-            (d.dbUpdatedTime.isBefore(cutOffAge) || d.dbUpdatedTime
-              .isEqual(cutOffAge)) && d.id <= cutOffAgeMinId
-          })
-          .take(limit)
           .map(childAndParent => {
             (protoRowMapper(childAndParent._1), if (childAndParent._2.id > 0) {
               Some(protoRowMapper(childAndParent._2))

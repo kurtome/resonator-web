@@ -104,7 +104,7 @@ object DoteRoutes extends LogSupport {
       import dsl._
 
       // Slug must start and end with a alpha-numeric
-      val slug = string("(?:[a-z0-9][-a-z0-9]+[a-z0-9])|[a-z0-9]")
+      val slug = string("(?:[a-z0-9][-a-z0-9_]+[a-z0-9_])|[a-z0-9]")
 
       val id = string("[a-zA-Z0-9]+")
 
