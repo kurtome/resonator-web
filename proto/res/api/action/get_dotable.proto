@@ -14,5 +14,5 @@ message GetDotableDetailsResponse {
   api.ActionStatus response_status = 1;
   api.Dotable dotable = 2;
   // feed to display after the dotable details
-  api.Feed feed = 3;
+  api.FeedId feed_id = 3;
 }

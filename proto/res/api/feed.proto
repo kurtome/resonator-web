@@ -23,6 +23,7 @@ message FeedId {
     TagCollectionId tag_collection = 6;
     ActivityId activity = 7;
     DotableListId dotable_list = 8;
+    SecondaryDotableDetailsId secondary_dotable_details = 9;
   }
   message HomeId {}
 
@@ -72,6 +73,10 @@ message FeedId {
   }
 
   message DotableListId {}
+
+  message SecondaryDotableDetailsId {
+    string dotable_id = 1;
+  }
 }
 
 message PaginationInfo {

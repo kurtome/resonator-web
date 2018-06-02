@@ -251,8 +251,8 @@ object NavBar extends LogSupport {
               CenteredMainContent()(renderToolbarContent(p, s))
             )
           )
-        ),
-        Fader(in = s.isLoading)(LinearProgress()())
+        )
+        //Fader(in = s.isLoading)(LinearProgress()())
       )
     }
   }

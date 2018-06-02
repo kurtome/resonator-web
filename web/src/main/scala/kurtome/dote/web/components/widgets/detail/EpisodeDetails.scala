@@ -44,7 +44,7 @@ object EpisodeDetails {
     }
 
     def render(p: Props, s: State): VdomElement = {
-      val description = p.dotable.getCommon.description
+      val description = p.dotable.getCommon.description.trim
 
       val shouldInline = s.breakpoint match {
         case "xs" => false

@@ -12,6 +12,7 @@ import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.components.widgets.MainContentSection
 import kurtome.dote.web.components.widgets.detail.ReviewDetails
 import kurtome.dote.web.components.widgets.detail.{EpisodeDetails, PodcastDetails}
+import kurtome.dote.web.components.widgets.feed.FeedContainer
 import kurtome.dote.web.components.widgets.feed.VerticalFeed
 import kurtome.dote.web.rpc.CachedValue
 import kurtome.dote.web.rpc.EmptyCachedValue
@@ -71,7 +72,6 @@ object DotableDetailView extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
-
       val dotable = s.response.getDotable
 
       val title = dotable.getCommon.title
@@ -87,16 +87,16 @@ object DotableDetailView extends LogSupport {
             case Kind.PODCAST =>
               PodcastDetails(PodcastDetails.Props(dotable, episodeTablePage))()
             case Kind.PODCAST_EPISODE => EpisodeDetails(EpisodeDetails.Props(dotable))()
-            case Kind.REVIEW          => ReviewDetails(ReviewDetails.Props(dotable))()
+            case Kind.REVIEW => ReviewDetails(ReviewDetails.Props(dotable))()
             case _ => {
               // Waiting for data
               GridContainer(justify = Grid.Justify.Center)(
                 GridItem()(CircularProgress(variant = CircularProgress.Variant.Indeterminate)())
               )
             }
-          },
+          }
         ),
-        VerticalFeed(s.response.getFeed, false)()
+        FeedContainer(s.response.getFeedId)()
       )
     }
   }

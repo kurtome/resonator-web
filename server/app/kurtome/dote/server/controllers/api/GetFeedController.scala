@@ -10,6 +10,7 @@ import kurtome.dote.server.controllers.feed.FeedParams
 import kurtome.dote.server.controllers.feed.FollowerSummaryFeedFetcher
 import kurtome.dote.server.controllers.feed.HomeFeedFetcher
 import kurtome.dote.server.controllers.feed.ProfileFeedFetcher
+import kurtome.dote.server.controllers.feed.SecondaryDotableDetailsFeedFetcher
 import kurtome.dote.server.controllers.feed.TagListFeedFetcher
 import kurtome.dote.server.services.{AuthTokenService, DotableService}
 import kurtome.dote.shared.mapper.StatusMapper
@@ -28,6 +29,7 @@ class GetFeedController @Inject()(
     tagListFeedFetcher: TagListFeedFetcher,
     followerSummaryFeedFetcher: FollowerSummaryFeedFetcher,
     activityFeedFetcher: ActivityFeedFetcher,
+    secondaryDotableDetailsFeedFetcher: SecondaryDotableDetailsFeedFetcher,
     authTokenService: AuthTokenService)(implicit ec: ExecutionContext)
     extends ProtobufController[GetFeedRequest, GetFeedResponse](cc)
     with LogSupport {
@@ -49,6 +51,7 @@ class GetFeedController @Inject()(
         case Id.TagList(_) => tagListFeedFetcher
         case Id.FollowerSummary(_) => followerSummaryFeedFetcher
         case Id.Activity(_) => activityFeedFetcher
+        case Id.SecondaryDotableDetails(_) => secondaryDotableDetailsFeedFetcher
         case _ =>
           new FeedFetcher with LogSupport {
             override def fetch(params: FeedParams): Future[Feed] = {

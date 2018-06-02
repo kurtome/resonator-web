@@ -85,6 +85,17 @@ object ActivityCard extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
+    private def truncateReview(reviewBody: String): String = {
+      val reviewSnippetLength = 50
+      if (reviewBody.length > 50) {
+        reviewBody
+          .take(reviewSnippetLength - 3)
+          .padTo(reviewSnippetLength, '.')
+      } else {
+        reviewBody
+      }
+    }
+
     def renderStar(halfStars: Int, starPosition: Int) = {
       if (halfStars < ((starPosition * 2) - 1)) {
         Icons.StarOutline(style = Styles.star)
@@ -117,13 +128,7 @@ object ActivityCard extends LogSupport {
       val dotable = activity.getDote.getDotable
       val dote = activity.getDote.getDote
       val review = activity.getDote.review
-      val reviewSnippetLength = 50
-      val reviewBody: String =
-        review
-          .map(_.getCommon.description)
-          .getOrElse("")
-          .take(reviewSnippetLength - 3)
-          .padTo(reviewSnippetLength, '.')
+      val reviewBody: String = truncateReview(review.map(_.getCommon.description).getOrElse(""))
 
       ReactFragment(
         <.div(

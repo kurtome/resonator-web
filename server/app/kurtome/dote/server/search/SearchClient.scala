@@ -6,6 +6,7 @@ import wvlet.log.LogSupport
 import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.http._
 import com.sksamuel.elastic4s.searches.queries.ArtificialDocument
+import com.sksamuel.elastic4s.searches.queries.MoreLikeThisItem
 import com.trueaccord.scalapb.json.JsonFormat
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.tag.Tag
@@ -67,7 +68,7 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
     }
   )
 
-  private val dotablesIndex = "dotables"
+  private val dotablesIndex = "dotables-v2"
   private val docType = "_doc"
 
   // This cannot alter existing mappings, only create new ones.
@@ -90,7 +91,7 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
           objectField("indexedFields").dynamic(false),
           textField("indexedFields.title"),
           textField("indexedFields.parentTitle"),
-          textField("indexedFields.combinedText").analyzer("english"),
+          textField("indexedFields.combinedText").termVector("yes").analyzer("english"),
           keywordField("indexedFields.tagIds"),
           textField("indexedFields.tagDisplayValues")
         )
@@ -261,6 +262,48 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
               .must(
                 moreLikeThisQuery("indexedFields.combinedText")
                   .likeTexts(combinedText)
+                  .maxQueryTerms(10)
+                  .minTermFreq(1)
+                  .minDocFreq(1)
+                  .stopWords(
+                    "pod",
+                    "podcast",
+                    "cast",
+                    "a",
+                    "an",
+                    "and",
+                    "are",
+                    "as",
+                    "at",
+                    "be",
+                    "but",
+                    "by",
+                    "for",
+                    "if",
+                    "in",
+                    "into",
+                    "is",
+                    "it",
+                    "no",
+                    "not",
+                    "of",
+                    "on",
+                    "or",
+                    "such",
+                    "that",
+                    "the",
+                    "their",
+                    "then",
+                    "there",
+                    "these",
+                    "they",
+                    "this",
+                    "to",
+                    "was",
+                    "will",
+                    "with"
+                  )
+                  .boostTerms(1)
               )
           )
       } map {

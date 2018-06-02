@@ -7,6 +7,7 @@ import kurtome.dote.proto.api.dotable_list.DotableList
 import kurtome.dote.proto.api.feed.Feed
 import kurtome.dote.proto.api.feed.FeedDotableList
 import kurtome.dote.proto.api.feed.FeedId
+import kurtome.dote.proto.api.feed.FeedId.SecondaryDotableDetailsId
 import kurtome.dote.proto.api.feed.FeedItem
 import kurtome.dote.server.search.SearchClient
 import kurtome.dote.server.services.AuthTokenService
@@ -38,29 +39,12 @@ class GetDotableDetailsController @Inject()(
       val dotableId = UrlIds.decode(IdKinds.Dotable, request.body.id)
       for {
         dotableOpt <- dotableService.readDotableDetails(dotableId, loggedInPerson.map(_.id))
-        moreLike <- dotableOpt match {
-          case Some(dotable) => searchClient.moreLike(dotable)
-          case _ => Future(Nil)
-        }
       } yield
         dotableOpt match {
           case Some(dotable) => {
-            val moreLikeTitle =
-              s"Similar ${if (dotable.kind == Dotable.Kind.PODCAST) "Podcasts" else "Epsidoes"}"
-            val feed = Feed(
-              items = moreLike match {
-                case Nil => Nil
-                case _ =>
-                  Seq(
-                    FeedItem()
-                      .withDotableList(FeedDotableList().withList(
-                        DotableList(dotables = moreLike, title = moreLikeTitle)))
-                      .withId(FeedId().withDotableList(FeedId.DotableListId())))
-              }
-            )
             GetDotableDetailsResponse(Some(StatusMapper.toProto(SuccessStatus)), Some(dotable))
-              .withFeed(feed)
-
+              .withFeedId(
+                FeedId().withSecondaryDotableDetails(SecondaryDotableDetailsId(request.body.id)))
           }
           case None =>
             GetDotableDetailsResponse(
