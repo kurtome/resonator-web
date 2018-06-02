@@ -5,8 +5,6 @@ import play.api.Configuration
 import wvlet.log.LogSupport
 import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.http._
-import com.sksamuel.elastic4s.searches.queries.ArtificialDocument
-import com.sksamuel.elastic4s.searches.queries.MoreLikeThisItem
 import com.trueaccord.scalapb.json.JsonFormat
 import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.tag.Tag
@@ -20,13 +18,52 @@ import org.apache.http.impl.client.BasicCredentialsProvider
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder
 import org.elasticsearch.client.RestClientBuilder.HttpClientConfigCallback
 import org.elasticsearch.client.RestClientBuilder.RequestConfigCallback
-import org.json4s._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SearchClient @Inject()(configuration: Configuration)(implicit ec: ExecutionContext)
     extends LogSupport {
+
+  private val stopWords = Seq(
+    "pod",
+    "podcast",
+    "cast",
+    "episode",
+    "a",
+    "an",
+    "and",
+    "are",
+    "as",
+    "at",
+    "be",
+    "but",
+    "by",
+    "for",
+    "if",
+    "in",
+    "into",
+    "is",
+    "it",
+    "no",
+    "not",
+    "of",
+    "on",
+    "or",
+    "such",
+    "that",
+    "the",
+    "their",
+    "then",
+    "there",
+    "these",
+    "they",
+    "this",
+    "to",
+    "was",
+    "will",
+    "with"
+  )
 
   import com.sksamuel.elastic4s.http.ElasticDsl._
 
@@ -256,56 +293,15 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
           .query(
             boolQuery()
               .filter(
-                termQuery("dotable.kind", dotable.kind.toString),
-                not(termQuery("dotable.id", dotable.id))
+                termQuery("dotable.kind", dotable.kind.toString)
               )
               .must(
                 moreLikeThisQuery("indexedFields.combinedText")
                   .likeTexts(combinedText)
-                  .maxQueryTerms(10)
-                  .minTermFreq(1)
-                  .minDocFreq(1)
-                  .stopWords(
-                    "pod",
-                    "podcast",
-                    "cast",
-                    "a",
-                    "an",
-                    "and",
-                    "are",
-                    "as",
-                    "at",
-                    "be",
-                    "but",
-                    "by",
-                    "for",
-                    "if",
-                    "in",
-                    "into",
-                    "is",
-                    "it",
-                    "no",
-                    "not",
-                    "of",
-                    "on",
-                    "or",
-                    "such",
-                    "that",
-                    "the",
-                    "their",
-                    "then",
-                    "there",
-                    "these",
-                    "they",
-                    "this",
-                    "to",
-                    "was",
-                    "will",
-                    "with"
-                  )
-                  .boostTerms(1)
+                  .stopWords(stopWords)
               )
           )
+          .postFilter(not(termQuery("dotable.id", dotable.id)))
       } map {
         case Right(requestSuccess) => {
           requestSuccess.result.hits.hits.map(resultData => {
