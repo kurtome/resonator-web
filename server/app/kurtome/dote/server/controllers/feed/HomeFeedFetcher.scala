@@ -119,7 +119,8 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
                         "From Popular Podcasts",
                         tagList.tag,
                         tagList.list,
-                        DotableKinds.PodcastEpisode)
+                        DotableKinds.PodcastEpisode,
+                        FeedItemCommon.BackgroundColor.DEFAULT)
     }
 
     val popularList = dotableService
@@ -139,9 +140,9 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
 
     val lists = Future.sequence(
       Seq(
+        newEpisodes,
         recentActivity,
         recentActivityFromFollowing,
-        newEpisodes,
         popularList,
         creatorsTagCollection,
         categoriesTagCollection
@@ -165,13 +166,16 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
                                 caption: String,
                                 tag: Tag,
                                 list: Seq[Dotable],
-                                kind: DotableKind): FeedItem = {
-    val feedList = FeedDotableList(
-      Some(DotableList(title = title, caption = caption, dotables = list)))
+                                kind: DotableKind,
+                                backgroundColor: FeedItemCommon.BackgroundColor =
+                                  FeedItemCommon.BackgroundColor.DEFAULT): FeedItem = {
+    val feedList =
+      FeedDotableList().withList(DotableList(title = title, caption = caption, dotables = list))
     FeedItem()
       .withId(FeedId().withTagList(
         TagListId(tag = Some(TagMapper.toProto(tag)), dotableKind = DotableMapper.mapKind(kind))))
       .withContent(FeedItem.Content.DotableList(feedList))
+      .withCommon(FeedItemCommon.defaultInstance.withBackgroundColor(backgroundColor))
   }
 
   private def toTagCollectionFeedItem(title: String, list: Seq[Tables.TagRow]): FeedItem = {

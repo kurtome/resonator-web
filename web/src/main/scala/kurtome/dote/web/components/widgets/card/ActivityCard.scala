@@ -49,8 +49,9 @@ object ActivityCard extends LogSupport {
       marginRight(4 px)
     )
 
-    val reviewSnippet = style(
-      marginTop(SharedStyles.spacingUnit)
+    val reviewDivider = style(
+      marginTop(SharedStyles.spacingUnit / 2),
+      marginBottom(SharedStyles.spacingUnit / 2)
     )
 
     val reviewSnippetItem = style(
@@ -150,19 +151,22 @@ object ActivityCard extends LogSupport {
                   Typography(component = "span", noWrap = true)(Emojis.pickEmoji(dote.emoteKind)))
               )
             )
-          ),
-          Hidden(xsUp = review.isEmpty)(
-            Typography(style = Styles.reviewSnippet, variant = Typography.Variants.Caption)(
-              s"$reviewBody"),
+          )
+        ),
+        Hidden(xsUp = review.isEmpty)(
+          Divider()(),
+          <.div(
+            ^.className := Styles.headerTextWrapper,
+            Typography(variant = Typography.Variants.Caption)(s"$reviewBody"),
             Typography(variant = Typography.Variants.Caption)(
               SiteLink(DetailsRoute(review.map(_.id).getOrElse(""), "review"))("See Review")
             )
           )
         ),
         if (dotable.kind == Dotable.Kind.PODCAST) {
-          PodcastCard(dotable = dotable, color = PodcastCard.Colors.PrimaryAccent)()
+          PodcastCard(dotable = dotable, color = PodcastCard.Colors.Default)()
         } else if (dotable.kind == Dotable.Kind.PODCAST_EPISODE) {
-          EpisodeCard(dotable = dotable, color = EpisodeCard.Colors.PrimaryAccent)()
+          EpisodeCard(dotable = dotable, color = EpisodeCard.Colors.Default)()
         } else {
           // Placeholder for correct spacing
           <.div(^.width := "100%")
