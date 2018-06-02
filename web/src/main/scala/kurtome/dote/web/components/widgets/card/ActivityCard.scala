@@ -154,7 +154,6 @@ object ActivityCard extends LogSupport {
           )
         ),
         Hidden(xsUp = review.isEmpty)(
-          Divider()(),
           <.div(
             ^.className := Styles.headerTextWrapper,
             Typography(variant = Typography.Variants.Caption)(s"$reviewBody"),
