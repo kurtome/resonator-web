@@ -97,7 +97,7 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
                                                  "",
                                                  list,
                                                  backgroundColor =
-                                                   FeedItemCommon.BackgroundColor.LIGHT)
+                                                   FeedItemCommon.BackgroundColor.DEFAULT)
     }
 
     val recentActivityFromFollowing = personId
@@ -109,7 +109,7 @@ class HomeFeedFetcher @Inject()(doteService: DoteService,
         "Recent From Following",
         "",
         list,
-        backgroundColor = FeedItemCommon.BackgroundColor.LIGHT
+        backgroundColor = FeedItemCommon.BackgroundColor.DEFAULT
       )
     }
 

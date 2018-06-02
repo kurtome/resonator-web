@@ -64,7 +64,6 @@ object ImageWithSummaryCard extends LogSupport {
     val imageOverlay = style(
       pointerEvents := "none",
       position.absolute,
-      zIndex(1),
       height(100 %%),
       // for some reason this had a small gap with width=100%
       // the overflow=hidden on the parent hides the excess

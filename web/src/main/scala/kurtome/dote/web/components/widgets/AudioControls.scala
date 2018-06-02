@@ -12,6 +12,7 @@ import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.audio.AudioPlayer
 import kurtome.dote.web.audio.AudioPlayer.OffSources
 import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses
+import kurtome.dote.web.audio.RadioTuner
 import kurtome.dote.web.components.ComponentHelpers
 import kurtome.dote.web.components.widgets.card.PodcastImageCard
 import kurtome.dote.web.utils.BaseBackend
@@ -152,14 +153,6 @@ object AudioControls extends LogSupport {
       AudioPlayer.forward(30)
     }
 
-    private def formatFrequency(station: RadioStation): String = {
-      station.frequencyKind match {
-        case RadioStation.FrequencyKind.AM => s"${station.frequency} kHz"
-        case RadioStation.FrequencyKind.FM => s"${station.frequency} MHz"
-        case _ => station.frequency.toString
-      }
-    }
-
     def render(p: Props, s: State): VdomElement = {
       val tileWidth = controlsHeight
       val buttonSpaceWidth = controlsWidth - tileWidth
@@ -219,9 +212,7 @@ object AudioControls extends LogSupport {
                     Hidden(xsUp = s.playerState.stationSchedule.isEmpty)(
                       GridItem()(
                         GridItem()(
-                          Typography()(
-                            s"${station.getStation.callSign} - ${formatFrequency(station.getStation)}"
-                          )
+                          Typography()(RadioTuner.formatStation(station.getStation))
                         )
                       )
                     )

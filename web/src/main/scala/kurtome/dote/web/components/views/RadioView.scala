@@ -2,12 +2,15 @@ package kurtome.dote.web.components.views
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+import kurtome.dote.proto.api.dotable.Dotable
 import kurtome.dote.proto.api.radio.RadioStation.FrequencyKind
+import kurtome.dote.proto.api.radio.RadioStationSchedule
 import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
 import kurtome.dote.web.audio.RadioTuner
 import kurtome.dote.web.components.ComponentHelpers
+import kurtome.dote.web.components.materialui
 import kurtome.dote.web.components.materialui.Grid
 import kurtome.dote.web.components.materialui.GridContainer
 import kurtome.dote.web.components.materialui.GridItem
@@ -16,7 +19,10 @@ import kurtome.dote.web.components.materialui.IconButton
 import kurtome.dote.web.components.materialui.Icons
 import kurtome.dote.web.components.materialui.Switch
 import kurtome.dote.web.components.materialui.Typography
+import kurtome.dote.web.components.widgets
 import kurtome.dote.web.components.widgets.MainContentSection
+import kurtome.dote.web.components.widgets.SiteLink
+import kurtome.dote.web.components.widgets.card.EpisodeCard
 import kurtome.dote.web.components.widgets.radio.TunerBand
 import kurtome.dote.web.constants.MuiTheme
 import kurtome.dote.web.utils.BaseBackend
@@ -48,6 +54,11 @@ object RadioView extends LogSupport {
       background := s"radial-gradient(${MuiTheme.theme.palette.secondary.light} 0%, transparent 50%)",
       borderRadius(50 %%)
     )
+
+    val nowPlayingHeadline = style(
+      marginBottom(16 px)
+    )
+
   }
 
   private object Animations extends StyleSheet.Inline {
@@ -85,11 +96,8 @@ object RadioView extends LogSupport {
     val stateObserver: Observer[RadioTuner.State] = (state: RadioTuner.State) => {
       bs.modState(_.copy(tunerState = state)).runNow()
 
-      if (state.frequency > 0) {
-        val stationStr = state.frequency.toString + (state.frequencyKind match {
-          case FrequencyKind.FM => "MHz"
-          case _ => "kHz"
-        })
+      if (state.currentStation.isDefined) {
+        val stationStr = RadioTuner.formatFrequencyForRoute(state.currentStation.get)
         val title = {
           state.currentCallSign match {
             case Some(callSign) => s"$callSign - $stationStr | Resonator"
@@ -132,42 +140,69 @@ object RadioView extends LogSupport {
     }
 
     def render(p: Props, s: State): VdomElement = {
-      MainContentSection()(
-        GridContainer()(
-          GridItem(xs = 12)(
-            GridContainer(spacing = 8,
-                          direction = Grid.Direction.Column,
-                          alignItems = Grid.AlignItems.Center)(
-              GridItem()(
-                <.div(^.textAlign.center, ^.marginBottom := "-8px", Typography()("Power")),
-                <.div(
-                  ^.position := "relative",
-                  Hidden(xsUp = s.tunerState.on)(
-                    <.div(
-                      ^.className := Styles.powerButtonGlow
-                    )
-                  ),
-                  Switch(checked = s.tunerState.on, onChange = powerSwitched)()
+
+      ReactFragment(
+        MainContentSection(variant = MainContentSection.Variants.Light)(
+          GridContainer()(
+            GridItem(xs = 12)(
+              GridContainer(spacing = 8,
+                            direction = Grid.Direction.Column,
+                            alignItems = Grid.AlignItems.Center)(
+                GridItem()(
+                  <.div(^.textAlign.center, ^.marginBottom := "-8px", Typography()("Power")),
+                  <.div(
+                    ^.position := "relative",
+                    Hidden(xsUp = s.tunerState.on)(
+                      <.div(
+                        ^.className := Styles.powerButtonGlow
+                      )
+                    ),
+                    Switch(checked = s.tunerState.on, onChange = powerSwitched)()
+                  )
                 )
               )
+            ),
+            GridItem(xs = 12)(
+              TunerBand(minFrequency = 500,
+                        maxFrequency = 1700,
+                        majorTickInterval = if (ComponentHelpers.isBreakpointXs) 200 else 100,
+                        currentFrequency = s.tunerState.frequency)()
+            ),
+            GridItem(xs = 12)(
+              GridContainer(spacing = 8,
+                            justify = Grid.Justify.Center,
+                            alignItems = Grid.AlignItems.Center)(
+                IconButton(color = IconButton.Colors.Primary, onClick = seekBackward)(
+                  Icons.ChevronLeft()),
+                Typography()("Seek"),
+                IconButton(color = IconButton.Colors.Primary, onClick = seekForward)(
+                  Icons.ChevronRight())
+              )
             )
-          ),
-          GridItem(xs = 12)(
-            TunerBand(minFrequency = 500,
-                      maxFrequency = 1700,
-                      majorTickInterval = if (ComponentHelpers.isBreakpointXs) 200 else 100,
-                      currentFrequency = s.tunerState.frequency)()
-          ),
-          GridItem(xs = 12)(
-            GridContainer(spacing = 8,
-                          justify = Grid.Justify.Center,
-                          alignItems = Grid.AlignItems.Center)(
-              IconButton(color = IconButton.Colors.Primary, onClick = seekBackward)(
-                Icons.ChevronLeft()),
-              Typography()("Seek"),
-              IconButton(color = IconButton.Colors.Primary, onClick = seekForward)(
-                Icons.ChevronRight())
-            )
+          )
+        ),
+        MainContentSection()(
+          Typography(variant = Typography.Variants.Headline, style = Styles.nowPlayingHeadline)(
+            "Now Playing"),
+          GridContainer(spacing = 16)(
+            s.tunerState.currentSchedules map { stationSchedule =>
+              val station = stationSchedule.getStation
+              val episode = RadioTuner.currentEpisodeForSchedule(stationSchedule)
+              debug(episode)
+              GridItem(key = Some(s"now-playing-${station.callSign}"), xs = 12, sm = 6, lg = 4)(
+                Typography(variant = Typography.Variants.SubHeading)(
+                  s"${station.callSign} ",
+                  SiteLink(RadioRoute(RadioTuner.formatFrequencyForRoute(station)))(
+                    RadioTuner.formatFrequency(station))
+                ),
+                Hidden(xsUp = episode.isEmpty)(
+                  EpisodeCard(episode.map(_.getEpisode).getOrElse(Dotable.defaultInstance))()
+                ),
+                Hidden(xsUp = episode.isDefined)(
+                  Typography()("Off Air")
+                )
+              )
+            } toVdomArray
           )
         )
       )

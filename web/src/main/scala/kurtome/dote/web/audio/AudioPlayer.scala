@@ -116,10 +116,7 @@ object AudioPlayer extends LogSupport {
   }
 
   private def playCurrentEpisodeFromStation(stationSchedule: RadioStationSchedule) = {
-    stationSchedule.scheduledEpisodes.find(se => {
-      val now = js.Date.now()
-      se.startTimeMillis <= now && se.endTimeMillis >= now && canPlay(se.getEpisode)
-    }) foreach { episode =>
+    RadioTuner.currentEpisodeForSchedule(stationSchedule) foreach { episode =>
       if (episode.getEpisode.id != curState.episode.id) {
         startPlayingEpisode(episode.getEpisode, Some(stationSchedule))
       } else {

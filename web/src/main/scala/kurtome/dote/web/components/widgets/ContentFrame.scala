@@ -91,10 +91,10 @@ object ContentFrame extends LogSupport {
             ^.position.relative,
             ^.flexGrow := "1",
             Toolbar()(), // leave space for the navbar
-            mainContent
+            mainContent,
+            NotificationSnackBar()(),
+            AudioControls()()
           ),
-          NotificationSnackBar()(),
-          AudioControls()()
         )
       )
     }

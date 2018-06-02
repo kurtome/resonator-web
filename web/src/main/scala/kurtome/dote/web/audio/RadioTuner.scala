@@ -2,8 +2,10 @@ package kurtome.dote.web.audio
 
 import kurtome.dote.proto.api.action.get_radio_schedule.GetRadioScheduleRequest
 import kurtome.dote.proto.api.action.get_radio_schedule.GetRadioScheduleResponse
+import kurtome.dote.proto.api.radio.RadioStation
 import kurtome.dote.proto.api.radio.RadioStation.FrequencyKind
 import kurtome.dote.proto.api.radio.RadioStationSchedule
+import kurtome.dote.proto.api.radio.ScheduledEpisode
 import kurtome.dote.shared.util.observer.Observable
 import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.shared.util.observer.SimpleObservable
@@ -42,6 +44,10 @@ object RadioTuner extends LogSupport {
 
     def currentStationSchedule: Option[RadioStationSchedule] = {
       currentSchedules.find(_.getStation.frequency == frequency)
+    }
+
+    def currentStation: Option[RadioStation] = {
+      currentSchedules.find(_.getStation.frequency == frequency).map(_.getStation)
     }
 
     def currentCallSign: Option[String] = currentStationSchedule.map(_.getStation.callSign)
@@ -110,6 +116,7 @@ object RadioTuner extends LogSupport {
 
   def setStation(band: FrequencyKind, frequency: Float) = {
     updateState(state.copy(frequencyKind = band, frequency = frequency))
+    syncAudioPlayer()
   }
 
   def setFrequency(frequency: Float): Unit = {
@@ -138,11 +145,11 @@ object RadioTuner extends LogSupport {
   }
 
   def startFetchingSchedule(): Unit = {
-    ResonatorApiClient
-      .getRadioSchedule(GetRadioScheduleRequest(requestTimeMillis = js.Date.now().toLong))
-      .foreach(setSchedule)
-
     if (fetchTimerId.isEmpty) {
+      ResonatorApiClient
+        .getRadioSchedule(GetRadioScheduleRequest(requestTimeMillis = js.Date.now().toLong))
+        .foreach(setSchedule)
+
       fetchTimerId = Some(dom.window.setTimeout(() => {
         fetchTimerId = None
         startFetchingSchedule()
@@ -193,4 +200,32 @@ object RadioTuner extends LogSupport {
       None
     }
   }
+
+  def currentEpisodeForSchedule(schedule: RadioStationSchedule): Option[ScheduledEpisode] = {
+    schedule.scheduledEpisodes find { se =>
+      val now = js.Date.now()
+      se.startTimeMillis <= now && se.endTimeMillis >= now && AudioPlayer.canPlay(se.getEpisode)
+    }
+  }
+
+  def formatStation(station: RadioStation): String = {
+    s"${station.callSign} - ${formatFrequency(station)}"
+  }
+
+  def formatFrequency(station: RadioStation): String = {
+    station.frequencyKind match {
+      case RadioStation.FrequencyKind.AM => s"${station.frequency} kHz"
+      case RadioStation.FrequencyKind.FM => s"${station.frequency} MHz"
+      case _ => station.frequency.toString
+    }
+  }
+
+  def formatFrequencyForRoute(station: RadioStation): String = {
+    station.frequencyKind match {
+      case RadioStation.FrequencyKind.AM => s"${station.frequency}kHz"
+      case RadioStation.FrequencyKind.FM => s"${station.frequency}MHz"
+      case _ => station.frequency.toString
+    }
+  }
+
 }
