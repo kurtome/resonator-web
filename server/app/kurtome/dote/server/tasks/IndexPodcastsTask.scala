@@ -46,7 +46,7 @@ class IndexPodcastsActor @Inject()(
     case IndexPodcasts =>
       debug("Starting...")
 
-      val approxBatchSize = 500
+      val approxBatchSize = 1000
 
       (for {
         queueRow <- searchIndexQueueService.readDotableRow()
