@@ -28,7 +28,7 @@ object CompactItemList extends LogSupport {
     )
 
     val itemsContainer = style(
-      //width(100 %%),
+      width(100 %%),
       marginLeft(0 px),
       marginRight(0 px),
       marginBottom(8 px)

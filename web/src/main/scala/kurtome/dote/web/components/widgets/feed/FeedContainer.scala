@@ -35,16 +35,18 @@ object FeedContainer extends LogSupport {
 
     def fetchFeed(p: Props) = {
       if (p.feedId != FeedId.defaultInstance) {
-        bs.modState(_.copy(isFeedLoading = true)).runNow()
+        bs.modState(_.copy(isFeedLoading = true, feed = Feed.defaultInstance)).runNow()
 
         // get the latest data as well, in case it has changed
         val f = ResonatorApiClient.getFeed(
           GetFeedRequest(maxItems = 10, maxItemSize = 12, id = Some(p.feedId))) map { response =>
-          bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
+          if (response.getFeed.getId == p.feedId) {
+            bs.modState(_.copy(feed = response.getFeed, isFeedLoading = false)).runNow()
+          }
         }
         GlobalLoadingManager.addLoadingFuture(f)
       } else {
-        bs.modState(_.copy(isFeedLoading = false)).runNow()
+        bs.modState(_.copy(isFeedLoading = false, feed = Feed.defaultInstance)).runNow()
       }
     }
 

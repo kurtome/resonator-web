@@ -23,9 +23,10 @@ abstract class BaseBackend(val styleSheet: StyleSheet.Inline) extends LogSupport
 
   lazy val styleMap: Map[String, js.Dynamic] = styleObjsByClassName(styleSheet)
 
-  implicit def richStyle(style: StyleA) = styleMap(style.htmlClass)
+  implicit def richStyle(style: StyleA) = styleMap.getOrElse(style.htmlClass, js.Dynamic.literal())
 
-  implicit def richStyleOrUndef(style: StyleA) = js.UndefOr.any2undefOrA(styleMap(style.htmlClass))
+  implicit def richStyleOrUndef(style: StyleA) =
+    js.UndefOr.any2undefOrA(styleMap.getOrElse(style.htmlClass, js.Dynamic.literal()))
 
   implicit def vdomNodeOrUndef(node: VdomNode) = js.UndefOr.any2undefOrA(node)
 

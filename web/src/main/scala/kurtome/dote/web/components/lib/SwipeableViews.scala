@@ -29,6 +29,7 @@ object SwipeableViews {
     var axis: js.UndefOr[String] = js.native
     var index: js.UndefOr[Int] = js.native
     var style: js.UndefOr[js.Dynamic] = js.native
+    var slideStyle: js.UndefOr[js.Dynamic] = js.native
 
     /**
       * function(index, indexLatest, meta)
@@ -42,6 +43,7 @@ object SwipeableViews {
       axis: js.UndefOr[Axis] = js.undefined,
       index: js.UndefOr[Int] = js.undefined,
       style: js.UndefOr[js.Dynamic] = js.undefined,
+      slideStyle: js.UndefOr[js.Dynamic] = js.undefined,
       onIndexChanged: (Int, Int, js.Dynamic) => Callback = (_, _, _) => Callback.empty
   ) = {
     val p = (new js.Object).asInstanceOf[Props]
@@ -49,7 +51,8 @@ object SwipeableViews {
     p.index = index
     p.onChangeIndex = (index, indexLatest, meta) =>
       onIndexChanged(index, indexLatest, meta).runNow()
-    p.style = p.style
+    p.style = style
+    p.slideStyle = slideStyle
 
     component.withProps(p)
   }

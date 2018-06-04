@@ -22,7 +22,7 @@ class IndexPodcastsTask @Inject()(
     info("Enabling task.")
     actorSystem.scheduler.schedule(
       initialDelay = 5.seconds,
-      interval = 1.minute,
+      interval = 2.minute,
       receiver = actor,
       message = IndexPodcasts
     )

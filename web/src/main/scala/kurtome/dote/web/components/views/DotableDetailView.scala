@@ -42,31 +42,40 @@ object DotableDetailView extends LogSupport {
 
   class Backend(val bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    def fetchDetails(p: Props): Callback = Callback {
+    def handleNewProps(p: Props): Callback = Callback {
+      if (bs.state.runNow().requestedId != p.id) {
+        // reset the state
+        bs.setState(State()).runNow()
+
+        fetchDetails(p)
+      }
+    }
+
+    def fetchDetails(p: Props): Unit = {
       val s = bs.state.runNow()
       val id = p.id
 
-      if (s.requestedId != id) {
-        val cached = cachedDotable.get
-        if (cached.isDefined && cached.get.id == id) {
-          bs.modState(
-              _.copy(requestInFlight = true,
-                     requestedId = id,
-                     response = GetDotableDetailsResponse(responseStatus =
-                                                            Some(ActionStatus(success = true)),
-                                                          cached)))
-            .runNow()
-        }
-
-        // Request from server regardless, to get latest
-        fetchFromServer(p)
+      val cached = cachedDotable.get
+      if (cached.isDefined && cached.get.id == id) {
+        bs.modState(
+            _.copy(requestInFlight = true,
+                   requestedId = id,
+                   response = GetDotableDetailsResponse(responseStatus =
+                                                          Some(ActionStatus(success = true)),
+                                                        cached)))
+          .runNow()
       }
+
+      // Request from server regardless, to get latest
+      fetchFromServer(p)
     }
 
     def fetchFromServer(p: Props): Unit = {
       val request = GetDotableDetailsRequest(p.id)
       val f = ResonatorApiClient.getDotableDetails(request) map { response =>
-        bs.modState(_.copy(response = response, requestInFlight = false)).runNow()
+        if (response.getDotable.id == p.id) {
+          bs.modState(_.copy(response = response, requestInFlight = false)).runNow()
+        }
       }
       GlobalLoadingManager.addLoadingFuture(f)
     }
@@ -106,11 +115,11 @@ object DotableDetailView extends LogSupport {
     .initialState(State())
     .backend(new Backend(_))
     .renderPS((b, p, s) => b.backend.render(p, s))
-    .componentWillReceiveProps((x) => x.backend.fetchDetails(x.nextProps))
-    .componentDidMount((x) => x.backend.fetchDetails(x.props))
+    .componentWillReceiveProps((x) => x.backend.handleNewProps(x.nextProps))
+    .componentDidMount((x) => x.backend.handleNewProps(x.props))
     .build
 
   def apply(route: DetailsRoute) = {
-    component.withProps(Props(route.id, route.queryParams))
+    component.withKey(s"details-${route.id}").withProps(Props(route.id, route.queryParams))
   }
 }
