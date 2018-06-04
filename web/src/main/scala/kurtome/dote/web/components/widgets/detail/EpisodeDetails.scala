@@ -44,6 +44,7 @@ object EpisodeDetails {
     }
 
     def render(p: Props, s: State): VdomElement = {
+      val title = p.dotable.getCommon.title.trim
       val description = p.dotable.getCommon.description.trim
 
       val shouldInline = s.breakpoint match {
@@ -53,13 +54,13 @@ object EpisodeDetails {
       }
 
       GridContainer(spacing = 8)(
-        GridItem(xs = 12, sm = 6, md = 4)(
+        GridItem(xs = 12, sm = 6, lg = 4)(
           DotableActionsCardWrapper(p.dotable, alwaysExpanded = true)(
-            EpisodeCard(dotable = p.dotable)())
+            EpisodeCard(dotable = p.dotable, showTitle = false)())
         ),
-        GridItem(xs = 12, sm = 6, md = 8)(
-          Typography(component = "span",
-                     variant = Typography.Variants.Body1,
+        GridItem(xs = 12, sm = 6, lg = 8)(
+          Typography(variant = Typography.Variants.SubHeading)(<.b(title)),
+          Typography(variant = Typography.Variants.Body1,
                      dangerouslySetInnerHTML = linkifyAndSanitize(description))()
         )
       )

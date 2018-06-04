@@ -107,6 +107,7 @@ object PodcastCard extends LogSupport {
             <.div(
               ImageWithSummaryCard(
                 p.dotable,
+                title = p.dotable.getCommon.title,
                 caption1 =
                   Typography(variant = Typography.Variants.Caption, noWrap = true)(yearRange),
                 description = if (p.showDescription) {

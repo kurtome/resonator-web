@@ -45,7 +45,7 @@ object EpisodeCard extends LogSupport {
   }
   type Color = Colors.Value
 
-  case class Props(dotable: Dotable, color: Color, showDescription: Boolean)
+  case class Props(dotable: Dotable, color: Color, showTitle: Boolean, showDescription: Boolean)
   case class State(hover: Boolean = false)
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
@@ -64,6 +64,7 @@ object EpisodeCard extends LogSupport {
         ^.className := backgroundColor(p),
         ImageWithSummaryCard(
           p.dotable,
+          title = if (p.showTitle) p.dotable.getCommon.title else "",
           caption1 = Typography(variant = Typography.Variants.Caption, noWrap = true)(
             durationSecToMin(p.dotable.getDetails.getPodcastEpisode.durationSec)),
           caption2 = Typography(variant = Typography.Variants.Caption, noWrap = true)(
@@ -88,6 +89,9 @@ object EpisodeCard extends LogSupport {
     .renderPS((builder, p, s) => builder.backend.render(p, s))
     .build
 
-  def apply(dotable: Dotable, color: Color = Colors.Default, showDescription: Boolean = false) =
-    component.withProps(Props(dotable, color, showDescription))
+  def apply(dotable: Dotable,
+            color: Color = Colors.Default,
+            showTitle: Boolean = true,
+            showDescription: Boolean = false) =
+    component.withProps(Props(dotable, color, showTitle, showDescription))
 }

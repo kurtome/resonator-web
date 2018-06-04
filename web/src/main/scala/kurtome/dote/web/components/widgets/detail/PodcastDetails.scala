@@ -86,7 +86,7 @@ object PodcastDetails {
         val subtitle: VdomElement = {
           val creator = creatorFromTags(dotable)
           if (creator.isDefined) {
-            <.strong("from ", renderCreator(creator.get))
+            <.span("from ", renderCreator(creator.get))
           } else {
             <.span("")
           }
@@ -222,13 +222,13 @@ object PodcastDetails {
                 ^.width := asPxStr(detailsWidth),
                 GridContainer(spacing = 0)(
                   GridItem(xs = 12)(
-                    Typography(style = Styles.titleText, variant = Typography.Variants.Headline)(
-                      fields.title),
+                    Typography(style = Styles.titleText, variant = Typography.Variants.SubHeading)(
+                      <.b(fields.title)),
                     if (p.dotable.getRelatives.childrenFetched) {
-                      Typography(variant = Typography.Variants.Body1)(<.strong(
+                      Typography(variant = Typography.Variants.Body1)(
                         s"${p.dotable.getRelatives.children.length} Episodes (${epochSecRangeToYearRange(
                           p.dotable.getCommon.publishedEpochSec,
-                          p.dotable.getCommon.updatedEpochSec).getOrElse("")})"))
+                          p.dotable.getCommon.updatedEpochSec).getOrElse("")})")
                     } else {
                       <.div()
                     },

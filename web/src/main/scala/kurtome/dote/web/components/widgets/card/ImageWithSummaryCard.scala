@@ -91,6 +91,7 @@ object ImageWithSummaryCard extends LogSupport {
   type Variant = Variants.Value
 
   case class Props(dotable: Dotable,
+                   title: String,
                    caption1: VdomNode,
                    caption2: VdomNode,
                    description: VdomNode,
@@ -158,8 +159,9 @@ object ImageWithSummaryCard extends LogSupport {
             <.div(
               ^.padding := "4px",
               ^.height := "100%",
-              Typography(variant = Typography.Variants.Body1, noWrap = true)(
-                <.strong(p.dotable.getCommon.title)),
+              Hidden(xsUp = p.title.isEmpty)(
+                Typography(variant = Typography.Variants.Body1, noWrap = true)(
+                  <.strong(p.dotable.getCommon.title))),
               p.caption1,
               p.caption2,
               <.div(
@@ -184,9 +186,11 @@ object ImageWithSummaryCard extends LogSupport {
     .build
 
   def apply(dotable: Dotable,
+            title: String = "",
             caption1: VdomNode = "",
             caption2: VdomNode = "",
             description: VdomNode = "",
             imageOverlayCaption: String = "") =
-    component.withProps(Props(dotable, caption1, caption2, description, imageOverlayCaption))
+    component.withProps(
+      Props(dotable, title, caption1, caption2, description, imageOverlayCaption))
 }
