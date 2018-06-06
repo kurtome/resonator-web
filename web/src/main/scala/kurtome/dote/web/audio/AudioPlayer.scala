@@ -135,11 +135,10 @@ object AudioPlayer extends LogSupport {
       howl.stop()
     }
 
-    UniversalAnalytics.visitor
-      .event(category = stationSchedule.map(_ => "radio-tuner").getOrElse("audio-player"),
-             action = "play-episode",
-             label = dom.window.location.pathname)
-      .send()
+    UniversalAnalytics.event(category =
+                               stationSchedule.map(_ => "radio-tuner").getOrElse("audio-player"),
+                             action = "play-episode",
+                             label = dom.window.location.pathname)
 
     val url: String = getUrl(episode)
     updateState(State(PlayerStatuses.Loading, episode, stationSchedule))

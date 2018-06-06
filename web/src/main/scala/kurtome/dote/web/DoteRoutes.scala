@@ -194,12 +194,18 @@ object DoteRoutes extends LogSupport {
     updateCurrentRoute(newRoute)
   }
 
+  private var firstPageLoad = true
+
   private def updateCurrentRoute(newRoute: DoteRoute): Unit = {
     currentRoute = newRoute
     routeObservable.notifyObservers(newRoute)
-    UniversalAnalytics.visitor
-      .pageview(dom.window.location.pathname + dom.window.location.search)
-      .send()
+
+    if (firstPageLoad) {
+      // don't send a pageview for the first route, since that is hangled by the gtag.js script
+      firstPageLoad = false
+    } else {
+      UniversalAnalytics.pageview()
+    }
   }
 
   private def pageTitle(route: DoteRoute): String = {
