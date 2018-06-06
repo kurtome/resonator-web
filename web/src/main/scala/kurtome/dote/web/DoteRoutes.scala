@@ -197,7 +197,9 @@ object DoteRoutes extends LogSupport {
   private def updateCurrentRoute(newRoute: DoteRoute): Unit = {
     currentRoute = newRoute
     routeObservable.notifyObservers(newRoute)
-    UniversalAnalytics.visitor.pageview(dom.window.location.pathname).send()
+    UniversalAnalytics.visitor
+      .pageview(dom.window.location.pathname + dom.window.location.search)
+      .send()
   }
 
   private def pageTitle(route: DoteRoute): String = {
@@ -217,8 +219,7 @@ object DoteRoutes extends LogSupport {
   }
 
   private val baseUrl: BaseUrl =
-    BaseUrl(
-      dom.window.location.protocol + "//" + dom.window.location.host + dom.window.location.search)
+    BaseUrl(dom.window.location.protocol + "//" + dom.window.location.host)
 
   val routeObservable = new SimpleObservable[DoteRoute]
 
