@@ -89,10 +89,10 @@ object RadioTuner extends LogSupport {
         power(false)
         pauseStatic()
       } else {
-        if (curState.on && audioPlayerState.status != PlayerStatuses.Playing) {
-          playStatic()
-        } else if (audioPlayerState.status == PlayerStatuses.Playing) {
+        if (curState.off || audioPlayerState.status == PlayerStatuses.Playing) {
           pauseStatic()
+        } else {
+          playStatic()
         }
       }
     }

@@ -29,6 +29,7 @@ object AudioPlayer extends LogSupport {
     val CloseButton = Value
     val RadioControls = Value
     val RadioPower = Value
+    val AudioLoadError = Value
   }
   type OffSource = OffSources.Value
 
@@ -56,24 +57,32 @@ object AudioPlayer extends LogSupport {
       this.howl = null
     }
     GlobalNotificationManager.displayError("Unable to load audio, check internet connection.")
-    updateState(curState.copy(PlayerStatuses.Off))
+    off(OffSources.AudioLoadError)
   }
 
-  private val handleLoaded: js.Function0[Unit] = () => {
-    resumeOrStartPlaying()
+  private def handleLoaded(epsiode: Dotable): js.Function0[Unit] = () => {
+    if (curState.episode.id == epsiode.id) {
+      // only play if the episode hasn't changed while this was loading
+      resumeOrStartPlaying()
+    }
   }
 
   private def resumeOrStartPlaying() = {
-    curState.stationSchedule foreach { station =>
-      station.scheduledEpisodes.find(se => {
-        val now = js.Date.now()
-        se.startTimeMillis <= now && se.endTimeMillis >= now && canPlay(se.getEpisode)
-      }) foreach { currentEpisode =>
-        val seekSeconds = (js.Date.now() - currentEpisode.startTimeMillis) / 1000.0
-        seek(seekSeconds)
+    if (curState.status != PlayerStatuses.Playing) {
+      curState.stationSchedule foreach { station =>
+        station.scheduledEpisodes.find(se => {
+          val now = js.Date.now()
+          se.startTimeMillis <= now && se.endTimeMillis >= now && canPlay(se.getEpisode)
+        }) foreach { currentEpisode =>
+          val episodeTimeSec = (js.Date.now() - currentEpisode.startTimeMillis) / 1000.0
+          // mod by the duration in case the episode is longer than scheduled. in that case we'll
+          // replay from the beginning
+          val seekSeconds = episodeTimeSec % howl.duration()
+          seek(seekSeconds % howl.duration())
+        }
       }
+      play()
     }
-    play()
   }
 
   private val handleStop: js.Function1[Int, Unit] = (id: Int) => {
@@ -101,7 +110,7 @@ object AudioPlayer extends LogSupport {
 
   def updateStationSchedule(stationSchedule: RadioStationSchedule) = {
     if (curState.stationSchedule.map(_.getStation).contains(stationSchedule.getStation)) {
-      updateState(curState.copy(stationSchedule = Some(stationSchedule)))
+      attemptPlayFromRadioSchedule(stationSchedule)
     } else {
       warn("cannot update schedule with a station that does not match")
     }
@@ -146,11 +155,11 @@ object AudioPlayer extends LogSupport {
                              html5 = true,
                              onstop = handleStop,
                              onloaderror = handleLoadError,
-                             onload = handleLoaded)
+                             onload = handleLoaded(episode))
   }
 
   def play(): Unit = {
-    if (howl != null) {
+    if (howl != null && curState.status != PlayerStatuses.Playing) {
       howl.play()
       updateState(curState.copy(PlayerStatuses.Playing))
     }
