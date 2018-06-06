@@ -75,7 +75,7 @@ object SearchView extends LogSupport {
           Fader(in = s.showAddText)(
             Typography(variant = Typography.Variants.Body1, style = Styles.addPodcastText)(
               "Not the podcasts you're looking for? Add a podcast to the site ",
-              SiteLink(AddRoute)("here"),
+              SiteLink(AddRoute())("here"),
               "."
             )
           ),

@@ -57,7 +57,7 @@ object SiteTitle extends LogSupport {
 
     def render(p: Props): VdomElement = {
       <.div(
-        doteRouterCtl.link(HomeRoute)(
+        doteRouterCtl.link(HomeRoute())(
           ^.className := Styles.siteTitleAnchor,
           ^.color := pickColor(p),
           <.span(^.className := Styles.siteTitleText, StringValues.siteTitle),

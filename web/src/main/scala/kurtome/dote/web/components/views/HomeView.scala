@@ -101,7 +101,7 @@ object HomeView extends LogSupport {
               ),
               GridItem()(
                 FlatRoundedButton(variant = FlatRoundedButton.Variants.FillPrimary,
-                                  onClick = doteRouterCtl.set(LoginRoute))("Sign Up for Free")
+                                  onClick = doteRouterCtl.set(LoginRoute()))("Sign Up for Free")
               )
             )
           )

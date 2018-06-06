@@ -52,15 +52,15 @@ object MenuDrawer extends LogSupport {
         Divider()(),
         List()(
           Hidden(xsUp = LoggedInPersonManager.isLoggedIn)(
-            ListItem(button = true, onClick = routeClicked(p, LoginRoute))(
+            ListItem(button = true, onClick = routeClicked(p, LoginRoute()))(
               ListItemText()("Login")
             ),
-            ListItem(button = true, onClick = routeClicked(p, LoginRoute))(
+            ListItem(button = true, onClick = routeClicked(p, LoginRoute()))(
               ListItemText()("Sign Up for Free")
             ),
             Divider()()
           ),
-          ListItem(button = true, onClick = routeClicked(p, HomeRoute))(
+          ListItem(button = true, onClick = routeClicked(p, HomeRoute()))(
             ListItemIcon()(Icons.Home()),
             ListItemText()("Home")
           ),

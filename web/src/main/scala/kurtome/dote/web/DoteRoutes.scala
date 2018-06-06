@@ -20,42 +20,45 @@ object DoteRoutes extends LogSupport {
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
+  type QueryParams = Map[String, String]
+
   sealed trait DoteRoute
 
-  case object HomeRoute extends DoteRoute
+  case class HomeRoute(queryParams: QueryParams = Map.empty) extends DoteRoute
 
-  case class SearchRoute(queryParams: Map[String, String] = Map.empty) extends DoteRoute
+  case class SearchRoute(queryParams: QueryParams = Map.empty) extends DoteRoute
 
-  case class DetailsRoute(id: String, slug: String, queryParams: Map[String, String] = Map())
+  case class DetailsRoute(id: String, slug: String, queryParams: QueryParams = Map.empty)
       extends DoteRoute
 
-  case object PageNotFoundRoute extends DoteRoute
+  case class PageNotFoundRoute(queryParams: QueryParams = Map.empty) extends DoteRoute
 
-  case object AddRoute extends DoteRoute
+  case class AddRoute(queryParams: QueryParams = Map.empty) extends DoteRoute
 
-  case object LoginRoute extends DoteRoute
+  case class LoginRoute(queryParams: QueryParams = Map.empty) extends DoteRoute
 
-  case object ThemeRoute extends DoteRoute
+  case class ThemeRoute(queryParams: QueryParams = Map.empty) extends DoteRoute
 
-  case class ProfileRoute(username: String) extends DoteRoute
+  case class ProfileRoute(username: String, queryParams: QueryParams = Map.empty) extends DoteRoute
 
-  case class FollowersRoute(username: String) extends DoteRoute
-
-  case class AllActivityRoute(queryParams: Map[String, String] = Map.empty) extends DoteRoute
-
-  case class FollowingActivityRoute(queryParams: Map[String, String] = Map.empty) extends DoteRoute
-
-  case class ProfileActivityRoute(username: String, queryParams: Map[String, String] = Map.empty)
+  case class FollowersRoute(username: String, queryParams: QueryParams = Map.empty)
       extends DoteRoute
 
-  case class TagRoute(kind: String, key: String, queryParams: Map[String, String] = Map.empty)
+  case class AllActivityRoute(queryParams: QueryParams = Map.empty) extends DoteRoute
+
+  case class FollowingActivityRoute(queryParams: QueryParams = Map.empty) extends DoteRoute
+
+  case class ProfileActivityRoute(username: String, queryParams: QueryParams = Map.empty)
       extends DoteRoute
 
-  case class RadioDefaultRoute(queryParams: Map[String, String] = Map.empty) extends DoteRoute
+  case class TagRoute(kind: String, key: String, queryParams: QueryParams = Map.empty)
+      extends DoteRoute
+
+  case class RadioDefaultRoute(queryParams: QueryParams = Map.empty) extends DoteRoute
 
   case class RadioRoute(
       station: String, // station includes frequency and band suffix, e.g. "770kHz"
-      queryParams: Map[String, String] = Map.empty)
+      queryParams: QueryParams = Map.empty)
       extends DoteRoute
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,62 +116,63 @@ object DoteRoutes extends LogSupport {
 
       (emptyRule
 
-        | staticRedirect("") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+        | dynamicRouteCT(("" ~ query).caseClass[HomeRoute]) ~> dynRenderR((_, _) => HomeView()())
 
-        | staticRedirect("/home") ~> redirectToPage(HomeRoute)(Redirect.Replace)
+        | dynamicRouteCT(("/home" ~ query).caseClass[HomeRoute]) ~> dynRenderR((_,
+                                                                                _) => HomeView()())
 
-        | staticRoute("/", HomeRoute) ~> renderR(_ => HomeView()())
+        | dynamicRouteCT(("/" ~ query).caseClass[HomeRoute]) ~> dynRenderR((_, _) => HomeView()())
 
-        | staticRoute("/login", LoginRoute) ~> renderR(_ => LoginView()())
+        | dynamicRouteCT(("/login" ~ query).caseClass[LoginRoute]) ~> dynRenderR(
+          (_, _) => LoginView()())
 
         | dynamicRouteCT(("/search" ~ query)
-          .caseClass[SearchRoute]) ~> dynRenderR((page: SearchRoute,
-                                                  routerCtl) => SearchView(page)())
+          .caseClass[SearchRoute]) ~> dynRenderR((page: SearchRoute, _) => SearchView(page)())
 
-        | staticRoute("/add", AddRoute) ~> renderR(_ => AddPodcastView()())
+        | dynamicRouteCT(("/add" ~ query).caseClass[AddRoute]) ~> dynRenderR(
+          (_, _) => AddPodcastView()())
 
-        | staticRoute("/theme", ThemeRoute) ~> renderR(_ => ThemeView()())
+        | dynamicRouteCT(("/theme" ~ query).caseClass[ThemeRoute]) ~> dynRenderR(
+          (_, _) => ThemeView()())
 
         | dynamicRouteCT(("/tag" ~ "/" ~ slug ~ "/" ~ slug ~ query)
-          .caseClass[TagRoute]) ~> dynRenderR((page: TagRoute, routerCtl) => FeedView(page)())
+          .caseClass[TagRoute]) ~> dynRenderR((page: TagRoute, _) => FeedView(page)())
 
         | dynamicRouteCT("/details" ~ ("/" ~ id ~ "/" ~ slug ~ query)
           .caseClass[DetailsRoute]) ~> dynRenderR((page: DetailsRoute,
-                                                   routerCtl) => DotableDetailView(page)())
+                                                   _) => DotableDetailView(page)())
 
-        | dynamicRouteCT("/profile" ~ ("/" ~ slug)
-          .caseClass[ProfileRoute]) ~> dynRenderR((page: ProfileRoute,
-                                                   routerCtl) => ProfileView(page)())
+        | dynamicRouteCT("/profile" ~ ("/" ~ slug ~ query)
+          .caseClass[ProfileRoute]) ~> dynRenderR((page: ProfileRoute, _) => ProfileView(page)())
 
-        | dynamicRouteCT("/profile" ~ ("/" ~ slug ~ "/followers")
-          .caseClass[FollowersRoute]) ~> dynRenderR(
-          (page: FollowersRoute, routerCtl) => FeedView(page)())
+        | dynamicRouteCT("/profile" ~ ("/" ~ slug ~ "/followers" ~ query)
+          .caseClass[FollowersRoute]) ~> dynRenderR((page: FollowersRoute, _) => FeedView(page)())
 
         | dynamicRouteCT(("/activity" ~ query)
           .caseClass[AllActivityRoute]) ~> dynRenderR(
-          (page: AllActivityRoute, routerCtl) => FeedView(page)())
+          (page: AllActivityRoute, _) => FeedView(page)())
 
         | dynamicRouteCT(("/activity/following" ~ query)
           .caseClass[FollowingActivityRoute]) ~> dynRenderR(
-          (page: FollowingActivityRoute, routerCtl) => FeedView(page)())
+          (page: FollowingActivityRoute, _) => FeedView(page)())
 
         | dynamicRouteCT(("/profile/" ~ slug ~ "/activity" ~ query)
           .caseClass[ProfileActivityRoute]) ~> dynRenderR(
-          (page: ProfileActivityRoute, routerCtl) => FeedView(page)())
+          (page: ProfileActivityRoute, _) => FeedView(page)())
 
         | dynamicRouteCT(("/tuner" ~ query)
           .caseClass[RadioDefaultRoute]) ~> dynRenderR(
-          (page: RadioDefaultRoute, routerCtl) => RadioView(page)())
+          (page: RadioDefaultRoute, _) => RadioView(page)())
 
         | dynamicRouteCT("/tuner" ~ ("/" ~ id ~ query)
-          .caseClass[RadioRoute]) ~> dynRenderR((page: RadioRoute, routerCtl) => RadioView(page)())
+          .caseClass[RadioRoute]) ~> dynRenderR((page: RadioRoute, _) => RadioView(page)())
 
-        | staticRoute("/not-found", PageNotFoundRoute) ~> render(
-          HelloView.component("who am iii??")))
-        .notFound(redirectToPage(PageNotFoundRoute)(Redirect.Replace))
+        | dynamicRouteCT(("/not-found" ~ query).caseClass[PageNotFoundRoute]) ~> dynRenderR(
+          (_, _) => HelloView.component("who am iii??")))
+        .notFound(redirectToPage(PageNotFoundRoute())(Redirect.Replace))
 
         // Verify the Home route is used
-        .verify(HomeRoute)
+        .verify(HomeRoute())
         .renderWith((routerCtl, resolution) => {
           doteRouterCtl = routerCtl
           ContentFrame(resolution.page)(
@@ -198,22 +202,23 @@ object DoteRoutes extends LogSupport {
 
   private def pageTitle(route: DoteRoute): String = {
     route match {
-      case ThemeRoute => s"Theme | Resonator"
-      case AddRoute => s"Add Podcast | Resonator"
-      case LoginRoute => s"Login | Resonator"
+      case ThemeRoute(_) => s"Theme | Resonator"
+      case AddRoute(_) => s"Add Podcast | Resonator"
+      case LoginRoute(_) => s"Login | Resonator"
       case AllActivityRoute(_) => s"Activity | Resonator"
       case SearchRoute(params) =>
         s"${params.getOrElse(QueryParamKeys.query, "Search")} | Resonator Search"
       case RadioRoute(station, _) => s"$station | Resonator"
-      case FollowersRoute(username) => s"$username Followers | Resonator"
+      case FollowersRoute(username, _) => s"$username Followers | Resonator"
       case FollowingActivityRoute(_) => s"Following Activity | Resonator"
-      case ProfileRoute(username) => s"$username Profile | Resonator"
+      case ProfileRoute(username, _) => s"$username Profile | Resonator"
       case _ => "Resonator"
     }
   }
 
   private val baseUrl: BaseUrl =
-    BaseUrl(dom.window.location.protocol + "//" + dom.window.location.host)
+    BaseUrl(
+      dom.window.location.protocol + "//" + dom.window.location.host + dom.window.location.search)
 
   val routeObservable = new SimpleObservable[DoteRoute]
 
@@ -221,5 +226,5 @@ object DoteRoutes extends LogSupport {
 
   var doteRouterCtl: DoteRouterCtl = null
 
-  private var currentRoute: DoteRoute = HomeRoute
+  private var currentRoute: DoteRoute = HomeRoute()
 }

@@ -92,7 +92,7 @@ object LoginView extends LogSupport {
             _.copy(isLoading = false, errorMessage = "", emailError = "", usernameError = ""))
           .runNow()
         GlobalNotificationManager.displayMessage(s"Login link sent to ${s.email}")
-        doteRouterCtl.set(HomeRoute).runNow()
+        doteRouterCtl.set(HomeRoute()).runNow()
       } else {
         val serverStatus = StatusMapper.fromProto(response.getResponseStatus)
         val serverErrorMsg = statusToErrorMessage(serverStatus)

@@ -87,7 +87,7 @@ object ComponentHelpers {
 
   def linkifyAndSanitize(html: String): DangerousInnerHtml = {
     val linkifiedHtml =
-      Linkify.linkifyHtml(html.replace("(\\\\s*<[Bb][Rr]\\\\s*/?>)+\\\\s*\\\\n*$", ""))
+      Linkify.linkifyHtml(html.replace("(\\\\s*<[Bb][Rr]\\\\s*/?>)+\\\\s*$", ""))
     val cleanHtml = SanitizeHtml(linkifiedHtml)
     val htmlWrapper = (new js.Object).asInstanceOf[DangerousInnerHtml]
     htmlWrapper.__html = cleanHtml

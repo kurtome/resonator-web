@@ -135,7 +135,7 @@ object NavBar extends LogSupport {
       if (LoggedInPersonManager.isLoggedIn) {
         doteRouterCtl.set(ProfileRoute(LoggedInPersonManager.person.get.username))
       } else {
-        doteRouterCtl.set(LoginRoute)
+        doteRouterCtl.set(LoginRoute())
     }
 
     def updateIsCollapsed(): Unit = {
@@ -216,7 +216,7 @@ object NavBar extends LogSupport {
                         alignItems = Grid.AlignItems.Center)(
             Hidden(xsUp = LoggedInPersonManager.isLoggedIn)(
               GridItem()(Button(style = Styles.actionButton,
-                                onClick = doteRouterCtl.set(LoginRoute))("Log In"))),
+                                onClick = doteRouterCtl.set(LoginRoute()))("Log In"))),
             Hidden(xsUp = LoggedInPersonManager.isNotLoggedIn)(
               GridItem()(
                 IconButton(style = Styles.actionButton, onClick = handleProfileButtonClicked(p))(

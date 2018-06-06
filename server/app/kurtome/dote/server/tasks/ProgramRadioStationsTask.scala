@@ -113,8 +113,8 @@ class ProgramRadioStationsActor @Inject()(
 
   def chooseEpisode(station: Tables.RadioStationRow, podcast: Dotable): Dotable = {
     val episodes = podcast.getRelatives.children.filter(isValidEpisode)
-    if (station.callSign == "QTLK") {
-      // News station, always pick latest episode
+    if (station.callSign == "QTLK" || station.callSign == "QSTP") {
+      // News station or sports, always pick latest episode
       episodes.head
     } else {
       randomElement(episodes)

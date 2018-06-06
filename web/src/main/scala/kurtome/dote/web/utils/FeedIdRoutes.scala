@@ -26,7 +26,7 @@ object FeedIdRoutes {
     */
   def toRoute(feedId: FeedId): Option[DoteRoute] = {
     feedId.id match {
-      case Id.Home(_) => Some(HomeRoute)
+      case Id.Home(_) => Some(HomeRoute())
       case Id.Profile(ProfileId(username)) => Some(ProfileRoute(username))
       case Id.TagList(tagListId) => {
         Some(TagRouteMapper.toRoute(tagListId))
