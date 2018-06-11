@@ -9,6 +9,9 @@ import kurtome.dote.proto.api.radio.ScheduledEpisode
 import kurtome.dote.shared.util.observer.Observable
 import kurtome.dote.shared.util.observer.Observer
 import kurtome.dote.shared.util.observer.SimpleObservable
+import kurtome.dote.web.DoteRoutes.DoteRoute
+import kurtome.dote.web.DoteRoutes.RadioDefaultRoute
+import kurtome.dote.web.DoteRoutes.RadioRoute
 import kurtome.dote.web.audio.AudioPlayer.OffSources
 import kurtome.dote.web.audio.AudioPlayer.PlayerStatuses
 import kurtome.dote.web.rpc.ResonatorApiClient
@@ -82,6 +85,12 @@ object RadioTuner extends LogSupport {
   private var fetchTimerId: Option[Long] = None
 
   def curState = state
+
+  def curRoute: DoteRoute =
+    curState.currentStation
+      .map(formatFrequencyForRoute)
+      .map(RadioRoute(_))
+      .getOrElse(RadioDefaultRoute())
 
   private val audioPlayerStateObserver: Observer[AudioPlayer.State] =
     (audioPlayerState: AudioPlayer.State) => {
@@ -216,7 +225,7 @@ object RadioTuner extends LogSupport {
     station.frequencyKind match {
       case RadioStation.FrequencyKind.AM => s"${station.frequency} kHz"
       case RadioStation.FrequencyKind.FM => s"${station.frequency} MHz"
-      case _ => station.frequency.toString
+      case _ => ""
     }
   }
 

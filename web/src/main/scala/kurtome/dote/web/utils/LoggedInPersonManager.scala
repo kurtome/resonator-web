@@ -35,6 +35,10 @@ object LoggedInPersonManager extends LogSupport {
 
   val isNotLoggedIn: Boolean = person.isEmpty
 
+  // anything important is double checked on the server, so it's ok to use this on the client
+  // to hide things from non-admins
+  val isAdmin: Boolean = person.map(_.id).getOrElse("") == "aDBijX"
+
   def isLoggedInPerson(username: String): Boolean = {
     isLoggedIn && username == person.get.username
   }

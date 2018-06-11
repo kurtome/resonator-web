@@ -28,3 +28,8 @@ message ScheduledEpisode {
   int64 start_time_millis = 2;
   int64 end_time_millis = 3;
 }
+
+message RadioStationDetails {
+  RadioStation station = 1;
+  repeated Dotable podcasts = 2;
+}

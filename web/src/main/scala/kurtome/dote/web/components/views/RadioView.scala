@@ -95,7 +95,16 @@ object RadioView extends LogSupport {
 
     val stateObserver: Observer[RadioTuner.State] = (state: RadioTuner.State) => {
       bs.modState(_.copy(tunerState = state)).runNow()
+    }
 
+    RadioTuner.stateObservable.addObserver(stateObserver)
+
+    val onUnmount: Callback = Callback {
+      RadioTuner.stateObservable.removeObserver(stateObserver)
+    }
+
+    private def updateUrlToMatchStation(s: State) = {
+      val state = s.tunerState
       if (state.currentStation.isDefined) {
         val stationStr = RadioTuner.formatFrequencyForRoute(state.currentStation.get)
         val title = {
@@ -110,12 +119,6 @@ object RadioView extends LogSupport {
       }
     }
 
-    RadioTuner.stateObservable.addObserver(stateObserver)
-
-    val onUnmount: Callback = Callback {
-      RadioTuner.stateObservable.removeObserver(stateObserver)
-    }
-
     private def powerSwitched(e: ReactEventFromInput) = Callback {
       val checked = e.target.checked
       val onStr = if (checked) "on" else "off"
@@ -126,11 +129,13 @@ object RadioView extends LogSupport {
     private val seekForward = Callback {
       UniversalAnalytics.event("radio-tuner", "seek-forward", dom.window.location.pathname)
       RadioTuner.seekForward()
+      updateUrlToMatchStation(bs.state.runNow())
     }
 
     private val seekBackward = Callback {
       UniversalAnalytics.event("radio-tuner", "seek-backward", dom.window.location.pathname)
       RadioTuner.seekBackward()
+      updateUrlToMatchStation(bs.state.runNow())
     }
 
     def render(p: Props, s: State): VdomElement = {
@@ -182,7 +187,6 @@ object RadioView extends LogSupport {
             s.tunerState.currentSchedules map { stationSchedule =>
               val station = stationSchedule.getStation
               val episode = RadioTuner.currentEpisodeForSchedule(stationSchedule)
-              debug(episode)
               GridItem(key = Some(s"now-playing-${station.callSign}"), xs = 12, sm = 6, lg = 4)(
                 Typography(variant = Typography.Variants.SubHeading)(
                   s"${station.callSign} ",

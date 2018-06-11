@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api.action;
+
+import "api/radio.proto";
+import "api/common.proto";
+
+message GetRadioStationDetailsRequest {
+  // required
+  string call_sign = 1;
+}
+
+message GetRadioStationDetailsResponse {
+  api.ActionStatus response_status = 1;
+  api.RadioStationDetails station_details = 3;
+}

@@ -11,6 +11,8 @@ import kurtome.dote.proto.api.action.get_follower_summary.GetFollowerSummaryRequ
 import kurtome.dote.proto.api.action.get_follower_summary.GetFollowerSummaryResponse
 import kurtome.dote.proto.api.action.get_radio_schedule.GetRadioScheduleRequest
 import kurtome.dote.proto.api.action.get_radio_schedule.GetRadioScheduleResponse
+import kurtome.dote.proto.api.action.get_radio_station_details._
+import kurtome.dote.proto.api.action.update_radio_station_details._
 import kurtome.dote.proto.api.action.search._
 import kurtome.dote.proto.api.action.set_dote._
 import kurtome.dote.proto.api.action.set_follow._
@@ -130,4 +132,26 @@ object ResonatorApiClient {
 
       override def parseResponse(r: Array[Byte]) = GetRadioScheduleResponse.parseFrom(r)
     })(request)
+
+  def getRadioStationDetails(request: GetRadioStationDetailsRequest) =
+    AjaxRpc.protoRequest(
+      new ProtoAction[GetRadioStationDetailsRequest, GetRadioStationDetailsResponse] {
+        override val route = "get-radio-station-details"
+
+        override def serializeRequest(r: GetRadioStationDetailsRequest) =
+          GetRadioStationDetailsRequest.toByteArray(r)
+
+        override def parseResponse(r: Array[Byte]) = GetRadioStationDetailsResponse.parseFrom(r)
+      })(request)
+
+  def updateRadioStation(request: UpdateRadioStationDetailsRequest) =
+    AjaxRpc.protoRequest(
+      new ProtoAction[UpdateRadioStationDetailsRequest, UpdateRadioStationDetailsResponse] {
+        override val route = "update-radio-station"
+
+        override def serializeRequest(r: UpdateRadioStationDetailsRequest) =
+          UpdateRadioStationDetailsRequest.toByteArray(r)
+
+        override def parseResponse(r: Array[Byte]) = UpdateRadioStationDetailsResponse.parseFrom(r)
+      })(request)
 }

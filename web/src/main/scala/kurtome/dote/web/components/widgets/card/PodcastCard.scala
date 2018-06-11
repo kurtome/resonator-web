@@ -135,5 +135,7 @@ object PodcastCard extends LogSupport {
             color: Color = Colors.Default,
             variant: Variant = Variants.Default,
             showDescription: Boolean = false) =
-    component.withProps(Props(dotable, color, variant, showDescription))
+    component
+      .withKey(s"podcast-card-${dotable.id}")
+      .withProps(Props(dotable, color, variant, showDescription))
 }

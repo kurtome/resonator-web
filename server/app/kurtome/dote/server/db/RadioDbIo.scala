@@ -4,18 +4,19 @@ import java.time.LocalDateTime
 
 import javax.inject._
 import kurtome.dote.server.db.mappers.DotableMapper
+import kurtome.dote.server.services.LoginCodeService
 import kurtome.dote.shared.constants.DotableKinds
 import kurtome.dote.slick.db.DotePostgresProfile.api._
 import kurtome.dote.slick.db.gen.Tables
 import kurtome.dote.slick.db.gen.Tables.RadioStationPlaylistRow
 import slick.lifted.Compiled
+import wvlet.log.LogSupport
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 @Singleton
-class RadioDbIo @Inject()(implicit executionContext: ExecutionContext) {
-
+class RadioDbIo @Inject()(implicit executionContext: ExecutionContext) extends LogSupport {
   object Queries {
     val readPodcastIdsForStations = Compiled { (stationId: Rep[Long]) =>
       Tables.RadioStationPodcast.filter(_.stationId === stationId).map(_.podcastId)
@@ -44,6 +45,10 @@ class RadioDbIo @Inject()(implicit executionContext: ExecutionContext) {
         episode <- Tables.Dotable if playlist.episodeId === episode.id
         podcast <- Tables.Dotable if episode.parentId === podcast.id
       } yield (station, playlist, episode, podcast)
+    }
+
+    val readStationByCallSign = Compiled { (callSign: Rep[String]) =>
+      Tables.RadioStation.filter(_.callSign === callSign)
     }
   }
 
@@ -81,6 +86,20 @@ class RadioDbIo @Inject()(implicit executionContext: ExecutionContext) {
         }
       }
     }
+  }
+
+  def readStationByCallSign(callSign: String) = {
+    Queries.readStationByCallSign(callSign).result.headOption
+  }
+
+  def deleteRadioStationPodcast(stationId: Long, podcastId: Long) = {
+    Tables.RadioStationPodcast
+      .filter(row => row.stationId === stationId && row.podcastId === podcastId)
+      .delete
+  }
+
+  def addRadioStationPodcast(stationId: Long, podcastId: Long) = {
+    Tables.RadioStationPodcast += Tables.RadioStationPodcastRow(stationId, podcastId)
   }
 
 }

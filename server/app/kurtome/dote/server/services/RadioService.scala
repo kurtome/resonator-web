@@ -15,6 +15,10 @@ class RadioService @Inject()(db: BasicBackend#Database, radioDbIo: RadioDbIo)(
     implicit ec: ExecutionContext)
     extends LogSupport {
 
+  def readStationByCallSign(callSign: String): Future[Option[RadioStationRow]] = {
+    db.run(radioDbIo.readStationByCallSign(callSign))
+  }
+
   def readLatestPlaylistEntry(stationId: Long): Future[Option[RadioStationPlaylistRow]] = {
     db.run(radioDbIo.readLatestPlaylistEntry(stationId))
   }
@@ -34,6 +38,14 @@ class RadioService @Inject()(db: BasicBackend#Database, radioDbIo: RadioDbIo)(
   def readAllStationsWithCurrentSchedule()
     : Future[Map[RadioStationRow, Seq[(RadioStationPlaylistRow, Dotable)]]] = {
     db.run(radioDbIo.readAllStationsWithCurrentSchedule())
+  }
+
+  def addPodcastToStation(stationId: Long, podcastId: Long): Future[Unit] = {
+    db.run(radioDbIo.addRadioStationPodcast(stationId, podcastId)).map(_ => Unit)
+  }
+
+  def removePodcastFromStation(stationId: Long, podcastId: Long): Future[Unit] = {
+    db.run(radioDbIo.deleteRadioStationPodcast(stationId, podcastId)).map(_ => Unit)
   }
 
 }

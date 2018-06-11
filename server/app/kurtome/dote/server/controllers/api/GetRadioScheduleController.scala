@@ -38,7 +38,6 @@ class GetRadioScheduleController @Inject()(
     // this is sloppy due to request overhead, but should give a roughly correct offset
     val offsetMillis = requestClientTime - requestServerTime
 
-    debug("in schedule controller")
     authTokenService.simplifiedRead(request) flatMap { loggedInPerson =>
       radioService.readAllStationsWithCurrentSchedule() map { stationsWithCurrentSchedule =>
         GetRadioScheduleResponse()

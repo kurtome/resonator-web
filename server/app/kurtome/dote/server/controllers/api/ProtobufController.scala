@@ -21,6 +21,9 @@ abstract class ProtobufController[
     extends AbstractController(cc)
     with LogSupport {
 
+  type ActionRequest = TRequest
+  type ActionResponse = TResponse
+
   def parseRequest(bytes: Array[Byte]): TRequest
 
   def action(request: Request[TRequest]): Future[ProtoResponse[TResponse]]
@@ -37,6 +40,7 @@ abstract class ProtobufController[
   }
 
   def protoAction() = Action.async(new ProtoParser) { implicit request: Request[TRequest] =>
+    debug(s"handling request: ${request.body}")
     action(request) map {
       case ProtoResponse(response, okFilter) =>
         // See if request accepts gzip responses, web browsers will automatically inflate from gzip

@@ -5,5 +5,3 @@ object StationKinds extends Enumeration {
   val AM = Value("am")
   val FM = Value("fm")
 }
-
-

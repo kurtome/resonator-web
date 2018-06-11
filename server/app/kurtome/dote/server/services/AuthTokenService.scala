@@ -32,6 +32,15 @@ class AuthTokenService @Inject()(db: BasicBackend#Database,
     readLoggedInPersonFromCookie(request).map(_.data)
   }
 
+  def requireAdmin(request: Request[_]): Future[Boolean] = {
+    readLoggedInPersonFromCookie(request).map(_.data) map { loggedInPerson =>
+      assert(loggedInPerson.isDefined)
+      assert(loggedInPerson.get.id == 1)
+      assert(loggedInPerson.get.email == "kurt@melby.me")
+      true
+    }
+  }
+
   def readLoggedInPersonFromCookie(
       request: Request[_]): Future[ProduceAction[Option[Tables.PersonRow]]] = {
     Future(request.cookies.get("REMEMBER_ME")) flatMap {

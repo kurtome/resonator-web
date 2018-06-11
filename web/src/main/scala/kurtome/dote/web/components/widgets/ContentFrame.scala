@@ -64,7 +64,6 @@ object ContentFrame extends LogSupport {
     val width = Math
       .round(dom.window.document.body.offsetWidth * usableRatio)
       .toInt - (paddingPx + curDrawerWidth)
-    debug(width)
     width
   }
 

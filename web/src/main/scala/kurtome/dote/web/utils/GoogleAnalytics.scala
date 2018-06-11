@@ -30,7 +30,7 @@ object UniversalAnalytics extends LogSupport {
          ))
   }
 
-  def event(action: String, category: String, label: String): Unit = {
+  def event(category: String, action: String, label: String): Unit = {
     gtag("event",
          action,
          js.Dynamic.literal(

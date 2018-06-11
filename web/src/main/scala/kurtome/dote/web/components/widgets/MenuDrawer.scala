@@ -4,6 +4,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import kurtome.dote.web.CssSettings._
 import kurtome.dote.web.DoteRoutes._
+import kurtome.dote.web.audio.RadioTuner
 import kurtome.dote.web.components.ComponentHelpers._
 import kurtome.dote.web.components.materialui._
 import kurtome.dote.web.constants.MuiTheme
@@ -38,7 +39,7 @@ object MenuDrawer extends LogSupport {
 
   class Backend(bs: BackendScope[Props, State]) extends BaseBackend(Styles) {
 
-    private def routeClicked(p: Props, route: DoteRoute): Callback = {
+    private def routeClicked(p: Props, route: => DoteRoute): Callback = {
       doteRouterCtl.set(route) >> p.onClose
     }
 
@@ -68,7 +69,7 @@ object MenuDrawer extends LogSupport {
             ListItemIcon()(Icons.Search()),
             ListItemText()("Search")
           ),
-          ListItem(button = true, onClick = routeClicked(p, RadioDefaultRoute()))(
+          ListItem(button = true, onClick = routeClicked(p, RadioTuner.curRoute))(
             ListItemIcon()(Icons.Radio()),
             ListItemText()("Radio")
           ),

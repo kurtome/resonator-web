@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package kurtome.dote.proto.api.action;
+
+import "api/radio.proto";
+import "api/common.proto";
+
+message UpdateRadioStationDetailsRequest {
+  // required
+  string call_sign = 1;
+
+  oneof action {
+    string add_podcast_id = 2;
+    string remove_podcast_id = 3;
+  }
+}
+
+message UpdateRadioStationDetailsResponse {
+  api.ActionStatus response_status = 1;
+  // responds with the details after the change.
+  api.RadioStationDetails station_details = 3;
+}

@@ -22,7 +22,9 @@ object DoteRoutes extends LogSupport {
 
   type QueryParams = Map[String, String]
 
-  sealed trait DoteRoute
+  sealed trait DoteRoute {
+    val queryParams: QueryParams
+  }
 
   case class HomeRoute(queryParams: QueryParams = Map.empty) extends DoteRoute
 
@@ -59,6 +61,9 @@ object DoteRoutes extends LogSupport {
   case class RadioRoute(
       station: String, // station includes frequency and band suffix, e.g. "770kHz"
       queryParams: QueryParams = Map.empty)
+      extends DoteRoute
+
+  case class RadioStationDetailRoute(callSign: String, queryParams: QueryParams = Map.empty)
       extends DoteRoute
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,6 +169,10 @@ object DoteRoutes extends LogSupport {
           .caseClass[RadioDefaultRoute]) ~> dynRenderR(
           (page: RadioDefaultRoute, _) => RadioView(page)())
 
+        | dynamicRouteCT(("/radio/station/" ~ id ~ query)
+          .caseClass[RadioStationDetailRoute]) ~> dynRenderR(
+          (page: RadioStationDetailRoute, _) => RadioStationDetailView(page)())
+
         | dynamicRouteCT("/tuner" ~ ("/" ~ id ~ query)
           .caseClass[RadioRoute]) ~> dynRenderR((page: RadioRoute, _) => RadioView(page)())
 
@@ -217,6 +226,7 @@ object DoteRoutes extends LogSupport {
       case SearchRoute(params) =>
         s"${params.getOrElse(QueryParamKeys.query, "Search")} | Resonator Search"
       case RadioRoute(station, _) => s"$station | Resonator"
+      case RadioStationDetailRoute(callSign, _) => s"$callSign | Resonator"
       case FollowersRoute(username, _) => s"$username Followers | Resonator"
       case FollowingActivityRoute(_) => s"Following Activity | Resonator"
       case ProfileRoute(username, _) => s"$username Profile | Resonator"
