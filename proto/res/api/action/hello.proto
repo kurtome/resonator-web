@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package kurtome.dote.proto.action;
+package resonator.proto.action;
 
 
 // The request message containing the user's name.

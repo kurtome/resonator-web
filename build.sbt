@@ -1,5 +1,5 @@
 name := """resonator-web"""
-organization := "kurtome"
+organization := "resonator"
 version := "1.0-SNAPSHOT"
 
 val scalaV = "2.12.5"

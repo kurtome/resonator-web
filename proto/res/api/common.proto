@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package kurtome.dote.proto.api;
+package resonator.proto.api;
 
 // TODO: rename this to match scala class EffectResult
 message ActionStatus {

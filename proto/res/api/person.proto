@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package kurtome.dote.proto.api;
+package resonator.proto.api;
 
 message Person {
   string id = 1;

@@ -4,30 +4,30 @@
 # ~~~~
 
 # Load the main html page for the single page app
-GET     /                               kurtome.dote.server.controllers.HomeController.index(route="")
+GET     /                               resonator.server.controllers.HomeController.index(route="")
 
 # Load the javascript file for the web worker
-GET     /worker.js                      kurtome.dote.server.controllers.HomeController.workerJs()
+GET     /worker.js                      resonator.server.controllers.HomeController.workerJs()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.versioned(path="/public", file: Asset)
 
 
-POST /api/v1/hello                      kurtome.dote.server.controllers.api.HelloController.protoAction
-POST /api/v1/add-podcast                kurtome.dote.server.controllers.api.AddPodcastController.protoAction
-POST /api/v1/get-dotable-details        kurtome.dote.server.controllers.api.GetDotableDetailsController.protoAction
-POST /api/v1/get-feed                   kurtome.dote.server.controllers.api.GetFeedController.protoAction
-POST /api/v1/search                     kurtome.dote.server.controllers.api.SearchController.protoAction
-POST /api/v1/create-login-link          kurtome.dote.server.controllers.api.LoginLinkController.protoAction
-POST /api/v1/set-dote                   kurtome.dote.server.controllers.api.SetDoteController.protoAction
-POST /api/v1/set-follow                 kurtome.dote.server.controllers.api.SetFollowController.protoAction
-POST /api/v1/get-follower-summary       kurtome.dote.server.controllers.api.GetFollowerSummaryController.protoAction
-POST /api/v1/get-radio-schedule         kurtome.dote.server.controllers.api.GetRadioScheduleController.protoAction
-POST /api/v1/get-radio-station-details  kurtome.dote.server.controllers.api.GetRadioStationDetailsController.protoAction
-POST /api/v1/update-radio-station       kurtome.dote.server.controllers.api.UpdateRadioStationController.protoAction
+POST /api/v1/hello                      resonator.server.controllers.api.HelloController.protoAction
+POST /api/v1/add-podcast                resonator.server.controllers.api.AddPodcastController.protoAction
+POST /api/v1/get-dotable-details        resonator.server.controllers.api.GetDotableDetailsController.protoAction
+POST /api/v1/get-feed                   resonator.server.controllers.api.GetFeedController.protoAction
+POST /api/v1/search                     resonator.server.controllers.api.SearchController.protoAction
+POST /api/v1/create-login-link          resonator.server.controllers.api.LoginLinkController.protoAction
+POST /api/v1/set-dote                   resonator.server.controllers.api.SetDoteController.protoAction
+POST /api/v1/set-follow                 resonator.server.controllers.api.SetFollowController.protoAction
+POST /api/v1/get-follower-summary       resonator.server.controllers.api.GetFollowerSummaryController.protoAction
+POST /api/v1/get-radio-schedule         resonator.server.controllers.api.GetRadioScheduleController.protoAction
+POST /api/v1/get-radio-station-details  resonator.server.controllers.api.GetRadioStationDetailsController.protoAction
+POST /api/v1/update-radio-station       resonator.server.controllers.api.UpdateRadioStationController.protoAction
 
-GET      /logout                        kurtome.dote.server.controllers.LogoutRedirectController.logout
-GET      /lc/:email/:code               kurtome.dote.server.controllers.LoginRedirectController.login(email: String, code: String)
+GET      /logout                        resonator.server.controllers.LogoutRedirectController.logout
+GET      /lc/:email/:code               resonator.server.controllers.LoginRedirectController.login(email: String, code: String)
 
 # Same as the rest of the sigle page app
-GET     /*route                         kurtome.dote.server.controllers.HomeController.index(route)
+GET     /*route                         resonator.server.controllers.HomeController.index(route)

@@ -32,7 +32,7 @@
  
  ### Code
  
-  - Database code is under [server/app/kurtome/dote/server/db]()
+  - Database code is under [server/app/resonator/server/db]()
  
   - Class names:
     - `DbService` classes orchestrate multiple calls and determine

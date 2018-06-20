@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package kurtome.dote.proto.api;
+package resonator.proto.api;
 
 import "api/dotable.proto";
 import "api/dote.proto";

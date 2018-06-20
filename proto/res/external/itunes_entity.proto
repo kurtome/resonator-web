@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package kurtome.dote.proto.external;
+package resonator.proto.external;
 
 // This is the structure of a response from the iTunes JSON API:
 // https://itunes.apple.com/lookup?id={entityId}&entity={entityKind}
