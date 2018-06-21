@@ -23,6 +23,9 @@ object DoteEmoteButton extends LogSupport {
   object Styles extends StyleSheet.Inline {
     import dsl._
 
+    val container = style(
+      height(48 px)
+    )
   }
 
   case class Props(dotable: Dotable,
@@ -65,10 +68,10 @@ object DoteEmoteButton extends LogSupport {
         updateDote(newEmoteKind)
       }
 
-    def render(p: Props, s: State): VdomElement = {
+    private def renderButtons(p: Props, s: State): VdomNode = {
       val kind = p.dotable.getDote.emoteKind
       if (p.showAllOptions) {
-        GridContainer(alignItems = Grid.AlignItems.Center)(
+        ReactFragment(
           GridItem()(
             EmoteButton(emoji = Emojis.heart,
                         active = kind == EmoteKind.HEART,
@@ -102,6 +105,14 @@ object DoteEmoteButton extends LogSupport {
           onToggle = handleEmoteValueChanged(p, EmoteKind.HEART, shouldToggleOff = true)
         )()
       }
+    }
+
+    def render(p: Props, s: State): VdomElement = {
+      GridContainer(alignItems = Grid.AlignItems.Center,
+                    justify = Grid.Justify.Center,
+                    style = Styles.container)(
+        renderButtons(p, s)
+      )
     }
   }
 
