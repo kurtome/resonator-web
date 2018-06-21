@@ -12,6 +12,7 @@ object EmoteKindMapper {
       case Some(Laugh) => EmoteKind.LAUGH
       case Some(Cry)   => EmoteKind.CRY
       case Some(Scowl) => EmoteKind.SCOWL
+      case Some(Think) => EmoteKind.THINK
       case _     => EmoteKind.UNKNOWN_KIND
     }
   }
@@ -23,6 +24,7 @@ object EmoteKindMapper {
       case EmoteKind.LAUGH => Some(Laugh)
       case EmoteKind.CRY   => Some(Cry)
       case EmoteKind.SCOWL => Some(Scowl)
+      case EmoteKind.THINK => Some(Think)
       case _ => None
     }
   }

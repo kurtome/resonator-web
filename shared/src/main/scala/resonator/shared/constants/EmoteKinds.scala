@@ -6,4 +6,5 @@ object EmoteKinds extends Enumeration {
   val Laugh = Value("laugh")
   val Cry = Value("cry")
   val Scowl = Value("scowl")
+  val Think = Value("think")
 }

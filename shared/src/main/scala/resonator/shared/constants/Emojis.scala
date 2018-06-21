@@ -18,6 +18,7 @@ object Emojis {
   val poutingFace = "\uD83D\uDE21"
   val faceWithSymbolsOnMouth = "\uD83E\uDD2C"
   val heart = "❤️"
+  val thinkingFace = "\uD83E\uDD14"
 
 
   val smileEmojis = Seq(heart, grinningFace, heartEyes)
@@ -35,6 +36,7 @@ object Emojis {
       case LAUGH => grinningSquintingFace
       case CRY => cryingFace
       case SCOWL => angryFace
+      case THINK => thinkingFace
       case _ => default
     }
   }

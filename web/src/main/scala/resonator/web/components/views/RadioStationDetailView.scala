@@ -15,6 +15,7 @@ import resonator.web.rpc.ResonatorApiClient
 import resonator.web.utils.BaseBackend
 import resonator.web.utils.Debounce
 import resonator.web.utils.GlobalLoadingManager
+import resonator.web.utils.GlobalNotificationManager
 import resonator.web.utils.LoggedInPersonManager
 import scalacss.internal.mutable.StyleSheet
 import wvlet.log.LogSupport
@@ -89,12 +90,15 @@ object RadioStationDetailView extends LogSupport {
         bs.modState(_.copy(requestedCallSign = p.callSign, requestInFlight = true))
         ResonatorApiClient.updateRadioStation(request) map { response =>
           if (response.getStationDetails.getStation.callSign == p.callSign) {
-            bs.modState(
-                _.copy(response =
-                         GetRadioStationDetailsResponse(responseStatus = response.responseStatus,
-                                                        stationDetails = response.stationDetails),
-                       requestInFlight = false))
+            bs.modState(_.copy(
+                response =
+                  GetRadioStationDetailsResponse(responseStatus = response.responseStatus,
+                                                 stationDetails = response.stationDetails),
+                inputPodcastId = "",
+                requestInFlight = false
+              ))
               .runNow()
+            GlobalNotificationManager.displayMessage("Podcast added.")
           }
         }
       }
@@ -108,12 +112,15 @@ object RadioStationDetailView extends LogSupport {
         bs.modState(_.copy(requestedCallSign = p.callSign, requestInFlight = true))
         ResonatorApiClient.updateRadioStation(request) map { response =>
           if (response.getStationDetails.getStation.callSign == p.callSign) {
-            bs.modState(
-                _.copy(response =
-                         GetRadioStationDetailsResponse(responseStatus = response.responseStatus,
-                                                        stationDetails = response.stationDetails),
-                       requestInFlight = false))
+            bs.modState(_.copy(
+                response =
+                  GetRadioStationDetailsResponse(responseStatus = response.responseStatus,
+                                                 stationDetails = response.stationDetails),
+                inputPodcastId = "",
+                requestInFlight = false
+              ))
               .runNow()
+            GlobalNotificationManager.displayMessage("Podcast removed.")
           }
         }
       }

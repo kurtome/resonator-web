@@ -88,6 +88,11 @@ object DoteEmoteButton extends LogSupport {
             EmoteButton(emoji = Emojis.angryFace,
                         active = kind == EmoteKind.SCOWL,
                         onToggle = handleEmoteValueChanged(p, EmoteKind.SCOWL))()
+          ),
+          GridItem()(
+            EmoteButton(emoji = Emojis.thinkingFace,
+                        active = kind == EmoteKind.THINK,
+                        onToggle = handleEmoteValueChanged(p, EmoteKind.THINK))()
           )
         )
       } else {

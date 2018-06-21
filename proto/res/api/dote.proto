@@ -20,5 +20,6 @@ message Dote {
     LAUGH = 2;
     CRY = 3;
     SCOWL = 4;
+    THINK = 5;
   }
 }
