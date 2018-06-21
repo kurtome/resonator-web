@@ -1,6 +1,6 @@
-package resonator.server.server.util
+package resonator.server.util
 
-import resonator.server.server.util.UrlIds.IdKinds
+import resonator.server.util.UrlIds.IdKinds
 import org.scalatest.WordSpec
 
 class UrlIdsTest extends WordSpec {
