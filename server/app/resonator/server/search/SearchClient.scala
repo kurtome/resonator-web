@@ -67,30 +67,30 @@ class SearchClient @Inject()(configuration: Configuration)(implicit ec: Executio
 
   import com.sksamuel.elastic4s.http.ElasticDsl._
 
-  private val esUrl =
-    configuration
-      .get[String]("resonator.search.elasticsearch.url")
-      .replace("https://", "")
-      .replace("http://", "")
+//  private val esUrl =
+//    configuration
+//      .get[String]("resonator.search.elasticsearch.url")
+//      .replace("https://", "")
+//      .replace("http://", "")
 
-  private val esPwd =
-    configuration.get[String]("resonator.search.elasticsearch.pwd")
+//  private val esPwd =
+//    configuration.get[String]("resonator.search.elasticsearch.pwd")
 
-  private val esPort =
-    configuration.get[Int]("resonator.search.elasticsearch.port")
+//  private val esPort =
+//    configuration.get[Int]("resonator.search.elasticsearch.port")
 
-  private val esSsl =
-    configuration.get[String]("resonator.search.elasticsearch.ssl")
+//  private val esSsl =
+//    configuration.get[String]("resonator.search.elasticsearch.ssl")
 
 //  private val clientUri =
 //    ElasticsearchClientUri(null, List((esUrl, esPort)), Map("ssl" -> esSsl))
 
-  lazy val provider = {
-    val provider = new BasicCredentialsProvider
-    val credentials = new UsernamePasswordCredentials("elastic", esPwd)
-    provider.setCredentials(AuthScope.ANY, credentials)
-    provider
-  }
+//  lazy val provider = {
+//    val provider = new BasicCredentialsProvider
+//    val credentials = new UsernamePasswordCredentials("elastic", esPwd)
+//    provider.setCredentials(AuthScope.ANY, credentials)
+//    provider
+//  }
 //  val client = HttpClient(
 //    clientUri,
 //    new RequestConfigCallback {
