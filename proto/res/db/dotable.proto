@@ -32,6 +32,7 @@ message DotableDetails {
     string language_code = 4;
     string language_display= 5;
     ExternalUrls external_urls = 6;
+    string email = 7;
   }
 
   message PodcastEpisode {

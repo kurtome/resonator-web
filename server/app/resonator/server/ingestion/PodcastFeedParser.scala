@@ -89,6 +89,7 @@ class PodcastFeedParser @Inject()() extends LogSupport {
         .distinct
 
     val author: String = podcast \ "author"
+    val email: String = podcast \ "owner" \ "email"
 
     val episodeNodes = podcast \ "item"
     val episodes = episodeNodes map parseEpisode sortBy { ep =>
@@ -114,6 +115,7 @@ class PodcastFeedParser @Inject()() extends LogSupport {
       ),
       details = DotableDetails.Podcast(
         websiteUrl = websiteUrl,
+        email = email,
         author = author,
         imageUrl = imageUrl,
         externalUrls = Some(ExternalUrls(itunes = itunesUrl)),

@@ -165,6 +165,7 @@ object PodcastDetails {
         Seq[DetailFieldList.DetailField](
           DetailField("Website",
                       LinkFieldValue(podcastDetails.websiteUrl, podcastDetails.websiteUrl)),
+          DetailField("Email", TextFieldValue(podcastDetails.email)),
           DetailField("Language", TextFieldValue(podcastDetails.languageDisplay)),
           DetailField("Listen", LinkFieldValue("iTunes", podcastDetails.getExternalUrls.itunes))
         ) filter { field =>
