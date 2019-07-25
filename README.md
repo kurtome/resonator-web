@@ -1,6 +1,12 @@
+# State of project
+This project is not under active development, it was hosted at https://resonator.fm, but is
+no longer being supported.
+
+# Docs
+
 Other detailed documentation is in the [doc/](doc/) directory.
 
-# Running locally
+## Running locally
 
 Compile and run the `server` project:
 
